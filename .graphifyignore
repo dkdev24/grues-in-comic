@@ -30,6 +30,11 @@ NOTICE
 importer/artifacts/
 package-lock.json
 
+# Package/toolchain config — contributes ~30% of graph nodes as pure metadata
+# noise (name/version/compilerOptions...), no structural signal
+package.json
+tsconfig.json
+
 # Verification ground truth (transcripts, goldens, harness) — not engine source
 verification/
 

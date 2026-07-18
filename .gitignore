@@ -46,5 +46,8 @@ node_modules/
 # Firecrawl scrape cache
 .firecrawl/
 
+# Graphify local extraction cache (outputs themselves are committed)
+graphify-out/cache/
+
 # ZILF build output
 verification/build/
