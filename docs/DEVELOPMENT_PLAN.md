@@ -29,7 +29,7 @@ Goal: a deterministic S-expression parser producing a complete AST of the Zork I
 |---|---|---|---|
 | 1.1 | **Parser POC** — S-expression lexer/parser handling one representative file (e.g. rooms/objects file); pick implementation language pragmatically (TypeScript is the candidate — feeds Gate B) | Parses one full source file into a typed AST with tests | ☑ |
 | 1.2 | **Full-corpus parse** — extend to all `zork1` files; handle ZIL syntax edge cases (reader macros, strings, comments) | 100% of files parse or every failure is catalogued with cause | ☑ |
-| 1.3 | **AST artifacts** — serialize ASTs to JSON; emit corpus statistics (counts of ROOM/OBJECT/ROUTINE/GLOBAL/TABLE, etc.) | Committed AST output + stats report; parser re-runnable with one command | ☐ |
+| 1.3 | **AST artifacts** — serialize ASTs to JSON; emit corpus statistics (counts of ROOM/OBJECT/ROUTINE/GLOBAL/TABLE, etc.) | Committed AST output + stats report; parser re-runnable with one command | ☑ |
 
 ---
 

@@ -8,10 +8,12 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "parse": "vitest run test/parse-1dungeon.test.ts"
+    "parse": "vitest run test/parse-1dungeon.test.ts",
+    "artifacts": "tsx src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
     "typescript": "^5.5.0",
     "vitest": "^3.0.0"
   }

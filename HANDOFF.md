@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.3.1**
+**0.3.2**
 
 ---
 
@@ -17,27 +17,27 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-Milestone 1 in progress: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus (stages 1.1–1.2 done). No IR schema defined. No engine or browser runtime started.
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). No IR schema defined. No engine or browser runtime started.
 
 ---
 
 ## Last Session
 
-- **Stage 1.2 complete — full-corpus parse validation** (v0.3.1). All 10 `.zil` files parse; validation went beyond "no crash":
-  - **Lexer bug found and fixed**: MDL oblist trailer `!-` (`RETURN!-` in `gmacros.zil`, 4×) was silently split into `RETURN` + segment; `!-` now continues the atom. This was the only real defect — everything else parsed correctly
-  - **New `src/printer.ts`** (AST → canonical text) powering a round-trip invariant: `parse(print(ast))` structurally equals `ast` for every corpus file
-  - **New `test/parse-corpus.test.ts`**: per-file ground-truth counts for all 10 files, corpus totals (110 ROOM / 140 OBJECT / 439 top-level + 3 macro-nested ROUTINE forms), edge-case assertions; 44 tests total, all pass
-  - **Edge-case catalogue** (full list in `importer/README.md`): three page-break spellings (`\`+FF, literal `^L`, `/^L`); `%<COND …>` macro in `gmain.zil` lines 180–312 conditionally defines 2 ROUTINEs + quoted `'<ROUTINE PERFORM …>`; escaped `\#RANDOM`-style debug verbs in `gsyntax.zil`; only `#DECL`/`#BYTE` chtypes; **column-1 grep ≠ top-level structure** (3 nested forms in `1actions.zil` start at column 1) — earlier feasibility counts (441 routines) were grep-based and are now corrected by parser truth
-- Session protocol note: stage 1.1 (previous session) established `importer/` (TypeScript + vitest); Gate B data point unchanged — TypeScript remains frictionless
+- **Stage 1.3 complete — AST artifacts** (v0.3.2, **closes Milestone 1**):
+  - New `src/stats.ts` + `src/cli.ts`; `npm run artifacts` (in `importer/`) parses the corpus and writes `importer/artifacts/`: `ast/*.json` (10 full ASTs with source positions, 6.3 MB), `stats.json`, `STATS.md` — deterministic output, clean git diff on unchanged source
+  - Corpus numbers (parser truth, in `STATS.md`): 11,899 lines → 52,569 AST nodes; top-level 110 ROOM / 140 OBJECT / 439 ROUTINE / 152 GLOBAL / 101 CONSTANT / 267 SYNTAX / 74 SYNONYM / 15 DEFMAC; tables at any depth: 28 TABLE / 147 LTABLE / 16 ITABLE
+  - Suite now 47 tests (stats unit tests added; a markdown-separator bug in the report renderer was caught by them)
+- Milestone 1 recap: stages 1.1 (parser POC), 1.2 (full-corpus validation + `!-` lexer fix + round-trip invariant), 1.3 (artifacts). TypeScript frictionless throughout — key Gate B data point
 
 ---
 
 ## Next Actions
 
-Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Immediate queue:
+Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 (IR Schema & Runtime ADR, v0.4.x) is next:
 
-1. Stage 1.3 — AST artifacts: serialize ASTs to JSON, emit corpus statistics (ROOM/OBJECT/ROUTINE/GLOBAL/TABLE counts), one-command re-run; closes Milestone 1
-2. Stage 2.1 — IR schema for the declarative world (rooms, objects, exits, globals, tables)
+1. Stage 2.1 — IR schema: declarative world (ROOM, OBJECT, exits, GLOBAL, TABLE, flags/properties) + validator; hand-write IR for 2–3 rooms
+2. Stage 2.2 — IR schema: behavior representation (⚑ Gate B input)
+3. Stage 5.1 (Comic Chat analysis) is the sanctioned filler stage if a session can't tackle IR work
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):
 
@@ -61,7 +61,7 @@ Resolved 2026-07-18 (stage 0.3): comic-chat compiled binaries stay tracked — t
 
 | Path | Purpose |
 |---|---|
-| `importer/` | ZIL Semantic Importer — TypeScript S-expression parser (stage 1.1) |
+| `importer/` | ZIL Semantic Importer — parser, tests, committed AST artifacts (`artifacts/`) |
 | `original-projects/zork1/` | ZIL source reference |
 | `original-projects/comic-chat/` | Comic Chat source reference |
 | `docs/` | Project documentation |
