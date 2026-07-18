@@ -16,7 +16,7 @@ Goal: establish behavioral ground truth and validate assumptions before building
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|
 | 0.1 | **Toolchain setup** — install ZILF and frotz (dfrotz); compile `original-projects/zork1/` to `.z3`. Note: `original-projects/zork1/COMPILED/zork1.z3` is a shipped reference build — transcripts (0.2) can start from it even if the ZILF compile needs source patches (see github.com/The-ZIL-Files for ZILF-compatible tweaks) | `zork1.z3` builds reproducibly; build steps scripted and documented; diff vs. shipped `.z3` noted | ☑ |
-| 0.2 | **Golden transcript harness** — script dfrotz to run command lists and capture transcripts; create first walkthrough scripts (opening area, mailbox/leaflet, house entry) | `verification/` contains runner script + ≥3 golden transcripts, re-runnable with one command | ☐ |
+| 0.2 | **Golden transcript harness** — script dfrotz to run command lists and capture transcripts; create first walkthrough scripts (opening area, mailbox/leaflet, house entry) | `verification/` contains runner script + ≥3 golden transcripts, re-runnable with one command | ☑ |
 | 0.3 | **Repo hygiene** — resolve small open issues: `.gitignore` for compiled binaries in comic-chat, dangling item 4 in Gemini doc, consolidate duplicated pipeline diagrams to one canonical location, remove stale HANDOFF entries | Open Issues list in `HANDOFF.md` pruned | ☐ |
 
 ---

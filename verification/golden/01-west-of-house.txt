@@ -1,0 +1,58 @@
+Using normal formatting.
+Loading /Users/daniel/Sites/grues-in-comic/original-projects/zork1/COMPILED/zork1.z3.
+ West of House                                    Score: 0        Moves: 0
+
+ZORK I: The Great Underground Empire
+Infocom interactive fiction - a fantasy story
+Copyright (c) 1981, 1982, 1983, 1984, 1985, 1986 Infocom, Inc. All rights
+reserved.
+ZORK is a registered trademark of Infocom, Inc.
+Release 119 / Serial number 880429
+
+West of House
+You are standing in an open field west of a white house, with a boarded front
+door.
+There is a small mailbox here.
+
+> West of House                                    Score: 0        Moves: 1
+
+West of House
+You are standing in an open field west of a white house, with a boarded front
+door.
+There is a small mailbox here.
+
+> West of House                                    Score: 0        Moves: 2
+
+The small mailbox is closed.
+
+> West of House                                    Score: 0        Moves: 3
+
+Opening the small mailbox reveals a leaflet.
+
+> West of House                                    Score: 0        Moves: 4
+
+Taken.
+
+> West of House                                    Score: 0        Moves: 5
+
+"WELCOME TO ZORK!
+
+ZORK is a game of adventure, danger, and low cunning. In it you will explore
+some of the most amazing territory ever seen by mortals. No computer should be
+without one!"
+
+> West of House                                    Score: 0        Moves: 6
+
+Dropped.
+
+> West of House                                    Score: 0        Moves: 7
+
+West of House
+You are standing in an open field west of a white house, with a boarded front
+door.
+A small leaflet is on the ground.
+There is a small mailbox here.
+
+>Your score is 0 (total of 350 points), in 7 moves.
+This gives you the rank of Beginner.
+Do you wish to leave the game? (Y is affirmative): >

@@ -62,3 +62,21 @@ Docs and repo renamed. Local directory rename pending. No engine code yet.
 ### Status
 
 Planning complete. Next up: Milestone 0 (verification harness and ground truth). No engine code yet.
+
+---
+
+## v0.2.0 — Verification Harness (Milestone 0, stages 0.1–0.2)
+
+**Date:** 2026-07-18
+
+### Changes
+
+- Installed toolchain: ZILF/ZAPF 0.11.1 (native macOS arm64), frotz 2.55 (dfrotz)
+- `verification/build.sh`: reproducible out-of-tree compile of the unmodified historical ZIL source to `verification/build/zork1.z3` — compiles clean (28 tab-printing warnings, no errors, no source patches needed)
+- `verification/run-transcripts.sh`: golden transcript harness — runs `walkthroughs/*.cmd` under `dfrotz -m -p -s 1234` against the shipped reference build (Release 119 / Serial 880429), diffs against `golden/*.txt`; capture and check modes; `STORY=` override for testing other builds (later: the engine itself)
+- Captured three deterministic golden transcripts: west-of-house, house-entry, cellar-descent
+- Cross-validated: ZILF build matches shipped build behaviorally except version banner and Kitchen object-listing order — preserved source confirmed faithful
+
+### Status
+
+Verification ground truth established. Stage 0.3 (repo hygiene) remains to close Milestone 0.

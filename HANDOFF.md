@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.1.2**
+**0.2.0**
 
 ---
 
@@ -34,10 +34,13 @@ No engine code exists yet. No IR schema defined. No browser runtime started.
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Immediate queue:
 
-1. Stage 0.2 — golden transcript harness + first walkthrough transcripts (use shipped `COMPILED/zork1.z3`, Release 119/880429, as ground truth)
-2. Stage 0.3 — repo hygiene (`.gitignore` for comic-chat binaries, Gemini doc dangling item, consolidate pipeline diagrams, prune stale Open Issues below)
+1. Stage 0.3 — repo hygiene (`.gitignore` for comic-chat binaries, Gemini doc dangling item, consolidate pipeline diagrams, prune stale Open Issues below) — completes Milestone 0
+2. Stage 1.1 — ZIL S-expression parser POC (one representative file → typed AST with tests)
 
-Stage 0.1 is ☑ done: ZILF/ZAPF 0.11.1 installed at `~/.local/opt/zilf-0.11.1-osx-arm64` (symlinked into `~/.local/bin`), frotz 2.55 via Homebrew. `verification/build.sh` compiles the untouched historical source out-of-tree to `verification/build/zork1.z3` (86,696 bytes, only tab-printing warnings). ZILF build reports Release 0 with current-date serial; both it and the shipped Release 119/880429 build run correctly under scripted `dfrotz -m -q`.
+Stages 0.1 and 0.2 are ☑ done:
+
+- **0.1 toolchain**: ZILF/ZAPF 0.11.1 at `~/.local/opt/zilf-0.11.1-osx-arm64` (symlinked into `~/.local/bin`), frotz 2.55 via Homebrew. `verification/build.sh` compiles the untouched historical source out-of-tree to `verification/build/zork1.z3` (86,696 bytes, only tab-printing warnings)
+- **0.2 harness**: `verification/run-transcripts.sh` (check/capture modes, `STORY=` override) runs `verification/walkthroughs/*.cmd` under `dfrotz -m -p -s 1234` against the shipped `COMPILED/zork1.z3` and diffs against `verification/golden/*.txt`. Three goldens captured (west-of-house, house-entry, cellar-descent), deterministic across runs. **ZILF build vs. shipped build: identical except banner (Release 0/current date vs. 119/880429) and Kitchen object-listing order (sack/bottle swapped)** — historical source is behaviorally faithful; the `STORY=` override is the future engine-parity entry point (stage 4.4)
 
 ---
 
