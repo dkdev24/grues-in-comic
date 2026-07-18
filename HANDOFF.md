@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.5.1**
+**0.5.2**
 
 ---
 
@@ -17,12 +17,13 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A resolved split: Graphify adopted with per-module graphs; OpenWiki deferred — see Open Issues). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stages 3.1–3.2 complete — all 110 Zork I rooms/exits and all 137 objects (properties, flags, containment, initial locations) in `ir/artifacts/zork1.world.json`, verified against source; IR schema at 0.2.0. No engine or browser runtime started (Milestone 4).
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A: Graphify adopted with per-module graphs; OpenWiki **not adopted** — no budget, `wiki/` hand-authored). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stages 3.1–3.2 complete — all 110 Zork I rooms/exits and all 137 objects (properties, flags, containment, initial locations) in `ir/artifacts/zork1.world.json`, verified against source; IR schema at 0.2.0. No engine or browser runtime started (Milestone 4).
 
 ---
 
 ## Last Session
 
+- **OpenWiki decision finalized: not adopted** (v0.5.2): Daniel initialized OpenWiki in-repo; verification showed the free-tier LLM path cannot work (null completions from the `openrouter/free` router; pinned free model killed by the 16 req/min limit mid-run) and paid models are off the table for now (no budget). Repo scaffolding removed (`openwiki/`, `.github/workflows/openwiki-update.yml`, AGENTS.md snippet), CLAUDE.md deduplicated to `@AGENTS.md` only, decision recorded in `AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` / AGENTS.md / DEVELOPMENT_PLAN / Open Issues (resolved)
 - **Stage 3.2 complete — all objects extracted** (v0.5.1):
   - `extract-world.ts` extended to full object extraction: **137 objects** (140 OBJECT forms minus the 3 ZIL scaffolding objects GLOBAL-OBJECTS/LOCAL-GLOBALS/ROOMS, which the IR represents structurally) — properties, flags, containment, initial locations (73 room / 20 object / 20 local-globals / 14 global / 10 nowhere); 132 routine refs, 28 flags in registry
   - **IR schema 0.1.0 → 0.2.0** (additive, `docs/IR_SCHEMA.md` updated): location kind `"global"` (ZIL GLOBAL-OBJECTS — in scope everywhere, distinct from local-globals), `vehicleType` (VTYPE; boat → NONLANDBIT, validated against flag registry), `descriptionRoutine` (DESCFCN; bat). `(ACTION 0)` (ADVENTURER) maps to absent
@@ -51,9 +52,10 @@ Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). **Milestone 3 cont
 
 ## Open Issues
 
-- **OpenWiki decision deferred** (2026-07-18): Daniel hit an LLM-provider integration issue while testing OpenWiki on another project. `wiki/` stays hand-authored until revisited — likely much later; not blocking Milestones 3–4. When resolved, update `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` ("Stage 2.4 Validation" section) and AGENTS.md Knowledge Separation rules
 - Neutral (non-IF-lore) branding for the commercial assets (engine, IR, importer) still open — "Grues in Comic" names the game/project
 - Kitchen object-listing order differs between the ZILF build and the shipped Release 119 build (sack/bottle swapped) — harmless for now, but decide which ordering the engine must reproduce when stage 4.4 parity work starts
+
+Resolved 2026-07-18 (v0.5.2): **OpenWiki not adopted** — in-repo validation showed the free `openrouter/free` router returns null completions on repo-scale prompts (empty wiki, silent "success"), and a pinned free model (`nvidia/nemotron-3-ultra-550b-a55b:free`) aborts on OpenRouter's 16 req/min free-tier limit (OpenWiki v0.2.0 has no backoff); reliable runs need a paid model and this side project has no budget at present. `wiki/` stays hand-authored; all OpenWiki scaffolding removed from the repo; decision doc, AGENTS.md, and DEVELOPMENT_PLAN Gate A note updated. Revisit only if budget appears or OpenWiki gains rate-limit backoff. Note: Daniel's *global* `~/.openwiki/` config (whatifclassics ingestion source, 02:00 launchd job, 01:58 pmset wake schedule, API keys) is outside this repo and was left untouched.
 
 Resolved 2026-07-18 (stage 2.3): engine implementation language — TypeScript per ADR 0002 (⚑ Gate B); PORTING_STRATEGY.md and AGENTS.md updated, WASM assumption removed (IR independence lists still name WASM deliberately — independence survives non-use).
 
@@ -70,7 +72,7 @@ Resolved 2026-07-18 (stage 0.3): comic-chat compiled binaries stay tracked — t
 | `original-projects/zork1/` | ZIL source reference |
 | `original-projects/comic-chat/` | Comic Chat source reference |
 | `docs/` | Project documentation |
-| `wiki/` | Semantic architecture notes (hand-authored; OpenWiki deferred) |
+| `wiki/` | Semantic architecture notes (hand-authored; OpenWiki not adopted) |
 | `<module>/graphify-out/` | Graphify structural graphs per module (`importer/`, `ir/`); config in `.graphifyignore` |
 | `WORKLOG.md` | Persistent project history |
 | `AGENTS.md` | Agent workflow rules (single source for all agents) |

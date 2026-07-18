@@ -386,9 +386,15 @@ Adopted configuration:
 
 Validation finding — **IR world data is out of Graphify's structural scope**: `ir/samples/*.world.json` yields zero nodes from AST extraction (confirmed by graphify's own warning, upstream #1666). Graphify graphs the *modernized source code*. If a rooms/exits/objects graph of the IR world is wanted (Milestone 3+), the plan's sanctioned fallback applies: a small deterministic IR→graph exporter — consistent with this document's original caveat ("requires structured input for unsupported languages").
 
-## OpenWiki — VALIDATION DEFERRED
+## OpenWiki — NOT ADOPTED
 
-Off-project testing hit an LLM-provider integration issue (2026-07-18). Decision postponed; not blocking Milestones 3–4. Interim fallback (already the operational rule): `wiki/` holds human- and AI-authored Markdown. Revisit tracked in `HANDOFF.md` Open Issues.
+Decision finalized 2026-07-18 after in-repo validation (`openwiki` v0.2.0, provider OpenRouter):
+
+* An init run with the `openrouter/free` model router "succeeded" but generated an empty wiki: the router sends each request to a random free community model, and on repository-scale prompts most returned **null content with `finish_reason: "length"`** (reasoning tokens consumed the whole budget) — the agent loop reads empty completions as "done" and exits without error.
+* A retry with a pinned free model (`nvidia/nemotron-3-ultra-550b-a55b:free`, 1M context) got 45 messages into a genuine tool-calling run, then aborted on OpenRouter's free-tier rate limit (**16 requests/min across all `:free` models**; 50/day below $10 credit). OpenWiki v0.2.0 has no backoff/retry, so agentic generation cannot complete on the free tier regardless of which free model is pinned.
+* Reliable operation therefore requires a paid model (OpenWiki's own CI template pins `z-ai/glm-5.2`). **There is no budget for this side project at present, so OpenWiki is not adopted.** All OpenWiki scaffolding (repo `openwiki/`, GitHub Actions workflow, AGENTS.md snippet) has been removed.
+
+The fallback is the standing rule: `wiki/` holds hand-authored Markdown. Revisit only if budget appears or OpenWiki gains rate-limit backoff that makes free-tier runs viable.
 
 ---
 
@@ -399,11 +405,11 @@ The Grues in Comic project officially adopts the following baseline AI knowledge
 | Category             | Selected Tool |
 | -------------------- | ------------- |
 | Structural Knowledge | Graphify      |
-| Semantic Knowledge   | OpenWiki      |
+| Semantic Knowledge   | hand-authored `wiki/` (OpenWiki not adopted — see validation section) |
 
-These tools will be integrated into the standard AI development workflow.
+These will be integrated into the standard AI development workflow.
 
-Additional tools may be evaluated in the future, but Graphify and OpenWiki constitute the project's long-term foundation.
+Additional tools may be evaluated in the future, but Graphify plus the hand-authored `wiki/` constitute the project's current foundation.
 
 ---
 
@@ -430,7 +436,7 @@ Examples:
 
 **Semantic Knowledge**
 
-Maintained by OpenWiki.
+Maintained in hand-authored `wiki/` (OpenWiki not adopted — see validation section).
 
 Answers:
 
