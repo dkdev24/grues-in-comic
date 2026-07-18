@@ -72,46 +72,15 @@ For any substantial task:
 
 ## Knowledge Separation
 
-### Graphify
+The project separates structural knowledge (**Graphify** → `graph/`) from semantic knowledge (**OpenWiki** → `wiki/`). Graphify answers **how** the system is organized; OpenWiki answers **why** it is designed that way. Both consume the Intermediate Representation or modernized source, never raw ZIL.
 
-- Repository: https://github.com/Graphify-Labs/graphify
-- Purpose: Structural understanding.
-- Examples:
-  * dependency graphs
-  * module relationships
-  * object graphs
-  * architecture visualization
+The canonical description of this pipeline — tool responsibilities, repositories, and the architecture diagram — is `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`. Do not duplicate it here or elsewhere.
 
-Graphify should operate on structured Intermediate Representation (IR) or modernized source code.
-Generated files belong in:
+Operational rules:
 
-```text
-graph/
-```
-
-Never edit generated graph files manually.
-
----
-
-### OpenWiki
-
-- Repository: https://github.com/langchain-ai/openwiki
-- Purpose: Semantic understanding.
-- OpenWiki documentation explains:
-  * architecture
-  * gameplay systems
-  * parser behavior
-  * migration decisions
-  * browser integration
-  * design rationale
-
-Documentation belongs in:
-
-```text
-wiki/
-```
-
-Graphify answers **how** the system is organized. OpenWiki answers **why** the system is designed that way.
+* Generated files in `graph/` are never edited manually.
+* Human- and AI-authored documentation belongs in `wiki/`.
+* Neither tool is installed yet — validation happens at plan stage 2.4 (see `docs/DEVELOPMENT_PLAN.md`, Gate A).
 
 ---
 

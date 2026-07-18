@@ -80,3 +80,20 @@ Planning complete. Next up: Milestone 0 (verification harness and ground truth).
 ### Status
 
 Verification ground truth established. Stage 0.3 (repo hygiene) remains to close Milestone 0.
+
+---
+
+## v0.2.1 — Repo Hygiene (Milestone 0 complete)
+
+**Date:** 2026-07-18
+
+### Changes
+
+- Comic Chat compiled binaries (`v2.5-beta-1/base/objd/`, 4.1 MB) kept tracked: part of the faithful upstream historical import
+- Annotated the truncated fourth recommendation in `docs/gemini-analysis-on-plan-and-strategy.md` (unrecoverable; items 1–3 complete and adopted)
+- Consolidated the AI knowledge pipeline description: `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` is canonical; AGENTS.md keeps only operational rules, PORTING_STRATEGY.md keeps a summary — both reference the canonical doc
+- Pruned HANDOFF Open Issues; added one new issue: Kitchen object-listing order difference between ZILF and shipped builds (decide ground-truth ordering before stage 4.4)
+
+### Status
+
+**Milestone 0 complete.** Verification ground truth and clean repo baseline established. Next: Milestone 1 (deterministic ZIL parser), stage 1.1.

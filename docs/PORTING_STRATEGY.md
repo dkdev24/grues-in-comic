@@ -153,76 +153,9 @@ should become an IR node representing a room with its properties and relationshi
 
 ## AI Knowledge Pipeline
 
-Grues in Comic distinguishes between semantic understanding and structural understanding.
-The recommended pipeline is:
+Grues in Comic distinguishes between structural understanding (Graphify → `graph/`) and semantic understanding (OpenWiki → `wiki/`). Both tools operate downstream of the Intermediate Representation — neither parses ZIL directly.
 
-```text
-          ZIL
-           │
-           ▼
-   Semantic Analyzer
-           │
-           ▼
- Intermediate Representation
-      │               │
-      ▼               ▼
- Graphify         OpenWiki
-(structure)     (semantics)
-      │               │
-      └───────┬───────┘
-              ▼
-       AI Coding Agents
-              ▼
-      Grues in Comic Engine
-```
-
-This architecture allows AI agents to understand both the code structure and the gameplay semantics.
-
-### Graphify
-
-- Repository: https://github.com/Graphify-Labs/graphify
-
-Graphify is responsible for structural knowledge.
-Typical outputs include:
-
-* dependency graphs
-* call graphs
-* module relationships
-* object relationships
-* architecture visualization
-
-Graphify does not currently understand ZIL directly. Instead, Graphify should operate on the Intermediate Representation or other structured outputs generated during semantic analysis.
-
-Generated artifacts belong in:
-
-```
-graph/
-```
-
-These files should never be edited manually.
-
-### OpenWiki
-
-- Repository: https://github.com/langchain-ai/openwiki
-
-OpenWiki is responsible for semantic knowledge. Unlike Graphify, OpenWiki does not require language-specific parsing.
-Large language models can explain ZIL source directly and generate documentation describing:
-
-* gameplay systems
-* parser behavior
-* room architecture
-* puzzle mechanics
-* migration rationale
-* browser integration
-* design decisions
-
-Documentation belongs in:
-
-```
-wiki/
-```
-
-OpenWiki complements Graphify. Graphify explains **how** the system is connected. OpenWiki explains **why** it behaves that way.
+The canonical description of this pipeline — architecture diagram, tool responsibilities, repositories, and the evaluation that led to it — is `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`. Operational rules for agents are in `AGENTS.md` (Knowledge Separation).
 
 ---
 

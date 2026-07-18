@@ -57,4 +57,5 @@ Comic-Zork는 1인 비즈니스의 지속 가능한 지식 자산을 만들기 �
 1. **ZIL 프리파서 도입**: 에이전트의 추론 에러를 줄이기 위한 결정적(Deterministic) 구문 분석 계층 도입.
 2. **인터페이스 중심 설계**: WASM 내부 게임 엔진과 외부 웹 UI 간의 직렬화(Serialization) 규격 선제 정의.
 3. **브랜드 분리**: 레거시 IP 리스크를 회피하고 상용화 전환이 용이하도록 코어 엔진과 IR의 독자 브랜드화 추진.
-4.
+
+*[Editor's note, 2026-07-18: the original capture ended with a dangling "4." — the fourth item was truncated at capture time and is not recoverable. Items 1–3 are complete; all three have been adopted into the development plan.]*
