@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.4.2**
+**0.4.3**
 
 ---
 
@@ -17,30 +17,28 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. No engine or browser runtime started (Milestone 4).
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A resolved split: Graphify adopted with per-module graphs; OpenWiki deferred — see Open Issues). No engine or browser runtime started (Milestone 4).
 
 ---
 
 ## Last Session
 
-- **Stage 2.3 complete — engine runtime decided, ⚑ Gate B resolved** (v0.4.2):
-  - **ADR 0002** (`docs/adr/0002-engine-runtime.md`, Accepted): the engine is a **zero-dependency TypeScript package (`engine/`, Milestone 4)**; WebAssembly dropped as a target. Evidence: TS frictionless across importer/IR/interpreter; ADR 0001 made behavior data, so the engine is a modest interpreter with no perf case for native code; transcript verification runs in Node. Portability lives in the artifacts (IR + serialized contract), not the implementation — a future WASM/native engine stays possible, unplanned
-  - **Engine↔UI contract fixed interface-first** (in ADR 0002): engine = pure, deterministic, synchronous state machine; `command(input) → TurnResult{events}`, `snapshot()/restore()`; seeded RNG (same world+seed+commands ⇒ identical events — the stage 4.4 parity lever); versioned JSON event union (`narration` with channels / `speech` with speaker — the comic layer's hook / `player-moved` / `object-moved` / `score-changed` / `game-over` / `question`); events are semantic, never presentational; vocabulary grows additively under `contractVersion` in Milestone 4
-  - **WASM assumption removed from docs** (exit criteria): PORTING_STRATEGY.md (overview, architecture diagram, Phase 4 → "Browser Integration", vision) and AGENTS.md objectives now say TypeScript engine + web-native UI; IR independence lists intentionally still include WASM
-  - **Plan revised per Gate B**: gate note marked resolved; Milestone 4 goal now names `engine/`, ADR 0001+0002; Milestones 3/5 structurally unchanged
-  - No code this stage (ADR + doc updates only); suite stays 43 green
+- **Stage 2.4 complete — ⚑ Gate A resolved (split), closes Milestone 2** (v0.4.3):
+  - **Graphify adopted** (validation findings recorded in `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`, "Stage 2.4 Validation"): field-validated by Daniel on another project, then in-repo — per-module graphs committed (`importer/graphify-out/`: 83 nodes/202 edges/6 communities; `ir/graphify-out/`: 94/210/13, with `GRAPH_REPORT.md` + `graph.html`); all edges EXTRACTED (deterministic AST, no LLM cost), health clean, communities/god nodes match the real architecture
+  - Adopted config: `.graphifyignore` code-only corpus (no docs/images/configs/`original-projects/`/generated artifacts; configs alone were ~30% node noise); **per-module graphs in `<module>/graphify-out/` supersede the old `graph/` location** — AGENTS.md + decision doc updated; agent integration installed (hook guards, CLAUDE.md/AGENTS.md graphify rules, `graphify update .` after code changes)
+  - **Finding**: IR world JSON produces zero AST nodes (upstream graphify #1666) — Graphify graphs modernized *source*; an IR rooms/exits graph, if wanted later, is a small deterministic IR→graph exporter (sanctioned fallback)
+  - **OpenWiki deferred** (Daniel hit an LLM-provider integration issue testing it off-project): `wiki/` stays hand-authored (the fallback, already the operational rule); revisit tracked in Open Issues; not blocking Milestones 3–4
+- Earlier same day: stage 2.3 (ADR 0002: TypeScript engine, Gate B resolved), stage 2.2 (ADR 0001: behavior AST + POC), stage 2.1 (declarative-world IR schema + validator + sample)
 
 ---
 
 ## Next Actions
 
-Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 has one stage left:
+Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). **Milestone 3 begins** (Semantic Extraction ZIL→IR, v0.5.x):
 
-1. Stage 2.4 — **Knowledge tooling validation POC** (⚑ Gate A): hands-on test of Graphify and OpenWiki against the real IR from 2.1–2.2; verify repos/capabilities match `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`; adopt or fall back to plain generated Markdown/JSON graphs; first `graph/` artifacts + `wiki/` pages (or fallback chosen)
-   - **Progress (2026-07-18, ahead of the formal stage)**: `.graphifyignore` in place (code-only corpus; configs excluded too — they were ~30% noise); per-module graphs built and committed (`importer/graphify-out/`: 83 nodes/202 edges, `ir/graphify-out/`: 94/210; reports + HTML; all edges EXTRACTED, health clean; communities map to real architecture). **Key finding**: `ir/samples/*.world.json` yields zero nodes from AST extraction (graphify warns, upstream #1666) — Graphify graphs the *source*, not IR world data; the rooms/exits graph needs graphify's LLM path or our own deterministic IR→graph exporter (plan's fallback). Still open for 2.4: OpenWiki validation; reconcile `graph/` (AGENTS canonical) vs `graphify-out/` (tool default + installed hooks)
-   - **Field input (Daniel, 2026-07-18)**: Graphify already validated on another project — it worked and surfaced real codebase issues. Config lessons to apply here: (a) ignore non-code file types (`.md`, images — matches the Graphify-structure vs. OpenWiki-semantics separation; also exclude generated output: `importer/artifacts/`, `graph/`); (b) create **separate graphs per major module** — here `importer/` and `ir/` now, `engine/`/UI later; (c) repo-specific: exclude `original-projects/` (AGENTS.md forbids Graphify consuming raw ZIL), `verification/`, `node_modules/`
-2. After 2.4: Milestone 3 begins (ZIL→IR extraction, v0.5.x) — 3.1 world model (all rooms + connectivity)
-3. Stage 5.1 (Comic Chat analysis) is the sanctioned filler stage if a session can't tackle IR work
+1. Stage 3.1 — **World model**: all Zork I rooms, exits, connections into IR; connectivity graph must match source (110 ROOM forms per importer stats; extraction consumes `importer/artifacts/ast/*.json`, targets the stage 2.1 schema; deterministic transform where possible, LLM-assisted where judgment is needed, everything validated by `ir` validator + reviewed against source)
+2. Stage 3.2 — objects/properties/flags/containment (140 OBJECT forms)
+3. Stage 5.1 (Comic Chat analysis) remains the sanctioned filler stage
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):
 
@@ -52,6 +50,7 @@ Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 has on
 
 ## Open Issues
 
+- **OpenWiki decision deferred** (2026-07-18): Daniel hit an LLM-provider integration issue while testing OpenWiki on another project. `wiki/` stays hand-authored until revisited — likely much later; not blocking Milestones 3–4. When resolved, update `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` ("Stage 2.4 Validation" section) and AGENTS.md Knowledge Separation rules
 - Neutral (non-IF-lore) branding for the commercial assets (engine, IR, importer) still open — "Grues in Comic" names the game/project
 - Kitchen object-listing order differs between the ZILF build and the shipped Release 119 build (sack/bottle swapped) — harmless for now, but decide which ordering the engine must reproduce when stage 4.4 parity work starts
 
@@ -70,8 +69,8 @@ Resolved 2026-07-18 (stage 0.3): comic-chat compiled binaries stay tracked — t
 | `original-projects/zork1/` | ZIL source reference |
 | `original-projects/comic-chat/` | Comic Chat source reference |
 | `docs/` | Project documentation |
-| `wiki/` | Semantic architecture notes |
-| `graph/` | Graphify structural outputs (not yet created) |
+| `wiki/` | Semantic architecture notes (hand-authored; OpenWiki deferred) |
+| `<module>/graphify-out/` | Graphify structural graphs per module (`importer/`, `ir/`); config in `.graphifyignore` |
 | `WORKLOG.md` | Persistent project history |
 | `AGENTS.md` | Agent workflow rules (single source for all agents) |
 | `CLAUDE.md` | Claude Code entry point — references `AGENTS.md` |

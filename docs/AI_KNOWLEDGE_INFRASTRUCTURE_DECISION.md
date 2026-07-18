@@ -297,10 +297,12 @@ Graphify should primarily consume:
 * Intermediate Representation
 * generated metadata
 
-Graph outputs belong in:
+Graph outputs are generated **per module**, next to the code they describe (superseding the original `graph/` plan — see Stage 2.4 Validation below):
 
 ```
-graph/
+importer/graphify-out/
+ir/graphify-out/
+engine/graphify-out/   (future)
 ```
 
 ---
@@ -362,6 +364,31 @@ May be useful for lightweight indexing in very large repositories.
 ### Code Review Graph
 
 May become useful if the project evolves into a large multi-contributor open-source community.
+
+---
+
+# Stage 2.4 Validation (⚑ Gate A) — 2026-07-18
+
+Hands-on validation per `docs/DEVELOPMENT_PLAN.md` stage 2.4. **Gate A resolves in two parts.**
+
+## Graphify — VALIDATED, ADOPTED
+
+Evidence:
+
+* Field validation on a separate project (surfaced real codebase issues there).
+* In-repo: per-module graphs over `importer/` (83 nodes / 202 edges, 6 communities) and `ir/` (94 / 210, 13 communities). All edges `EXTRACTED` (deterministic AST pass, no LLM cost) with file:line provenance; health checks clean (no dangling/self-loop edges); spot-checked relationships all correct; communities and god nodes (`NodeBase`, `Lexer`, `Parser`; `validateWorld()`, `evalExpr()`) map onto the real architecture.
+
+Adopted configuration:
+
+* `.graphifyignore` (repo root, gitignore syntax, merged with `.gitignore`): code-only corpus — excludes `original-projects/` (raw ZIL/C++ is never consumed, per AGENTS.md), docs/images (OpenWiki's domain), generated artifacts, verification ground truth, and package/tsconfig metadata (measured at ~30% node noise).
+* **One graph per module** (`importer/`, `ir/`, later `engine/`), each in `<module>/graphify-out/` — this supersedes the original single `graph/` directory. Outputs (`graph.json`, `GRAPH_REPORT.md`, `graph.html`, `manifest.json`) are committed; machine-local state (`cache/`, `.graphify_python`) is gitignored.
+* Agent integration (hooks + CLAUDE.md/AGENTS.md rules) routes codebase questions through `graphify query/path/explain`; `graphify update .` after code changes (AST-only).
+
+Validation finding — **IR world data is out of Graphify's structural scope**: `ir/samples/*.world.json` yields zero nodes from AST extraction (confirmed by graphify's own warning, upstream #1666). Graphify graphs the *modernized source code*. If a rooms/exits/objects graph of the IR world is wanted (Milestone 3+), the plan's sanctioned fallback applies: a small deterministic IR→graph exporter — consistent with this document's original caveat ("requires structured input for unsupported languages").
+
+## OpenWiki — VALIDATION DEFERRED
+
+Off-project testing hit an LLM-provider integration issue (2026-07-18). Decision postponed; not blocking Milestones 3–4. Interim fallback (already the operational rule): `wiki/` holds human- and AI-authored Markdown. Revisit tracked in `HANDOFF.md` Open Issues.
 
 ---
 

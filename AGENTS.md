@@ -72,15 +72,15 @@ For any substantial task:
 
 ## Knowledge Separation
 
-The project separates structural knowledge (**Graphify** → `graph/`) from semantic knowledge (**OpenWiki** → `wiki/`). Graphify answers **how** the system is organized; OpenWiki answers **why** it is designed that way. Both consume the Intermediate Representation or modernized source, never raw ZIL.
+The project separates structural knowledge (**Graphify** → per-module `<module>/graphify-out/`) from semantic knowledge (**OpenWiki** → `wiki/`). Graphify answers **how** the system is organized; OpenWiki answers **why** it is designed that way. Both consume the Intermediate Representation or modernized source, never raw ZIL.
 
-The canonical description of this pipeline — tool responsibilities, repositories, and the architecture diagram — is `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`. Do not duplicate it here or elsewhere.
+The canonical description of this pipeline — tool responsibilities, repositories, the architecture diagram, and the stage 2.4 validation findings — is `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`. Do not duplicate it here or elsewhere.
 
 Operational rules:
 
-* Generated files in `graph/` are never edited manually.
+* **Graphify is adopted** (Gate A, structural half). One graph per module (`importer/`, `ir/`, later `engine/`), corpus governed by `.graphifyignore`. Generated files in `graphify-out/` are never edited manually — regenerate with `graphify update .` after code changes.
 * Human- and AI-authored documentation belongs in `wiki/`.
-* Neither tool is installed yet — validation happens at plan stage 2.4 (see `docs/DEVELOPMENT_PLAN.md`, Gate A).
+* **OpenWiki validation is deferred** (see HANDOFF Open Issues); `wiki/` stays hand-authored until that decision.
 
 ---
 
