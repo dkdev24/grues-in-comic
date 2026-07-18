@@ -14,6 +14,7 @@ The `project-init` skill automates new project setup:
 - Creates `HANDOFF.md` (cross-session context memory)
 - Creates `WORKLOG.md` (persistent project history)
 - Creates or updates `AGENTS.md` with system document workflow rules
+- Creates `CLAUDE.md` pointing to `AGENTS.md` so Claude Code, OpenCode, and other agents all read from a single source
 
 ---
 
@@ -26,7 +27,7 @@ Both Claude Code and OpenCode load skills from the same directory:
 | macOS / Linux | `~/.claude/skills/project-init/SKILL.md` |
 | Windows | `%USERPROFILE%\.claude\skills\project-init\SKILL.md` |
 
-OpenCode also auto-loads from this location. No additional OpenCode configuration is needed.
+OpenCode auto-loads from this location. No additional OpenCode configuration is needed.
 
 ---
 
@@ -54,7 +55,7 @@ Then write the skill file content (below) to `%USERPROFILE%\.claude\skills\proje
 
 Create `SKILL.md` with the following content exactly:
 
-```markdown
+```
 ---
 name: project-init
 description: Initialize a new project repository. Use when starting a new project from scratch that needs a git repo, a private GitHub repo under dkdev24, HANDOFF.md, WORKLOG.md, and AGENTS.md with cross-session agent workflow rules. Triggers on "init project", "new project", "initialize repo", "set up project", or any request to wire up git + GitHub + project management documents together.
@@ -75,7 +76,8 @@ Complete the following in order:
 5. **Create HANDOFF.md** — see template below
 6. **Create WORKLOG.md** — see template below
 7. **Create or update AGENTS.md** — see requirements below
-8. **Commit and push** all three files
+8. **Create CLAUDE.md** — see requirements below
+9. **Commit and push** all four files
 
 ---
 
@@ -83,52 +85,50 @@ Complete the following in order:
 
 `HANDOFF.md` is the cross-session context memory. Place it at the repo root.
 
-~~~markdown
-# HANDOFF.md
-
-Cross-session context memory. Update this file at the end of every session.
-
----
-
-## Current Version
-
-**0.1.0**
-
----
-
-## Project Status
-
-(Brief description of what the project is and where it stands.)
-
----
-
-## Last Session
-
-(Summary of what was done in the most recent session.)
-
----
-
-## Next Actions
-
-1. (First priority task)
-2. (Second priority task)
-
----
-
-## Open Issues
-
-- (Any known problems, blockers, or decisions deferred)
-
----
-
-## Key Paths
-
-| Path | Purpose |
-|---|---|
-| (path) | (what it contains) |
-~~~
-
 Fill in all sections based on what was done during this init session.
+
+  # HANDOFF.md
+
+  Cross-session context memory. Update this file at the end of every session.
+
+  ---
+
+  ## Current Version
+
+  **0.1.0**
+
+  ---
+
+  ## Project Status
+
+  (Brief description of what the project is and where it stands.)
+
+  ---
+
+  ## Last Session
+
+  (Summary of what was done in the most recent session.)
+
+  ---
+
+  ## Next Actions
+
+  1. (First priority task)
+  2. (Second priority task)
+
+  ---
+
+  ## Open Issues
+
+  - (Any known problems, blockers, or decisions deferred)
+
+  ---
+
+  ## Key Paths
+
+  | Path | Purpose |
+  |---|---|
+  | (path) | (what it contains) |
 
 ---
 
@@ -136,63 +136,70 @@ Fill in all sections based on what was done during this init session.
 
 `WORKLOG.md` is the persistent project history. Place it at the repo root.
 
-~~~markdown
-# WORKLOG.md
-
-Persistent project history. Append entries; do not edit past entries.
-
----
-
-## v0.1.0 — Repository Initialization
-
-**Date:** YYYY-MM-DD
-
-### Changes
-
-- (List everything done to initialize the project)
-
-### Status
-
-(One sentence on overall state)
-~~~
-
 Start at version `0.1.0`. Append a new entry at each milestone. Never edit past entries.
 
 Version bump rules:
-- Patch (`0.1.x`): small changes, fixes, documentation
-- Minor (`0.x.0`): new subsystems or major features added
-- Major (`x.0.0`): engine-complete or production-ready milestones
+- Patch (0.1.x): small changes, fixes, documentation
+- Minor (0.x.0): new subsystems or major features added
+- Major (x.0.0): engine-complete or production-ready milestones
+
+  # WORKLOG.md
+
+  Persistent project history. Append entries; do not edit past entries.
+
+  ---
+
+  ## v0.1.0 — Repository Initialization
+
+  **Date:** YYYY-MM-DD
+
+  ### Changes
+
+  - (List everything done to initialize the project)
+
+  ### Status
+
+  (One sentence on overall state)
 
 ---
 
 ## AGENTS.md Requirements
 
-If `AGENTS.md` does not exist, create it. If it exists, ensure the following section is present, preferably before the AI workflow steps:
+If `AGENTS.md` does not exist, create it. If it exists, ensure the following section is present, preferably before the AI workflow steps. If the AI Development Workflow section exists, add HANDOFF.md as step 1 and the HANDOFF/WORKLOG update as the final step.
 
-~~~markdown
-## System Documents
+Required section to insert:
 
-Two documents maintain cross-session state. Read them at the start of every session. Update them at the end.
+  ## System Documents
 
-### HANDOFF.md
+  Two documents maintain cross-session state. Read them at the start of every session. Update them at the end.
 
-- Location: `HANDOFF.md`
-- Purpose: Cross-session context memory.
-- Contains: current version, project status, last session summary, next actions, open issues, key paths.
-- **Read at the start of every session.**
-- **Update at the end of every session.** Replace the Last Session and Next Actions sections. Append to Open Issues as needed.
+  ### HANDOFF.md
 
-### WORKLOG.md
+  - Location: `HANDOFF.md`
+  - Purpose: Cross-session context memory.
+  - Contains: current version, project status, last session summary, next actions, open issues, key paths.
+  - **Read at the start of every session.**
+  - **Update at the end of every session.** Replace the Last Session and Next Actions sections. Append to Open Issues as needed.
 
-- Location: `WORKLOG.md`
-- Purpose: Persistent project history.
-- Contains: one entry per version milestone, with date, changes, and status.
-- **Do not load at session start.** Read only when version history is directly relevant to the current task.
-- **Append a new entry when a version milestone is reached.** Never edit past entries.
-- Version format: `x.x.x` — increment the patch for small changes, minor for new subsystems, major for engine-complete milestones.
-~~~
+  ### WORKLOG.md
 
-If the AI Development Workflow section exists, add HANDOFF.md as step 1 and the HANDOFF/WORKLOG update as the final step.
+  - Location: `WORKLOG.md`
+  - Purpose: Persistent project history.
+  - Contains: one entry per version milestone, with date, changes, and status.
+  - **Do not load at session start.** Read only when version history is directly relevant to the current task.
+  - **Append a new entry when a version milestone is reached.** Never edit past entries.
+  - Version format: `x.x.x` — increment the patch for small changes, minor for new subsystems, major for engine-complete milestones.
+
+---
+
+## CLAUDE.md Requirements
+
+Create `CLAUDE.md` at the repo root with exactly this content:
+
+  # Agent Instructions
+  @AGENTS.md
+
+This makes Claude Code load `AGENTS.md` automatically, so a single file governs all agents (Claude Code, OpenCode, and others). If `CLAUDE.md` already exists and does not reference `AGENTS.md`, add `@AGENTS.md` to it.
 
 ---
 
@@ -200,11 +207,9 @@ If the AI Development Workflow section exists, add HANDOFF.md as step 1 and the 
 
 After all files are created:
 
-~~~
-git add HANDOFF.md WORKLOG.md AGENTS.md
-git commit -m "Add HANDOFF.md, WORKLOG.md; update AGENTS.md with system document workflow"
-git push
-~~~
+  git add HANDOFF.md WORKLOG.md AGENTS.md CLAUDE.md
+  git commit -m "Add HANDOFF.md, WORKLOG.md; update AGENTS.md and CLAUDE.md with system document workflow"
+  git push
 ```
 
 ---
