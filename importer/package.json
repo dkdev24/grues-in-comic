@@ -1,0 +1,18 @@
+{
+  "name": "@grues-in-comic/importer",
+  "version": "0.3.0",
+  "description": "ZIL Semantic Importer — deterministic S-expression parser for ZIL source (stage 1.1 POC)",
+  "type": "module",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "parse": "vitest run test/parse-1dungeon.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^5.5.0",
+    "vitest": "^3.0.0"
+  }
+}

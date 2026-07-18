@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.2.1**
+**0.3.0**
 
 ---
 
@@ -17,16 +17,18 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-No engine code exists yet. No IR schema defined. No browser runtime started.
+Milestone 1 in progress: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser (stage 1.1 done). No IR schema defined. No engine or browser runtime started.
 
 ---
 
 ## Last Session
 
-- **Licensing finalized**: confirmed Apache 2.0 project license is compatible with the MIT-licensed imports (MIT → Apache is fine; original license files preserved). Added root `LICENSE` (canonical Apache 2.0 text) and `NOTICE` (project statement + Zork I / Comic Chat attribution + MIT text); README license section now references both
-- **Development plan created**: `docs/DEVELOPMENT_PLAN.md` — Milestones 0–6 broken into session-sized stages with status tracking and decision gates (Gate B: runtime ADR + behavior-IR representation; Gate A: Graphify/OpenWiki validation, after Gate B; Gate C: transcript parity; Gate D: comic-presentation POC). Plan is a living document — revise downstream milestones at each gate
-- **Graphify/OpenWiki timing decided**: defer install/validation until after the IR schema and runtime ADR are done — the validation POC runs against the real IR (plan stage 2.4, Gate A)
-- **Feasibility verification passed**: all four external repos confirmed real (historicalsource/zork1, microsoft/comic-chat, Graphify-Labs/graphify — active, commit Jul 17 2026 — and langchain-ai/openwiki); local ZIL corpus complete (110 rooms / 140 objects / 441 routines, ~11.9k lines); **`original-projects/zork1/COMPILED/zork1.z3` is a shipped reference build** — golden transcripts don't block on ZILF; dfrotz scriptability confirmed; community confirms ZILF compiles Infocom source (patched variants at github.com/The-ZIL-Files). Caveat: historical source may not match any released version exactly — treat the shipped `.z3` as ground truth
+- **Stage 1.1 complete — ZIL parser POC** (`importer/`, TypeScript + vitest, v0.3.0):
+  - `src/lexer.ts` + `src/parser.ts` + `src/ast.ts`: deterministic S-expression lexer and recursive-descent parser producing a fully typed AST; every node carries line/column/offset spans for source traceability
+  - Handles the MDL reader syntax the corpus uses: forms `<>`, lists, vectors, strings with `\` escapes, atoms with `\` escapes (`FCD\#3`), decimal + octal (`*777*`) numbers, prefixes `;` (comment — preserved as AST nodes) `'` `,` `.` `%` `%%` `!` `#type`, char literals `!\c`, `!>` closers
+  - 26 tests pass (`npm test` in `importer/`): unit tests per syntax feature + full-file integration on `1dungeon.zil` asserting exact counts — 110 ROOM, 122 OBJECT, 17 GLOBAL, 4 ROUTINE, 1 DIRECTIONS, 254 top-level forms, 2 top-level comments, 15 page-break atoms (`\`+form-feed, a historical convention that legally reads as an atom)
+  - **Bonus finding: all 10 `.zil` files in the corpus already parse without error** — stage 1.2 is mostly about validating AST correctness on the other files (esp. `gmacros.zil` `%` macros, `gsyntax.zil`), adding edge-case tests, and cataloguing anything odd, not fixing crashes
+- Implementation-language data point for Gate B: TypeScript was frictionless for this workload (parser + tests in one session)
 
 ---
 
@@ -34,8 +36,8 @@ No engine code exists yet. No IR schema defined. No browser runtime started.
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Immediate queue:
 
-1. Stage 1.1 — ZIL S-expression parser POC (one representative file → typed AST with tests)
-2. Stage 1.2 — full-corpus parse
+1. Stage 1.2 — full-corpus parse validation: AST spot-checks on the remaining 9 files, edge-case tests (reader macros in `gmacros.zil`, `%` forms, gsyntax patterns), catalogue oddities
+2. Stage 1.3 — AST → JSON serialization + corpus statistics report
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):
 
@@ -59,6 +61,7 @@ Resolved 2026-07-18 (stage 0.3): comic-chat compiled binaries stay tracked — t
 
 | Path | Purpose |
 |---|---|
+| `importer/` | ZIL Semantic Importer — TypeScript S-expression parser (stage 1.1) |
 | `original-projects/zork1/` | ZIL source reference |
 | `original-projects/comic-chat/` | Comic Chat source reference |
 | `docs/` | Project documentation |
