@@ -40,10 +40,19 @@ export type Expr =
   | { op: "not"; arg: Expr }
   /** Numeric comparison (ZIL `G?` / `L?`). */
   | { op: "gt?"; a: Expr; b: Expr }
-  | { op: "lt?"; a: Expr; b: Expr };
+  | { op: "lt?"; a: Expr; b: Expr }
+  /** True when entity is directly inside container (ZIL `IN?`). */
+  | { op: "in?"; entity: Expr; container: Expr }
+  /** The entity's direct container/room (ZIL `LOC`). */
+  | { op: "loc"; entity: Expr }
+  /** Invoke a routine or engine builtin for its value (ZIL form in expression position). */
+  | { op: "call"; routine: string; args: Expr[] };
 
-/** One piece of TELL output: literal text, a newline (ZIL `CR`), or a value. */
-export type TellPart = { text: string } | { newline: true } | { expr: Expr };
+/**
+ * One piece of TELL output: literal text, a newline (ZIL `CR`), a value
+ * (ZIL `N` / bare value), or an entity's short name (ZIL `D`).
+ */
+export type TellPart = { text: string } | { newline: true } | { expr: Expr } | { name: Expr };
 
 export interface CondClause {
   /** Clause predicate. ZIL else-clauses use the literal `T`: `{op:"const",value:true}`. */
@@ -58,22 +67,43 @@ export type Stmt =
   | { op: "tell"; parts: TellPart[] }
   /** Assign a global (ZIL `SETG`). */
   | { op: "set-global"; id: string; value: Expr }
+  /** Assign a routine local (ZIL `SET`). */
+  | { op: "set-local"; id: string; value: Expr }
   /** Set / clear an entity flag (ZIL `FSET` / `FCLEAR`). */
   | { op: "set-flag"; entity: Expr; flag: string }
   | { op: "clear-flag"; entity: Expr; flag: string }
+  /** Reparent an entity (ZIL `MOVE`) / take it out of the world (ZIL `REMOVE`). */
+  | { op: "move"; entity: Expr; to: Expr }
+  | { op: "remove"; entity: Expr }
   /**
    * Return from the routine (ZIL `RTRUE` / `RFALSE` / `<RETURN v>`).
    * For action handlers the value means "handled"; for exit routines a
    * room id means "travel there" and false means "refused".
    */
   | { op: "return"; value: Expr }
-  /** Invoke another routine or an engine builtin (discarding no value). */
-  | { op: "call"; routine: string; args: Expr[] };
+  /** Invoke another routine or an engine builtin (ZIL form in statement position). */
+  | { op: "call"; routine: string; args: Expr[] }
+  /**
+   * Expression statement (ZIL is expression-oriented): evaluate for its
+   * value — e.g. the bare `T` ending a COND clause, or a predicate in
+   * statement position whose value the routine returns.
+   */
+  | { op: "value"; expr: Expr };
 
+/**
+ * Statement values (ZIL is expression-oriented; action dispatch relies on
+ * routine return values): a routine returns the value of the last statement
+ * it executed, `cond` yields the taken clause's last value (false when no
+ * clause fires), `tell`/`set-flag`/`clear-flag`/`move`/`remove` yield true,
+ * `set-global`/`set-local` yield the assigned value, `call` yields the
+ * callee's value. An empty body yields false.
+ */
 export interface BehaviorRoutine {
   id: string;
   /** Parameter names, bound as locals (e.g. RARG for room actions). */
   params?: string[];
+  /** ZIL "AUX" locals (initialized to false unless the body sets them). */
+  locals?: string[];
   body: Stmt[];
   /** Provenance in the historical source. */
   source?: { file: string; line: number };

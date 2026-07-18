@@ -22,18 +22,19 @@ export function trapDoorExit(w: WorldState): BehaviorValue {
 
 /** ZIL 1actions.zil:241 */
 export function kitchenWindowF(w: WorldState): BehaviorValue {
+  // ZIL routines return the value of the last expression they evaluate —
+  // for action handlers, "handled". TELL and OPEN-CLOSE both yield true.
   if (w.verb === "OPEN" || w.verb === "CLOSE") {
     w.globals["KITCHEN-WINDOW-FLAG"] = true;
-    builtins["OPEN-CLOSE"]!(w, [
+    return builtins["OPEN-CLOSE"]!(w, [
       "KITCHEN-WINDOW",
       "With great effort, you open the window far enough to allow entry.",
       "The window closes (more easily than it opened).",
     ]);
-    return false;
   }
   if (w.verb === "EXAMINE" && !truthy(w.globals["KITCHEN-WINDOW-FLAG"] ?? false)) {
     tell(w, "The window is slightly ajar, but not enough to allow entry.", true);
-    return false;
+    return true;
   }
   if (w.verb === "WALK" || w.verb === "BOARD" || w.verb === "THROUGH") {
     builtins["DO-WALK"]!(w, [w.globals["HERE"] === "KITCHEN" ? "east" : "west"]);
@@ -43,7 +44,7 @@ export function kitchenWindowF(w: WorldState): BehaviorValue {
     tell(w, "You can see ");
     if (w.globals["HERE"] === "KITCHEN") tell(w, "a clear area leading towards a forest.", true);
     else tell(w, "what appears to be a kitchen.", true);
-    return false;
+    return true;
   }
   return false;
 }

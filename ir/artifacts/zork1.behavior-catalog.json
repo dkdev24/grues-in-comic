@@ -1,0 +1,1132 @@
+[
+  {
+    "id": "AXE-F",
+    "source": {
+      "file": "1actions.zil",
+      "line": 622
+    },
+    "reasons": [
+      "form without an atom head"
+    ]
+  },
+  {
+    "id": "BAD-EGG",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2960
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "BASKET-F",
+    "source": {
+      "file": "1actions.zil",
+      "line": 277
+    },
+    "reasons": [
+      "unknown form <SETG …>"
+    ]
+  },
+  {
+    "id": "BELL-F",
+    "source": {
+      "file": "1actions.zil",
+      "line": 343
+    },
+    "reasons": [
+      "unknown name ,LLD-ROOM"
+    ]
+  },
+  {
+    "id": "CANARY-OBJECT",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2970
+    },
+    "reasons": [
+      "unknown form <COND …>"
+    ]
+  },
+  {
+    "id": "CANDLES-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2343
+    },
+    "reasons": [
+      "operator RFATAL"
+    ]
+  },
+  {
+    "id": "CAVE2-ROOM",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2416
+    },
+    "reasons": [
+      "unknown form <SETG …>"
+    ]
+  },
+  {
+    "id": "CHALICE-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2123
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "CRETIN-FCN",
+    "source": {
+      "file": "gglobals.zil",
+      "line": 221
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "CYCLOPS-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 1515
+    },
+    "reasons": [
+      "operator -"
+    ]
+  },
+  {
+    "id": "DESCRIBE-OBJECTS",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1681
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "DESCRIBE-ROOM",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1635
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "FWEEP",
+    "source": {
+      "file": "1actions.zil",
+      "line": 326
+    },
+    "reasons": [
+      "operator REPEAT"
+    ]
+  },
+  {
+    "id": "GLOBAL-IN?",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 2152
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "GO-NEXT",
+    "source": {
+      "file": "1actions.zil",
+      "line": 131
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "GOTO",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 2045
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "GRATE-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 850
+    },
+    "reasons": [
+      "unknown form <COND …>"
+    ]
+  },
+  {
+    "id": "GROUND-FUNCTION",
+    "source": {
+      "file": "gglobals.zil",
+      "line": 170
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "HACK-HACK",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 2024
+    },
+    "reasons": [
+      "unknown name ,GLOBAL-OBJECTS"
+    ]
+  },
+  {
+    "id": "HELD?",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 2167
+    },
+    "reasons": [
+      "operator REPEAT"
+    ]
+  },
+  {
+    "id": "INT",
+    "source": {
+      "file": "gclock.zil",
+      "line": 26
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "ITAKE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1900
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "JIGS-UP",
+    "source": {
+      "file": "1actions.zil",
+      "line": 4046
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "LANTERN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2230
+    },
+    "reasons": [
+      "form without an atom head"
+    ]
+  },
+  {
+    "id": "LARGE-BAG-F",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2094
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "LEAVES-APPEAR",
+    "source": {
+      "file": "1actions.zil",
+      "line": 774
+    },
+    "reasons": [
+      "form without an atom head"
+    ]
+  },
+  {
+    "id": "LIT?",
+    "source": {
+      "file": "gparser.zil",
+      "line": 1333
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "LIVING-ROOM-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 449
+    },
+    "reasons": [
+      "operator +"
+    ]
+  },
+  {
+    "id": "LOUD-ROOM-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 1660
+    },
+    "reasons": [
+      "operator REPEAT"
+    ]
+  },
+  {
+    "id": "MACHINE-F",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2502
+    },
+    "reasons": [
+      "operator FIRST?"
+    ]
+  },
+  {
+    "id": "MATCH-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2265
+    },
+    "reasons": [
+      "operator -"
+    ]
+  },
+  {
+    "id": "MIRROR-MIRROR",
+    "source": {
+      "file": "1actions.zil",
+      "line": 971
+    },
+    "reasons": [
+      "operator FIRST?"
+    ]
+  },
+  {
+    "id": "MSWITCH-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2531
+    },
+    "reasons": [
+      "operator REPEAT"
+    ]
+  },
+  {
+    "id": "NO-OBJS",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2558
+    },
+    "reasons": [
+      "operator FIRST?"
+    ]
+  },
+  {
+    "id": "NOT-HERE-OBJECT-F",
+    "source": {
+      "file": "gglobals.zil",
+      "line": 52
+    },
+    "reasons": [
+      "global P-PRSO has an unsupported initializer (<ITABLE …>)"
+    ]
+  },
+  {
+    "id": "PAINTING-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2207
+    },
+    "reasons": [
+      "operator PUTP"
+    ]
+  },
+  {
+    "id": "PICK-ONE",
+    "source": {
+      "file": "gmacros.zil",
+      "line": 127
+    },
+    "reasons": [
+      "operator GET"
+    ]
+  },
+  {
+    "id": "PRE-BOARD",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 201
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "PRE-FILL",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 646
+    },
+    "reasons": [
+      "operator GETPT"
+    ]
+  },
+  {
+    "id": "PRE-MUNG",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 923
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "PRE-PUT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1075
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "PRE-TAKE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1353
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "PRE-TURN",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1488
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "QUEUE",
+    "source": {
+      "file": "gclock.zil",
+      "line": 21
+    },
+    "reasons": [
+      "unexpected Chtype in statement position"
+    ]
+  },
+  {
+    "id": "RBOAT-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2722
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "ROB",
+    "source": {
+      "file": "1actions.zil",
+      "line": 3976
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "ROBBER-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 1947
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "ROPE-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 3030
+    },
+    "reasons": [
+      "unknown name ,ROOMS"
+    ]
+  },
+  {
+    "id": "RUSTY-KNIFE-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 907
+    },
+    "reasons": [
+      "bare atom CR in expression position"
+    ]
+  },
+  {
+    "id": "SAILOR-FCN",
+    "source": {
+      "file": "gglobals.zil",
+      "line": 122
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "SAND-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2855
+    },
+    "reasons": [
+      "operator +"
+    ]
+  },
+  {
+    "id": "SCORE-OBJ",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1867
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "STONE-BARROW-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 403
+    },
+    "reasons": [
+      "operator BAND"
+    ]
+  },
+  {
+    "id": "SWORD-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2432
+    },
+    "reasons": [
+      "form without an atom head"
+    ]
+  },
+  {
+    "id": "TRAP-DOOR-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 504
+    },
+    "reasons": [
+      "bare atom LIVING-ROOM in expression position"
+    ]
+  },
+  {
+    "id": "TREASURE-ROOM-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2138
+    },
+    "reasons": [
+      "operator GET"
+    ]
+  },
+  {
+    "id": "TREE-ROOM",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2880
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "TROLL-FCN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 640
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "UP-CHIMNEY-FUNCTION",
+    "source": {
+      "file": "1actions.zil",
+      "line": 553
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "V-ALARM",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 156
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-ATTACK",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 176
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-BOARD",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 224
+    },
+    "reasons": [
+      "operator APPLY"
+    ]
+  },
+  {
+    "id": "V-BURN",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 251
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-CLIMB-FOO",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 281
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-CLIMB-ON",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 290
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-CLIMB-UP",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 300
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "V-CLOSE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 336
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "V-COMMAND-FILE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 130
+    },
+    "reasons": [
+      "unknown form <DIRIN …>"
+    ]
+  },
+  {
+    "id": "V-DIAGNOSE",
+    "source": {
+      "file": "1actions.zil",
+      "line": 3993
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "V-DIG",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 405
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-DISEMBARK",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 418
+    },
+    "reasons": [
+      "unknown name ,ROOMS"
+    ]
+  },
+  {
+    "id": "V-DISENCHANT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 434
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-EAT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 483
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "V-ECHO",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 526
+    },
+    "reasons": [
+      "unexpected Chtype in statement position"
+    ]
+  },
+  {
+    "id": "V-ENCHANT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 550
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-EXAMINE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 623
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "V-EXIT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 632
+    },
+    "reasons": [
+      "unknown name ,ROOMS"
+    ]
+  },
+  {
+    "id": "V-FIND",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 677
+    },
+    "reasons": [
+      "unknown name ,GLOBAL-OBJECTS"
+    ]
+  },
+  {
+    "id": "V-INCANT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 736
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-INVENTORY",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 29
+    },
+    "reasons": [
+      "operator FIRST?"
+    ]
+  },
+  {
+    "id": "V-LEAP",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 813
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "V-LOOK-INSIDE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 865
+    },
+    "reasons": [
+      "operator FIRST?"
+    ]
+  },
+  {
+    "id": "V-ODYSSEUS",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 945
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-OPEN",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 966
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "V-OVERBOARD",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 996
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-POUR-ON",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1024
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-PRAY",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1046
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-PUMP",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1056
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-PUT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1085
+    },
+    "reasons": [
+      "operator -"
+    ]
+  },
+  {
+    "id": "V-QUIT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 55
+    },
+    "reasons": [
+      "unknown form <QUIT …>"
+    ]
+  },
+  {
+    "id": "V-RANDOM",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 134
+    },
+    "reasons": [
+      "operator RANDOM"
+    ]
+  },
+  {
+    "id": "V-READ",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1143
+    },
+    "reasons": [
+      "operator GETP"
+    ]
+  },
+  {
+    "id": "V-RECORD",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 141
+    },
+    "reasons": [
+      "unknown form <DIROUT …>"
+    ]
+  },
+  {
+    "id": "V-RESTART",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 63
+    },
+    "reasons": [
+      "unknown form <RESTART …>"
+    ]
+  },
+  {
+    "id": "V-RESTORE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 71
+    },
+    "reasons": [
+      "unknown form <RESTORE …>"
+    ]
+  },
+  {
+    "id": "V-SAVE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 78
+    },
+    "reasons": [
+      "unknown form <SAVE …>"
+    ]
+  },
+  {
+    "id": "V-SAY",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1167
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-SCORE",
+    "source": {
+      "file": "1actions.zil",
+      "line": 4026
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "V-SCRIPT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 86
+    },
+    "reasons": [
+      "operator PUT"
+    ]
+  },
+  {
+    "id": "V-SHAKE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1213
+    },
+    "reasons": [
+      "operator FIRST?"
+    ]
+  },
+  {
+    "id": "V-STAB",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1297
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "V-SWIM",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1324
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-TELL",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1389
+    },
+    "reasons": [
+      "operator RFATAL"
+    ]
+  },
+  {
+    "id": "V-THROUGH",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1404
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "V-TREASURE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1474
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
+    "id": "V-UNRECORD",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 145
+    },
+    "reasons": [
+      "unknown form <DIROUT …>"
+    ]
+  },
+  {
+    "id": "V-UNSCRIPT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 92
+    },
+    "reasons": [
+      "operator PUT"
+    ]
+  },
+  {
+    "id": "V-VERIFY",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 123
+    },
+    "reasons": [
+      "unknown form <VERIFY …>"
+    ]
+  },
+  {
+    "id": "V-VERSION",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 98
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "V-WAIT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1514
+    },
+    "reasons": [
+      "optional parameter with default value"
+    ]
+  },
+  {
+    "id": "V-WALK",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1521
+    },
+    "reasons": [
+      "unknown form <SET …>"
+    ]
+  },
+  {
+    "id": "V-WISH",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1610
+    },
+    "reasons": [
+      "unexpected MacroEval in statement position"
+    ]
+  },
+  {
+    "id": "WATER-F",
+    "source": {
+      "file": "1actions.zil",
+      "line": 157
+    },
+    "reasons": [
+      "operator FIRST?"
+    ]
+  }
+]

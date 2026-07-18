@@ -169,7 +169,9 @@ describe("summary", () => {
       flags: 2,
       exits: 5,
       syntaxRules: 0,
+      routines: 0,
       routineRefs: ["SOME-EXIT-FCN"],
+      unresolvedRoutineRefs: ["SOME-EXIT-FCN"],
     });
   });
 });

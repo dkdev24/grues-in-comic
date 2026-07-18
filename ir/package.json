@@ -1,7 +1,7 @@
 {
   "name": "@grues-in-comic/ir",
-  "version": "0.5.3",
-  "description": "Grues in Comic Intermediate Representation — schema, validator, sample IR, and deterministic ZIL→IR world extraction (stages 2.1–3.3)",
+  "version": "0.5.4",
+  "description": "Grues in Comic Intermediate Representation — schema, validator, sample IR, and deterministic ZIL→IR world + behavior extraction (stages 2.1–3.4)",
   "type": "module",
   "license": "Apache-2.0",
   "private": true,

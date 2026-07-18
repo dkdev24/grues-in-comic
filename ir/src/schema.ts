@@ -16,7 +16,10 @@
  */
 
 /** Version of the IR schema itself (not the game data). */
-export const IR_VERSION = "0.3.0";
+export const IR_VERSION = "0.4.0";
+
+import type { BehaviorRoutine } from "./behavior.js";
+export type { BehaviorRoutine } from "./behavior.js";
 
 /**
  * Travel directions. ZIL's abbreviated direction properties map to full words
@@ -59,6 +62,12 @@ export interface WorldDocument {
   objects: WorldObject[];
   /** Parser vocabulary and verb syntax (stage 3.3); absent in partial worlds. */
   vocabulary?: Vocabulary;
+  /**
+   * Extracted behavior routines (ADR 0001 behavior AST; stage 3.4+).
+   * Routine references not present here are engine builtins or routines
+   * still catalogued as complex (see the extraction catalog artifact).
+   */
+  routines?: BehaviorRoutine[];
 }
 
 /**

@@ -23,4 +23,6 @@ export type {
 export { validateWorld } from "./validate.js";
 export type { ValidationError, ValidationResult, WorldSummary } from "./validate.js";
 export { extractWorld } from "./extract-world.js";
-export type { AstProgram } from "./extract-world.js";
+export type { AstProgram, ExtractionResult } from "./extract-world.js";
+export type { BehaviorRoutine, Expr, Stmt, TellPart, CondClause, BehaviorValue } from "./behavior.js";
+export type { CatalogEntry } from "./extract-behavior.js";

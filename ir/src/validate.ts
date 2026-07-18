@@ -39,8 +39,15 @@ export interface WorldSummary {
   exits: number;
   /** Verb syntax rules in the vocabulary section (0 when absent). */
   syntaxRules: number;
+  /** Extracted behavior routines (0 when the section is absent). */
+  routines: number;
   /** Distinct opaque behavior references (actions, PER exits, pseudo routines). */
   routineRefs: string[];
+  /**
+   * References (world refs + behavior call targets) with no extracted
+   * routine — engine builtins or still-catalogued complex routines.
+   */
+  unresolvedRoutineRefs: string[];
 }
 
 type Json = Record<string, unknown>;
@@ -132,7 +139,7 @@ export function validateWorld(input: unknown): ValidationResult {
   if (!isObject(input)) {
     return { valid: false, errors: [{ path: "$", message: "document must be a JSON object" }] };
   }
-  checkKeys(ctx, "$", input, ["irVersion", "meta", "flags", "globals", "tables", "rooms", "objects", "vocabulary"]);
+  checkKeys(ctx, "$", input, ["irVersion", "meta", "flags", "globals", "tables", "rooms", "objects", "vocabulary", "routines"]);
 
   if (input.irVersion !== IR_VERSION) {
     ctx.fail("$.irVersion", `must be "${IR_VERSION}"`);
@@ -195,7 +202,7 @@ export function validateWorld(input: unknown): ValidationResult {
   interface PendingRef {
     path: string;
     id: string;
-    kind: "room" | "object" | "door" | "scenery" | "global" | "entity";
+    kind: "room" | "object" | "door" | "scenery" | "global" | "entity" | "world-entity" | "global-or-table";
   }
   const refs: PendingRef[] = [];
   const usedFlags: { path: string; id: string }[] = [];
@@ -424,6 +431,202 @@ export function validateWorld(input: unknown): ValidationResult {
     }
   }
 
+  // ---- routines (behavior AST, stage 3.4) ----
+
+  const extractedRoutineIds = new Set<string>();
+  const behaviorCallTargets = new Set<string>();
+  if (input.routines !== undefined) {
+    const list = reqArray(ctx, "$", input, "routines");
+    list.forEach((raw, i) => {
+      const path = `routines[${i}]`;
+      if (!isObject(raw)) return ctx.fail(path, "must be an object");
+      checkKeys(ctx, path, raw, ["id", "params", "locals", "body", "source"]);
+      const id = reqString(ctx, path, raw, "id");
+      if (id !== undefined) {
+        if (extractedRoutineIds.has(id)) ctx.fail(`${path}.id`, `duplicate routine "${id}"`);
+        extractedRoutineIds.add(id);
+      }
+      const declaredLocals = new Set<string>([
+        ...optStringArray(ctx, path, raw, "params"),
+        ...optStringArray(ctx, path, raw, "locals"),
+      ]);
+      if (raw.source !== undefined) {
+        if (isObject(raw.source)) {
+          checkKeys(ctx, `${path}.source`, raw.source, ["file", "line"]);
+          reqString(ctx, `${path}.source`, raw.source, "file");
+          optInt(ctx, `${path}.source`, raw.source, "line");
+        } else {
+          ctx.fail(`${path}.source`, "must be an object");
+        }
+      }
+
+      const checkExprNode = (ePath: string, node: unknown): void => {
+        if (!isObject(node)) return ctx.fail(ePath, "must be an expression object");
+        switch (node.op) {
+          case "const":
+            checkKeys(ctx, ePath, node, ["op", "value"]);
+            if (!isScalar(node.value)) ctx.fail(`${ePath}.value`, "must be a boolean, integer, or string");
+            break;
+          case "global": {
+            checkKeys(ctx, ePath, node, ["op", "id"]);
+            const gid = reqString(ctx, ePath, node, "id");
+            if (gid !== undefined) refs.push({ path: `${ePath}.id`, id: gid, kind: "global-or-table" });
+            break;
+          }
+          case "local": {
+            checkKeys(ctx, ePath, node, ["op", "id"]);
+            const lid = reqString(ctx, ePath, node, "id");
+            if (lid !== undefined && !declaredLocals.has(lid)) {
+              ctx.fail(`${ePath}.id`, `undeclared local "${lid}"`);
+            }
+            break;
+          }
+          case "entity": {
+            checkKeys(ctx, ePath, node, ["op", "id"]);
+            const eid = reqString(ctx, ePath, node, "id");
+            if (eid !== undefined) refs.push({ path: `${ePath}.id`, id: eid, kind: "world-entity" });
+            break;
+          }
+          case "verb?":
+            checkKeys(ctx, ePath, node, ["op", "verbs"]);
+            reqStringArray(ctx, ePath, node, "verbs");
+            break;
+          case "equal?":
+          case "and":
+          case "or":
+            checkKeys(ctx, ePath, node, ["op", "args"]);
+            reqArray(ctx, ePath, node, "args").forEach((a, j) => checkExprNode(`${ePath}.args[${j}]`, a));
+            break;
+          case "not":
+            checkKeys(ctx, ePath, node, ["op", "arg"]);
+            checkExprNode(`${ePath}.arg`, node.arg);
+            break;
+          case "gt?":
+          case "lt?":
+            checkKeys(ctx, ePath, node, ["op", "a", "b"]);
+            checkExprNode(`${ePath}.a`, node.a);
+            checkExprNode(`${ePath}.b`, node.b);
+            break;
+          case "flag?": {
+            checkKeys(ctx, ePath, node, ["op", "entity", "flag"]);
+            checkExprNode(`${ePath}.entity`, node.entity);
+            const flag = reqString(ctx, ePath, node, "flag");
+            if (flag !== undefined) usedFlags.push({ path: `${ePath}.flag`, id: flag });
+            break;
+          }
+          case "in?":
+            checkKeys(ctx, ePath, node, ["op", "entity", "container"]);
+            checkExprNode(`${ePath}.entity`, node.entity);
+            checkExprNode(`${ePath}.container`, node.container);
+            break;
+          case "loc":
+            checkKeys(ctx, ePath, node, ["op", "entity"]);
+            checkExprNode(`${ePath}.entity`, node.entity);
+            break;
+          case "call": {
+            checkKeys(ctx, ePath, node, ["op", "routine", "args"]);
+            const target = reqString(ctx, ePath, node, "routine");
+            if (target !== undefined) behaviorCallTargets.add(target);
+            reqArray(ctx, ePath, node, "args").forEach((a, j) => checkExprNode(`${ePath}.args[${j}]`, a));
+            break;
+          }
+          default:
+            ctx.fail(`${ePath}.op`, `unknown expression op "${String(node.op)}"`);
+        }
+      };
+
+      const checkStmtNode = (sPath: string, node: unknown): void => {
+        if (!isObject(node)) return ctx.fail(sPath, "must be a statement object");
+        switch (node.op) {
+          case "cond":
+            checkKeys(ctx, sPath, node, ["op", "clauses"]);
+            reqArray(ctx, sPath, node, "clauses").forEach((clause, j) => {
+              const cPath = `${sPath}.clauses[${j}]`;
+              if (!isObject(clause)) return ctx.fail(cPath, "must be an object");
+              checkKeys(ctx, cPath, clause, ["when", "do"]);
+              checkExprNode(`${cPath}.when`, clause.when);
+              reqArray(ctx, cPath, clause, "do").forEach((s, k) => checkStmtNode(`${cPath}.do[${k}]`, s));
+            });
+            break;
+          case "tell":
+            checkKeys(ctx, sPath, node, ["op", "parts"]);
+            reqArray(ctx, sPath, node, "parts").forEach((part, j) => {
+              const pPath = `${sPath}.parts[${j}]`;
+              if (!isObject(part)) return ctx.fail(pPath, "must be an object");
+              if ("text" in part) {
+                checkKeys(ctx, pPath, part, ["text"]);
+                if (typeof part.text !== "string") ctx.fail(`${pPath}.text`, "must be a string");
+              } else if ("newline" in part) {
+                checkKeys(ctx, pPath, part, ["newline"]);
+                if (part.newline !== true) ctx.fail(`${pPath}.newline`, "must be true");
+              } else if ("expr" in part) {
+                checkKeys(ctx, pPath, part, ["expr"]);
+                checkExprNode(`${pPath}.expr`, part.expr);
+              } else if ("name" in part) {
+                checkKeys(ctx, pPath, part, ["name"]);
+                checkExprNode(`${pPath}.name`, part.name);
+              } else {
+                ctx.fail(pPath, "must be a text, newline, expr, or name part");
+              }
+            });
+            break;
+          case "set-global": {
+            checkKeys(ctx, sPath, node, ["op", "id", "value"]);
+            const gid = reqString(ctx, sPath, node, "id");
+            if (gid !== undefined) refs.push({ path: `${sPath}.id`, id: gid, kind: "global-or-table" });
+            checkExprNode(`${sPath}.value`, node.value);
+            break;
+          }
+          case "set-local": {
+            checkKeys(ctx, sPath, node, ["op", "id", "value"]);
+            const lid = reqString(ctx, sPath, node, "id");
+            if (lid !== undefined && !declaredLocals.has(lid)) {
+              ctx.fail(`${sPath}.id`, `undeclared local "${lid}"`);
+            }
+            checkExprNode(`${sPath}.value`, node.value);
+            break;
+          }
+          case "set-flag":
+          case "clear-flag": {
+            checkKeys(ctx, sPath, node, ["op", "entity", "flag"]);
+            checkExprNode(`${sPath}.entity`, node.entity);
+            const flag = reqString(ctx, sPath, node, "flag");
+            if (flag !== undefined) usedFlags.push({ path: `${sPath}.flag`, id: flag });
+            break;
+          }
+          case "move":
+            checkKeys(ctx, sPath, node, ["op", "entity", "to"]);
+            checkExprNode(`${sPath}.entity`, node.entity);
+            checkExprNode(`${sPath}.to`, node.to);
+            break;
+          case "remove":
+            checkKeys(ctx, sPath, node, ["op", "entity"]);
+            checkExprNode(`${sPath}.entity`, node.entity);
+            break;
+          case "return":
+            checkKeys(ctx, sPath, node, ["op", "value"]);
+            checkExprNode(`${sPath}.value`, node.value);
+            break;
+          case "value":
+            checkKeys(ctx, sPath, node, ["op", "expr"]);
+            checkExprNode(`${sPath}.expr`, node.expr);
+            break;
+          case "call": {
+            checkKeys(ctx, sPath, node, ["op", "routine", "args"]);
+            const target = reqString(ctx, sPath, node, "routine");
+            if (target !== undefined) behaviorCallTargets.add(target);
+            reqArray(ctx, sPath, node, "args").forEach((a, j) => checkExprNode(`${sPath}.args[${j}]`, a));
+            break;
+          }
+          default:
+            ctx.fail(`${sPath}.op`, `unknown statement op "${String(node.op)}"`);
+        }
+      };
+
+      reqArray(ctx, path, raw, "body").forEach((s, j) => checkStmtNode(`${path}.body[${j}]`, s));
+    });
+  }
+
   // ---- referential pass ----
 
   const doorFlagged = new Set<string>();
@@ -454,6 +657,12 @@ export function validateWorld(input: unknown): ValidationResult {
       case "entity":
         if (!entityIds.has(id)) ctx.fail(path, `unknown entity "${id}"`);
         break;
+      case "world-entity":
+        if (!roomIds.has(id) && !objectIds.has(id)) ctx.fail(path, `unknown room/object "${id}"`);
+        break;
+      case "global-or-table":
+        if (!globalIds.has(id) && !tableIds.has(id)) ctx.fail(path, `unknown global/table "${id}"`);
+        break;
     }
   }
 
@@ -477,7 +686,11 @@ export function validateWorld(input: unknown): ValidationResult {
       flags: flagIds.size,
       exits: exitCount,
       syntaxRules,
+      routines: extractedRoutineIds.size,
       routineRefs: [...routineRefs].sort(),
+      unresolvedRoutineRefs: [...new Set([...routineRefs, ...behaviorCallTargets])]
+        .filter((id) => !extractedRoutineIds.has(id))
+        .sort(),
     },
   };
 }

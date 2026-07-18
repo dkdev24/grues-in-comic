@@ -34,6 +34,7 @@ import type {
   WorldObject,
 } from "./schema.js";
 import { IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
+import { extractBehavior, type CatalogEntry } from "./extract-behavior.js";
 
 // ---- minimal AST node model (importer artifact shape) ----
 
@@ -537,8 +538,14 @@ function findGlobalValue(topLevel: AstNode[], name: string): boolean | number | 
 
 // ---- entry point ----
 
+export interface ExtractionResult {
+  world: WorldDocument;
+  /** Routines batch-1 behavior extraction could not represent, with reasons. */
+  catalog: CatalogEntry[];
+}
+
 /** Extract the full world model from importer AST programs. */
-export function extractWorld(programs: AstProgram[]): WorldDocument {
+export function extractWorld(programs: AstProgram[]): ExtractionResult {
   const topLevel = expandCompileTimeConds(programs);
   const roomForms: AstNode[] = [];
   const objectForms = new Map<string, AstNode>();
@@ -565,12 +572,73 @@ export function extractWorld(programs: AstProgram[]): WorldDocument {
     objects.push(extractObject(form, roomIds));
   }
 
-  const globals: GlobalVariable[] = [...globalRefs].sort().map((id) => ({
-    id,
-    value: findGlobalValue(topLevel, id),
-  }));
-
   const vocabulary = extractVocabulary(topLevel);
+
+  // Behavior extraction (stage 3.4): worklist closure from every routine the
+  // world references, following call targets into helpers.
+  const routineForms = new Map<string, { form: AstNode; file: string }>();
+  const callableNames = new Set<string>();
+  const collectCallables = (node: AstNode): void => {
+    if (isForm(node, "ROUTINE") || isForm(node, "DEFMAC")) {
+      const id = atomName(meaningful(node.elements!)[1]);
+      if (id !== undefined) callableNames.add(id);
+    }
+    for (const child of node.elements ?? []) collectCallables(child);
+    if (node.value !== undefined && typeof node.value === "object") {
+      collectCallables(node.value as AstNode);
+    }
+  };
+  for (const program of programs) {
+    for (const node of program.body) {
+      collectCallables(node);
+      if (isForm(node, "ROUTINE")) {
+        const id = atomName(meaningful(node.elements!)[1]);
+        if (id !== undefined) routineForms.set(id, { form: node, file: program.source });
+      }
+    }
+  }
+  const globalForms = new Map<string, AstNode>();
+  const constants = new Map<string, number>();
+  for (const node of topLevel) {
+    if (isForm(node, "GLOBAL")) {
+      const id = atomName(meaningful(node.elements!)[1]);
+      if (id !== undefined && !globalForms.has(id)) globalForms.set(id, node);
+    }
+    if (isForm(node, "CONSTANT")) {
+      const parts = meaningful(node.elements!);
+      const id = atomName(parts[1]);
+      if (id !== undefined && parts[2]?.type === "Number") constants.set(id, parts[2].value as number);
+    }
+  }
+  const entityIds = new Set([...roomIds, ...objects.map((o) => o.id)]);
+  const entryRefs = [
+    ...new Set(
+      [
+        ...rooms.flatMap((r) => [
+          r.action,
+          ...r.exits.map((e) => (e.kind === "routine" ? e.routine : undefined)),
+          ...(r.pseudo ?? []).map((p) => p.routine),
+        ]),
+        ...objects.flatMap((o) => [o.action, o.descriptionRoutine]),
+        ...vocabulary.syntax.flatMap((s) => [s.action, s.preAction]),
+      ].filter((r): r is string => r !== undefined),
+    ),
+  ].sort();
+  const behavior = extractBehavior(entryRefs, {
+    routineForms,
+    callableNames,
+    globalForms,
+    roomAndObjectIds: entityIds,
+    constants,
+    directionWords: new Map(Object.entries(DIRECTION_MAP)),
+    decodeString: decodeZilString,
+  });
+
+  const globals: GlobalVariable[] = [...globalRefs]
+    .filter((id) => !behavior.globals.some((g) => g.id === id))
+    .map((id) => ({ id, value: findGlobalValue(topLevel, id) }))
+    .concat(behavior.globals)
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   const flagIds = new Set<string>();
   for (const room of rooms) for (const flag of room.flags) flagIds.add(flag);
@@ -578,25 +646,28 @@ export function extractWorld(programs: AstProgram[]): WorldDocument {
   for (const rule of vocabulary.syntax) {
     for (const slot of rule.objects) if (slot.find !== undefined) flagIds.add(slot.find);
   }
+  for (const flag of behavior.flags) flagIds.add(flag);
   const flags: FlagDeclaration[] = [...flagIds].sort().map((id) => {
     const description = FLAG_DESCRIPTIONS[id];
     return description !== undefined ? { id, description } : { id };
   });
 
-  return {
+  const world: WorldDocument = {
     irVersion: IR_VERSION,
     meta: {
       title: "Zork I — world model (rooms, exits, objects)",
       source: "importer/artifacts/ast (from original-projects/zork1)",
       coverage: "partial",
       notes:
-        "Stages 3.1–3.3 deterministic extraction: all ROOM forms (exits, flags, scenery/pseudo references, exit-condition globals), all OBJECT forms (properties, flags, containment, initial locations; ZIL scaffolding objects GLOBAL-OBJECTS/LOCAL-GLOBALS/ROOMS represented structurally, not as objects), and the parser vocabulary (SYNTAX/SYNONYM/BUZZ/DIRECTIONS, with ZORK-NUMBER compile-time CONDs resolved for Zork I). Tables and behavior are later stages. Generated by ir/src/extract-world.ts — do not edit by hand.",
+        "Stages 3.1–3.4 deterministic extraction: all ROOM forms (exits, flags, scenery/pseudo references), all OBJECT forms (properties, flags, containment, initial locations; ZIL scaffolding objects represented structurally), the parser vocabulary (SYNTAX/SYNONYM/BUZZ/DIRECTIONS with ZORK-NUMBER CONDs resolved), and batch-1 behavior routines (ADR 0001 AST; complex routines catalogued in zork1.behavior-catalog.json). Globals/tables cover exit conditions plus everything extracted behavior references. Generated by ir/src/extract-world.ts — do not edit by hand.",
     },
     flags,
     globals,
-    tables: [],
+    tables: behavior.tables,
     rooms,
     objects,
     vocabulary,
+    routines: behavior.routines,
   };
+  return { world, catalog: behavior.catalog };
 }

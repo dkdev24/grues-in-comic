@@ -1,10 +1,15 @@
 /**
- * Stage 2.2 POC — reference interpreter for the behavior AST.
+ * Reference interpreter for the behavior AST (stage 2.2 POC, extended for
+ * stage 3.4). Deliberately small: this evaluator plus the builtin layer
+ * executes real Zork I routines faithfully. The production engine (stage 4.3)
+ * reimplements this against the full world runtime; it may also compile ASTs
+ * to closures at load time.
  *
- * Deliberately small: the point of the POC is that this ~130-line evaluator
- * plus the builtin layer executes real Zork I routines faithfully. The
- * production engine (stage 4.3) reimplements this against the full world
- * runtime; it may also compile ASTs to closures at load time.
+ * Value semantics (ZIL is expression-oriented — see `BehaviorRoutine` docs):
+ * every statement yields a value, a routine returns the value of the last
+ * statement it executed, and `cond` yields the taken clause's last value
+ * (the predicate's value when the clause has an empty body, false when no
+ * clause fires).
  */
 
 import type { BehaviorRoutine, BehaviorValue, Expr, Stmt, TellPart } from "../src/behavior.js";
@@ -40,8 +45,7 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       return rest.some((v) => v === first);
     }
     case "flag?": {
-      const entity = evalExpr(expr.entity, world, locals);
-      if (typeof entity !== "string") throw new Error("flag? target must be an entity");
+      const entity = entityId(evalExpr(expr.entity, world, locals), "flag?");
       return hasFlag(world, entity, expr.flag);
     }
     case "and": {
@@ -65,6 +69,17 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       return num(evalExpr(expr.a, world, locals)) > num(evalExpr(expr.b, world, locals));
     case "lt?":
       return num(evalExpr(expr.a, world, locals)) < num(evalExpr(expr.b, world, locals));
+    case "in?": {
+      const entity = entityId(evalExpr(expr.entity, world, locals), "in?");
+      const container = entityId(evalExpr(expr.container, world, locals), "in?");
+      return world.locations[entity] === container;
+    }
+    case "loc": {
+      const entity = entityId(evalExpr(expr.entity, world, locals), "loc");
+      return world.locations[entity] ?? false;
+    }
+    case "call":
+      return callRoutine(expr.routine, expr.args, world, locals);
   }
 }
 
@@ -73,69 +88,89 @@ function num(v: BehaviorValue): number {
   return v;
 }
 
-function execStmt(stmt: Stmt, world: WorldState, locals: Locals): void {
+function entityId(v: BehaviorValue, op: string): string {
+  if (typeof v !== "string") throw new Error(`${op} target must be an entity`);
+  return v;
+}
+
+function callRoutine(routine: string, args: Expr[], world: WorldState, locals: Locals): BehaviorValue {
+  const builtin = builtins[routine];
+  if (builtin === undefined) throw new Error(`unknown routine/builtin ${routine}`);
+  return builtin(world, args.map((a) => evalExpr(a, world, locals)));
+}
+
+function execStmt(stmt: Stmt, world: WorldState, locals: Locals): BehaviorValue {
   switch (stmt.op) {
     case "cond":
       for (const clause of stmt.clauses) {
-        if (truthy(evalExpr(clause.when, world, locals))) {
-          execBody(clause.do, world, locals);
-          return;
+        const predicate = evalExpr(clause.when, world, locals);
+        if (truthy(predicate)) {
+          return clause.do.length === 0 ? predicate : execBody(clause.do, world, locals);
         }
       }
-      return;
+      return false;
     case "tell":
       for (const part of stmt.parts) execTellPart(part, world, locals);
-      return;
+      return true;
     case "set-global":
-      world.globals[stmt.id] = evalExpr(stmt.value, world, locals);
-      return;
+      return (world.globals[stmt.id] = evalExpr(stmt.value, world, locals));
+    case "set-local":
+      return (locals[stmt.id] = evalExpr(stmt.value, world, locals));
     case "set-flag":
     case "clear-flag": {
-      const entity = evalExpr(stmt.entity, world, locals);
-      if (typeof entity !== "string") throw new Error(`${stmt.op} target must be an entity`);
+      const entity = entityId(evalExpr(stmt.entity, world, locals), stmt.op);
       (stmt.op === "set-flag" ? setFlag : clearFlag)(world, entity, stmt.flag);
-      return;
+      return true;
+    }
+    case "move": {
+      const entity = entityId(evalExpr(stmt.entity, world, locals), "move");
+      world.locations[entity] = entityId(evalExpr(stmt.to, world, locals), "move");
+      return true;
+    }
+    case "remove": {
+      const entity = entityId(evalExpr(stmt.entity, world, locals), "remove");
+      delete world.locations[entity];
+      return true;
     }
     case "return":
       throw new ReturnSignal(evalExpr(stmt.value, world, locals));
-    case "call": {
-      const builtin = builtins[stmt.routine];
-      if (builtin === undefined) throw new Error(`unknown routine/builtin ${stmt.routine}`);
-      builtin(world, stmt.args.map((a) => evalExpr(a, world, locals)));
-      return;
-    }
+    case "call":
+      return callRoutine(stmt.routine, stmt.args, world, locals);
+    case "value":
+      return evalExpr(stmt.expr, world, locals);
   }
 }
 
 function execTellPart(part: TellPart, world: WorldState, locals: Locals): void {
   if ("text" in part) tell(world, part.text);
   else if ("newline" in part) tell(world, "", true);
-  else tell(world, String(evalExpr(part.expr, world, locals)));
+  else if ("name" in part) {
+    const entity = entityId(evalExpr(part.name, world, locals), "tell D");
+    tell(world, world.names[entity] ?? entity);
+  } else tell(world, String(evalExpr(part.expr, world, locals)));
 }
 
-function execBody(body: Stmt[], world: WorldState, locals: Locals): void {
-  for (const stmt of body) execStmt(stmt, world, locals);
+function execBody(body: Stmt[], world: WorldState, locals: Locals): BehaviorValue {
+  let last: BehaviorValue = false;
+  for (const stmt of body) last = execStmt(stmt, world, locals);
+  return last;
 }
 
-/**
- * Run a routine. Falling off the end returns false (sufficient for the POC
- * corpus; ZIL's full last-value semantics are an ADR open question).
- */
+/** Run a routine; returns the last executed statement's value (ZIL semantics). */
 export function runRoutine(
   routine: BehaviorRoutine,
   world: WorldState,
   args: BehaviorValue[] = [],
 ): BehaviorValue {
   const locals: Locals = {};
+  for (const name of routine.locals ?? []) locals[name] = false;
   (routine.params ?? []).forEach((name, i) => {
-    const v = args[i];
-    if (v !== undefined) locals[name] = v;
+    locals[name] = args[i] ?? false;
   });
   try {
-    execBody(routine.body, world, locals);
+    return execBody(routine.body, world, locals);
   } catch (signal) {
     if (signal instanceof ReturnSignal) return signal.value;
     throw signal;
   }
-  return false;
 }

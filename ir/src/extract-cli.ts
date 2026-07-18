@@ -21,7 +21,7 @@ const programs: AstProgram[] = readdirSync(astDir)
   .sort()
   .map((f) => JSON.parse(readFileSync(join(astDir, f), "utf8")) as AstProgram);
 
-const world = extractWorld(programs);
+const { world, catalog } = extractWorld(programs);
 const result = validateWorld(world);
 if (!result.valid) {
   console.error(`✗ extracted world is invalid — ${result.errors.length} error(s):`);
@@ -31,9 +31,11 @@ if (!result.valid) {
 
 mkdirSync(dirname(outFile), { recursive: true });
 writeFileSync(outFile, JSON.stringify(world, null, 2) + "\n");
+const catalogFile = join(dirname(outFile), "zork1.behavior-catalog.json");
+writeFileSync(catalogFile, JSON.stringify(catalog, null, 2) + "\n");
 const s = result.summary!;
 console.log(
   `✓ ${outFile}: ${s.rooms} rooms (${s.stubRooms} stubs), ${s.objects} objects (${s.stubObjects} stubs), ` +
-    `${s.exits} exits, ${s.globals} globals, ${s.flags} flags, ${s.syntaxRules} syntax rules, ` +
-    `${s.routineRefs.length} routine refs`,
+    `${s.exits} exits, ${s.globals} globals, ${s.tables} tables, ${s.flags} flags, ${s.syntaxRules} syntax rules, ` +
+    `${s.routines} routines (${catalog.length} catalogued complex), ${s.routineRefs.length} routine refs`,
 );

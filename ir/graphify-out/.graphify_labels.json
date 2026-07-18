@@ -6,5 +6,7 @@
   "4": "Behavior Interpreter",
   "5": "World Builtins",
   "6": "Transpiled Comparison",
-  "7": "Validator Types & Constants"
+  "7": "Validator Types & Constants",
+  "8": "WorldDocument",
+  "9": "Room"
 }

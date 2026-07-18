@@ -1,6 +1,6 @@
 # IR Schema — Declarative World (stage 2.1)
 
-Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.3.0"`** (0.3.0 added the optional `vocabulary` section for stage 3.3).
+Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.4.0"`** (0.4.0 added the optional `routines` section — the ADR 0001 behavior AST — for stage 3.4).
 
 ## Scope and non-goals
 
@@ -19,7 +19,7 @@ Out of scope (stage 2.2 decides): imperative behavior — ROUTINE bodies, ACTION
 
 ```jsonc
 {
-  "irVersion": "0.3.0",       // must match the schema version exactly
+  "irVersion": "0.4.0",       // must match the schema version exactly
   "meta": { "title", "source", "coverage", "notes" },   // optional provenance
   "flags":   [ { "id": "ONBIT", "description": "…" } ], // registry of every usable flag
   "globals": [ { "id": "WON-FLAG", "value": false } ],  // scalar globals only
@@ -88,6 +88,10 @@ Parser vocabulary from `gsyntax.zil` (stage 3.3). Words keep their upper-case ZI
 
 ZIL compile-time `<COND (<==? ,ZORK-NUMBER n> …)>` gates around vocabulary forms are resolved during extraction using `<SETG ZORK-NUMBER 1>` (Zork I): dead clauses (Zork II/III vocabulary) are dropped, live clauses join the stream.
 
+### Routines (optional section)
+
+Behavior extracted into the ADR 0001 behavior AST (`ir/src/behavior.ts` is normative; growth is logged in the ADR's appendix). One `BehaviorRoutine` per ZIL ROUTINE: `id`, `params?`/`locals?`, `body` (statement list over the closed op vocabulary), `source?` provenance. The validator enforces the closed vocabulary, resolves entity/global/flag references, checks locals against declarations, and reports `routines` and `unresolvedRoutineRefs` (references with no extracted routine — engine builtins or routines still catalogued as complex in `ir/artifacts/zork1.behavior-catalog.json`) in the summary.
+
 ## Validation
 
 `ir/src/validate.ts` (`npm run validate` in `ir/`) runs two passes:
@@ -99,7 +103,7 @@ A valid document yields a summary (entity counts, exit count, sorted `routineRef
 
 ## Versioning
 
-`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`); `0.3.0` stage 3.3 `vocabulary` section (directions, buzzwords, synonyms, syntax rules). Wiring the behavior `routines` section in (per ADR 0001) will be the next bump.
+`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`); `0.3.0` stage 3.3 `vocabulary` section (directions, buzzwords, synonyms, syntax rules); `0.4.0` stage 3.4 `routines` section (ADR 0001 behavior AST, expression-oriented value semantics).
 
 ## Known deferrals
 

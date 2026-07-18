@@ -16,7 +16,7 @@ function collect(paths: string[]): string[] {
   for (const p of paths) {
     if (statSync(p).isDirectory()) {
       for (const entry of readdirSync(p).sort()) {
-        if (entry.endsWith(".json")) files.push(join(p, entry));
+        if (entry.endsWith(".world.json")) files.push(join(p, entry));
       }
     } else {
       files.push(p);
@@ -47,7 +47,8 @@ for (const file of collect(args)) {
     console.log(
       `✓ ${file}: ${s.rooms} rooms (${s.stubRooms} stubs), ${s.objects} objects (${s.stubObjects} stubs), ` +
         `${s.exits} exits, ${s.globals} globals, ${s.tables} tables, ${s.flags} flags, ` +
-        `${s.syntaxRules} syntax rules, ${s.routineRefs.length} routine refs`,
+        `${s.syntaxRules} syntax rules, ${s.routines} routines, ` +
+        `${s.routineRefs.length} refs (${s.unresolvedRoutineRefs.length} unresolved)`,
     );
   } else {
     console.error(`✗ ${file}: ${result.errors.length} error(s)`);

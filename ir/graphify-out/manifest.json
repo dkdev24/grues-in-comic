@@ -1,8 +1,8 @@
 {
   "poc/interpreter.ts": {
-    "mtime": 1784364621.6569033,
-    "ast_hash": "4b6e8ff7cd3181fe03b5a160d447368d",
-    "semantic_hash": "4b6e8ff7cd3181fe03b5a160d447368d"
+    "mtime": 1784386365.264561,
+    "ast_hash": "469d969a13c65cd9e7a1777ee8a80542",
+    "semantic_hash": ""
   },
   "poc/routines.ts": {
     "mtime": 1784364639.4240885,
@@ -10,43 +10,43 @@
     "semantic_hash": "ecbc2ce74044cca437cdcdc923e48f5b"
   },
   "poc/transpiled.ts": {
-    "mtime": 1784364646.182732,
-    "ast_hash": "917bdcc7aecc6f1a8440fc400a1ace5e",
-    "semantic_hash": "917bdcc7aecc6f1a8440fc400a1ace5e"
+    "mtime": 1784386493.6215515,
+    "ast_hash": "95d5897ad1f49cde47b9e6ecf4065647",
+    "semantic_hash": ""
   },
   "poc/world.ts": {
-    "mtime": 1784364603.2383287,
-    "ast_hash": "1ded6ac8393f1b06e1ae5cdbddd0ace2",
-    "semantic_hash": "1ded6ac8393f1b06e1ae5cdbddd0ace2"
+    "mtime": 1784386134.7728076,
+    "ast_hash": "12bb5ab4e624aa061539baa2b8610788",
+    "semantic_hash": ""
   },
   "samples/west-of-house.world.json": {
-    "mtime": 1784384676.9033077,
-    "ast_hash": "2e906d16f7e47d8e1703507d4eed0e95",
+    "mtime": 1784386072.5608466,
+    "ast_hash": "adc1342bc75c59170bdfc9bb57686d11",
     "semantic_hash": ""
   },
   "src/behavior.ts": {
-    "mtime": 1784364583.4428906,
-    "ast_hash": "7ba1266bd5407ac5e7bd2103e762b0ff",
-    "semantic_hash": "7ba1266bd5407ac5e7bd2103e762b0ff"
+    "mtime": 1784386323.922271,
+    "ast_hash": "1a5cc3023c87b8712b87b075c2adc460",
+    "semantic_hash": ""
   },
   "src/cli.ts": {
-    "mtime": 1784384670.8374364,
-    "ast_hash": "6b7522713cc279233de85b4d14d11007",
+    "mtime": 1784386572.2157838,
+    "ast_hash": "32b8ab602b2fbb3401d47087bd671a24",
     "semantic_hash": ""
   },
   "src/index.ts": {
-    "mtime": 1784370219.518118,
-    "ast_hash": "b7d30c1542bd7968a6d6b9feba7302c1",
+    "mtime": 1784386163.8041136,
+    "ast_hash": "c590617f56bfb17bfe52a26125b2e662",
     "semantic_hash": ""
   },
   "src/schema.ts": {
-    "mtime": 1784384637.0976672,
-    "ast_hash": "9ff80be11072e415ea6ee32f055fc15f",
+    "mtime": 1784385946.5822177,
+    "ast_hash": "a9729e1584059df01273782d9044ca1d",
     "semantic_hash": ""
   },
   "src/validate.ts": {
-    "mtime": 1784384667.7430484,
-    "ast_hash": "d108f9a02b6a9356ad5e87742840edb9",
+    "mtime": 1784386363.227395,
+    "ast_hash": "aa82c6b4ecd9d613bb3e2483cc63937b",
     "semantic_hash": ""
   },
   "test/behavior-poc.test.ts": {
@@ -60,23 +60,28 @@
     "semantic_hash": "fb8f82e333be718a48a1bc2bf4f24bcd"
   },
   "test/validate.test.ts": {
-    "mtime": 1784384870.9676838,
-    "ast_hash": "dfdbefcbc160b45f716941ac7be055d3",
+    "mtime": 1784386495.0612783,
+    "ast_hash": "f25dc501104dbc49182e93ed9bb137e5",
     "semantic_hash": ""
   },
   "src/extract-cli.ts": {
-    "mtime": 1784384798.5368524,
-    "ast_hash": "be6578549bb0d81f1a5f05b297756e0a",
+    "mtime": 1784386000.243994,
+    "ast_hash": "807f69e21bd2a6c3b1e17c288bca0d50",
     "semantic_hash": ""
   },
   "src/extract-world.ts": {
-    "mtime": 1784384758.443696,
-    "ast_hash": "f3c6b86f7c3a2a3ea1b45397af77a92f",
+    "mtime": 1784386360.377487,
+    "ast_hash": "31e7f1a18019a8f8895f83589ef4e790",
     "semantic_hash": ""
   },
   "test/extract.test.ts": {
-    "mtime": 1784384833.7656863,
-    "ast_hash": "f24c9d520f400265142ea45374956594",
+    "mtime": 1784386527.9808798,
+    "ast_hash": "fd2d1c60651273d11fca5cf764e2e5a1",
+    "semantic_hash": ""
+  },
+  "src/extract-behavior.ts": {
+    "mtime": 1784386421.3669138,
+    "ast_hash": "f7bcfa066bab473c8d7b0d7c7f2d545c",
     "semantic_hash": ""
   }
 }

@@ -20,7 +20,7 @@ const programs: AstProgram[] = readdirSync(astDir)
   .sort()
   .map((f) => JSON.parse(readFileSync(join(astDir, f), "utf8")) as AstProgram);
 
-const world = extractWorld(programs);
+const { world, catalog } = extractWorld(programs);
 const result = validateWorld(world);
 
 const sample = JSON.parse(
@@ -67,14 +67,14 @@ describe("extractWorld (Zork I AST artifacts)", () => {
   });
 
   it("declares every exit-condition global, all initially false", () => {
-    expect(world.globals.map((g) => g.id)).toEqual(
-      [
-        "COFFIN-CURE", "CYCLOPS-FLAG", "DEFLATE", "DOME-FLAG", "EMPTY-HANDED",
-        "FALSE-FLAG", "LLD-FLAG", "LOW-TIDE", "MAGIC-FLAG", "RAINBOW-FLAG",
-        "TROLL-FLAG", "WON-FLAG",
-      ],
-    );
-    expect(world.globals.every((g) => g.value === false)).toBe(true);
+    const byId = new Map(world.globals.map((g) => [g.id, g.value]));
+    for (const id of [
+      "COFFIN-CURE", "CYCLOPS-FLAG", "DEFLATE", "DOME-FLAG", "EMPTY-HANDED",
+      "FALSE-FLAG", "LLD-FLAG", "LOW-TIDE", "MAGIC-FLAG", "RAINBOW-FLAG",
+      "TROLL-FLAG", "WON-FLAG",
+    ]) {
+      expect(byId.get(id), id).toBe(false);
+    }
   });
 
   it("emits every door object DOORBIT-flagged", () => {
@@ -172,6 +172,72 @@ describe("extractWorld (Zork I AST artifacts)", () => {
   });
 
   it("is deterministic across runs", () => {
-    expect(extractWorld(programs)).toEqual(world);
+    expect(extractWorld(programs)).toEqual({ world, catalog });
+  });
+});
+
+describe("behavior extraction (stage 3.4, batch 1)", () => {
+  const byId = new Map(world.routines!.map((r) => [r.id, r]));
+
+  it("extracts a majority of the referenced handlers; catalog covers the rest", () => {
+    const refs = result.summary!.routineRefs;
+    const extractedRefs = refs.filter((r) => byId.has(r));
+    expect(refs.length).toBe(292);
+    expect(extractedRefs.length).toBeGreaterThan(refs.length / 2);
+    const catalogued = new Set(catalog.map((c) => c.id));
+    for (const ref of refs) {
+      expect(byId.has(ref) || catalogued.has(ref), ref).toBe(true);
+    }
+    for (const entry of catalog) expect(entry.reasons.length).toBeGreaterThan(0);
+  });
+
+  it("reproduces the hand-written POC ASTs structurally", async () => {
+    const { TRAP_DOOR_EXIT, KITCHEN_WINDOW_F } = await import("../poc/routines.js");
+    const extractedTrapDoor = byId.get("TRAP-DOOR-EXIT")!;
+    expect(extractedTrapDoor.body).toEqual(TRAP_DOOR_EXIT.body);
+    const extractedWindow = byId.get("KITCHEN-WINDOW-F")!;
+    expect(extractedWindow.body).toEqual(KITCHEN_WINDOW_F.body);
+  });
+
+  it("executes extracted routines identically to the POC goldens", async () => {
+    const { runRoutine } = await import("../poc/interpreter.js");
+    const { makeWorld } = await import("../poc/world.js");
+
+    const closed = makeWorld({ here: "LIVING-ROOM", verb: "WALK", globals: { "RUG-MOVED": true } });
+    expect(runRoutine(byId.get("TRAP-DOOR-EXIT")!, closed)).toBe(false);
+    expect(closed.output.join("")).toBe("The trap door is closed.\n");
+    expect(closed.itObject).toBe("TRAP-DOOR");
+
+    const open = makeWorld({
+      here: "LIVING-ROOM",
+      verb: "WALK",
+      globals: { "RUG-MOVED": true },
+      flags: { "TRAP-DOOR": ["OPENBIT"] },
+    });
+    expect(runRoutine(byId.get("TRAP-DOOR-EXIT")!, open)).toBe("CELLAR");
+
+    const window = makeWorld({
+      here: "KITCHEN",
+      verb: "OPEN",
+      globals: { "KITCHEN-WINDOW-FLAG": false },
+    });
+    expect(runRoutine(byId.get("KITCHEN-WINDOW-F")!, window)).toBe(true);
+    expect(window.output.join("")).toBe(
+      "With great effort, you open the window far enough to allow entry.\n",
+    );
+  });
+
+  it("resolves ELSE clauses, bare T statements, and V? verb constants", () => {
+    const json = JSON.stringify(world.routines);
+    expect(json).not.toContain('"ELSE"');
+    // Sample of a routine using `,V?ATTACK`-style comparisons: lowered to verb words.
+    expect(catalog.every((c) => !c.reasons.some((r) => r.includes("V?")))).toBe(true);
+  });
+
+  it("keeps the catalog and extracted sets disjoint and sorted", () => {
+    const catalogued = new Set(catalog.map((c) => c.id));
+    for (const routine of world.routines!) expect(catalogued.has(routine.id)).toBe(false);
+    const ids = world.routines!.map((r) => r.id);
+    expect(ids).toEqual([...ids].sort());
   });
 });

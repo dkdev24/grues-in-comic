@@ -12,6 +12,10 @@ export interface WorldState {
   globals: Record<string, BehaviorValue>;
   /** Entity id → set flags. */
   flags: Record<string, Set<string>>;
+  /** Entity id → containing entity id (object tree; absent = nowhere). */
+  locations: Record<string, string>;
+  /** Entity id → short name, for TELL `D` parts (defaults to the id). */
+  names: Record<string, string>;
   /** Verb of the action being processed (ZIL PRSA). */
   verb: string;
   /** Narration chunks; join("") for the transcript. */
@@ -25,6 +29,8 @@ export interface WorldState {
 export function makeWorld(init: {
   globals?: Record<string, BehaviorValue>;
   flags?: Record<string, string[]>;
+  locations?: Record<string, string>;
+  names?: Record<string, string>;
   here: string;
   verb: string;
 }): WorldState {
@@ -33,6 +39,8 @@ export function makeWorld(init: {
   return {
     globals: { HERE: init.here, ...init.globals },
     flags,
+    locations: { ...init.locations },
+    names: { ...init.names },
     verb: init.verb,
     output: [],
     walks: [],
