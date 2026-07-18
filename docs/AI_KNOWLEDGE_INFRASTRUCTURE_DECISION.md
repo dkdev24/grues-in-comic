@@ -1,6 +1,6 @@
 # AI Knowledge Infrastructure Decision
 
-**Project:** Comic-Zork
+**Project:** Grues in Comic
 **Status:** Accepted
 **Decision Date:** July 2026
 
@@ -8,7 +8,7 @@
 
 # Executive Summary
 
-Comic-Zork is an AI-first software modernization project involving multiple programming languages, historical source code, and AI coding agents.
+Grues in Comic is an AI-first software modernization project involving multiple programming languages, historical source code, and AI coding agents.
 
 The project requires an AI knowledge infrastructure capable of supporting:
 
@@ -26,13 +26,13 @@ After evaluating several modern AI code understanding platforms, the project ado
 * **Graphify**
 * **OpenWiki**
 
-These two tools provide complementary capabilities and form the foundation of the Comic-Zork AI workflow.
+These two tools provide complementary capabilities and form the foundation of the Grues in Comic AI workflow.
 
 ---
 
 # Project Requirements
 
-Comic-Zork differs significantly from a conventional software project.
+Grues in Comic differs significantly from a conventional software project.
 
 Characteristics include:
 
@@ -64,7 +64,7 @@ The following criteria were used when comparing available tools.
 | Documentation Support      | Long-term knowledge accumulation                |
 | Visualization              | Architecture exploration                        |
 | Extensibility              | Ability to support future workflows             |
-| Suitability for Comic-Zork | Overall fitness for this project                |
+| Suitability for Grues in Comic | Overall fitness for this project                |
 
 ---
 
@@ -166,7 +166,7 @@ Repository indexing and code navigation.
 
 ★★★☆☆
 
-Useful for conventional repositories but less suitable for Comic-Zork.
+Useful for conventional repositories but less suitable for Grues in Comic.
 
 ---
 
@@ -270,7 +270,7 @@ The project adopts the following AI knowledge architecture.
                      ▼
               AI Coding Agents
                      ▼
-            Comic-Zork Engine
+            Grues in Comic Engine
 ```
 
 This architecture separates software structure from software meaning.
@@ -367,7 +367,7 @@ May become useful if the project evolves into a large multi-contributor open-sou
 
 # Final Decision
 
-The Comic-Zork project officially adopts the following baseline AI knowledge infrastructure.
+The Grues in Comic project officially adopts the following baseline AI knowledge infrastructure.
 
 | Category             | Selected Tool |
 | -------------------- | ------------- |
@@ -382,7 +382,7 @@ Additional tools may be evaluated in the future, but Graphify and OpenWiki const
 
 # Guiding Principle
 
-Comic-Zork distinguishes between two complementary forms of knowledge.
+Grues in Comic distinguishes between two complementary forms of knowledge.
 
 **Structural Knowledge**
 

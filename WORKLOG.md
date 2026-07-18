@@ -25,3 +25,22 @@ Persistent project history. Append entries; do not edit past entries.
 ### Status
 
 Foundation only. No engine code, no IR schema, no browser runtime.
+
+---
+
+## v0.1.1 — Project Renamed to Grues in Comic
+
+**Date:** 2026-07-18
+
+### Changes
+
+- Renamed project from Comic-Zork to **Grues in Comic** to avoid the "Zork" trademark (Activision); "grue" predates Zork (Jack Vance) and is copyright/trademark-safe
+- Renamed GitHub repository to `dkdev24/grues-in-comic` (old URL redirects; local remote updated)
+- Applied rename across `README.md`, `AGENTS.md`, `HANDOFF.md`, `docs/PORTING_STRATEGY.md`, `docs/SOLOPRENEUR_STRATEGY.md`, `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`
+- Left past WORKLOG entries and `docs/gemini-analysis-on-plan-and-strategy.md` untouched as historical records
+- Verified upstream licenses via GitHub API: `historicalsource/zork1` and `microsoft/comic-chat` are both MIT
+- Strategy decisions recorded in HANDOFF: WASM no longer mandatory (engine runtime ADR pending), golden-transcript verification via ZILF + dfrotz, deterministic ZIL S-expression parser before LLM extraction
+
+### Status
+
+Docs and repo renamed. Local directory rename pending. No engine code yet.

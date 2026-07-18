@@ -1,15 +1,15 @@
-# Comic-Zork
+# Grues in Comic
 
 > Reimagining two historical Microsoft open-source projects as a browser-native comic adventure using AI-assisted software modernization.
 
 ## Overview
 
-Comic-Zork is an experimental software modernization project that combines two historical open-source projects:
+Grues in Comic is an experimental software modernization project that combines two historical open-source projects:
 * **Zork I** (gameplay, parser, and world simulation)
 * **Microsoft Comic Chat** (comic-style visual presentation)
 
 The objective is not to reproduce the original runtime environments.
-Instead, Comic-Zork extracts gameplay semantics from the original source code and reimplements them using a modern browser-native architecture powered by WebAssembly.
+Instead, Grues in Comic extracts gameplay semantics from the original source code and reimplements them using a modern browser-native architecture powered by WebAssembly.
 
 The project also serves as a reference implementation for AI-assisted modernization of legacy software.
 
@@ -17,14 +17,14 @@ The project also serves as a reference implementation for AI-assisted modernizat
 
 ## Vision
 
-Comic-Zork aims to demonstrate how AI coding agents can assist with:
+Grues in Comic aims to demonstrate how AI coding agents can assist with:
 * understanding legacy source code
 * extracting software semantics
 * building intermediate representations (IR)
 * modernizing historical software
 * creating maintainable browser-native applications
 
-Rather than building a Z-Machine emulator, Comic-Zork builds a new runtime inspired by the original gameplay.
+Rather than building a Z-Machine emulator, Grues in Comic builds a new runtime inspired by the original gameplay.
 
 ---
 
@@ -40,7 +40,7 @@ Historical Source Code
 Intermediate Representation (IR)
         │
         ▼
- Comic-Zork Engine
+ Grues in Comic Engine
         │
         ▼
  WebAssembly Runtime
@@ -54,7 +54,7 @@ Intermediate Representation (IR)
 ## Repository Structure
 
 ```text
-comic-zork/
+grues-in-comic/
 
 ├── original-projects/
 │   ├── zork/
@@ -78,7 +78,7 @@ comic-zork/
 
 ## AI Knowledge System
 
-Comic-Zork separates two different kinds of project knowledge.
+Grues in Comic separates two different kinds of project knowledge.
 
 ### Structural Knowledge
 
@@ -117,5 +117,5 @@ Maintained using OpenWiki-compatible documentation. Examples:
 
 ## License
 
-Comic-Zork is released under the Apache License 2.0. Imported historical projects retain their original licenses.
+Grues in Comic is released under the Apache License 2.0. Imported historical projects retain their original licenses.
 See the LICENSE file and THIRD_PARTY.md for details.

@@ -1,8 +1,8 @@
-# Comic-Zork Porting Strategy (v2)
+# Grues in Comic Porting Strategy (v2)
 
 ## Overview
 
-Comic-Zork is an AI-first software modernization project.
+Grues in Comic is an AI-first software modernization project.
 
 The goal is **not** to compile historical software into WebAssembly. The goal is to understand, modernize, and reimplement two historical open-source projects into a new browser-native adventure engine.
 
@@ -17,7 +17,7 @@ The final result is a modern WebAssembly application running entirely inside a w
 
 ## Project Philosophy
 
-Comic-Zork prioritizes:
+Grues in Comic prioritizes:
 
 * behavioral compatibility
 * semantic preservation
@@ -35,7 +35,7 @@ The project intentionally separates **game semantics** from **runtime implementa
 ### Comic Chat
 
 Comic Chat is a C++ application. Its source code can largely be analyzed and ported using conventional modernization techniques.
-Within Comic-Zork, Comic Chat primarily contributes presentation concepts, including:
+Within Grues in Comic, Comic Chat primarily contributes presentation concepts, including:
 
 * comic panels
 * speech bubbles
@@ -59,7 +59,7 @@ It defines:
 * puzzles
 * gameplay logic
 
-Historically, ZIL was compiled into Z-code, which was executed by the Z-Machine. Comic-Zork intentionally does **not** recreate the original Z-Machine.
+Historically, ZIL was compiled into Z-code, which was executed by the Z-Machine. Grues in Comic intentionally does **not** recreate the original Z-Machine.
 Instead, the project extracts gameplay semantics from the ZIL source and executes them using a completely new runtime.
 
 ---
@@ -78,7 +78,7 @@ Z-Code
 Z-Machine
 ```
 
-Comic-Zork architecture:
+Grues in Comic architecture:
 
 ```text
 ZIL
@@ -87,7 +87,7 @@ Semantic Analysis
     ↓
 Intermediate Representation (IR)
     ↓
-Comic-Zork Engine
+Grues in Comic Engine
     ↓
 WebAssembly
     ↓
@@ -100,7 +100,7 @@ The objective is to preserve gameplay behavior while replacing the historical ru
 
 ## Intermediate Representation (IR)
 
-The Intermediate Representation (IR) is the architectural foundation of Comic-Zork. The IR separates game semantics from historical implementation details.
+The Intermediate Representation (IR) is the architectural foundation of Grues in Comic. The IR separates game semantics from historical implementation details.
 
 The IR should describe concepts such as:
 
@@ -153,7 +153,7 @@ should become an IR node representing a room with its properties and relationshi
 
 ## AI Knowledge Pipeline
 
-Comic-Zork distinguishes between semantic understanding and structural understanding.
+Grues in Comic distinguishes between semantic understanding and structural understanding.
 The recommended pipeline is:
 
 ```text
@@ -173,7 +173,7 @@ The recommended pipeline is:
               ▼
        AI Coding Agents
               ▼
-      Comic-Zork Engine
+      Grues in Comic Engine
 ```
 
 This architecture allows AI agents to understand both the code structure and the gameplay semantics.
@@ -228,7 +228,7 @@ OpenWiki complements Graphify. Graphify explains **how** the system is connected
 
 ## Event-Driven Engine
 
-The original Zork prints text directly to the terminal. Comic-Zork replaces console output with structured gameplay events.
+The original Zork prints text directly to the terminal. Grues in Comic replaces console output with structured gameplay events.
 
 Instead of:
 
@@ -335,7 +335,7 @@ After feature parity:
 
 ## Long-Term Vision
 
-Comic-Zork is intended to become a reusable browser-native adventure engine rather than a single-game port.
+Grues in Comic is intended to become a reusable browser-native adventure engine rather than a single-game port.
 The Intermediate Representation makes it possible to support additional interactive fiction systems in the future.
 
 Potential future importers may include:
@@ -347,4 +347,4 @@ Potential future importers may include:
 * Ink
 * custom adventure DSLs
 
-By separating semantic understanding from runtime implementation, Comic-Zork becomes a general-purpose AI-assisted modernization framework for historical adventure games rather than simply a WebAssembly version of Zork.
+By separating semantic understanding from runtime implementation, Grues in Comic becomes a general-purpose AI-assisted modernization framework for historical adventure games rather than simply a WebAssembly version of Zork.

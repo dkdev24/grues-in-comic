@@ -9,7 +9,7 @@ This document defines the expected workflow, architecture, and engineering princ
 
 ## Project Objective
 
-Comic-Zork modernizes two historical Microsoft open-source projects into a new browser-native adventure engine.
+Grues in Comic modernizes two historical Microsoft open-source projects into a new browser-native adventure engine.
 
 The project is **not** a traditional source port. The objective is to:
 
@@ -28,7 +28,7 @@ Do **not** attempt to recreate the historical runtime. Instead:
 * understand the original software
 * extract its semantics
 * represent those semantics using the Intermediate Representation (IR)
-* execute the IR using the Comic-Zork Engine
+* execute the IR using the Grues in Comic Engine
 
 ---
 
@@ -145,7 +145,7 @@ Do not create nested Git repositories. Do not use Git submodules.
 
 ## Intermediate Representation
 
-The IR is the central abstraction of Comic-Zork. The engine should execute the IR rather than the original source language.
+The IR is the central abstraction of Grues in Comic. The engine should execute the IR rather than the original source language.
 The IR should remain independent of:
 
 * ZIL
@@ -176,7 +176,7 @@ Avoid:
 
 ## Long-Term Vision
 
-Comic-Zork is intended to become a reusable browser-native adventure engine and a reference implementation for AI-assisted modernization of legacy software.
+Grues in Comic is intended to become a reusable browser-native adventure engine and a reference implementation for AI-assisted modernization of legacy software.
 
 Every contribution should improve:
 

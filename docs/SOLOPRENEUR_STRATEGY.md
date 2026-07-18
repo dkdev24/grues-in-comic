@@ -1,8 +1,8 @@
-# Comic-Zork as a Solopreneur Platform
+# Grues in Comic as a Solopreneur Platform
 
 ## Purpose
 
-Comic-Zork is not intended to become merely another open-source game project.
+Grues in Comic is not intended to become merely another open-source game project.
 Its primary purpose is to become a flagship demonstration of AI-assisted software modernization.
 
 The project should establish credibility, generate reusable intellectual property, and create opportunities for consulting, education, open-source tooling, and commercial products. The game itself is only one outcome.
@@ -13,7 +13,7 @@ The long-term asset is the knowledge, methodology, and tooling developed through
 
 ## Vision
 
-Build a sustainable one-person knowledge business around AI-assisted legacy software modernization. Comic-Zork serves as the public reference project demonstrating the complete workflow.
+Build a sustainable one-person knowledge business around AI-assisted legacy software modernization. Grues in Comic serves as the public reference project demonstrating the complete workflow.
 
 Instead of selling a game, the strategy is to build trust through visible execution.
 
@@ -32,7 +32,7 @@ Become recognized for expertise in:
 * AI developer workflows
 * AI-friendly software architecture
 
-Comic-Zork is the flagship project that demonstrates these capabilities.
+Grues in Comic is the flagship project that demonstrates these capabilities.
 
 ---
 
@@ -40,7 +40,7 @@ Comic-Zork is the flagship project that demonstrates these capabilities.
 
 The project produces several independent assets.
 
-### 1. The Comic-Zork Engine
+### 1. The Grues in Comic Engine
 
 A reusable browser-native adventure engine.
 Potential future applications include:
@@ -103,7 +103,7 @@ Documentation compounds in value over time.
 
 ## Revenue Opportunities
 
-Comic-Zork itself is expected to generate credibility rather than significant direct revenue.
+Grues in Comic itself is expected to generate credibility rather than significant direct revenue.
 Potential monetization includes:
 
 ### Consulting
@@ -126,7 +126,7 @@ Create:
 * conference talks
 * technical articles
 
-Comic-Zork becomes the primary teaching example.
+Grues in Comic becomes the primary teaching example.
 
 ### Open Source
 
@@ -164,9 +164,9 @@ Potential SaaS offerings include:
 
 ---
 
-## Why Comic-Zork?
+## Why Grues in Comic?
 
-Several characteristics make Comic-Zork an excellent flagship project.
+Several characteristics make Grues in Comic an excellent flagship project.
 It combines:
 
 * historical software
@@ -185,7 +185,7 @@ Few projects demonstrate such a broad range of modernization techniques within a
 
 ## Target Audience
 
-Comic-Zork is intended for:
+Grues in Comic is intended for:
 
 * software architects
 * engineering managers
@@ -267,7 +267,7 @@ The project succeeds when it becomes a recognized reference implementation for A
 
 ### Phase 3
 
-- Build the Comic-Zork Engine.
+- Build the Grues in Comic Engine.
 - Port gameplay to WebAssembly.
 - Implement browser-native rendering.
 
@@ -289,7 +289,7 @@ The project succeeds when it becomes a recognized reference implementation for A
 
 ## Final Vision
 
-Comic-Zork is not the destination. It is the first public demonstration of a larger vision:
+Grues in Comic is not the destination. It is the first public demonstration of a larger vision:
 
 **Helping developers and organizations understand, modernize, and extend legacy software using AI-assisted engineering workflows.**
 
