@@ -41,6 +41,7 @@ Two documents maintain cross-session state. Read them at the start of every sess
 - Location: `HANDOFF.md`
 - Purpose: Cross-session context memory.
 - Contains: current version, project status, last session summary, next actions, open issues, key paths.
+- **Read at the start of every session.**
 - **Update at the end of every session.** Replace the Last Session and Next Actions sections. Append to Open Issues as needed.
 
 ### WORKLOG.md
@@ -48,6 +49,7 @@ Two documents maintain cross-session state. Read them at the start of every sess
 - Location: `WORKLOG.md`
 - Purpose: Persistent project history.
 - Contains: one entry per version milestone, with date, changes, and status.
+- **Do not load at session start.** Read only when version history is directly relevant to the current task.
 - **Append a new entry when a version milestone is reached.** Never edit past entries.
 - Version format: `x.x.x` — increment the patch for small changes, minor for new subsystems, major for engine-complete milestones.
 
