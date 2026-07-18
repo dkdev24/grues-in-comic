@@ -32,16 +32,39 @@ Do **not** attempt to recreate the historical runtime. Instead:
 
 ---
 
+## System Documents
+
+Two documents maintain cross-session state. Read them at the start of every session. Update them at the end.
+
+### HANDOFF.md
+
+- Location: `HANDOFF.md`
+- Purpose: Cross-session context memory.
+- Contains: current version, project status, last session summary, next actions, open issues, key paths.
+- **Update at the end of every session.** Replace the Last Session and Next Actions sections. Append to Open Issues as needed.
+
+### WORKLOG.md
+
+- Location: `WORKLOG.md`
+- Purpose: Persistent project history.
+- Contains: one entry per version milestone, with date, changes, and status.
+- **Append a new entry when a version milestone is reached.** Never edit past entries.
+- Version format: `x.x.x` — increment the patch for small changes, minor for new subsystems, major for engine-complete milestones.
+
+---
+
 ## AI Development Workflow
 
 For any substantial task:
 
-1. Read the relevant documentation in `docs/` and `wiki/`.
-2. Review Graphify outputs in `graph/` if structural understanding is required.
-3. Analyze the affected subsystem.
-4. Implement changes incrementally.
-5. Update documentation when behavior or architecture changes.
-6. Regenerate Graphify artifacts if structural relationships have changed.
+1. Read `HANDOFF.md` for current status and next actions.
+2. Read the relevant documentation in `docs/` and `wiki/`.
+3. Review Graphify outputs in `graph/` if structural understanding is required.
+4. Analyze the affected subsystem.
+5. Implement changes incrementally.
+6. Update documentation when behavior or architecture changes.
+7. Regenerate Graphify artifacts if structural relationships have changed.
+8. Update `HANDOFF.md` and `WORKLOG.md` (if a milestone was reached) before ending the session.
 
 ---
 
