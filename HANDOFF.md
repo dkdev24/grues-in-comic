@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.5.0**
+**0.5.1**
 
 ---
 
@@ -17,17 +17,19 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A resolved split: Graphify adopted with per-module graphs; OpenWiki deferred — see Open Issues). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stage 3.1 world model complete — all 110 Zork I rooms/exits in `ir/artifacts/zork1.world.json`, connectivity verified against source. No engine or browser runtime started (Milestone 4).
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A resolved split: Graphify adopted with per-module graphs; OpenWiki deferred — see Open Issues). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stages 3.1–3.2 complete — all 110 Zork I rooms/exits and all 137 objects (properties, flags, containment, initial locations) in `ir/artifacts/zork1.world.json`, verified against source; IR schema at 0.2.0. No engine or browser runtime started (Milestone 4).
 
 ---
 
 ## Last Session
 
-- **Stage 3.1 complete — world model extracted, Milestone 3 begins** (v0.5.0):
-  - **Deterministic extractor** `ir/src/extract-world.ts` (+ `extract-cli.ts`, `npm run extract`): importer AST artifacts → `ir/artifacts/zork1.world.json` — **110 rooms, 352 exits** (277 to / 37 blocked / 25 conditional / 6 door / 7 routine), 12 exit-condition globals (all initially `false`), 20 stub objects (scenery + doors, identity fields only — full objects are stage 3.2), 47 opaque routine refs. Unknown AST shapes are hard errors (no LLM assistance needed anywhere); ZIL comment nodes skipped (TREASURE-ROOM FLAGS)
-  - **Connectivity verified** (exit criterion met): independent jq-derived edge list from the AST diffs clean vs. the generated IR (352/352); generated WEST-OF-HOUSE/KITCHEN/LIVING-ROOM match the stage 2.1 hand transcription field-for-field; raw-ZIL spot checks (RESERVOIR, MAZE-2) match
-  - 8 new extraction tests (51 total pass); validator CLI now covers `ir/artifacts/`; `extractWorld` exported from package API; `.graphifyignore` excludes `ir/artifacts/`; `ir/` graph regenerated (123 nodes/288 edges/8 communities); `ir/README.md` updated
-- Previous session (2026-07-18): stage 2.4 — ⚑ Gate A resolved split (Graphify adopted per-module, OpenWiki deferred), closing Milestone 2; details in WORKLOG v0.4.3
+- **Stage 3.2 complete — all objects extracted** (v0.5.1):
+  - `extract-world.ts` extended to full object extraction: **137 objects** (140 OBJECT forms minus the 3 ZIL scaffolding objects GLOBAL-OBJECTS/LOCAL-GLOBALS/ROOMS, which the IR represents structurally) — properties, flags, containment, initial locations (73 room / 20 object / 20 local-globals / 14 global / 10 nowhere); 132 routine refs, 28 flags in registry
+  - **IR schema 0.1.0 → 0.2.0** (additive, `docs/IR_SCHEMA.md` updated): location kind `"global"` (ZIL GLOBAL-OBJECTS — in scope everywhere, distinct from local-globals), `vehicleType` (VTYPE; boat → NONLANDBIT, validated against flag registry), `descriptionRoutine` (DESCFCN; bat). `(ACTION 0)` (ADVENTURER) maps to absent
+  - **ZIL string semantics now applied to every extracted string** (`|` = hard newline, source wraps = space, indentation after hard newlines kept) — verified against golden transcripts (leaflet) and the hand-transcribed sample; this also corrected stage 3.1 room descriptions which had kept raw source line wraps
+  - **Verified against source**: independent jq mirror of all 137 object records (including string decoding) diffs clean vs. the generated IR; MAILBOX/ADVERTISEMENT/KITCHEN-WINDOW byte-identical to the stage 2.1 hand transcription; INFLATED-BOAT spot-checked against raw ZIL
+  - 5 new tests (56 total pass); validator knows the new fields
+- Earlier same day: stage 3.1 (world model: 110 rooms/352 exits, connectivity verified 352/352, v0.5.0); stage 2.4 (⚑ Gate A resolved split, v0.4.3)
 
 ---
 
@@ -35,8 +37,8 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). **Milestone 3 continues** (Semantic Extraction ZIL→IR, v0.5.x):
 
-1. Stage 3.2 — **Objects**: all 140 OBJECT forms into IR (properties, flags, containment, initial locations), validator passing. Natural path: extend `ir/src/extract-world.ts`'s stub extraction (`extractStubObject`) into full object extraction — DESC/LDESC/FDESC/TEXT/SYNONYM/ADJECTIVE/FLAGS/CAPACITY/SIZE/VALUE/TVALUE/STRENGTH/ACTION/IN are all in the stage 2.1 schema already; watch for object properties outside it
-2. Stage 3.3 — vocabulary & syntax (gsyntax/gverbs AST)
+1. Stage 3.3 — **Vocabulary & syntax**: verbs, synonyms, buzzwords, parser SYNTAX rules from `gsyntax.zil.json`/`gverbs.zil.json` AST. The stage 2.1 schema has no vocabulary section yet — expect another additive `irVersion` bump; decide representation before extracting
+2. Stage 3.4 — action routines (simple) — first behavior extraction into the ADR 0001 AST
 3. Stage 5.1 (Comic Chat analysis) remains the sanctioned filler stage
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):

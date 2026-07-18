@@ -1,13 +1,16 @@
 /**
- * Stage 3.1 — deterministic world-model extraction (ZIL AST → IR).
+ * Stages 3.1–3.2 — deterministic world-model extraction (ZIL AST → IR).
  *
  * Consumes the importer's committed AST artifacts (`importer/artifacts/ast/`)
- * and produces a stage 2.1 {@link WorldDocument} containing every ROOM form:
- * rooms, exits, connections, room flags, and the globals the exits condition
- * on. Objects referenced by rooms (scenery lists, door exits) are emitted as
- * `stub: true` entries carrying only their identity fields (name, synonyms,
- * adjectives, flags, location) so references resolve — full object extraction
- * is stage 3.2.
+ * and produces a {@link WorldDocument} containing every ROOM form (rooms,
+ * exits, connections, flags, exit-condition globals — stage 3.1) and every
+ * OBJECT form (properties, flags, containment, initial locations — stage 3.2).
+ *
+ * Three ZIL world-tree scaffolding objects are deliberately not extracted:
+ * GLOBAL-OBJECTS, LOCAL-GLOBALS, and ROOMS. They exist to allocate property
+ * slots and anchor the object tree; the IR represents their semantics
+ * structurally instead (location kinds "global" / "local-globals" and the
+ * rooms list).
  *
  * The transform is purely deterministic: any AST shape outside the known ZIL
  * exit/property grammar is a hard error, never a guess.
@@ -57,7 +60,20 @@ function atomName(node: AstNode | undefined): string | undefined {
 }
 
 function stringValue(node: AstNode | undefined): string | undefined {
-  return node?.type === "String" ? (node.value as string) : undefined;
+  return node?.type === "String" ? decodeZilString(node.value as string) : undefined;
+}
+
+/**
+ * Apply ZIL string semantics (verified against the golden transcripts):
+ * `|` is a hard newline; a source line break is soft wrapping and renders as
+ * a space. Whitespace after a hard newline is real indentation and is kept.
+ */
+function decodeZilString(raw: string): string {
+  return raw
+    .replaceAll("|\n", "\u0000")
+    .replaceAll("|", "\u0000")
+    .replaceAll("\n", " ")
+    .replaceAll("\u0000", "\n");
 }
 
 /** Property-list elements with ZIL comment nodes removed (e.g. TREASURE-ROOM's `(FLAGS RLANDBIT ;"…")`). */
@@ -261,36 +277,56 @@ function extractRoom(form: AstNode): RoomExtraction {
   return { room, sceneryRefs, doorRefs, globalRefs };
 }
 
-// ---- referenced-object stubs (identity fields only; full extraction is stage 3.2) ----
+// ---- object extraction (stage 3.2) ----
 
-function extractStubObject(form: AstNode, roomIds: Set<string>): { object: WorldObject; containerRef?: string } {
+/** ZIL world-tree scaffolding OBJECT forms that must not become IR objects. */
+const SCAFFOLDING_OBJECTS = new Set(["GLOBAL-OBJECTS", "LOCAL-GLOBALS", "ROOMS"]);
+
+function extractObject(form: AstNode, roomIds: Set<string>): WorldObject {
   const elements = meaningful(form.elements!);
   const id = atomName(elements[1]) ?? fail("OBJECT", "form without a name atom");
 
-  let name = id;
-  let location: ObjectLocation = { kind: "nowhere" };
-  let containerRef: string | undefined;
+  const object: WorldObject = {
+    id,
+    name: "",
+    location: { kind: "nowhere" },
+    synonyms: [],
+    flags: [],
+  };
   const synonyms: string[] = [];
   const adjectives: string[] = [];
-  let flags: string[] = [];
+
+  const intProp = (rest: AstNode[], prop: string): number => {
+    const v = rest[0];
+    if (v?.type !== "Number" || typeof v.value !== "number") fail(id, `${prop} is not a number`);
+    return v.value;
+  };
 
   for (const prop of elements.slice(2)) {
-    if (prop.type !== "List" || !prop.elements?.length) continue;
+    if (prop.type !== "List" || !prop.elements?.length) fail(id, `unexpected property node ${prop.type}`);
     const parts = meaningful(prop.elements);
-    const head = atomName(parts[0]);
+    const head = atomName(parts[0]) ?? fail(id, "property without a head atom");
     const rest = parts.slice(1);
     switch (head) {
       case "DESC":
-        name = stringValue(rest[0]) ?? name;
+        object.name = stringValue(rest[0]) ?? fail(id, "DESC is not a string");
+        break;
+      case "LDESC":
+        object.description = stringValue(rest[0]) ?? fail(id, "LDESC is not a string");
+        break;
+      case "FDESC":
+        object.initialDescription = stringValue(rest[0]) ?? fail(id, "FDESC is not a string");
+        break;
+      case "TEXT":
+        object.text = stringValue(rest[0]) ?? fail(id, "TEXT is not a string");
         break;
       case "IN": {
-        const target = atomName(rest[0]);
-        if (target === "LOCAL-GLOBALS" || target === "GLOBAL-OBJECTS") location = { kind: "local-globals" };
-        else if (target !== undefined && roomIds.has(target)) location = { kind: "room", id: target };
-        else if (target !== undefined) {
-          location = { kind: "object", id: target };
-          containerRef = target;
-        }
+        const target = atomName(rest[0]) ?? fail(id, "IN is not an atom");
+        if (rest.length !== 1) fail(id, "malformed IN property");
+        if (target === "LOCAL-GLOBALS") object.location = { kind: "local-globals" };
+        else if (target === "GLOBAL-OBJECTS") object.location = { kind: "global" };
+        else if (roomIds.has(target)) object.location = { kind: "room", id: target };
+        else object.location = { kind: "object", id: target };
         break;
       }
       case "SYNONYM":
@@ -300,16 +336,43 @@ function extractStubObject(form: AstNode, roomIds: Set<string>): { object: World
         for (const a of rest) adjectives.push(atomName(a) ?? fail(id, "ADJECTIVE entry is not an atom"));
         break;
       case "FLAGS":
-        flags = rest.map((f) => atomName(f) ?? fail(id, "FLAGS entry is not an atom"));
+        object.flags = rest.map((f) => atomName(f) ?? fail(id, "FLAGS entry is not an atom"));
+        break;
+      case "ACTION":
+        // ADVENTURER carries `(ACTION 0)` — an explicit "no action".
+        if (rest[0]?.type === "Number" && rest[0].value === 0) break;
+        object.action = atomName(rest[0]) ?? fail(id, "ACTION is not an atom");
+        break;
+      case "DESCFCN":
+        object.descriptionRoutine = atomName(rest[0]) ?? fail(id, "DESCFCN is not an atom");
+        break;
+      case "VTYPE":
+        object.vehicleType = atomName(rest[0]) ?? fail(id, "VTYPE is not a flag atom");
+        break;
+      case "CAPACITY":
+        object.capacity = intProp(rest, head);
+        break;
+      case "SIZE":
+        object.size = intProp(rest, head);
+        break;
+      case "VALUE":
+        object.value = intProp(rest, head);
+        break;
+      case "TVALUE":
+        object.treasureValue = intProp(rest, head);
+        break;
+      case "STRENGTH":
+        object.strength = intProp(rest, head);
         break;
       default:
-        break; // other object properties are stage 3.2 scope
+        fail(id, `unknown object property "${head}"`);
     }
   }
 
-  const object: WorldObject = { id, name, location, synonyms, flags, stub: true };
+  if (object.name === "") fail(id, "object has no DESC");
+  object.synonyms = synonyms;
   if (adjectives.length > 0) object.adjectives = adjectives;
-  return containerRef !== undefined ? { object, containerRef } : { object };
+  return object;
 }
 
 // ---- global extraction ----
@@ -349,30 +412,18 @@ export function extractWorld(programs: AstProgram[]): WorldDocument {
   }
 
   const rooms: Room[] = [];
-  const sceneryRefs = new Set<string>();
-  const doorRefs = new Set<string>();
   const globalRefs = new Set<string>();
   for (const form of roomForms) {
-    const { room, sceneryRefs: s, doorRefs: d, globalRefs: g } = extractRoom(form);
+    const { room, globalRefs: g } = extractRoom(form);
     rooms.push(room);
-    for (const ref of s) sceneryRefs.add(ref);
-    for (const ref of d) doorRefs.add(ref);
     for (const ref of g) globalRefs.add(ref);
   }
   const roomIds = new Set(rooms.map((r) => r.id));
 
-  // Stub objects for every reference, pulling in container objects transitively.
   const objects: WorldObject[] = [];
-  const emitted = new Set<string>();
-  const queue = [...sceneryRefs, ...doorRefs].sort();
-  while (queue.length > 0) {
-    const id = queue.shift()!;
-    if (emitted.has(id)) continue;
-    emitted.add(id);
-    const form = objectForms.get(id) ?? fail(id, "referenced object has no OBJECT form");
-    const { object, containerRef } = extractStubObject(form, roomIds);
-    objects.push(object);
-    if (containerRef !== undefined && !emitted.has(containerRef)) queue.push(containerRef);
+  for (const [id, form] of objectForms) {
+    if (SCAFFOLDING_OBJECTS.has(id)) continue;
+    objects.push(extractObject(form, roomIds));
   }
 
   const globals: GlobalVariable[] = [...globalRefs].sort().map((id) => ({
@@ -391,11 +442,11 @@ export function extractWorld(programs: AstProgram[]): WorldDocument {
   return {
     irVersion: IR_VERSION,
     meta: {
-      title: "Zork I — world model (rooms, exits, connections)",
+      title: "Zork I — world model (rooms, exits, objects)",
       source: "importer/artifacts/ast (from original-projects/zork1)",
       coverage: "partial",
       notes:
-        "Stage 3.1 deterministic extraction: all ROOM forms with exits, flags, scenery/pseudo references, and exit-condition globals. Objects appear only as stub identity entries so references resolve; full objects are stage 3.2. Generated by ir/src/extract-world.ts — do not edit by hand.",
+        "Stages 3.1–3.2 deterministic extraction: all ROOM forms (exits, flags, scenery/pseudo references, exit-condition globals) and all OBJECT forms (properties, flags, containment, initial locations; ZIL scaffolding objects GLOBAL-OBJECTS/LOCAL-GLOBALS/ROOMS represented structurally, not as objects). Vocabulary, tables, and behavior are later stages. Generated by ir/src/extract-world.ts — do not edit by hand.",
     },
     flags,
     globals,

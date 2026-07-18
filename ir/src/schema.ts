@@ -16,7 +16,7 @@
  */
 
 /** Version of the IR schema itself (not the game data). */
-export const IR_VERSION = "0.1.0";
+export const IR_VERSION = "0.2.0";
 
 /**
  * Travel directions. ZIL's abbreviated direction properties map to full words
@@ -217,6 +217,8 @@ export type ObjectLocation =
   | { kind: "object"; id: string }
   /** Scenery pool referenced by rooms' `scenery` lists (ZIL LOCAL-GLOBALS). */
   | { kind: "local-globals" }
+  /** In scope in every room (ZIL GLOBAL-OBJECTS), e.g. hands, walls, the grue. */
+  | { kind: "global" }
   /** Defined but initially nowhere in the world. */
   | { kind: "nowhere" };
 
@@ -248,6 +250,13 @@ export interface WorldObject {
   treasureValue?: number;
   /** Weapon/villain strength (ZIL STRENGTH). */
   strength?: number;
+  /**
+   * Room-flag id the object requires of rooms it can travel through as a
+   * vehicle (ZIL VTYPE), e.g. the boat's NONLANDBIT.
+   */
+  vehicleType?: string;
+  /** Opaque routine computing the object's description (ZIL DESCFCN; stage 2.2). */
+  descriptionRoutine?: string;
   /** Same placeholder semantics as {@link Room.stub}. */
   stub?: boolean;
 }

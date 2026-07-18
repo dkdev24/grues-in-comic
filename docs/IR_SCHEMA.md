@@ -1,6 +1,6 @@
 # IR Schema — Declarative World (stage 2.1)
 
-Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.1.0"`**.
+Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.2.0"`** (0.2.0 added `location {kind:"global"}`, `vehicleType`, and `descriptionRoutine` for stage 3.2 object extraction).
 
 ## Scope and non-goals
 
@@ -19,7 +19,7 @@ Out of scope (stage 2.2 decides): imperative behavior — ROUTINE bodies, ACTION
 
 ```jsonc
 {
-  "irVersion": "0.1.0",       // must match the schema version exactly
+  "irVersion": "0.2.0",       // must match the schema version exactly
   "meta": { "title", "source", "coverage", "notes" },   // optional provenance
   "flags":   [ { "id": "ONBIT", "description": "…" } ], // registry of every usable flag
   "globals": [ { "id": "WON-FLAG", "value": false } ],  // scalar globals only
@@ -63,13 +63,17 @@ Discriminated union on `kind`; `direction` is one of `north, south, east, west, 
 | Field | ZIL origin | Notes |
 |---|---|---|
 | `id`, `name` | atom, `DESC` | required |
-| `location` | `IN` | `{kind:"room"\|"object", id}` \| `{kind:"local-globals"}` \| `{kind:"nowhere"}` |
+| `location` | `IN` | `{kind:"room"\|"object", id}` \| `{kind:"local-globals"}` \| `{kind:"global"}` (ZIL `GLOBAL-OBJECTS` — in scope everywhere) \| `{kind:"nowhere"}` |
 | `synonyms`, `adjectives` | `SYNONYM`, `ADJECTIVE` | parser vocabulary |
 | `flags` | `FLAGS` | declared in registry |
-| `action` | `ACTION` | opaque routine name |
-| `description` / `initialDescription` / `text` | `LDESC` / `FDESC` / `TEXT` | ZIL `\|` newlines converted to `\n`; source line breaks inside strings collapse to spaces |
+| `action` | `ACTION` | opaque routine name (ZIL `(ACTION 0)` — explicit no-op — maps to absent) |
+| `description` / `initialDescription` / `text` | `LDESC` / `FDESC` / `TEXT` | ZIL `\|` newlines converted to `\n`; source line breaks inside strings collapse to spaces (applies to every extracted string; verified against golden transcripts) |
 | `capacity`, `size`, `value`, `treasureValue`, `strength` | `CAPACITY`, `SIZE`, `VALUE`, `TVALUE`, `STRENGTH` | integers |
+| `vehicleType` | `VTYPE` | room-flag id the vehicle travels on (boat → `NONLANDBIT`); validated against the flag registry |
+| `descriptionRoutine` | `DESCFCN` | opaque routine computing the description (bat) |
 | `stub` | — | placeholder marker |
+
+The three ZIL world-tree scaffolding objects — `GLOBAL-OBJECTS`, `LOCAL-GLOBALS`, `ROOMS` — are **not** represented as IR objects. They exist in ZIL to allocate property slots and anchor the object tree; the IR expresses their semantics structurally (the `global`/`local-globals` location kinds and the rooms list).
 
 ## Validation
 
@@ -82,11 +86,11 @@ A valid document yields a summary (entity counts, exit count, sorted `routineRef
 
 ## Versioning
 
-`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. Stage 2.2 (behavior) is expected to bump to `0.2.0` by adding a `routines` section and tightening `routineRefs` resolution.
+`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`). Wiring the behavior `routines` section in (per ADR 0001) will be the next bump.
 
 ## Known deferrals
 
-- **Behavior** (`action`/`routine`/`pseudo` targets) — representation decided in `docs/adr/0001-behavior-representation.md` (structured behavior AST, `ir/src/behavior.ts`); wiring a `routines` section into `WorldDocument` (`irVersion` 0.2.0) happens when Milestone 3 extraction populates it.
+- **Behavior** (`action`/`routine`/`pseudo`/`descriptionRoutine` targets) — representation decided in `docs/adr/0001-behavior-representation.md` (structured behavior AST, `ir/src/behavior.ts`); wiring a `routines` section into `WorldDocument` (next `irVersion` bump) happens when Milestone 3 extraction populates it (stages 3.4–3.5).
 - **Vocabulary & syntax** (verbs, SYNTAX lines, buzzwords) — Milestone 3.3; object `synonyms`/`adjectives` are kept now since they are object-local data.
 - **ITABLE element semantics** (initializer counts) — revisit when the first ITABLE is transcribed; the `kind` is reserved.
 - **Player/winner state, LOAD-ALLOWED-style engine parameters** — engine ADR (stage 2.3).

@@ -1,7 +1,8 @@
 /**
- * Stage 3.1 extraction tests: the world model extracted from the committed
- * importer AST artifacts must validate, cover all 110 Zork I rooms, and agree
- * with the hand-transcribed stage 2.1 sample where they overlap.
+ * Stage 3.1–3.2 extraction tests: the world model extracted from the
+ * committed importer AST artifacts must validate, cover all 110 Zork I rooms
+ * and 137 objects, and agree with the hand-transcribed stage 2.1 sample
+ * where they overlap.
  */
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -76,7 +77,7 @@ describe("extractWorld (Zork I AST artifacts)", () => {
     expect(world.globals.every((g) => g.value === false)).toBe(true);
   });
 
-  it("emits every door object as a DOORBIT-flagged stub", () => {
+  it("emits every door object DOORBIT-flagged", () => {
     const byId = new Map(world.objects.map((o) => [o.id, o]));
     for (const room of world.rooms) {
       for (const exit of room.exits) {
@@ -84,9 +85,44 @@ describe("extractWorld (Zork I AST artifacts)", () => {
         const door = byId.get(exit.door);
         expect(door, `${room.id}: ${exit.door}`).toBeDefined();
         expect(door!.flags).toContain("DOORBIT");
-        expect(door!.stub).toBe(true);
       }
     }
+  });
+
+  it("extracts all 137 objects fully (140 forms minus 3 scaffolding)", () => {
+    expect(result.summary?.objects).toBe(137);
+    expect(result.summary?.stubObjects).toBe(0);
+    const ids = new Set(world.objects.map((o) => o.id));
+    for (const meta of ["GLOBAL-OBJECTS", "LOCAL-GLOBALS", "ROOMS"]) {
+      expect(ids.has(meta), meta).toBe(false);
+    }
+  });
+
+  it("matches the expected initial-location breakdown", () => {
+    const kinds: Record<string, number> = {};
+    for (const o of world.objects) kinds[o.location.kind] = (kinds[o.location.kind] ?? 0) + 1;
+    expect(kinds).toEqual({ room: 73, object: 20, "local-globals": 20, global: 14, nowhere: 10 });
+  });
+
+  it("agrees with the hand-transcribed sample objects", () => {
+    for (const id of ["MAILBOX", "ADVERTISEMENT", "KITCHEN-WINDOW"]) {
+      const extracted = world.objects.find((o) => o.id === id);
+      const transcribed = sample.objects.find((o: { id: string }) => o.id === id);
+      expect(extracted, id).toEqual(transcribed);
+    }
+  });
+
+  it("maps out-of-schema-0.1 properties (VTYPE, DESCFCN) and ACTION 0", () => {
+    expect(world.objects.find((o) => o.id === "INFLATED-BOAT")?.vehicleType).toBe("NONLANDBIT");
+    expect(world.objects.find((o) => o.id === "BAT")?.descriptionRoutine).toBe("BAT-D");
+    expect(world.objects.find((o) => o.id === "ADVENTURER")?.action).toBeUndefined();
+  });
+
+  it("applies ZIL string semantics: | is a hard newline, wraps are spaces", () => {
+    const leaflet = world.objects.find((o) => o.id === "ADVERTISEMENT")!;
+    expect(leaflet.text).toContain('"WELCOME TO ZORK!\n\nZORK is a game of adventure, danger, and low cunning. In it you will explore');
+    const strings = JSON.stringify(world);
+    expect(strings.includes("|")).toBe(false);
   });
 
   it("is deterministic across runs", () => {

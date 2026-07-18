@@ -316,7 +316,8 @@ export function validateWorld(input: unknown): ValidationResult {
     checkKeys(ctx, path, raw, [
       "id", "name", "location", "synonyms", "adjectives", "flags", "action",
       "description", "initialDescription", "text",
-      "capacity", "size", "value", "treasureValue", "strength", "stub",
+      "capacity", "size", "value", "treasureValue", "strength",
+      "vehicleType", "descriptionRoutine", "stub",
     ]);
     const id = reqString(ctx, path, raw, "id");
     reqString(ctx, path, raw, "name");
@@ -326,6 +327,10 @@ export function validateWorld(input: unknown): ValidationResult {
     if (raw.stub === true) stubObjects++;
     const action = optString(ctx, path, raw, "action");
     if (action !== undefined) routineRefs.add(action);
+    const descFcn = optString(ctx, path, raw, "descriptionRoutine");
+    if (descFcn !== undefined) routineRefs.add(descFcn);
+    const vehicleType = optString(ctx, path, raw, "vehicleType");
+    if (vehicleType !== undefined) usedFlags.push({ path: `${path}.vehicleType`, id: vehicleType });
 
     const loc = raw.location;
     const locPath = `${path}.location`;
@@ -341,11 +346,12 @@ export function validateWorld(input: unknown): ValidationResult {
           break;
         }
         case "local-globals":
+        case "global":
         case "nowhere":
           checkKeys(ctx, locPath, loc, ["kind"]);
           break;
         default:
-          ctx.fail(`${locPath}.kind`, 'must be "room", "object", "local-globals", or "nowhere"');
+          ctx.fail(`${locPath}.kind`, 'must be "room", "object", "local-globals", "global", or "nowhere"');
       }
     }
 
