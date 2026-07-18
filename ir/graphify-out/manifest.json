@@ -20,8 +20,8 @@
     "semantic_hash": "1ded6ac8393f1b06e1ae5cdbddd0ace2"
   },
   "samples/west-of-house.world.json": {
-    "mtime": 1784370661.735121,
-    "ast_hash": "fb9a9a872b2eca1b0894cd5e907a2a52",
+    "mtime": 1784384676.9033077,
+    "ast_hash": "2e906d16f7e47d8e1703507d4eed0e95",
     "semantic_hash": ""
   },
   "src/behavior.ts": {
@@ -30,9 +30,9 @@
     "semantic_hash": "7ba1266bd5407ac5e7bd2103e762b0ff"
   },
   "src/cli.ts": {
-    "mtime": 1784350825.5975876,
-    "ast_hash": "b80b9ff5fdc9b1a1cce6b89fb9995ec2",
-    "semantic_hash": "b80b9ff5fdc9b1a1cce6b89fb9995ec2"
+    "mtime": 1784384670.8374364,
+    "ast_hash": "6b7522713cc279233de85b4d14d11007",
+    "semantic_hash": ""
   },
   "src/index.ts": {
     "mtime": 1784370219.518118,
@@ -40,13 +40,13 @@
     "semantic_hash": ""
   },
   "src/schema.ts": {
-    "mtime": 1784370585.8229754,
-    "ast_hash": "b312a3f24c21ca50412b50ec8c2fae99",
+    "mtime": 1784384637.0976672,
+    "ast_hash": "9ff80be11072e415ea6ee32f055fc15f",
     "semantic_hash": ""
   },
   "src/validate.ts": {
-    "mtime": 1784370597.299403,
-    "ast_hash": "e1e4acf2dd6bcc4971b747e63b02f7f1",
+    "mtime": 1784384667.7430484,
+    "ast_hash": "d108f9a02b6a9356ad5e87742840edb9",
     "semantic_hash": ""
   },
   "test/behavior-poc.test.ts": {
@@ -60,23 +60,23 @@
     "semantic_hash": "fb8f82e333be718a48a1bc2bf4f24bcd"
   },
   "test/validate.test.ts": {
-    "mtime": 1784364083.2489734,
-    "ast_hash": "08c9434856e08d6d8613f49a9646b418",
-    "semantic_hash": "08c9434856e08d6d8613f49a9646b418"
+    "mtime": 1784384870.9676838,
+    "ast_hash": "dfdbefcbc160b45f716941ac7be055d3",
+    "semantic_hash": ""
   },
   "src/extract-cli.ts": {
-    "mtime": 1784370035.3558235,
-    "ast_hash": "29a91f34c39c11f58d9130447a296cdd",
+    "mtime": 1784384798.5368524,
+    "ast_hash": "be6578549bb0d81f1a5f05b297756e0a",
     "semantic_hash": ""
   },
   "src/extract-world.ts": {
-    "mtime": 1784370847.3747864,
-    "ast_hash": "7e6c05baa2d89872bd64508a556a29cb",
+    "mtime": 1784384758.443696,
+    "ast_hash": "f3c6b86f7c3a2a3ea1b45397af77a92f",
     "semantic_hash": ""
   },
   "test/extract.test.ts": {
-    "mtime": 1784370944.6633677,
-    "ast_hash": "08640b6dbf5e0527fdb7f70896300d83",
+    "mtime": 1784384833.7656863,
+    "ast_hash": "f24c9d520f400265142ea45374956594",
     "semantic_hash": ""
   }
 }

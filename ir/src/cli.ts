@@ -47,7 +47,7 @@ for (const file of collect(args)) {
     console.log(
       `✓ ${file}: ${s.rooms} rooms (${s.stubRooms} stubs), ${s.objects} objects (${s.stubObjects} stubs), ` +
         `${s.exits} exits, ${s.globals} globals, ${s.tables} tables, ${s.flags} flags, ` +
-        `${s.routineRefs.length} routine refs`,
+        `${s.syntaxRules} syntax rules, ${s.routineRefs.length} routine refs`,
     );
   } else {
     console.error(`✗ ${file}: ${result.errors.length} error(s)`);

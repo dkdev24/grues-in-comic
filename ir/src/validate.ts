@@ -13,7 +13,7 @@
  * stage 2.1; they are collected into the result summary but not resolved.
  */
 
-import { DIRECTIONS, IR_VERSION } from "./schema.js";
+import { DIRECTIONS, IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
 
 export interface ValidationError {
   /** JSON-path-ish location, e.g. `rooms[2].exits[0].to`. */
@@ -37,6 +37,8 @@ export interface WorldSummary {
   tables: number;
   flags: number;
   exits: number;
+  /** Verb syntax rules in the vocabulary section (0 when absent). */
+  syntaxRules: number;
   /** Distinct opaque behavior references (actions, PER exits, pseudo routines). */
   routineRefs: string[];
 }
@@ -130,7 +132,7 @@ export function validateWorld(input: unknown): ValidationResult {
   if (!isObject(input)) {
     return { valid: false, errors: [{ path: "$", message: "document must be a JSON object" }] };
   }
-  checkKeys(ctx, "$", input, ["irVersion", "meta", "flags", "globals", "tables", "rooms", "objects"]);
+  checkKeys(ctx, "$", input, ["irVersion", "meta", "flags", "globals", "tables", "rooms", "objects", "vocabulary"]);
 
   if (input.irVersion !== IR_VERSION) {
     ctx.fail("$.irVersion", `must be "${IR_VERSION}"`);
@@ -361,6 +363,67 @@ export function validateWorld(input: unknown): ValidationResult {
     if (id !== undefined) claimId(`${path}.id`, id, "objects", objectIds);
   });
 
+  // ---- vocabulary ----
+
+  let syntaxRules = 0;
+  const OPTION_SET = new Set<string>(SYNTAX_SEARCH_OPTIONS);
+  if (input.vocabulary !== undefined) {
+    const vocab = input.vocabulary;
+    const vPath = "$.vocabulary";
+    if (!isObject(vocab)) {
+      ctx.fail(vPath, "must be an object");
+    } else {
+      checkKeys(ctx, vPath, vocab, ["directions", "buzzwords", "synonyms", "syntax"]);
+
+      reqArray(ctx, vPath, vocab, "directions").forEach((raw, i) => {
+        const path = `${vPath}.directions[${i}]`;
+        if (!isObject(raw)) return ctx.fail(path, "must be an object");
+        checkKeys(ctx, path, raw, ["word", "direction"]);
+        reqString(ctx, path, raw, "word");
+        if (typeof raw.direction !== "string" || !DIRECTION_SET.has(raw.direction)) {
+          ctx.fail(`${path}.direction`, `must be one of: ${DIRECTIONS.join(", ")}`);
+        }
+      });
+
+      reqStringArray(ctx, vPath, vocab, "buzzwords");
+
+      reqArray(ctx, vPath, vocab, "synonyms").forEach((raw, i) => {
+        const path = `${vPath}.synonyms[${i}]`;
+        if (!isObject(raw)) return ctx.fail(path, "must be an object");
+        checkKeys(ctx, path, raw, ["word", "synonyms"]);
+        reqString(ctx, path, raw, "word");
+        reqStringArray(ctx, path, raw, "synonyms");
+      });
+
+      reqArray(ctx, vPath, vocab, "syntax").forEach((raw, i) => {
+        const path = `${vPath}.syntax[${i}]`;
+        if (!isObject(raw)) return ctx.fail(path, "must be an object");
+        syntaxRules++;
+        checkKeys(ctx, path, raw, ["verb", "objects", "action", "preAction"]);
+        reqString(ctx, path, raw, "verb");
+        const action = reqString(ctx, path, raw, "action");
+        if (action !== undefined) routineRefs.add(action);
+        const preAction = optString(ctx, path, raw, "preAction");
+        if (preAction !== undefined) routineRefs.add(preAction);
+        const slots = reqArray(ctx, path, raw, "objects");
+        if (slots.length > 2) ctx.fail(`${path}.objects`, "at most 2 object slots");
+        slots.forEach((slot, j) => {
+          const sPath = `${path}.objects[${j}]`;
+          if (!isObject(slot)) return ctx.fail(sPath, "must be an object");
+          checkKeys(ctx, sPath, slot, ["preposition", "find", "options"]);
+          optString(ctx, sPath, slot, "preposition");
+          const find = optString(ctx, sPath, slot, "find");
+          if (find !== undefined) usedFlags.push({ path: `${sPath}.find`, id: find });
+          for (const opt of optStringArray(ctx, sPath, slot, "options")) {
+            if (!OPTION_SET.has(opt)) {
+              ctx.fail(`${sPath}.options`, `unknown search option "${opt}"`);
+            }
+          }
+        });
+      });
+    }
+  }
+
   // ---- referential pass ----
 
   const doorFlagged = new Set<string>();
@@ -413,6 +476,7 @@ export function validateWorld(input: unknown): ValidationResult {
       tables: tableIds.size,
       flags: flagIds.size,
       exits: exitCount,
+      syntaxRules,
       routineRefs: [...routineRefs].sort(),
     },
   };

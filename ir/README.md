@@ -14,11 +14,11 @@ The normative schema specification lives in `docs/IR_SCHEMA.md` (repo root). Thi
 | `src/behavior.ts` | Behavior AST types (stage 2.2; canonical per ADR 0001) — not yet wired into `WorldDocument` |
 | `src/validate.ts` | `validateWorld(json)` — structural pass (strict, unknown keys rejected) + referential pass (all ids resolve) |
 | `src/cli.ts` | Validator CLI (run via `npm run validate`) |
-| `src/extract-world.ts` | Stages 3.1–3.2 deterministic extraction — importer AST artifacts → world-model IR (all rooms/exits/connections + all objects with properties/containment) |
+| `src/extract-world.ts` | Stages 3.1–3.3 deterministic extraction — importer AST artifacts → world-model IR (rooms/exits, objects, parser vocabulary incl. ZORK-NUMBER COND resolution) |
 | `src/extract-cli.ts` | Extraction CLI (run via `npm run extract`); validates before writing |
 | `src/index.ts` | Public API |
 | `samples/` | Hand-written IR transcribed from `original-projects/zork1/` — West of House, Kitchen, Living Room + reference stubs |
-| `artifacts/` | Generated IR (`zork1.world.json`, stages 3.1–3.2: full rooms + objects) — never edit by hand, regenerate with `npm run extract` |
+| `artifacts/` | Generated IR (`zork1.world.json`, stages 3.1–3.3: full rooms + objects + vocabulary) — never edit by hand, regenerate with `npm run extract` |
 | `poc/` | Stage 2.2 POC — reference interpreter, hand-written behavior ASTs (TRAP-DOOR-EXIT, KITCHEN-WINDOW-F), the competing hand-transpiled variant, shared world/builtin substrate |
 | `test/` | Sample-world integration tests + validator unit tests + behavior differential/golden tests |
 

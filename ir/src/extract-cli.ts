@@ -34,5 +34,6 @@ writeFileSync(outFile, JSON.stringify(world, null, 2) + "\n");
 const s = result.summary!;
 console.log(
   `✓ ${outFile}: ${s.rooms} rooms (${s.stubRooms} stubs), ${s.objects} objects (${s.stubObjects} stubs), ` +
-    `${s.exits} exits, ${s.globals} globals, ${s.flags} flags, ${s.routineRefs.length} routine refs`,
+    `${s.exits} exits, ${s.globals} globals, ${s.flags} flags, ${s.syntaxRules} syntax rules, ` +
+    `${s.routineRefs.length} routine refs`,
 );

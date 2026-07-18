@@ -1,6 +1,6 @@
 # IR Schema — Declarative World (stage 2.1)
 
-Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.2.0"`** (0.2.0 added `location {kind:"global"}`, `vehicleType`, and `descriptionRoutine` for stage 3.2 object extraction).
+Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.3.0"`** (0.3.0 added the optional `vocabulary` section for stage 3.3).
 
 ## Scope and non-goals
 
@@ -19,7 +19,7 @@ Out of scope (stage 2.2 decides): imperative behavior — ROUTINE bodies, ACTION
 
 ```jsonc
 {
-  "irVersion": "0.2.0",       // must match the schema version exactly
+  "irVersion": "0.3.0",       // must match the schema version exactly
   "meta": { "title", "source", "coverage", "notes" },   // optional provenance
   "flags":   [ { "id": "ONBIT", "description": "…" } ], // registry of every usable flag
   "globals": [ { "id": "WON-FLAG", "value": false } ],  // scalar globals only
@@ -75,6 +75,19 @@ Discriminated union on `kind`; `direction` is one of `north, south, east, west, 
 
 The three ZIL world-tree scaffolding objects — `GLOBAL-OBJECTS`, `LOCAL-GLOBALS`, `ROOMS` — are **not** represented as IR objects. They exist in ZIL to allocate property slots and anchor the object tree; the IR expresses their semantics structurally (the `global`/`local-globals` location kinds and the rooms list).
 
+### Vocabulary (optional section)
+
+Parser vocabulary from `gsyntax.zil` (stage 3.3). Words keep their upper-case ZIL spelling; object nouns/adjectives stay on the objects.
+
+| Field | ZIL origin | Notes |
+|---|---|---|
+| `directions` | `DIRECTIONS` | `{word, direction}` pairs; `direction` is an IR direction id |
+| `buzzwords` | `BUZZ` | noise words the parser drops, including punctuation tokens (`.` `,` `"`) |
+| `synonyms` | `SYNONYM` | `{word, synonyms}` — every alias parses as `word` |
+| `syntax` | `SYNTAX` | `{verb, objects[0–2], action, preAction?}`; each object slot: `preposition?`, `find?` (flag id, validated against the registry), `options?` (enum: HELD, CARRIED, IN-ROOM, ON-GROUND, MANY, HAVE, TAKE) |
+
+ZIL compile-time `<COND (<==? ,ZORK-NUMBER n> …)>` gates around vocabulary forms are resolved during extraction using `<SETG ZORK-NUMBER 1>` (Zork I): dead clauses (Zork II/III vocabulary) are dropped, live clauses join the stream.
+
 ## Validation
 
 `ir/src/validate.ts` (`npm run validate` in `ir/`) runs two passes:
@@ -86,11 +99,11 @@ A valid document yields a summary (entity counts, exit count, sorted `routineRef
 
 ## Versioning
 
-`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`). Wiring the behavior `routines` section in (per ADR 0001) will be the next bump.
+`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`); `0.3.0` stage 3.3 `vocabulary` section (directions, buzzwords, synonyms, syntax rules). Wiring the behavior `routines` section in (per ADR 0001) will be the next bump.
 
 ## Known deferrals
 
 - **Behavior** (`action`/`routine`/`pseudo`/`descriptionRoutine` targets) — representation decided in `docs/adr/0001-behavior-representation.md` (structured behavior AST, `ir/src/behavior.ts`); wiring a `routines` section into `WorldDocument` (next `irVersion` bump) happens when Milestone 3 extraction populates it (stages 3.4–3.5).
-- **Vocabulary & syntax** (verbs, SYNTAX lines, buzzwords) — Milestone 3.3; object `synonyms`/`adjectives` are kept now since they are object-local data.
+- ~~**Vocabulary & syntax**~~ — done (stage 3.3, `vocabulary` section above).
 - **ITABLE element semantics** (initializer counts) — revisit when the first ITABLE is transcribed; the `kind` is reserved.
 - **Player/winner state, LOAD-ALLOWED-style engine parameters** — engine ADR (stage 2.3).

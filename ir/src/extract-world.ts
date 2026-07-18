@@ -18,16 +18,22 @@
 
 import type {
   Direction,
+  DirectionWord,
   Exit,
   FlagDeclaration,
   GlobalVariable,
   ObjectLocation,
   PseudoReference,
   Room,
+  SyntaxObjectSlot,
+  SyntaxRule,
+  SyntaxSearchOption,
+  Vocabulary,
+  WordSynonym,
   WorldDocument,
   WorldObject,
 } from "./schema.js";
-import { IR_VERSION } from "./schema.js";
+import { IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
 
 // ---- minimal AST node model (importer artifact shape) ----
 
@@ -375,22 +381,156 @@ function extractObject(form: AstNode, roomIds: Set<string>): WorldObject {
   return object;
 }
 
+// ---- compile-time COND resolution ----
+
+/**
+ * gsyntax.zil wraps some vocabulary in `<COND (<==? ,ZORK-NUMBER n> …)>`
+ * compile-time gates (Zork I/II/III shared source). Resolve them exactly:
+ * ZORK-NUMBER comes from `<SETG ZORK-NUMBER n>` in zork1.zil, predicates are
+ * `==?` / `N==?` against a number literal, and the first true clause's body
+ * joins the top-level form stream. Anything else is a hard error.
+ */
+function expandCompileTimeConds(programs: AstProgram[]): AstNode[] {
+  let zorkNumber: number | undefined;
+  for (const program of programs) {
+    for (const node of program.body) {
+      if (!isForm(node, "SETG")) continue;
+      const elements = meaningful(node.elements!);
+      if (atomName(elements[1]) === "ZORK-NUMBER" && elements[2]?.type === "Number") {
+        zorkNumber = elements[2].value as number;
+      }
+    }
+  }
+
+  const out: AstNode[] = [];
+  for (const program of programs) {
+    for (const node of program.body) {
+      if (!isForm(node, "COND")) {
+        out.push(node);
+        continue;
+      }
+      for (const clause of meaningful(node.elements!).slice(1)) {
+        if (clause.type !== "List" || !clause.elements?.length) fail("COND", "clause is not a list");
+        const [predicate, ...body] = meaningful(clause.elements!);
+        if (evalCondPredicate(predicate, zorkNumber)) {
+          out.push(...body);
+          break;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function evalCondPredicate(predicate: AstNode | undefined, zorkNumber: number | undefined): boolean {
+  const op = predicate !== undefined ? atomName(predicate.elements?.[0]) : undefined;
+  if (predicate === undefined || (op !== "==?" && op !== "N==?")) {
+    fail("COND", `unsupported compile-time predicate (${op ?? predicate?.type})`);
+  }
+  const [, lhs, rhs] = meaningful(predicate.elements!);
+  if (lhs?.type !== "GVal" || atomName(lhs.value as AstNode) !== "ZORK-NUMBER" || rhs?.type !== "Number") {
+    fail("COND", "predicate is not ,ZORK-NUMBER vs a number literal");
+  }
+  if (zorkNumber === undefined) fail("COND", "ZORK-NUMBER is not set by any provided AST");
+  const equal = zorkNumber === (rhs.value as number);
+  return op === "==?" ? equal : !equal;
+}
+
+// ---- vocabulary extraction (stage 3.3) ----
+
+const OPTION_SET = new Set<string>(SYNTAX_SEARCH_OPTIONS);
+
+function extractSyntaxRule(form: AstNode): SyntaxRule {
+  const parts = meaningful(form.elements!).slice(1);
+  const eqIndex = parts.findIndex((p) => atomName(p) === "=");
+  if (eqIndex < 1) fail("SYNTAX", "rule without a verb or =");
+  const verb = atomName(parts[0]) ?? fail("SYNTAX", "verb is not an atom");
+  const ctx = `SYNTAX ${verb}`;
+
+  const objects: SyntaxObjectSlot[] = [];
+  let pendingPreposition: string | undefined;
+  for (const token of parts.slice(1, eqIndex)) {
+    const word = atomName(token);
+    if (word === "OBJECT") {
+      const slot: SyntaxObjectSlot = {};
+      if (pendingPreposition !== undefined) slot.preposition = pendingPreposition;
+      pendingPreposition = undefined;
+      objects.push(slot);
+    } else if (word !== undefined) {
+      if (pendingPreposition !== undefined) fail(ctx, `two prepositions in a row ("${pendingPreposition}" "${word}")`);
+      pendingPreposition = word;
+    } else if (token.type === "List") {
+      const slot = objects[objects.length - 1] ?? fail(ctx, "option list before any OBJECT");
+      const listParts = meaningful(token.elements!);
+      if (atomName(listParts[0]) === "FIND") {
+        const flag = atomName(listParts[1]);
+        if (listParts.length !== 2 || flag === undefined) fail(ctx, "malformed (FIND flag)");
+        slot.find = flag;
+      } else {
+        const options = listParts.map((p) => atomName(p) ?? fail(ctx, "search option is not an atom"));
+        for (const option of options) {
+          if (!OPTION_SET.has(option)) fail(ctx, `unknown search option "${option}"`);
+        }
+        slot.options = options as SyntaxSearchOption[];
+      }
+    } else {
+      fail(ctx, `unexpected token ${token.type}`);
+    }
+  }
+  if (pendingPreposition !== undefined) fail(ctx, `dangling preposition "${pendingPreposition}"`);
+  if (objects.length > 2) fail(ctx, "more than 2 object slots");
+
+  const rhs = parts.slice(eqIndex + 1).map((p) => atomName(p) ?? fail(ctx, "routine ref is not an atom"));
+  if (rhs.length < 1 || rhs.length > 2) fail(ctx, "expected action [preAction] after =");
+  const rule: SyntaxRule = { verb, objects, action: rhs[0]! };
+  if (rhs[1] !== undefined) rule.preAction = rhs[1];
+  return rule;
+}
+
+function extractVocabulary(topLevel: AstNode[]): Vocabulary {
+  const directions: DirectionWord[] = [];
+  const buzzwords: string[] = [];
+  const synonyms: WordSynonym[] = [];
+  const syntax: SyntaxRule[] = [];
+
+  for (const node of topLevel) {
+    if (isForm(node, "DIRECTIONS")) {
+      for (const word of meaningful(node.elements!).slice(1)) {
+        const name = atomName(word) ?? fail("DIRECTIONS", "entry is not an atom");
+        const direction = DIRECTION_MAP[name] ?? fail("DIRECTIONS", `unknown direction "${name}"`);
+        directions.push({ word: name, direction });
+      }
+    } else if (isForm(node, "BUZZ")) {
+      for (const word of meaningful(node.elements!).slice(1)) {
+        buzzwords.push(atomName(word) ?? fail("BUZZ", "entry is not an atom"));
+      }
+    } else if (isForm(node, "SYNONYM")) {
+      const words = meaningful(node.elements!)
+        .slice(1)
+        .map((w) => atomName(w) ?? fail("SYNONYM", "entry is not an atom"));
+      if (words.length < 2) fail("SYNONYM", "needs a word and at least one alias");
+      synonyms.push({ word: words[0]!, synonyms: words.slice(1) });
+    } else if (isForm(node, "SYNTAX")) {
+      syntax.push(extractSyntaxRule(node));
+    }
+  }
+  return { directions, buzzwords, synonyms, syntax };
+}
+
 // ---- global extraction ----
 
 /** Resolve a referenced global's initial value from `<GLOBAL name value>` forms. */
-function findGlobalValue(programs: AstProgram[], name: string): boolean | number | string {
-  for (const program of programs) {
-    for (const node of program.body) {
-      if (!isForm(node, "GLOBAL")) continue;
-      const elements = meaningful(node.elements!);
-      if (atomName(elements[1]) !== name) continue;
-      const value = elements[2];
-      if (value?.type === "Form" && (value.elements?.length ?? 0) === 0) return false; // <>
-      if (value?.type === "Atom" && value.name === "T") return true;
-      if (value?.type === "Number" && typeof value.value === "number") return value.value;
-      if (value?.type === "String") return value.value as string;
-      fail(name, `global has a non-scalar initial value (${value?.type})`);
-    }
+function findGlobalValue(topLevel: AstNode[], name: string): boolean | number | string {
+  for (const node of topLevel) {
+    if (!isForm(node, "GLOBAL")) continue;
+    const elements = meaningful(node.elements!);
+    if (atomName(elements[1]) !== name) continue;
+    const value = elements[2];
+    if (value?.type === "Form" && (value.elements?.length ?? 0) === 0) return false; // <>
+    if (value?.type === "Atom" && value.name === "T") return true;
+    if (value?.type === "Number" && typeof value.value === "number") return value.value;
+    if (value?.type === "String") return value.value as string;
+    fail(name, `global has a non-scalar initial value (${value?.type})`);
   }
   fail(name, "referenced global is not defined in any provided AST");
 }
@@ -399,15 +539,14 @@ function findGlobalValue(programs: AstProgram[], name: string): boolean | number
 
 /** Extract the full world model from importer AST programs. */
 export function extractWorld(programs: AstProgram[]): WorldDocument {
+  const topLevel = expandCompileTimeConds(programs);
   const roomForms: AstNode[] = [];
   const objectForms = new Map<string, AstNode>();
-  for (const program of programs) {
-    for (const node of program.body) {
-      if (isForm(node, "ROOM")) roomForms.push(node);
-      if (isForm(node, "OBJECT")) {
-        const id = atomName(meaningful(node.elements!)[1]);
-        if (id !== undefined) objectForms.set(id, node);
-      }
+  for (const node of topLevel) {
+    if (isForm(node, "ROOM")) roomForms.push(node);
+    if (isForm(node, "OBJECT")) {
+      const id = atomName(meaningful(node.elements!)[1]);
+      if (id !== undefined) objectForms.set(id, node);
     }
   }
 
@@ -428,12 +567,17 @@ export function extractWorld(programs: AstProgram[]): WorldDocument {
 
   const globals: GlobalVariable[] = [...globalRefs].sort().map((id) => ({
     id,
-    value: findGlobalValue(programs, id),
+    value: findGlobalValue(topLevel, id),
   }));
+
+  const vocabulary = extractVocabulary(topLevel);
 
   const flagIds = new Set<string>();
   for (const room of rooms) for (const flag of room.flags) flagIds.add(flag);
   for (const object of objects) for (const flag of object.flags) flagIds.add(flag);
+  for (const rule of vocabulary.syntax) {
+    for (const slot of rule.objects) if (slot.find !== undefined) flagIds.add(slot.find);
+  }
   const flags: FlagDeclaration[] = [...flagIds].sort().map((id) => {
     const description = FLAG_DESCRIPTIONS[id];
     return description !== undefined ? { id, description } : { id };
@@ -446,12 +590,13 @@ export function extractWorld(programs: AstProgram[]): WorldDocument {
       source: "importer/artifacts/ast (from original-projects/zork1)",
       coverage: "partial",
       notes:
-        "Stages 3.1–3.2 deterministic extraction: all ROOM forms (exits, flags, scenery/pseudo references, exit-condition globals) and all OBJECT forms (properties, flags, containment, initial locations; ZIL scaffolding objects GLOBAL-OBJECTS/LOCAL-GLOBALS/ROOMS represented structurally, not as objects). Vocabulary, tables, and behavior are later stages. Generated by ir/src/extract-world.ts — do not edit by hand.",
+        "Stages 3.1–3.3 deterministic extraction: all ROOM forms (exits, flags, scenery/pseudo references, exit-condition globals), all OBJECT forms (properties, flags, containment, initial locations; ZIL scaffolding objects GLOBAL-OBJECTS/LOCAL-GLOBALS/ROOMS represented structurally, not as objects), and the parser vocabulary (SYNTAX/SYNONYM/BUZZ/DIRECTIONS, with ZORK-NUMBER compile-time CONDs resolved for Zork I). Tables and behavior are later stages. Generated by ir/src/extract-world.ts — do not edit by hand.",
     },
     flags,
     globals,
     tables: [],
     rooms,
     objects,
+    vocabulary,
   };
 }

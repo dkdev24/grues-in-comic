@@ -125,6 +125,52 @@ describe("extractWorld (Zork I AST artifacts)", () => {
     expect(strings.includes("|")).toBe(false);
   });
 
+  it("extracts the full parser vocabulary", () => {
+    const v = world.vocabulary!;
+    expect(v.syntax.length).toBe(267);
+    expect(v.synonyms.length).toBe(75);
+    expect(v.buzzwords.length).toBe(21);
+    expect(v.directions.length).toBe(13);
+    expect(result.summary?.syntaxRules).toBe(267);
+  });
+
+  it("resolves ZORK-NUMBER compile-time CONDs for Zork I", () => {
+    const v = world.vocabulary!;
+    // Live clause (N==? ZORK-NUMBER 3): GIVE gains the HAND alias.
+    expect(v.synonyms).toContainEqual({ word: "GIVE", synonyms: ["HAND"] });
+    // Dead clauses (==? 2 / ==? 3): Zork II buzzwords and short ATTACK/KILL rules.
+    expect(v.buzzwords).not.toContain("FROTZ");
+    expect(v.buzzwords).not.toContain("OZMOO");
+    expect(v.syntax.filter((r) => r.verb === "ATTACK")).toEqual([
+      {
+        verb: "ATTACK",
+        objects: [
+          { find: "ACTORBIT", options: ["ON-GROUND", "IN-ROOM"] },
+          { preposition: "WITH", find: "WEAPONBIT", options: ["HELD", "CARRIED", "HAVE"] },
+        ],
+        action: "V-ATTACK",
+      },
+    ]);
+  });
+
+  it("keeps punctuation buzzwords and maps direction words", () => {
+    const v = world.vocabulary!;
+    for (const punct of [".", ",", '"']) expect(v.buzzwords).toContain(punct);
+    expect(v.directions).toContainEqual({ word: "NORTH", direction: "north" });
+    expect(v.directions).toContainEqual({ word: "NE", direction: "northeast" });
+    expect(v.directions).toContainEqual({ word: "LAND", direction: "land" });
+  });
+
+  it("declares every (FIND flag) in the registry", () => {
+    const declared = new Set(world.flags.map((f) => f.id));
+    for (const rule of world.vocabulary!.syntax) {
+      for (const slot of rule.objects) {
+        if (slot.find !== undefined) expect(declared.has(slot.find), slot.find).toBe(true);
+      }
+    }
+    expect(declared.has("RMUNGBIT")).toBe(true);
+  });
+
   it("is deterministic across runs", () => {
     expect(extractWorld(programs)).toEqual(world);
   });

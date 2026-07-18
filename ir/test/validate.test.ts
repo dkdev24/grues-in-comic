@@ -168,6 +168,7 @@ describe("summary", () => {
       tables: 1,
       flags: 2,
       exits: 5,
+      syntaxRules: 0,
       routineRefs: ["SOME-EXIT-FCN"],
     });
   });

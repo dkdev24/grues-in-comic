@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.5.2**
+**0.5.3**
 
 ---
 
@@ -17,12 +17,17 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A: Graphify adopted with per-module graphs; OpenWiki **not adopted** — no budget, `wiki/` hand-authored). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stages 3.1–3.2 complete — all 110 Zork I rooms/exits and all 137 objects (properties, flags, containment, initial locations) in `ir/artifacts/zork1.world.json`, verified against source; IR schema at 0.2.0. No engine or browser runtime started (Milestone 4).
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A: Graphify adopted with per-module graphs; OpenWiki **not adopted** — no budget, `wiki/` hand-authored). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stages 3.1–3.3 complete — all 110 Zork I rooms/exits, all 137 objects, and the full parser vocabulary (267 syntax rules, 75 synonym sets, 21 buzzwords, 13 directions) in `ir/artifacts/zork1.world.json`, verified against source; IR schema at 0.3.0. No engine or browser runtime started (Milestone 4).
 
 ---
 
 ## Last Session
 
+- **Stage 3.3 complete — parser vocabulary extracted** (v0.5.3):
+  - **IR schema 0.3.0** (additive): optional `vocabulary` section — `directions` (word → IR direction), `buzzwords` (incl. punctuation tokens), `synonyms` (word ← aliases), `syntax` rules (`verb`, 0–2 object slots with `preposition?`/`find?`/`options?`, `action`, `preAction?`); search options are a validated enum (HELD/CARRIED/IN-ROOM/ON-GROUND/MANY/HAVE/TAKE), `find` flags validated against the registry
+  - Extraction from `gsyntax.zil` AST: **267 syntax rules, 75 synonym sets, 21 buzzwords, 13 directions**; ZIL compile-time `<COND (<==? ,ZORK-NUMBER n> …)>` gates resolved exactly (ZORK-NUMBER=1 from zork1.zil SETG): the `N==? 3` GIVE→HAND synonym is in, Zork II/III clauses (FROTZ/OZMOO buzzwords, short ATTACK/KILL rules) are out; COND expansion feeds all extraction passes
+  - Verified: independent jq mirror of all 267 SYNTAX parses and 74 top-level SYNONYMs diffs clean; RMUNGBIT (from FIND) added to registry (29 flags); routine refs now 292 (V-*/PRE-* included — the stage 3.4 worklist)
+  - 4 new tests (60 total pass); validator + CLIs report syntax-rule counts
 - **OpenWiki decision finalized: not adopted** (v0.5.2): Daniel initialized OpenWiki in-repo; verification showed the free-tier LLM path cannot work (null completions from the `openrouter/free` router; pinned free model killed by the 16 req/min limit mid-run) and paid models are off the table for now (no budget). Repo scaffolding removed (`openwiki/`, `.github/workflows/openwiki-update.yml`, AGENTS.md snippet), CLAUDE.md deduplicated to `@AGENTS.md` only, decision recorded in `AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` / AGENTS.md / DEVELOPMENT_PLAN / Open Issues (resolved)
 - **Stage 3.2 complete — all objects extracted** (v0.5.1):
   - `extract-world.ts` extended to full object extraction: **137 objects** (140 OBJECT forms minus the 3 ZIL scaffolding objects GLOBAL-OBJECTS/LOCAL-GLOBALS/ROOMS, which the IR represents structurally) — properties, flags, containment, initial locations (73 room / 20 object / 20 local-globals / 14 global / 10 nowhere); 132 routine refs, 28 flags in registry
@@ -38,8 +43,8 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). **Milestone 3 continues** (Semantic Extraction ZIL→IR, v0.5.x):
 
-1. Stage 3.3 — **Vocabulary & syntax**: verbs, synonyms, buzzwords, parser SYNTAX rules from `gsyntax.zil.json`/`gverbs.zil.json` AST. The stage 2.1 schema has no vocabulary section yet — expect another additive `irVersion` bump; decide representation before extracting
-2. Stage 3.4 — action routines (simple) — first behavior extraction into the ADR 0001 AST
+1. Stage 3.4 — **Action routines (simple)**: first behavior extraction into the ADR 0001 behavior AST (`ir/src/behavior.ts`); worklist = the 292 routine refs in the world doc summary (object/room ACTIONs, exit PER routines, pseudo routines, V-*/PRE-* verbs). Plan batches (the stage may span sessions; track batches here); complex routines get catalogued, not forced
+2. Stage 3.5 — complex behavior (puzzles, daemons, scoring) with behavioral specs cross-checked against golden transcripts
 3. Stage 5.1 (Comic Chat analysis) remains the sanctioned filler stage
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):

@@ -16,7 +16,7 @@
  */
 
 /** Version of the IR schema itself (not the game data). */
-export const IR_VERSION = "0.2.0";
+export const IR_VERSION = "0.3.0";
 
 /**
  * Travel directions. ZIL's abbreviated direction properties map to full words
@@ -57,6 +57,75 @@ export interface WorldDocument {
   tables: Table[];
   rooms: Room[];
   objects: WorldObject[];
+  /** Parser vocabulary and verb syntax (stage 3.3); absent in partial worlds. */
+  vocabulary?: Vocabulary;
+}
+
+/**
+ * Parser vocabulary (ZIL gsyntax): verb syntax rules plus the word-level
+ * tables the tokenizer needs. Object nouns/adjectives stay on the objects
+ * themselves. Words keep their upper-case ZIL spelling for traceability.
+ */
+export interface Vocabulary {
+  /** Travel words the parser accepts as bare commands (ZIL DIRECTIONS). */
+  directions: DirectionWord[];
+  /** Noise words the parser drops (ZIL BUZZ), including punctuation tokens. */
+  buzzwords: string[];
+  /** Word aliases (ZIL SYNONYM): every alias parses as `word`. */
+  synonyms: WordSynonym[];
+  /** Verb syntax rules (ZIL SYNTAX), in source order. */
+  syntax: SyntaxRule[];
+}
+
+export interface DirectionWord {
+  word: string;
+  direction: Direction;
+}
+
+export interface WordSynonym {
+  word: string;
+  synonyms: string[];
+}
+
+/**
+ * Where the parser may look for a syntax object, mirroring ZIL search-option
+ * atoms: held by the player, inside something carried, in the room, on the
+ * ground, multiple allowed, implicit take, or "must have".
+ */
+export const SYNTAX_SEARCH_OPTIONS = [
+  "HELD",
+  "CARRIED",
+  "IN-ROOM",
+  "ON-GROUND",
+  "MANY",
+  "HAVE",
+  "TAKE",
+] as const;
+
+export type SyntaxSearchOption = (typeof SYNTAX_SEARCH_OPTIONS)[number];
+
+/**
+ * One verb syntax rule: `<SYNTAX verb [prep] [OBJECT …] [prep] [OBJECT …] =
+ * action [preAction]>`. A verb may have many rules; the parser matches the
+ * most specific one.
+ */
+export interface SyntaxRule {
+  verb: string;
+  /** 0–2 object slots, in the order they appear in the command. */
+  objects: SyntaxObjectSlot[];
+  /** Opaque verb action routine (V-*; stage 2.2). */
+  action: string;
+  /** Opaque pre-action routine (PRE-*; stage 2.2). */
+  preAction?: string;
+}
+
+export interface SyntaxObjectSlot {
+  /** Word required before the object (ZIL preposition position). */
+  preposition?: string;
+  /** Flag the parser prefers when disambiguating (ZIL `(FIND flag)`). */
+  find?: string;
+  /** Allowed search locations (ZIL search-option list). */
+  options?: SyntaxSearchOption[];
 }
 
 export interface WorldMeta {
