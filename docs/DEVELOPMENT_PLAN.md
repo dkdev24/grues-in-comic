@@ -41,10 +41,10 @@ Goal: define the central abstraction (IR) and settle the engine runtime question
 |---|---|---|---|
 | 2.1 | **IR schema: declarative world** — schema for ROOM, OBJECT, exits, GLOBAL, TABLE, flags/properties; validate by hand-writing IR for 2–3 rooms | Schema documented + validator tool; sample IR passes | ☑ |
 | 2.2 | **IR schema: behavior** — decide how ROUTINE/ACTION imperative logic is represented (interpreted mini-language vs. transpiled functions vs. hybrid); POC one nontrivial routine both ways if needed ⚑ **Gate B input** | ADR-style writeup of the chosen representation with a working POC | ☑ |
-| 2.3 | **ADR: engine runtime** — TypeScript vs. C++/WASM, informed by 1.1 and 2.2 experience; define the engine↔UI event/serialization contract at the same time (interface-first, per Gemini rec) ⚑ **Gate B** | ADR committed; PORTING_STRATEGY.md and AGENTS.md updated to remove the WASM assumption or confirm it | ☐ |
+| 2.3 | **ADR: engine runtime** — TypeScript vs. C++/WASM, informed by 1.1 and 2.2 experience; define the engine↔UI event/serialization contract at the same time (interface-first, per Gemini rec) ⚑ **Gate B** | ADR committed; PORTING_STRATEGY.md and AGENTS.md updated to remove the WASM assumption or confirm it | ☑ |
 | 2.4 | **Knowledge tooling validation POC** — hands-on test of Graphify and OpenWiki against the real IR from 2.1–2.2; verify the repos and capabilities match `AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`; if they hold up, produce first `graph/` artifacts and start `wiki/` architecture pages | Findings recorded in that doc; adopt/replace decision made; first generated structural + semantic docs exist (or fallback chosen) ⚑ **Gate A** | ☐ |
 
-**⚑ Gate B (after 2.3):** runtime language and behavior-representation decisions reshape Milestones 3–5. Revise this plan before proceeding.
+**⚑ Gate B (after 2.3): RESOLVED 2026-07-18.** Behavior = interpreted behavior AST with engine builtins (ADR 0001); engine runtime = TypeScript, WASM dropped (ADR 0002, which also fixes the engine↔UI JSON event contract). Milestones 3–5 reviewed against the decisions: structure stands; Milestone 4 now targets a TypeScript `engine/` package implementing the ADR 0002 contract, and Milestone 5's UI consumes that contract (already web-native by design).
 
 **⚑ Gate A (after 2.4):** if Graphify/OpenWiki don't work as documented, replace them in the pipeline (plain generated Markdown/JSON graphs are the fallback) and update AGENTS.md, PORTING_STRATEGY.md, and this plan.
 
@@ -68,7 +68,7 @@ Stages 3.4–3.5 may split into multiple sessions per batch of routines — trac
 
 ## Milestone 4 — Engine Core (v0.6.x)
 
-Goal: a platform-independent engine that executes the IR and emits structured gameplay events. No browser code. Verified continuously against golden transcripts.
+Goal: a platform-independent engine that executes the IR and emits structured gameplay events. Per Gate B: a zero-dependency TypeScript package (`engine/`) implementing the ADR 0002 contract — pure synchronous state machine, seeded RNG, JSON events; behavior AST interpreter + builtin registry per ADR 0001. No browser code. Verified continuously against golden transcripts.
 
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|

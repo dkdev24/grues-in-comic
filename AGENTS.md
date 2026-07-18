@@ -16,7 +16,7 @@ The project is **not** a traditional source port. The objective is to:
 * preserve gameplay behavior
 * modernize architecture
 * improve maintainability
-* support WebAssembly
+* run natively in the browser (TypeScript engine + web UI — see `docs/adr/0002-engine-runtime.md`)
 * support AI-assisted development
 
 ---

@@ -4,14 +4,14 @@
 
 Grues in Comic is an AI-first software modernization project.
 
-The goal is **not** to compile historical software into WebAssembly. The goal is to understand, modernize, and reimplement two historical open-source projects into a new browser-native adventure engine.
+The goal is **not** to emulate or recompile historical software. The goal is to understand, modernize, and reimplement two historical open-source projects into a new browser-native adventure engine.
 
 The project combines:
 
 * **Zork I** — gameplay, parser, world simulation
 * **Microsoft Comic Chat** — comic presentation and visual storytelling
 
-The final result is a modern WebAssembly application running entirely inside a web browser.
+The final result is a modern TypeScript application running entirely inside a web browser: a platform-independent engine executing the IR, and a web-native UI consuming its event stream (runtime decision: `docs/adr/0002-engine-runtime.md`).
 
 ---
 
@@ -87,11 +87,11 @@ Semantic Analysis
     ↓
 Intermediate Representation (IR)
     ↓
-Grues in Comic Engine
+Grues in Comic Engine (TypeScript, platform-independent)
     ↓
-WebAssembly
+Engine↔UI event contract (JSON, ADR 0002)
     ↓
-Browser
+Browser UI
 ```
 
 The objective is to preserve gameplay behavior while replacing the historical runtime.
@@ -236,10 +236,10 @@ Responsibilities include:
 
 No browser-specific code should exist at this stage.
 
-### Phase 4 — WebAssembly
+### Phase 4 — Browser Integration
 
-Compile the engine using Emscripten. Integrate browser bindings.
-Maintain platform-independent gameplay logic.
+Host the TypeScript engine in the browser (main thread or Web Worker) behind the JSON event contract of ADR 0002.
+Maintain platform-independent gameplay logic — the engine package stays free of browser APIs.
 
 ### Phase 5 — Comic Presentation
 
@@ -280,4 +280,4 @@ Potential future importers may include:
 * Ink
 * custom adventure DSLs
 
-By separating semantic understanding from runtime implementation, Grues in Comic becomes a general-purpose AI-assisted modernization framework for historical adventure games rather than simply a WebAssembly version of Zork.
+By separating semantic understanding from runtime implementation, Grues in Comic becomes a general-purpose AI-assisted modernization framework for historical adventure games rather than simply a browser port of Zork.

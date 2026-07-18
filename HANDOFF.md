@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.4.1**
+**0.4.2**
 
 ---
 
@@ -17,27 +17,27 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime language undecided (stage 2.3, ⚑ Gate B). No engine or browser runtime started.
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. No engine or browser runtime started (Milestone 4).
 
 ---
 
 ## Last Session
 
-- **Stage 2.2 complete — behavior representation decided** (v0.4.1, ⚑ Gate B input):
-  - **ADR 0001** (`docs/adr/0001-behavior-representation.md`, Accepted): behavior is a **structured behavior AST** — plain JSON, closed vocabulary of IF-domain ops (`ir/src/behavior.ts`: 12 expression + 6 statement ops) — interpreted by the engine; generic ZIL utilities (OPEN-CLOSE, DO-WALK, THIS-IS-IT, PICK-ONE…) are **engine builtins**, not per-game IR; engines may compile AST→closures as an invisible optimization; transpiled-TS-as-canonical rejected (breaks IR independence, makes LLM extraction unvalidatable)
-  - POC ran the comparison **both ways** on TRAP-DOOR-EXIT (exit routine returning a room) and KITCHEN-WINDOW-F (multi-verb object action): hand-written ASTs (`ir/poc/routines.ts`) executed by a ~130-line reference interpreter (`ir/poc/interpreter.ts`) vs. hand-transpiled TS (`ir/poc/transpiled.ts`), both over one shared world/builtin substrate (`ir/poc/world.ts`)
-  - 12 differential scenarios (identical transcript/return/mutations/pronoun binding) + 10 golden tests pinned to ZIL source text; suite now 43, typecheck clean
-  - Deferred consciously (listed in ADR): fall-off-end return semantics, RARG room-action protocol as first-class dispatch, PRSO/PRSI binding; behavior `routines` section enters `WorldDocument` as `irVersion` 0.2.0 during Milestone 3
-- Gate B evidence so far: TypeScript frictionless across importer, IR schema/validator, and interpreter; behavior-as-data means 2.3's language choice is unconstrained by the IR
+- **Stage 2.3 complete — engine runtime decided, ⚑ Gate B resolved** (v0.4.2):
+  - **ADR 0002** (`docs/adr/0002-engine-runtime.md`, Accepted): the engine is a **zero-dependency TypeScript package (`engine/`, Milestone 4)**; WebAssembly dropped as a target. Evidence: TS frictionless across importer/IR/interpreter; ADR 0001 made behavior data, so the engine is a modest interpreter with no perf case for native code; transcript verification runs in Node. Portability lives in the artifacts (IR + serialized contract), not the implementation — a future WASM/native engine stays possible, unplanned
+  - **Engine↔UI contract fixed interface-first** (in ADR 0002): engine = pure, deterministic, synchronous state machine; `command(input) → TurnResult{events}`, `snapshot()/restore()`; seeded RNG (same world+seed+commands ⇒ identical events — the stage 4.4 parity lever); versioned JSON event union (`narration` with channels / `speech` with speaker — the comic layer's hook / `player-moved` / `object-moved` / `score-changed` / `game-over` / `question`); events are semantic, never presentational; vocabulary grows additively under `contractVersion` in Milestone 4
+  - **WASM assumption removed from docs** (exit criteria): PORTING_STRATEGY.md (overview, architecture diagram, Phase 4 → "Browser Integration", vision) and AGENTS.md objectives now say TypeScript engine + web-native UI; IR independence lists intentionally still include WASM
+  - **Plan revised per Gate B**: gate note marked resolved; Milestone 4 goal now names `engine/`, ADR 0001+0002; Milestones 3/5 structurally unchanged
+  - No code this stage (ADR + doc updates only); suite stays 43 green
 
 ---
 
 ## Next Actions
 
-Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 continues:
+Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 has one stage left:
 
-1. Stage 2.3 — **ADR: engine runtime** (TypeScript vs. C++/WASM) + engine↔UI event/serialization contract, interface-first (⚑ **Gate B resolves here** — revise the plan's Milestones 3–5 afterward); inputs: ADR 0001, frictionless-TS experience, builtin-registry contract need
-2. Stage 2.4 — Graphify/OpenWiki validation POC against the real IR (⚑ Gate A)
+1. Stage 2.4 — **Knowledge tooling validation POC** (⚑ Gate A): hands-on test of Graphify and OpenWiki against the real IR from 2.1–2.2; verify repos/capabilities match `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`; adopt or fall back to plain generated Markdown/JSON graphs; first `graph/` artifacts + `wiki/` pages (or fallback chosen)
+2. After 2.4: Milestone 3 begins (ZIL→IR extraction, v0.5.x) — 3.1 world model (all rooms + connectivity)
 3. Stage 5.1 (Comic Chat analysis) is the sanctioned filler stage if a session can't tackle IR work
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):
@@ -50,9 +50,10 @@ Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 contin
 
 ## Open Issues
 
-- Engine implementation language undecided — docs still reference WebAssembly as assumed; update PORTING_STRATEGY/AGENTS.md once the ADR lands
 - Neutral (non-IF-lore) branding for the commercial assets (engine, IR, importer) still open — "Grues in Comic" names the game/project
 - Kitchen object-listing order differs between the ZILF build and the shipped Release 119 build (sack/bottle swapped) — harmless for now, but decide which ordering the engine must reproduce when stage 4.4 parity work starts
+
+Resolved 2026-07-18 (stage 2.3): engine implementation language — TypeScript per ADR 0002 (⚑ Gate B); PORTING_STRATEGY.md and AGENTS.md updated, WASM assumption removed (IR independence lists still name WASM deliberately — independence survives non-use).
 
 Resolved 2026-07-18 (stage 0.3): comic-chat compiled binaries stay tracked — they are part of the faithful upstream historical import (4.1 MB, `.gitignore` is irrelevant for already-tracked files); Gemini doc dangling `4.` annotated as unrecoverable truncation; pipeline description consolidated — `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` is canonical, AGENTS.md and PORTING_STRATEGY.md now reference it. Graphify/OpenWiki validation and empty `wiki`/`graph` dirs are tracked by plan stage 2.4, IR schema by Milestone 2 — no longer open issues here.
 
