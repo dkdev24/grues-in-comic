@@ -44,3 +44,21 @@ Foundation only. No engine code, no IR schema, no browser runtime.
 ### Status
 
 Docs and repo renamed. Local directory rename pending. No engine code yet.
+
+---
+
+## v0.1.2 — Licensing Files and Development Plan
+
+**Date:** 2026-07-18
+
+### Changes
+
+- Added root `LICENSE` (canonical Apache 2.0 text) and `NOTICE` (Apache statement, Zork I / Comic Chat MIT attribution, full MIT text); README license section updated to reference both
+- Confirmed license compatibility: MIT-licensed imports may live inside an Apache-2.0 project with original license files preserved
+- Created `docs/DEVELOPMENT_PLAN.md`: Milestones 0–6 in session-sized stages with status markers and four decision gates (A: knowledge-tooling validation, B: runtime ADR, C: transcript parity, D: comic-presentation POC)
+- Decided Graphify/OpenWiki install timing: validate hands-on early (stage 0.3), install for real only once the IR exists
+- HANDOFF Next Actions now delegate to the development plan's Session Protocol
+
+### Status
+
+Planning complete. Next up: Milestone 0 (verification harness and ground truth). No engine code yet.

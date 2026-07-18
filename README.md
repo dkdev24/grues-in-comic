@@ -118,4 +118,4 @@ Maintained using OpenWiki-compatible documentation. Examples:
 ## License
 
 Grues in Comic is released under the Apache License 2.0. Imported historical projects retain their original licenses.
-See the LICENSE file and THIRD_PARTY.md for details.
+See the LICENSE, NOTICE, and THIRD_PARTY.md files for details.

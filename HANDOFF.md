@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.1.1**
+**0.1.2**
 
 ---
 
@@ -23,28 +23,25 @@ No engine code exists yet. No IR schema defined. No browser runtime started.
 
 ## Last Session
 
-- Reviewed all strategy docs and `docs/gemini-analysis-on-plan-and-strategy.md`; agreed decisions:
-  - **Rename**: project is now "Grues in Comic" — applied across README, AGENTS.md, docs/, HANDOFF; GitHub repo renamed (`gh repo rename`); past WORKLOG entries and the Gemini analysis doc left untouched as historical records
-  - **WASM is no longer mandatory**: engine implementation language/runtime is an open decision (TypeScript is a candidate) — needs an ADR before engine work starts
-  - **Verification strategy**: build golden-transcript harness — compile original ZIL with ZILF → `.z3`, run under `dfrotz` (scriptable) or Bocfel, capture transcripts as behavioral ground truth
-  - **Deterministic ZIL parsing**: build a lightweight S-expression parser to produce an AST before any LLM-based semantic extraction (per Gemini recommendation, agreed)
-- Verified upstream licenses via GitHub API: both `historicalsource/zork1` and `microsoft/comic-chat` are MIT — README/THIRD_PARTY claims are correct; remaining IP risk is trademark only, addressed by the rename
+- **Licensing finalized**: confirmed Apache 2.0 project license is compatible with the MIT-licensed imports (MIT → Apache is fine; original license files preserved). Added root `LICENSE` (canonical Apache 2.0 text) and `NOTICE` (project statement + Zork I / Comic Chat attribution + MIT text); README license section now references both
+- **Development plan created**: `docs/DEVELOPMENT_PLAN.md` — Milestones 0–6 broken into session-sized stages with status tracking and decision gates (Gate B: runtime ADR + behavior-IR representation; Gate A: Graphify/OpenWiki validation, after Gate B; Gate C: transcript parity; Gate D: comic-presentation POC). Plan is a living document — revise downstream milestones at each gate
+- **Graphify/OpenWiki timing decided**: defer install/validation until after the IR schema and runtime ADR are done — the validation POC runs against the real IR (plan stage 2.4, Gate A)
+- **Feasibility verification passed**: all four external repos confirmed real (historicalsource/zork1, microsoft/comic-chat, Graphify-Labs/graphify — active, commit Jul 17 2026 — and langchain-ai/openwiki); local ZIL corpus complete (110 rooms / 140 objects / 441 routines, ~11.9k lines); **`original-projects/zork1/COMPILED/zork1.z3` is a shipped reference build** — golden transcripts don't block on ZILF; dfrotz scriptability confirmed; community confirms ZILF compiles Infocom source (patched variants at github.com/The-ZIL-Files). Caveat: historical source may not match any released version exactly — treat the shipped `.z3` as ground truth
 
 ---
 
 ## Next Actions
 
-1. Build the verification harness: install ZILF + frotz, compile `original-projects/zork1/` to `.z3`, script `dfrotz` to capture golden transcripts
-2. Build the deterministic ZIL S-expression parser (AST output; becomes the foundation of the ZIL Semantic Importer)
-3. Define the IR schema (data structures for ROOM, OBJECT, ROUTINE, ACTION, GLOBAL, TABLE)
-4. Write an ADR for the engine runtime choice (TypeScript vs. C++/WASM) — WASM is no longer assumed
-5. Begin extracting Zork I world model into IR
+Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Immediate queue:
+
+1. Stage 0.1 — install ZILF + frotz, compile `original-projects/zork1/` to `.z3`, script the build
+2. Stage 0.2 — golden transcript harness + first walkthrough transcripts
+3. Stage 0.3 — repo hygiene (`.gitignore` for comic-chat binaries, Gemini doc dangling item, consolidate pipeline diagrams, prune stale Open Issues below)
 
 ---
 
 ## Open Issues
 
-- Local directory is still `/Users/daniel/Sites/comic-zork` — rename to `grues-in-comic` when convenient (GitHub remote already updated; old repo URL redirects)
 - Engine implementation language undecided — docs still reference WebAssembly as assumed; update PORTING_STRATEGY/AGENTS.md once the ADR lands
 - Neutral (non-IF-lore) branding for the commercial assets (engine, IR, importer) still open — "Grues in Comic" names the game/project
 - Graphify/OpenWiki not yet installed — validate the claims in `AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` hands-on before hardening the workflow around them
