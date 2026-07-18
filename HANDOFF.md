@@ -34,9 +34,10 @@ No engine code exists yet. No IR schema defined. No browser runtime started.
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Immediate queue:
 
-1. Stage 0.1 — install ZILF + frotz, compile `original-projects/zork1/` to `.z3`, script the build
-2. Stage 0.2 — golden transcript harness + first walkthrough transcripts
-3. Stage 0.3 — repo hygiene (`.gitignore` for comic-chat binaries, Gemini doc dangling item, consolidate pipeline diagrams, prune stale Open Issues below)
+1. Stage 0.2 — golden transcript harness + first walkthrough transcripts (use shipped `COMPILED/zork1.z3`, Release 119/880429, as ground truth)
+2. Stage 0.3 — repo hygiene (`.gitignore` for comic-chat binaries, Gemini doc dangling item, consolidate pipeline diagrams, prune stale Open Issues below)
+
+Stage 0.1 is ☑ done: ZILF/ZAPF 0.11.1 installed at `~/.local/opt/zilf-0.11.1-osx-arm64` (symlinked into `~/.local/bin`), frotz 2.55 via Homebrew. `verification/build.sh` compiles the untouched historical source out-of-tree to `verification/build/zork1.z3` (86,696 bytes, only tab-printing warnings). ZILF build reports Release 0 with current-date serial; both it and the shipped Release 119/880429 build run correctly under scripted `dfrotz -m -q`.
 
 ---
 

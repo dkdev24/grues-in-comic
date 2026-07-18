@@ -45,3 +45,6 @@ node_modules/
 
 # Firecrawl scrape cache
 .firecrawl/
+
+# ZILF build output
+verification/build/
