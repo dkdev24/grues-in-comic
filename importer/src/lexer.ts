@@ -8,6 +8,8 @@
  *   - `"` delimits strings, which may span lines (`|` is an ordinary char)
  *   - `;` `'` `,` `.` `%` `%%` `#` `!` are prefix tokens
  *   - `!\c` is a character literal; `!>` closes a form like `>`
+ *   - `!-` inside an atom is the MDL oblist trailer and continues the atom
+ *     (`RETURN!-` is one atom)
  *   - decimal (`350`, `-1`) and octal (`*777*`) integers
  */
 
@@ -220,6 +222,14 @@ export class Lexer {
 
     while (this.offset < this.src.length) {
       const ch = this.src[this.offset]!;
+      // MDL oblist-trailer notation: `!-` continues the atom (`RETURN!-`).
+      if (ch === "!" && this.peek(1) === "-") {
+        this.advance();
+        this.advance();
+        hadEscape = true; // never a number; keep `!-` in the name verbatim
+        value += "!-";
+        continue;
+      }
       if (WHITESPACE.has(ch) || ATOM_TERMINATORS.has(ch)) break;
       this.advance();
       if (ch === "\\") {

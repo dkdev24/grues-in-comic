@@ -1,6 +1,7 @@
 export * from "./ast.js";
 export { Lexer, LexError, tokenize, type Token, type TokenKind } from "./lexer.js";
 export { parse, ParseError } from "./parser.js";
+export { print, printProgram, printAtomName } from "./printer.js";
 
 import type { FormNode, ProgramNode } from "./ast.js";
 

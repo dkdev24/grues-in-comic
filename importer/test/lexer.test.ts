@@ -66,6 +66,17 @@ describe("lexer", () => {
     expect(kinds(",X.Y")).toEqual(["COMMA", "ATOM", "PERIOD", "ATOM", "EOF"]);
   });
 
+  it("keeps MDL oblist trailers (!-) inside atoms", () => {
+    // gmacros.zil uses <RETURN!-> — RETURN!- is a single atom, not RETURN + segment
+    expect(tokenize("<RETURN!->").map((t) => [t.kind, t.value])).toEqual([
+      ["LANGLE", "<"],
+      ["ATOM", "RETURN!-"],
+      ["RANGLE", ">"],
+      ["EOF", ""],
+    ]);
+    expect(tokenize("RETURN!- 5")[0]).toMatchObject({ kind: "ATOM", value: "RETURN!-" });
+  });
+
   it("lexes character literals and bang-closers", () => {
     expect(tokenize("!\\c")[0]).toMatchObject({ kind: "CHAR", value: "c" });
     expect(tokenize("!\\ ")[0]).toMatchObject({ kind: "CHAR", value: " " });

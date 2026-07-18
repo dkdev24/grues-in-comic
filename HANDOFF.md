@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.3.0**
+**0.3.1**
 
 ---
 
@@ -17,18 +17,18 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-Milestone 1 in progress: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser (stage 1.1 done). No IR schema defined. No engine or browser runtime started.
+Milestone 1 in progress: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus (stages 1.1–1.2 done). No IR schema defined. No engine or browser runtime started.
 
 ---
 
 ## Last Session
 
-- **Stage 1.1 complete — ZIL parser POC** (`importer/`, TypeScript + vitest, v0.3.0):
-  - `src/lexer.ts` + `src/parser.ts` + `src/ast.ts`: deterministic S-expression lexer and recursive-descent parser producing a fully typed AST; every node carries line/column/offset spans for source traceability
-  - Handles the MDL reader syntax the corpus uses: forms `<>`, lists, vectors, strings with `\` escapes, atoms with `\` escapes (`FCD\#3`), decimal + octal (`*777*`) numbers, prefixes `;` (comment — preserved as AST nodes) `'` `,` `.` `%` `%%` `!` `#type`, char literals `!\c`, `!>` closers
-  - 26 tests pass (`npm test` in `importer/`): unit tests per syntax feature + full-file integration on `1dungeon.zil` asserting exact counts — 110 ROOM, 122 OBJECT, 17 GLOBAL, 4 ROUTINE, 1 DIRECTIONS, 254 top-level forms, 2 top-level comments, 15 page-break atoms (`\`+form-feed, a historical convention that legally reads as an atom)
-  - **Bonus finding: all 10 `.zil` files in the corpus already parse without error** — stage 1.2 is mostly about validating AST correctness on the other files (esp. `gmacros.zil` `%` macros, `gsyntax.zil`), adding edge-case tests, and cataloguing anything odd, not fixing crashes
-- Implementation-language data point for Gate B: TypeScript was frictionless for this workload (parser + tests in one session)
+- **Stage 1.2 complete — full-corpus parse validation** (v0.3.1). All 10 `.zil` files parse; validation went beyond "no crash":
+  - **Lexer bug found and fixed**: MDL oblist trailer `!-` (`RETURN!-` in `gmacros.zil`, 4×) was silently split into `RETURN` + segment; `!-` now continues the atom. This was the only real defect — everything else parsed correctly
+  - **New `src/printer.ts`** (AST → canonical text) powering a round-trip invariant: `parse(print(ast))` structurally equals `ast` for every corpus file
+  - **New `test/parse-corpus.test.ts`**: per-file ground-truth counts for all 10 files, corpus totals (110 ROOM / 140 OBJECT / 439 top-level + 3 macro-nested ROUTINE forms), edge-case assertions; 44 tests total, all pass
+  - **Edge-case catalogue** (full list in `importer/README.md`): three page-break spellings (`\`+FF, literal `^L`, `/^L`); `%<COND …>` macro in `gmain.zil` lines 180–312 conditionally defines 2 ROUTINEs + quoted `'<ROUTINE PERFORM …>`; escaped `\#RANDOM`-style debug verbs in `gsyntax.zil`; only `#DECL`/`#BYTE` chtypes; **column-1 grep ≠ top-level structure** (3 nested forms in `1actions.zil` start at column 1) — earlier feasibility counts (441 routines) were grep-based and are now corrected by parser truth
+- Session protocol note: stage 1.1 (previous session) established `importer/` (TypeScript + vitest); Gate B data point unchanged — TypeScript remains frictionless
 
 ---
 
@@ -36,8 +36,8 @@ Milestone 1 in progress: `importer/` (TypeScript) contains the deterministic ZIL
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Immediate queue:
 
-1. Stage 1.2 — full-corpus parse validation: AST spot-checks on the remaining 9 files, edge-case tests (reader macros in `gmacros.zil`, `%` forms, gsyntax patterns), catalogue oddities
-2. Stage 1.3 — AST → JSON serialization + corpus statistics report
+1. Stage 1.3 — AST artifacts: serialize ASTs to JSON, emit corpus statistics (ROOM/OBJECT/ROUTINE/GLOBAL/TABLE counts), one-command re-run; closes Milestone 1
+2. Stage 2.1 — IR schema for the declarative world (rooms, objects, exits, globals, tables)
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):
 
