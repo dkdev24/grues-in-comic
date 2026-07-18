@@ -23,6 +23,7 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 
 ## Last Session
 
+- **Created public CHANGELOG.md** (v0.1.0–v0.5.4): milestone-level user-facing changelog extracted from WORKLOG.md, following Keep a Changelog format. Condensed 300+ lines of WORKLOG into 11 milestone entries (dropped implementation details, kept capabilities/decisions).
 - **Stage 3.4 complete (batch 1) — behavior extraction begins** (v0.5.4):
   - **IR schema 0.4.0**: optional `routines` section = ADR 0001 behavior AST. Vocabulary grew (ADR appendix logs it): exprs `in?`/`loc`/`call`, stmts `set-local`/`move`/`remove`/`value`, TELL `{name}` (ZIL D), routine `locals`. **Implicit-return question resolved**: expression-oriented semantics (routine returns last executed statement's value; POC interpreter + hand-transpiled variant updated to match ZIL)
   - **Deterministic transformer** (`ir/src/extract-behavior.ts`): all-or-nothing per routine, worklist closure over call targets from the 292 world refs → **213 routines extracted, 197/292 handlers (67%)**; 113 catalogued in `ir/artifacts/zork1.behavior-catalog.json` with exact reasons (top: optional-param defaults 14, MacroEval 14, non-list COND clauses 11, GETP 8, SET-as-expression 8, FIRST?/REPEAT loops). Deterministic lowerings: `,P?DIR`→direction word, `,V?VERB`→verb word, numeric CONSTANTs→literals, bare routine atoms→name strings, ELSE→T. DEFMAC macros (ENABLE/PROB/FLAMING?/…) and macro-gated PERFORM are call targets for the engine-builtin layer
@@ -84,6 +85,7 @@ Resolved 2026-07-18 (stage 0.3): comic-chat compiled binaries stay tracked — t
 | `docs/` | Project documentation |
 | `wiki/` | Semantic architecture notes (hand-authored; OpenWiki not adopted) |
 | `<module>/graphify-out/` | Graphify structural graphs per module (`importer/`, `ir/`); config in `.graphifyignore` |
+| `CHANGELOG.md` | Public-facing changelog (milestone-level, Keep a Changelog format) |
 | `WORKLOG.md` | Persistent project history |
 | `AGENTS.md` | Agent workflow rules (single source for all agents) |
 | `CLAUDE.md` | Claude Code entry point — references `AGENTS.md` |
