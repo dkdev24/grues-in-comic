@@ -37,6 +37,7 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 has one stage left:
 
 1. Stage 2.4 — **Knowledge tooling validation POC** (⚑ Gate A): hands-on test of Graphify and OpenWiki against the real IR from 2.1–2.2; verify repos/capabilities match `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`; adopt or fall back to plain generated Markdown/JSON graphs; first `graph/` artifacts + `wiki/` pages (or fallback chosen)
+   - **Field input (Daniel, 2026-07-18)**: Graphify already validated on another project — it worked and surfaced real codebase issues. Config lessons to apply here: (a) ignore non-code file types (`.md`, images — matches the Graphify-structure vs. OpenWiki-semantics separation; also exclude generated output: `importer/artifacts/`, `graph/`); (b) create **separate graphs per major module** — here `importer/` and `ir/` now, `engine/`/UI later; (c) repo-specific: exclude `original-projects/` (AGENTS.md forbids Graphify consuming raw ZIL), `verification/`, `node_modules/`
 2. After 2.4: Milestone 3 begins (ZIL→IR extraction, v0.5.x) — 3.1 world model (all rooms + connectivity)
 3. Stage 5.1 (Comic Chat analysis) is the sanctioned filler stage if a session can't tackle IR work
 
