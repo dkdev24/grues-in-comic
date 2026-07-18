@@ -1,0 +1,222 @@
+{
+  "irVersion": "0.1.0",
+  "meta": {
+    "title": "West of House sample world",
+    "source": "original-projects/zork1/1dungeon.zil (hand-transcribed, stage 2.1)",
+    "coverage": "sample",
+    "notes": "Three fully transcribed rooms (WEST-OF-HOUSE, KITCHEN, LIVING-ROOM) chosen to exercise every exit variant: plain, blocked, conditional, conditional+else, door, and routine. Rooms/objects marked stub:true exist only so references resolve."
+  },
+  "flags": [
+    { "id": "RLANDBIT", "description": "Room is dry land (travel without a vehicle)" },
+    { "id": "ONBIT", "description": "Room is lit / object is providing light" },
+    { "id": "SACREDBIT", "description": "The thief does not visit this room" },
+    { "id": "CONTBIT", "description": "Object is a container" },
+    { "id": "TRYTAKEBIT", "description": "Parser routes TAKE to the object's action first" },
+    { "id": "READBIT", "description": "Object can be read (has text)" },
+    { "id": "TAKEBIT", "description": "Object can be picked up" },
+    { "id": "BURNBIT", "description": "Object is flammable" },
+    { "id": "DOORBIT", "description": "Object is a door (door exits test its OPENBIT)" },
+    { "id": "NDESCBIT", "description": "Object is not listed in room descriptions" },
+    { "id": "OPENBIT", "description": "Container/door is currently open (runtime state)" }
+  ],
+  "globals": [
+    { "id": "WON-FLAG", "value": false, "description": "Set when the game is won; opens the way to the stone barrow" },
+    { "id": "MAGIC-FLAG", "value": false, "description": "Set when the cyclops flees; opens the living-room wall passage" },
+    { "id": "FALSE-FLAG", "value": false, "description": "Never set — used for permanently refused conditional exits" },
+    { "id": "KITCHEN-WINDOW-FLAG", "value": false, "description": "Set once the kitchen window has been opened; changes its examine text" }
+  ],
+  "tables": [
+    {
+      "id": "IN-HOUSE-AROUND",
+      "kind": "ltable",
+      "pure": true,
+      "elements": [
+        { "ref": "LIVING-ROOM" },
+        { "ref": "KITCHEN" },
+        { "ref": "ATTIC" },
+        { "ref": "KITCHEN" }
+      ],
+      "description": "Patrol circuit of the in-house rooms (ZIL: <GLOBAL IN-HOUSE-AROUND <LTABLE (PURE) …>>)"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "WEST-OF-HOUSE",
+      "name": "West of House",
+      "exits": [
+        { "direction": "north", "kind": "to", "to": "NORTH-OF-HOUSE" },
+        { "direction": "south", "kind": "to", "to": "SOUTH-OF-HOUSE" },
+        { "direction": "northeast", "kind": "to", "to": "NORTH-OF-HOUSE" },
+        { "direction": "southeast", "kind": "to", "to": "SOUTH-OF-HOUSE" },
+        { "direction": "west", "kind": "to", "to": "FOREST-1" },
+        { "direction": "east", "kind": "blocked", "message": "The door is boarded and you can't remove the boards." },
+        { "direction": "southwest", "kind": "conditional", "to": "STONE-BARROW", "if": "WON-FLAG" },
+        { "direction": "in", "kind": "conditional", "to": "STONE-BARROW", "if": "WON-FLAG" }
+      ],
+      "action": "WEST-HOUSE",
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "scenery": ["WHITE-HOUSE", "BOARD", "FOREST"]
+    },
+    {
+      "id": "KITCHEN",
+      "name": "Kitchen",
+      "exits": [
+        { "direction": "east", "kind": "door", "to": "EAST-OF-HOUSE", "door": "KITCHEN-WINDOW" },
+        { "direction": "west", "kind": "to", "to": "LIVING-ROOM" },
+        { "direction": "out", "kind": "door", "to": "EAST-OF-HOUSE", "door": "KITCHEN-WINDOW" },
+        { "direction": "up", "kind": "to", "to": "ATTIC" },
+        { "direction": "down", "kind": "conditional", "to": "STUDIO", "if": "FALSE-FLAG", "else": "Only Santa Claus climbs down chimneys." }
+      ],
+      "action": "KITCHEN-FCN",
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "score": 10,
+      "scenery": ["KITCHEN-WINDOW", "CHIMNEY", "STAIRS"]
+    },
+    {
+      "id": "LIVING-ROOM",
+      "name": "Living Room",
+      "exits": [
+        { "direction": "east", "kind": "to", "to": "KITCHEN" },
+        { "direction": "west", "kind": "conditional", "to": "STRANGE-PASSAGE", "if": "MAGIC-FLAG", "else": "The door is nailed shut." },
+        { "direction": "down", "kind": "routine", "routine": "TRAP-DOOR-EXIT" }
+      ],
+      "action": "LIVING-ROOM-FCN",
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "scenery": ["STAIRS"],
+      "pseudo": [
+        { "noun": "NAILS", "routine": "NAILS-PSEUDO" },
+        { "noun": "NAIL", "routine": "NAILS-PSEUDO" }
+      ]
+    },
+    {
+      "id": "NORTH-OF-HOUSE",
+      "name": "North of House",
+      "exits": [],
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "stub": true
+    },
+    {
+      "id": "SOUTH-OF-HOUSE",
+      "name": "South of House",
+      "exits": [],
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "stub": true
+    },
+    {
+      "id": "EAST-OF-HOUSE",
+      "name": "Behind House",
+      "exits": [],
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "stub": true
+    },
+    {
+      "id": "FOREST-1",
+      "name": "Forest",
+      "exits": [],
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "stub": true
+    },
+    {
+      "id": "STONE-BARROW",
+      "name": "Stone Barrow",
+      "description": "You are standing in front of a massive barrow of stone. In the east face is a huge stone door which is open. You cannot see into the dark of the tomb.",
+      "exits": [],
+      "flags": ["RLANDBIT", "ONBIT", "SACREDBIT"],
+      "stub": true
+    },
+    {
+      "id": "ATTIC",
+      "name": "Attic",
+      "exits": [],
+      "flags": ["RLANDBIT", "SACREDBIT"],
+      "stub": true
+    },
+    {
+      "id": "STUDIO",
+      "name": "Studio",
+      "exits": [],
+      "flags": ["RLANDBIT"],
+      "stub": true
+    },
+    {
+      "id": "STRANGE-PASSAGE",
+      "name": "Strange Passage",
+      "exits": [],
+      "flags": ["RLANDBIT"],
+      "stub": true
+    }
+  ],
+  "objects": [
+    {
+      "id": "MAILBOX",
+      "name": "small mailbox",
+      "location": { "kind": "room", "id": "WEST-OF-HOUSE" },
+      "synonyms": ["MAILBOX", "BOX"],
+      "adjectives": ["SMALL"],
+      "flags": ["CONTBIT", "TRYTAKEBIT"],
+      "capacity": 10,
+      "action": "MAILBOX-F"
+    },
+    {
+      "id": "ADVERTISEMENT",
+      "name": "leaflet",
+      "location": { "kind": "object", "id": "MAILBOX" },
+      "synonyms": ["ADVERTISEMENT", "LEAFLET", "BOOKLET", "MAIL"],
+      "adjectives": ["SMALL"],
+      "flags": ["READBIT", "TAKEBIT", "BURNBIT"],
+      "description": "A small leaflet is on the ground.",
+      "text": "\"WELCOME TO ZORK!\n\nZORK is a game of adventure, danger, and low cunning. In it you will explore some of the most amazing territory ever seen by mortals. No computer should be without one!\"",
+      "size": 2
+    },
+    {
+      "id": "KITCHEN-WINDOW",
+      "name": "kitchen window",
+      "location": { "kind": "local-globals" },
+      "synonyms": ["WINDOW"],
+      "adjectives": ["KITCHEN", "SMALL"],
+      "flags": ["DOORBIT", "NDESCBIT"],
+      "action": "KITCHEN-WINDOW-F"
+    },
+    {
+      "id": "WHITE-HOUSE",
+      "name": "white house",
+      "location": { "kind": "local-globals" },
+      "synonyms": ["HOUSE"],
+      "flags": ["NDESCBIT"],
+      "stub": true
+    },
+    {
+      "id": "BOARD",
+      "name": "board",
+      "location": { "kind": "local-globals" },
+      "synonyms": ["BOARDS", "BOARD"],
+      "flags": ["NDESCBIT"],
+      "stub": true
+    },
+    {
+      "id": "FOREST",
+      "name": "forest",
+      "location": { "kind": "local-globals" },
+      "synonyms": ["FOREST", "TREES"],
+      "flags": ["NDESCBIT"],
+      "stub": true
+    },
+    {
+      "id": "CHIMNEY",
+      "name": "chimney",
+      "location": { "kind": "local-globals" },
+      "synonyms": ["CHIMNEY"],
+      "adjectives": ["DARK", "NARROW"],
+      "flags": ["NDESCBIT"],
+      "stub": true
+    },
+    {
+      "id": "STAIRS",
+      "name": "stairs",
+      "location": { "kind": "local-globals" },
+      "synonyms": ["STAIRS", "STEPS", "STAIRCASE", "STAIRWAY"],
+      "flags": ["NDESCBIT"],
+      "stub": true
+    }
+  ]
+}

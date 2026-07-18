@@ -1,0 +1,19 @@
+{
+  "name": "@grues-in-comic/ir",
+  "version": "0.4.0",
+  "description": "Grues in Comic Intermediate Representation — schema, validator, and sample IR (stage 2.1: declarative world)",
+  "type": "module",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "validate": "tsx src/cli.ts samples"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.5.0",
+    "vitest": "^3.0.0"
+  }
+}
