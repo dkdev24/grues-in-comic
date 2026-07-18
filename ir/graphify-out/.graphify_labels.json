@@ -1,1 +1,10 @@
-{"0": "Schema Types & Public API", "1": "Validator Structural Checks", "2": "Behavior AST & POC Routines", "3": "POC Test Harness & World State", "4": "Behavior Interpreter", "5": "World Builtins", "6": "Transpiled Comparison", "7": "Validator Types & Constants", "8": "Validator Tests", "9": "Interpreter Return Signal", "10": "Validator CLI", "11": "Sample World Test", "12": "Validator Array Helpers"}
+{
+  "0": "Schema Types & Public API",
+  "1": "Validator Structural Checks",
+  "2": "Behavior AST & POC Routines",
+  "3": "POC Test Harness & World State",
+  "4": "Behavior Interpreter",
+  "5": "World Builtins",
+  "6": "Transpiled Comparison",
+  "7": "Validator Types & Constants"
+}

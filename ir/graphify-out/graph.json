@@ -10,7 +10,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "poc_interpreter",
-      "community": 4,
+      "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "interpreter.ts"
     },
     {
@@ -20,7 +21,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "poc_interpreter_returnsignal",
-      "community": 9,
+      "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "returnsignal"
     },
     {
@@ -30,7 +32,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "poc_interpreter_returnsignal_constructor",
-      "community": 9,
+      "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": ".constructor()"
     },
     {
@@ -40,7 +43,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "poc_interpreter_locals",
-      "community": 4,
+      "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "locals"
     },
     {
@@ -50,7 +54,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "poc_interpreter_evalexpr",
-      "community": 4,
+      "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "evalexpr()"
     },
     {
@@ -60,7 +65,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "poc_interpreter_num",
-      "community": 4,
+      "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "num()"
     },
     {
@@ -70,7 +76,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "poc_interpreter_execstmt",
-      "community": 4,
+      "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "execstmt()"
     },
     {
@@ -80,7 +87,8 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "poc_interpreter_exectellpart",
-      "community": 4,
+      "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "exectellpart()"
     },
     {
@@ -90,7 +98,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "poc_interpreter_execbody",
-      "community": 4,
+      "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "execbody()"
     },
     {
@@ -101,6 +110,7 @@
       "_origin": "ast",
       "id": "poc_interpreter_runroutine",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "runroutine()"
     },
     {
@@ -110,7 +120,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "poc_routines",
-      "community": 2,
+      "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "routines.ts"
     },
     {
@@ -120,7 +131,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "poc_routines_t",
-      "community": 2,
+      "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "t"
     },
     {
@@ -130,7 +142,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "poc_routines_trap_door_exit",
-      "community": 2,
+      "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "trap_door_exit"
     },
     {
@@ -140,7 +153,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "poc_routines_kitchen_window_f",
-      "community": 2,
+      "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "kitchen_window_f"
     },
     {
@@ -151,6 +165,7 @@
       "_origin": "ast",
       "id": "poc_transpiled",
       "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "transpiled.ts"
     },
     {
@@ -161,6 +176,7 @@
       "_origin": "ast",
       "id": "poc_transpiled_trapdoorexit",
       "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "trapdoorexit()"
     },
     {
@@ -171,6 +187,7 @@
       "_origin": "ast",
       "id": "poc_transpiled_kitchenwindowf",
       "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "kitchenwindowf()"
     },
     {
@@ -181,6 +198,7 @@
       "_origin": "ast",
       "id": "poc_world",
       "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "world.ts"
     },
     {
@@ -191,6 +209,7 @@
       "_origin": "ast",
       "id": "poc_world_worldstate",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "worldstate"
     },
     {
@@ -201,6 +220,7 @@
       "_origin": "ast",
       "id": "poc_world_makeworld",
       "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "makeworld()"
     },
     {
@@ -211,6 +231,7 @@
       "_origin": "ast",
       "id": "poc_world_snapshot",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "snapshot()"
     },
     {
@@ -221,6 +242,7 @@
       "_origin": "ast",
       "id": "poc_world_truthy",
       "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "truthy()"
     },
     {
@@ -231,6 +253,7 @@
       "_origin": "ast",
       "id": "poc_world_hasflag",
       "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "hasflag()"
     },
     {
@@ -241,6 +264,7 @@
       "_origin": "ast",
       "id": "poc_world_setflag",
       "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "setflag()"
     },
     {
@@ -251,6 +275,7 @@
       "_origin": "ast",
       "id": "poc_world_clearflag",
       "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "clearflag()"
     },
     {
@@ -261,6 +286,7 @@
       "_origin": "ast",
       "id": "poc_world_tell",
       "community": 6,
+      "community_name": "Transpiled Comparison",
       "norm_label": "tell()"
     },
     {
@@ -271,6 +297,7 @@
       "_origin": "ast",
       "id": "poc_world_dummy_responses",
       "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "dummy_responses"
     },
     {
@@ -281,6 +308,7 @@
       "_origin": "ast",
       "id": "poc_world_builtin",
       "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "builtin"
     },
     {
@@ -291,6 +319,7 @@
       "_origin": "ast",
       "id": "poc_world_builtins",
       "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "builtins"
     },
     {
@@ -301,6 +330,7 @@
       "_origin": "ast",
       "id": "src_behavior",
       "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "behavior.ts"
     },
     {
@@ -310,7 +340,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_behavior_behaviorvalue",
-      "community": 9,
+      "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "behaviorvalue"
     },
     {
@@ -321,6 +352,7 @@
       "_origin": "ast",
       "id": "src_behavior_expr",
       "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "expr"
     },
     {
@@ -331,6 +363,7 @@
       "_origin": "ast",
       "id": "src_behavior_tellpart",
       "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "tellpart"
     },
     {
@@ -341,6 +374,7 @@
       "_origin": "ast",
       "id": "src_behavior_condclause",
       "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "condclause"
     },
     {
@@ -351,6 +385,7 @@
       "_origin": "ast",
       "id": "src_behavior_stmt",
       "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "stmt"
     },
     {
@@ -361,6 +396,7 @@
       "_origin": "ast",
       "id": "src_behavior_behaviorroutine",
       "community": 2,
+      "community_name": "Behavior AST & POC Routines",
       "norm_label": "behaviorroutine"
     },
     {
@@ -370,7 +406,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_cli",
-      "community": 10,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "cli.ts"
     },
     {
@@ -380,7 +417,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_cli_collect",
-      "community": 10,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "collect()"
     },
     {
@@ -390,8 +428,251 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_cli_args",
-      "community": 10,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "args"
+    },
+    {
+      "label": "extract-cli.ts",
+      "file_type": "code",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_extract_cli",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "extract-cli.ts"
+    },
+    {
+      "label": "[astDir = \"../importer/artifacts/ast\", outFile = \"artifacts/zork1.world.json\"]",
+      "file_type": "code",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "src_extract_cli_astdir_importer_artifacts_ast_outfile_artifacts_zork1_world_json",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "[astdir = \"../importer/artifacts/ast\", outfile = \"artifacts/zork1.world.json\"]"
+    },
+    {
+      "label": "programs",
+      "file_type": "code",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "src_extract_cli_programs",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "programs"
+    },
+    {
+      "label": "world",
+      "file_type": "code",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "src_extract_cli_world",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "world"
+    },
+    {
+      "label": "result",
+      "file_type": "code",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "src_extract_cli_result",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "result"
+    },
+    {
+      "label": "extract-world.ts",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_extract_world",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "extract-world.ts"
+    },
+    {
+      "label": "AstNode",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "src_extract_world_astnode",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "astnode"
+    },
+    {
+      "label": "AstProgram",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "src_extract_world_astprogram",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "astprogram"
+    },
+    {
+      "label": "isForm()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "src_extract_world_isform",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "isform()"
+    },
+    {
+      "label": "atomName()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "src_extract_world_atomname",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "atomname()"
+    },
+    {
+      "label": "stringValue()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "src_extract_world_stringvalue",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "stringvalue()"
+    },
+    {
+      "label": "meaningful()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L64",
+      "_origin": "ast",
+      "id": "src_extract_world_meaningful",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "meaningful()"
+    },
+    {
+      "label": "fail()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "src_extract_world_fail",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "fail()"
+    },
+    {
+      "label": "DIRECTION_MAP",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "src_extract_world_direction_map",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "direction_map"
+    },
+    {
+      "label": "FLAG_DESCRIPTIONS",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "src_extract_world_flag_descriptions",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "flag_descriptions"
+    },
+    {
+      "label": "parseExit()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L137",
+      "_origin": "ast",
+      "id": "src_extract_world_parseexit",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "parseexit()"
+    },
+    {
+      "label": "parseElse()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L174",
+      "_origin": "ast",
+      "id": "src_extract_world_parseelse",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "parseelse()"
+    },
+    {
+      "label": "RoomExtraction",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L185",
+      "_origin": "ast",
+      "id": "src_extract_world_roomextraction",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "roomextraction"
+    },
+    {
+      "label": "extractRoom()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L192",
+      "_origin": "ast",
+      "id": "src_extract_world_extractroom",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "extractroom()"
+    },
+    {
+      "label": "extractStubObject()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L266",
+      "_origin": "ast",
+      "id": "src_extract_world_extractstubobject",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "extractstubobject()"
+    },
+    {
+      "label": "findGlobalValue()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L318",
+      "_origin": "ast",
+      "id": "src_extract_world_findglobalvalue",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "findglobalvalue()"
+    },
+    {
+      "label": "extractWorld()",
+      "file_type": "code",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L338",
+      "_origin": "ast",
+      "id": "src_extract_world_extractworld",
+      "community": 4,
+      "community_name": "Behavior Interpreter",
+      "norm_label": "extractworld()"
     },
     {
       "label": "index.ts",
@@ -401,6 +682,7 @@
       "_origin": "ast",
       "id": "src_index",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "index.ts"
     },
     {
@@ -411,6 +693,7 @@
       "_origin": "ast",
       "id": "src_schema",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "schema.ts"
     },
     {
@@ -421,6 +704,7 @@
       "_origin": "ast",
       "id": "src_schema_directions",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "directions"
     },
     {
@@ -431,6 +715,7 @@
       "_origin": "ast",
       "id": "src_schema_direction",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "direction"
     },
     {
@@ -441,6 +726,7 @@
       "_origin": "ast",
       "id": "src_schema_worlddocument",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "worlddocument"
     },
     {
@@ -451,6 +737,7 @@
       "_origin": "ast",
       "id": "src_schema_worldmeta",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "worldmeta"
     },
     {
@@ -461,6 +748,7 @@
       "_origin": "ast",
       "id": "src_schema_flagdeclaration",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "flagdeclaration"
     },
     {
@@ -471,6 +759,7 @@
       "_origin": "ast",
       "id": "src_schema_scalarvalue",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "scalarvalue"
     },
     {
@@ -481,6 +770,7 @@
       "_origin": "ast",
       "id": "src_schema_globalvariable",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "globalvariable"
     },
     {
@@ -491,6 +781,7 @@
       "_origin": "ast",
       "id": "src_schema_entityref",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "entityref"
     },
     {
@@ -501,6 +792,7 @@
       "_origin": "ast",
       "id": "src_schema_tableelement",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "tableelement"
     },
     {
@@ -511,6 +803,7 @@
       "_origin": "ast",
       "id": "src_schema_table",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "table"
     },
     {
@@ -521,6 +814,7 @@
       "_origin": "ast",
       "id": "src_schema_exit",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "exit"
     },
     {
@@ -531,6 +825,7 @@
       "_origin": "ast",
       "id": "src_schema_exitbase",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "exitbase"
     },
     {
@@ -541,6 +836,7 @@
       "_origin": "ast",
       "id": "src_schema_plainexit",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "plainexit"
     },
     {
@@ -551,6 +847,7 @@
       "_origin": "ast",
       "id": "src_schema_blockedexit",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "blockedexit"
     },
     {
@@ -561,6 +858,7 @@
       "_origin": "ast",
       "id": "src_schema_conditionalexit",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "conditionalexit"
     },
     {
@@ -571,6 +869,7 @@
       "_origin": "ast",
       "id": "src_schema_doorexit",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "doorexit"
     },
     {
@@ -581,6 +880,7 @@
       "_origin": "ast",
       "id": "src_schema_routineexit",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "routineexit"
     },
     {
@@ -591,6 +891,7 @@
       "_origin": "ast",
       "id": "src_schema_pseudoreference",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "pseudoreference"
     },
     {
@@ -600,7 +901,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "src_schema_room",
-      "community": 0,
+      "community": 4,
+      "community_name": "Behavior Interpreter",
       "norm_label": "room"
     },
     {
@@ -611,6 +913,7 @@
       "_origin": "ast",
       "id": "src_schema_objectlocation",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "objectlocation"
     },
     {
@@ -621,6 +924,7 @@
       "_origin": "ast",
       "id": "src_schema_worldobject",
       "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "worldobject"
     },
     {
@@ -630,7 +934,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_validate",
-      "community": 7,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "validate.ts"
     },
     {
@@ -640,7 +945,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_validate_validationerror",
-      "community": 7,
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "validationerror"
     },
     {
@@ -650,7 +956,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_validate_validationresult",
-      "community": 7,
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "validationresult"
     },
     {
@@ -660,7 +967,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_validate_worldsummary",
-      "community": 7,
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "worldsummary"
     },
     {
@@ -670,7 +978,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_validate_json",
-      "community": 7,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "json"
     },
     {
@@ -680,7 +989,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_validate_direction_set",
-      "community": 7,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "direction_set"
     },
     {
@@ -691,6 +1001,7 @@
       "_origin": "ast",
       "id": "src_validate_ctx",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "ctx"
     },
     {
@@ -701,6 +1012,7 @@
       "_origin": "ast",
       "id": "src_validate_ctx_fail",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": ".fail()"
     },
     {
@@ -711,6 +1023,7 @@
       "_origin": "ast",
       "id": "src_validate_isobject",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "isobject()"
     },
     {
@@ -721,6 +1034,7 @@
       "_origin": "ast",
       "id": "src_validate_checkkeys",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "checkkeys()"
     },
     {
@@ -731,6 +1045,7 @@
       "_origin": "ast",
       "id": "src_validate_reqstring",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "reqstring()"
     },
     {
@@ -741,6 +1056,7 @@
       "_origin": "ast",
       "id": "src_validate_optstring",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "optstring()"
     },
     {
@@ -751,6 +1067,7 @@
       "_origin": "ast",
       "id": "src_validate_optint",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "optint()"
     },
     {
@@ -761,6 +1078,7 @@
       "_origin": "ast",
       "id": "src_validate_optbool",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "optbool()"
     },
     {
@@ -770,7 +1088,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "src_validate_optstringarray",
-      "community": 12,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "optstringarray()"
     },
     {
@@ -780,7 +1099,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "src_validate_reqstringarray",
-      "community": 12,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "reqstringarray()"
     },
     {
@@ -791,6 +1111,7 @@
       "_origin": "ast",
       "id": "src_validate_reqarray",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "reqarray()"
     },
     {
@@ -801,6 +1122,7 @@
       "_origin": "ast",
       "id": "src_validate_isscalar",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "isscalar()"
     },
     {
@@ -811,6 +1133,7 @@
       "_origin": "ast",
       "id": "src_validate_validateworld",
       "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "validateworld()"
     },
     {
@@ -821,6 +1144,7 @@
       "_origin": "ast",
       "id": "test_behavior_poc_test",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "behavior-poc.test.ts"
     },
     {
@@ -831,6 +1155,7 @@
       "_origin": "ast",
       "id": "test_behavior_poc_test_scenario",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "scenario"
     },
     {
@@ -841,6 +1166,7 @@
       "_origin": "ast",
       "id": "test_behavior_poc_test_scenarios",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "scenarios"
     },
     {
@@ -851,6 +1177,7 @@
       "_origin": "ast",
       "id": "test_behavior_poc_test_runinterpreted",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "runinterpreted()"
     },
     {
@@ -861,7 +1188,85 @@
       "_origin": "ast",
       "id": "test_behavior_poc_test_runtranspiled",
       "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "runtranspiled()"
+    },
+    {
+      "label": "extract.test.ts",
+      "file_type": "code",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "test_extract_test",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "extract.test.ts"
+    },
+    {
+      "label": "here",
+      "file_type": "code",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "test_extract_test_here",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "here"
+    },
+    {
+      "label": "astDir",
+      "file_type": "code",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "test_extract_test_astdir",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "astdir"
+    },
+    {
+      "label": "programs",
+      "file_type": "code",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "test_extract_test_programs",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "programs"
+    },
+    {
+      "label": "world",
+      "file_type": "code",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "test_extract_test_world",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "world"
+    },
+    {
+      "label": "result",
+      "file_type": "code",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "test_extract_test_result",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "result"
+    },
+    {
+      "label": "sample",
+      "file_type": "code",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "test_extract_test_sample",
+      "community": 7,
+      "community_name": "Validator Types & Constants",
+      "norm_label": "sample"
     },
     {
       "label": "sample.test.ts",
@@ -870,7 +1275,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_sample_test",
-      "community": 11,
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "sample.test.ts"
     },
     {
@@ -880,7 +1286,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "test_sample_test_samplepath",
-      "community": 11,
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "samplepath"
     },
     {
@@ -890,7 +1297,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "test_sample_test_sample",
-      "community": 11,
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "sample"
     },
     {
@@ -900,7 +1308,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_validate_test",
-      "community": 8,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "validate.test.ts"
     },
     {
@@ -910,7 +1319,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "test_validate_test_minimalworld",
-      "community": 8,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "minimalworld()"
     },
     {
@@ -920,7 +1330,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "test_validate_test_errorsfor",
-      "community": 8,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "errorsfor()"
     },
     {
@@ -930,7 +1341,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "test_validate_test_room",
-      "community": 8,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "room()"
     },
     {
@@ -940,7 +1352,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "test_validate_test_object",
-      "community": 8,
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "object()"
     }
   ],
@@ -2077,6 +2490,826 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_extract_cli_astdir_importer_artifacts_ast_outfile_artifacts_zork1_world_json",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_extract_cli_programs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_extract_cli_result",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_extract_cli_world",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_extract_world",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_extract_world_astprogram",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_extract_world_extractworld",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_validate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-cli.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_cli",
+      "target": "src_validate_validateworld",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_astnode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_astprogram",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L55",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_atomname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_direction_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L192",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_extractroom",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L266",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_extractstubobject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L338",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_extractworld",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L318",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_findglobalvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_flag_descriptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_isform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_meaningful",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L174",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_parseelse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L137",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_parseexit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L185",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_roomextraction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_extract_world_stringvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_direction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_exit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_flagdeclaration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_globalvariable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_objectlocation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_pseudoreference",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_room",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_worlddocument",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world",
+      "target": "src_schema_worldobject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_extract_world",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "src_extract_world",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "context": "type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_astprogram",
+      "target": "src_extract_world_astnode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_extract_world_astprogram",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "src_extract_world_astprogram",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L343",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractworld",
+      "target": "src_extract_world_isform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L321",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_findglobalvalue",
+      "target": "src_extract_world_isform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L194",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractroom",
+      "target": "src_extract_world_atomname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L268",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractstubobject",
+      "target": "src_extract_world_atomname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L345",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractworld",
+      "target": "src_extract_world_atomname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L323",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_findglobalvalue",
+      "target": "src_extract_world_atomname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L177",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_parseelse",
+      "target": "src_extract_world_atomname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L147",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_parseexit",
+      "target": "src_extract_world_atomname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L212",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractroom",
+      "target": "src_extract_world_stringvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L284",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractstubobject",
+      "target": "src_extract_world_stringvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L176",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_parseelse",
+      "target": "src_extract_world_stringvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L142",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_parseexit",
+      "target": "src_extract_world_stringvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L193",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractroom",
+      "target": "src_extract_world_meaningful",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L267",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractstubobject",
+      "target": "src_extract_world_meaningful",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L345",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractworld",
+      "target": "src_extract_world_meaningful",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L322",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_findglobalvalue",
+      "target": "src_extract_world_meaningful",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L195",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractroom",
+      "target": "src_extract_world_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L268",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractstubobject",
+      "target": "src_extract_world_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L372",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractworld",
+      "target": "src_extract_world_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L329",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_findglobalvalue",
+      "target": "src_extract_world_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L178",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_parseelse",
+      "target": "src_extract_world_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_parseexit",
+      "target": "src_extract_world_fail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L244",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractroom",
+      "target": "src_extract_world_parseexit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L166",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_parseexit",
+      "target": "src_extract_world_parseelse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L186",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_roomextraction",
+      "target": "src_schema_room",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L356",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractworld",
+      "target": "src_extract_world_extractroom",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L373",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractworld",
+      "target": "src_extract_world_extractstubobject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/extract-world.ts",
+      "source_location": "L380",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_extract_world_extractworld",
+      "target": "src_extract_world_findglobalvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_extract_world_extractworld",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "src_extract_world_extractworld",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "re_exports",
       "context": "export",
       "confidence": "EXTRACTED",
@@ -2930,6 +4163,18 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "src_validate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "test/sample.test.ts",
       "source_location": "L3",
       "weight": 1.0,
@@ -3205,6 +4450,18 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "src_validate_validateworld",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "test/sample.test.ts",
       "source_location": "L3",
       "weight": 1.0,
@@ -3308,6 +4565,72 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "test_extract_test_astdir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "test_extract_test_here",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "test_extract_test_programs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "test_extract_test_result",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "test_extract_test_sample",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/extract.test.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_extract_test",
+      "target": "test_extract_test_world",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "test/sample.test.ts",
       "source_location": "L7",
       "weight": 1.0,
@@ -3385,5 +4708,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "7c3fc895294f88132a88a053d24d6d4b9f72a29f"
+  "built_at_commit": "792f3e323f42be470476e394490c2d49c301a1b6"
 }

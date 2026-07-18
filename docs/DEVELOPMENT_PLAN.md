@@ -56,7 +56,7 @@ Goal: populate the IR from the parsed AST, subsystem by subsystem. Deterministic
 
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|
-| 3.1 | **World model** — rooms, exits, connections | All Zork I rooms in IR; connectivity graph matches source | ☐ |
+| 3.1 | **World model** — rooms, exits, connections | All Zork I rooms in IR; connectivity graph matches source | ☑ |
 | 3.2 | **Objects** — objects, properties, flags, containment, initial locations | All objects in IR with validator passing | ☐ |
 | 3.3 | **Vocabulary & syntax** — verbs, synonyms, adjectives, parser syntax rules | Vocabulary tables extracted to IR | ☐ |
 | 3.4 | **Action routines (simple)** — object/room action handlers with straightforward logic | Majority of handlers represented; complex ones catalogued | ☐ |

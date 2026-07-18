@@ -22,3 +22,5 @@ export type {
 } from "./schema.js";
 export { validateWorld } from "./validate.js";
 export type { ValidationError, ValidationResult, WorldSummary } from "./validate.js";
+export { extractWorld } from "./extract-world.js";
+export type { AstProgram } from "./extract-world.js";

@@ -28,6 +28,7 @@ NOTICE
 
 # Generated / committed artifacts (regenerable, high-noise)
 importer/artifacts/
+ir/artifacts/
 package-lock.json
 
 # Package/toolchain config — contributes ~30% of graph nodes as pure metadata

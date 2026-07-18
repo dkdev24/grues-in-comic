@@ -1,12 +1,18 @@
-# Graph Report - .  (2026-07-18)
+# Graph Report - ir  (2026-07-18)
 
 ## Corpus Check
-- Corpus is ~8,228 words - fits in a single context window. You may not need a graph.
+- 16 files · ~10,727 words
+- Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 94 nodes · 210 edges · 13 communities (8 shown, 5 thin omitted)
+- 123 nodes · 288 edges · 8 communities
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `792f3e32`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - Schema Types & Public API
@@ -17,86 +23,84 @@
 - World Builtins
 - Transpiled Comparison
 - Validator Types & Constants
-- Validator Tests
-- Interpreter Return Signal
-- Validator CLI
-- Sample World Test
-- Validator Array Helpers
 
 ## God Nodes (most connected - your core abstractions)
-1. `validateWorld()` - 17 edges
-2. `truthy()` - 7 edges
-3. `BehaviorValue` - 7 edges
-4. `evalExpr()` - 6 edges
-5. `WorldState` - 6 edges
-6. `tell()` - 6 edges
-7. `ExitBase` - 6 edges
-8. `execStmt()` - 5 edges
-9. `trapDoorExit()` - 5 edges
-10. `hasFlag()` - 5 edges
+1. `validateWorld()` - 19 edges
+2. `extractWorld()` - 11 edges
+3. `truthy()` - 7 edges
+4. `BehaviorValue` - 7 edges
+5. `atomName()` - 7 edges
+6. `fail()` - 7 edges
+7. `extractRoom()` - 7 edges
+8. `evalExpr()` - 6 edges
+9. `WorldState` - 6 edges
+10. `tell()` - 6 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `WorldState` --references--> `BehaviorValue`  [EXTRACTED]
   poc/world.ts → src/behavior.ts
-- `errorsFor()` --calls--> `validateWorld()`  [EXTRACTED]
-  test/validate.test.ts → src/validate.ts
 - `runInterpreted()` --calls--> `runRoutine()`  [EXTRACTED]
   test/behavior-poc.test.ts → poc/interpreter.ts
 - `Scenario` --references--> `WorldState`  [EXTRACTED]
   test/behavior-poc.test.ts → poc/world.ts
 - `runInterpreted()` --calls--> `snapshot()`  [EXTRACTED]
   test/behavior-poc.test.ts → poc/world.ts
+- `runTranspiled()` --calls--> `snapshot()`  [EXTRACTED]
+  test/behavior-poc.test.ts → poc/world.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (13 total, 5 thin omitted)
+## Communities (8 total, 0 thin omitted)
 
 ### Community 0 - "Schema Types & Public API"
-Cohesion: 0.19
-Nodes (21): BlockedExit, ConditionalExit, Direction, DIRECTIONS, DoorExit, EntityRef, Exit, ExitBase (+13 more)
+Cohesion: 0.14
+Nodes (25): BlockedExit, ConditionalExit, Direction, DIRECTIONS, DoorExit, EntityRef, Exit, ExitBase (+17 more)
 
 ### Community 1 - "Validator Structural Checks"
-Cohesion: 0.29
-Nodes (10): checkKeys(), Ctx, isObject(), isScalar(), optBool(), optInt(), optString(), reqArray() (+2 more)
+Cohesion: 0.17
+Nodes (17): args, checkKeys(), Ctx, DIRECTION_SET, isObject(), isScalar(), Json, optBool() (+9 more)
 
 ### Community 2 - "Behavior AST & POC Routines"
-Cohesion: 0.24
-Nodes (8): KITCHEN_WINDOW_F, T, TRAP_DOOR_EXIT, BehaviorRoutine, CondClause, Expr, Stmt, TellPart
+Cohesion: 0.29
+Nodes (8): Locals, ReturnSignal, BehaviorRoutine, BehaviorValue, CondClause, Expr, Stmt, TellPart
 
 ### Community 3 - "POC Test Harness & World State"
-Cohesion: 0.46
-Nodes (7): runRoutine(), snapshot(), WorldState, runInterpreted(), runTranspiled(), Scenario, scenarios
+Cohesion: 0.29
+Nodes (10): runRoutine(), KITCHEN_WINDOW_F, T, TRAP_DOOR_EXIT, snapshot(), WorldState, runInterpreted(), runTranspiled() (+2 more)
 
 ### Community 4 - "Behavior Interpreter"
-Cohesion: 0.52
-Nodes (6): evalExpr(), execBody(), execStmt(), execTellPart(), Locals, num()
+Cohesion: 0.36
+Nodes (15): atomName(), DIRECTION_MAP, extractRoom(), extractStubObject(), extractWorld(), fail(), findGlobalValue(), FLAG_DESCRIPTIONS (+7 more)
 
 ### Community 5 - "World Builtins"
 Cohesion: 0.29
 Nodes (6): Builtin, builtins, clearFlag(), DUMMY_RESPONSES, makeWorld(), setFlag()
 
 ### Community 6 - "Transpiled Comparison"
-Cohesion: 0.67
-Nodes (5): kitchenWindowF(), trapDoorExit(), hasFlag(), tell(), truthy()
+Cohesion: 0.35
+Nodes (10): evalExpr(), execBody(), execStmt(), execTellPart(), num(), kitchenWindowF(), trapDoorExit(), hasFlag() (+2 more)
 
 ### Community 7 - "Validator Types & Constants"
-Cohesion: 0.33
-Nodes (5): DIRECTION_SET, Json, ValidationError, ValidationResult, WorldSummary
+Cohesion: 0.14
+Nodes (12): [astDir = "../importer/artifacts/ast", outFile = "artifacts/zork1.world.json"], programs, result, world, AstNode, AstProgram, astDir, here (+4 more)
 
 ## Knowledge Gaps
-- **11 isolated node(s):** `Locals`, `T`, `DUMMY_RESPONSES`, `Builtin`, `CondClause` (+6 more)
+- **23 isolated node(s):** `Locals`, `T`, `DUMMY_RESPONSES`, `Builtin`, `CondClause` (+18 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `validateWorld()` connect `Validator Structural Checks` to `Schema Types & Public API`, `Validator Types & Constants`, `Validator Tests`, `Validator CLI`, `Sample World Test`, `Validator Array Helpers`?**
-  _High betweenness centrality (0.057) - this node is a cross-community bridge._
-- **Why does `BehaviorValue` connect `Interpreter Return Signal` to `Behavior AST & POC Routines`, `POC Test Harness & World State`, `Behavior Interpreter`, `World Builtins`, `Transpiled Comparison`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **Why does `truthy()` connect `Transpiled Comparison` to `Behavior Interpreter`, `World Builtins`?**
-  _High betweenness centrality (0.004) - this node is a cross-community bridge._
+- **Why does `validateWorld()` connect `Validator Structural Checks` to `Schema Types & Public API`, `Validator Types & Constants`?**
+  _High betweenness centrality (0.075) - this node is a cross-community bridge._
+- **Why does `extractWorld()` connect `Behavior Interpreter` to `Schema Types & Public API`, `Validator Types & Constants`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
+- **Why does `AstProgram` connect `Validator Types & Constants` to `Schema Types & Public API`, `Behavior Interpreter`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `Locals`, `T`, `DUMMY_RESPONSES` to the rest of the system?**
-  _11 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _23 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Schema Types & Public API` be split into smaller, more focused modules?**
+  _Cohesion score 0.13756613756613756 - nodes in this community are weakly interconnected._
+- **Should `Validator Types & Constants` be split into smaller, more focused modules?**
+  _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
