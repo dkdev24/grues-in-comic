@@ -1,0 +1,42 @@
+# Graphify exclusions (gitignore syntax; .gitignore rules are merged automatically,
+# so node_modules/, build output, etc. are already covered).
+#
+# Policy (HANDOFF.md, stage 2.4): graphs are structural knowledge over the
+# modernized source. Docs belong to OpenWiki, not Graphify; historical source is
+# never consumed raw (AGENTS.md); generated artifacts are noise.
+#
+# Per-module graphs are NOT configured here — run graphify separately per module
+# (importer/, ir/, later engine/), each producing its own graphify-out/.
+
+# Historical reference source — AGENTS.md forbids Graphify consuming raw ZIL/C++
+original-projects/
+
+# Documentation and prose (OpenWiki's domain, not structural)
+*.md
+wiki/
+LICENSE
+NOTICE
+
+# Images and other non-code media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.bmp
+
+# Generated / committed artifacts (regenerable, high-noise)
+importer/artifacts/
+package-lock.json
+
+# Verification ground truth (transcripts, goldens, harness) — not engine source
+verification/
+
+# Graph outputs themselves — never self-ingest
+graph/
+graphify-out/
+
+# Keep IR sample data eligible: the IR world (rooms/exits/objects) is itself a
+# graph subject for stage 2.4 (no rule needed — .json is included by default;
+# this note guards against adding a blanket *.json rule later)
