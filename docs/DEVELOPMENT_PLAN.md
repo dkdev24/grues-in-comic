@@ -40,7 +40,7 @@ Goal: define the central abstraction (IR) and settle the engine runtime question
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|
 | 2.1 | **IR schema: declarative world** — schema for ROOM, OBJECT, exits, GLOBAL, TABLE, flags/properties; validate by hand-writing IR for 2–3 rooms | Schema documented + validator tool; sample IR passes | ☑ |
-| 2.2 | **IR schema: behavior** — decide how ROUTINE/ACTION imperative logic is represented (interpreted mini-language vs. transpiled functions vs. hybrid); POC one nontrivial routine both ways if needed ⚑ **Gate B input** | ADR-style writeup of the chosen representation with a working POC | ☐ |
+| 2.2 | **IR schema: behavior** — decide how ROUTINE/ACTION imperative logic is represented (interpreted mini-language vs. transpiled functions vs. hybrid); POC one nontrivial routine both ways if needed ⚑ **Gate B input** | ADR-style writeup of the chosen representation with a working POC | ☑ |
 | 2.3 | **ADR: engine runtime** — TypeScript vs. C++/WASM, informed by 1.1 and 2.2 experience; define the engine↔UI event/serialization contract at the same time (interface-first, per Gemini rec) ⚑ **Gate B** | ADR committed; PORTING_STRATEGY.md and AGENTS.md updated to remove the WASM assumption or confirm it | ☐ |
 | 2.4 | **Knowledge tooling validation POC** — hands-on test of Graphify and OpenWiki against the real IR from 2.1–2.2; verify the repos and capabilities match `AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md`; if they hold up, produce first `graph/` artifacts and start `wiki/` architecture pages | Findings recorded in that doc; adopt/replace decision made; first generated structural + semantic docs exist (or fallback chosen) ⚑ **Gate A** | ☐ |
 

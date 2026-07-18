@@ -11,11 +11,13 @@ The normative schema specification lives in `docs/IR_SCHEMA.md` (repo root). Thi
 | Path | Purpose |
 |---|---|
 | `src/schema.ts` | TypeScript types for the IR world document — the schema's source of truth |
+| `src/behavior.ts` | Behavior AST types (stage 2.2; canonical per ADR 0001) — not yet wired into `WorldDocument` |
 | `src/validate.ts` | `validateWorld(json)` — structural pass (strict, unknown keys rejected) + referential pass (all ids resolve) |
 | `src/cli.ts` | Validator CLI (run via `npm run validate`) |
 | `src/index.ts` | Public API |
 | `samples/` | Hand-written IR transcribed from `original-projects/zork1/` — West of House, Kitchen, Living Room + reference stubs |
-| `test/` | Sample-world integration tests + validator unit tests (one per rule) |
+| `poc/` | Stage 2.2 POC — reference interpreter, hand-written behavior ASTs (TRAP-DOOR-EXIT, KITCHEN-WINDOW-F), the competing hand-transpiled variant, shared world/builtin substrate |
+| `test/` | Sample-world integration tests + validator unit tests + behavior differential/golden tests |
 
 ## Usage
 

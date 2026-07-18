@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.4.0**
+**0.4.1**
 
 ---
 
@@ -17,18 +17,18 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation undecided (stage 2.2). No engine or browser runtime started.
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime language undecided (stage 2.3, ⚑ Gate B). No engine or browser runtime started.
 
 ---
 
 ## Last Session
 
-- **Stage 2.1 complete — IR schema: declarative world** (v0.4.0, opens Milestone 2):
-  - New `ir/` package (TypeScript, same toolchain as `importer/`): `src/schema.ts` (types = schema source of truth), `src/validate.ts` (strict structural pass — unknown keys rejected — plus referential pass — every id resolves, flags must be declared in the registry, door exits require DOORBIT), `src/cli.ts` (`npm run validate`)
-  - Normative spec: `docs/IR_SCHEMA.md` (design principles, ZIL→IR mapping tables, validation rules, deferrals); `irVersion` 0.1.0
-  - Exit model mirrors ZIL variants 1:1: `to` / `blocked` / `conditional` (IF [ELSE]) / `door` (IF x IS OPEN) / `routine` (PER); behavior everywhere is an **opaque routine-name string** — resolution is stage 2.2's decision; the validator surfaces `summary.routineRefs` as 2.2's worklist
-  - Hand-written sample `ir/samples/west-of-house.world.json`: WEST-OF-HOUSE, KITCHEN, LIVING-ROOM fully transcribed (all 5 exit kinds exercised) + MAILBOX/ADVERTISEMENT/KITCHEN-WINDOW, IN-HOUSE-AROUND table, 4 globals; partial worlds stay valid via `"stub": true` placeholder entities (8 stub rooms, 5 stub scenery objects)
-  - 21 tests (validator rule units + sample integration); typecheck clean; CLI green
+- **Stage 2.2 complete — behavior representation decided** (v0.4.1, ⚑ Gate B input):
+  - **ADR 0001** (`docs/adr/0001-behavior-representation.md`, Accepted): behavior is a **structured behavior AST** — plain JSON, closed vocabulary of IF-domain ops (`ir/src/behavior.ts`: 12 expression + 6 statement ops) — interpreted by the engine; generic ZIL utilities (OPEN-CLOSE, DO-WALK, THIS-IS-IT, PICK-ONE…) are **engine builtins**, not per-game IR; engines may compile AST→closures as an invisible optimization; transpiled-TS-as-canonical rejected (breaks IR independence, makes LLM extraction unvalidatable)
+  - POC ran the comparison **both ways** on TRAP-DOOR-EXIT (exit routine returning a room) and KITCHEN-WINDOW-F (multi-verb object action): hand-written ASTs (`ir/poc/routines.ts`) executed by a ~130-line reference interpreter (`ir/poc/interpreter.ts`) vs. hand-transpiled TS (`ir/poc/transpiled.ts`), both over one shared world/builtin substrate (`ir/poc/world.ts`)
+  - 12 differential scenarios (identical transcript/return/mutations/pronoun binding) + 10 golden tests pinned to ZIL source text; suite now 43, typecheck clean
+  - Deferred consciously (listed in ADR): fall-off-end return semantics, RARG room-action protocol as first-class dispatch, PRSO/PRSI binding; behavior `routines` section enters `WorldDocument` as `irVersion` 0.2.0 during Milestone 3
+- Gate B evidence so far: TypeScript frictionless across importer, IR schema/validator, and interpreter; behavior-as-data means 2.3's language choice is unconstrained by the IR
 
 ---
 
@@ -36,8 +36,8 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). Milestone 2 continues:
 
-1. Stage 2.2 — IR schema: behavior representation (interpreted mini-language vs. transpiled functions vs. hybrid); POC one nontrivial routine; the sample's 7 `routineRefs` (e.g. TRAP-DOOR-EXIT, KITCHEN-WINDOW-F) are concrete candidates (⚑ Gate B input)
-2. Stage 2.3 — ADR: engine runtime (⚑ Gate B)
+1. Stage 2.3 — **ADR: engine runtime** (TypeScript vs. C++/WASM) + engine↔UI event/serialization contract, interface-first (⚑ **Gate B resolves here** — revise the plan's Milestones 3–5 afterward); inputs: ADR 0001, frictionless-TS experience, builtin-registry contract need
+2. Stage 2.4 — Graphify/OpenWiki validation POC against the real IR (⚑ Gate A)
 3. Stage 5.1 (Comic Chat analysis) is the sanctioned filler stage if a session can't tackle IR work
 
 **Milestone 0 is complete** (stages 0.1–0.3 all ☑):

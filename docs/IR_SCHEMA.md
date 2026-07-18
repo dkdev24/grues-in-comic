@@ -86,7 +86,7 @@ A valid document yields a summary (entity counts, exit count, sorted `routineRef
 
 ## Known deferrals
 
-- **Behavior** (`action`/`routine`/`pseudo` targets) — stage 2.2 / Gate B.
+- **Behavior** (`action`/`routine`/`pseudo` targets) — representation decided in `docs/adr/0001-behavior-representation.md` (structured behavior AST, `ir/src/behavior.ts`); wiring a `routines` section into `WorldDocument` (`irVersion` 0.2.0) happens when Milestone 3 extraction populates it.
 - **Vocabulary & syntax** (verbs, SYNTAX lines, buzzwords) — Milestone 3.3; object `synonyms`/`adjectives` are kept now since they are object-local data.
 - **ITABLE element semantics** (initializer counts) — revisit when the first ITABLE is transcribed; the `kind` is reserved.
 - **Player/winner state, LOAD-ALLOWED-style engine parameters** — engine ADR (stage 2.3).
