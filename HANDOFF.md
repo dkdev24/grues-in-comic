@@ -23,10 +23,10 @@ No engine code exists yet. No IR schema defined. No browser runtime started.
 
 ## Last Session
 
-- Initialized Git repository
-- Created private GitHub repo at `github.com/dkdev24/comic-zork`
-- Fixed `.gitignore.md` → `.gitignore` and re-applied ignore rules
-- Created `HANDOFF.md`, `WORKLOG.md`, updated `AGENTS.md`
+- Created `HANDOFF.md` and `WORKLOG.md`; updated `AGENTS.md` with system document workflow and HANDOFF/WORKLOG loading rules
+- Created `CLAUDE.md` pointing to `AGENTS.md` so all agents read from a single source
+- Created `project-init` skill at `~/.claude/skills/project-init/SKILL.md` (auto-loaded by both Claude Code and OpenCode)
+- Created `project-init-skill-installation.md` in repo root for installing the skill on other devices (macOS and Windows)
 
 ---
 
@@ -58,4 +58,6 @@ No engine code exists yet. No IR schema defined. No browser runtime started.
 | `wiki/` | Semantic architecture notes |
 | `graph/` | Graphify structural outputs (not yet created) |
 | `WORKLOG.md` | Persistent project history |
-| `AGENTS.md` | Agent workflow rules |
+| `AGENTS.md` | Agent workflow rules (single source for all agents) |
+| `CLAUDE.md` | Claude Code entry point — references `AGENTS.md` |
+| `project-init-skill-installation.md` | Instructions for installing the `project-init` skill on other devices |
