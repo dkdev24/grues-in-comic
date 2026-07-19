@@ -84,7 +84,7 @@ const FALSE: Expr = { op: "const", value: false };
 const EXPR_HEADS = new Set([
   "VERB?", "EQUAL?", "==?", "FSET?", "AND", "OR", "NOT",
   "G?", "L?", "0?", "1?", "IN?", "LOC", "GETP", "GET",
-  "+", "-", "*", "/", "MOD", "MIN", "ABS", "FIRST?", "NEXT?",
+  "+", "-", "*", "/", "MOD", "MIN", "ABS", "FIRST?", "NEXT?", "REST",
 ]);
 
 export interface CatalogEntry {
@@ -518,6 +518,21 @@ class RoutineTransformer {
         return { op: "prop", entity: this.expr(rest[0]!), prop: this.propKey("GETP", rest[1]) };
       case "GET":
         return { op: "table-get", table: this.expr(rest[0]!), index: this.expr(rest[1]!) };
+      case "REST": {
+        // ZIL REST advances a table pointer by a byte count; the IR counts
+        // elements, so a word table's byte count halves. Only compile-time
+        // even literals are lowerable — a computed or odd (byte-table) offset
+        // would need the byte addressing the IR deliberately does not model.
+        const bytes = rest[1];
+        if (bytes?.type !== "Number") this.deny("REST offset is not a literal byte count");
+        const n = bytes!.value as number;
+        if (n % 2 !== 0) this.deny(`REST offset ${n} is not a whole number of words`);
+        return {
+          op: "table-rest",
+          table: this.expr(rest[0]!),
+          offset: { op: "const", value: n / 2 },
+        };
+      }
       case "PUTP":
       case "PUT":
         this.deny(`operator ${head} in expression position`);

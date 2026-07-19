@@ -418,3 +418,20 @@ Stage 3.5 batch (f) complete. Handler coverage 255/292 (87%). Next per ADR 0001 
 ### Status
 
 Stage 3.5 batch (g) complete. Handler coverage 258/292 (88%). Next per ADR 0001 Group B: (h) table-rest (completes the I-LANTERN/I-CANDLES countdown goldens), (i) apply, (j) RFATAL, and the world-document meta entities that unblock I-THIEF. Newly surfaced and not yet assigned to a batch: `<NTH …>` and String-in-statement-position.
+
+## v0.5.12 — Complex Behavior Batch h: Table Views (stage 3.5)
+
+**Date:** 2026-07-19
+
+### Changes
+
+- **IR schema 0.9.0** (ADR 0001 appendix): expr `table-rest` — ZIL `<REST tbl bytes>`, an interior pointer into a table's storage. Runtime values gain a table pointer: `BehaviorValue` splits into `BehaviorLiteral` (what a document may hold — `const` and table elements stay scalar, so the document's value domain is unchanged) and the runtime union adding `TableRef` = `{table, offset}`. A bare table id is the same pointer at offset 0, so views compose and `table-get`/`table-set` read through them. The offset counts **elements, not bytes**: the extractor halves ZIL's byte count and denies an odd or non-literal one, byte addressing being exactly what the IR's platform-independence rule excludes. LTABLEs are not viewable (the count word sits in the slot a view skips) — extractor and interpreter both say so rather than mis-index. Table pointers compare structurally, matching the Z-machine address compare
+- **Extraction: 309 → 312 routines, catalog 52 → 50, unresolved refs 34/292 (88%, unchanged).** Unlocked I-LANTERN, I-CANDLES and their shared helper LIGHT-INT. The ref ratio is flat because all three are reached by direct call and QUEUE name string rather than by a world-document reference — the gain shows in the catalog, not the refs
+- **Batch (d) countdown goldens complete**: the extracted lamp daemon walks its PURE table through all three dimming messages ("a bit dimmer" → "definitely dimmer now" → "nearly out") and burns out at the 0 terminator, clearing ONBIT and setting RMUNGBIT — advancing the pointer 2 elements per stage and never writing the table
+- 135 tests pass (11 new in `test/behavior-35h.test.ts`): extraction shapes (the `<REST .TBL 4>` → offset-2 halving, nothing left catalogued on `<REST …>`), op semantics (offset reads, view composition, bare-id equivalence, ltable refusal), and the countdown golden
+
+### Status
+
+Stage 3.5 batch (h) complete. Handler coverage 258/292 (88%); catalog down to 50. Next per ADR 0001 Group B: (i) apply (TROLL-FCN, AWAKEN, DESCRIBE-OBJECT, V-BOARD), (j) RFATAL, and the world-document meta entities that unblock I-THIEF.
+
+**Surfaced, not fixed:** ZIL declares the countdown tables as `<GLOBAL LAMP-TABLE <TABLE …>>` — both a global binding and a table — but stage 2.1 world extraction emits only the table. `,LAMP-TABLE` therefore has no initial value in the document and an engine cannot bind the pointer at load time; the batch (h) golden seeds it explicitly. The fix belongs to world extraction, not the behavior vocabulary.

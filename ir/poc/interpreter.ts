@@ -12,7 +12,7 @@
  * clause fires).
  */
 
-import type { BehaviorRoutine, BehaviorValue, Expr, Stmt, TellPart } from "../src/behavior.js";
+import type { BehaviorRoutine, BehaviorValue, Expr, Stmt, TableRef, TellPart } from "../src/behavior.js";
 import { builtins, tell, truthy, clearFlag, hasFlag, setFlag, moveEntity, removeEntity } from "./world.js";
 import type { RuntimeTable, WorldState } from "./world.js";
 
@@ -50,7 +50,9 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       return expr.verbs.includes(world.verb);
     case "equal?": {
       const [first, ...rest] = expr.args.map((a) => evalExpr(a, world, locals));
-      return rest.some((v) => v === first);
+      // Table pointers compare by address on the Z-machine — two views of the
+      // same table at the same offset are the same address, hence structural.
+      return rest.some((v) => sameValue(v, first!));
     }
     case "flag?": {
       const entity = entityId(evalExpr(expr.entity, world, locals), "flag?");
@@ -136,6 +138,13 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       if (element === "length") return table.elements.length;
       return table.elements[element] ?? false;
     }
+    case "table-rest": {
+      const base = tableRef(evalExpr(expr.table, world, locals), "table-rest");
+      const table = world.tables[base.table];
+      if (table === undefined) throw new Error(`unknown table ${base.table}`);
+      if (table.kind === "ltable") throw new Error("table-rest cannot view an ltable");
+      return { table: base.table, offset: base.offset + num(evalExpr(expr.offset, world, locals)) };
+    }
     case "set-global":
       return (world.globals[expr.id] = evalExpr(expr.value, world, locals));
     case "set-local":
@@ -154,6 +163,24 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
   }
 }
 
+/** Value equality; table pointers compare by table + offset (Z-machine address). */
+function sameValue(a: BehaviorValue, b: BehaviorValue): boolean {
+  if (typeof a === "object" && a !== null && typeof b === "object" && b !== null) {
+    return a.table === b.table && a.offset === b.offset;
+  }
+  return a === b;
+}
+
+/**
+ * Resolve a value to a table pointer. A bare table id is the pointer at
+ * offset 0; a `table-rest` view carries its own offset.
+ */
+function tableRef(v: BehaviorValue, op: string): TableRef {
+  if (typeof v === "string") return { table: v, offset: 0 };
+  if (typeof v === "object" && v !== null) return v;
+  throw new Error(`${op} target must be a table`);
+}
+
 /**
  * Resolve a table expr + index to a concrete element slot. LTABLEs answer
  * their element count at index 0 and store element n at index n+1.
@@ -165,14 +192,17 @@ function tableSlot(
   locals: Locals,
   op: string,
 ): { table: RuntimeTable; element: number | "length" } {
-  const id = entityId(evalExpr(tableExpr, world, locals), op);
-  const table = world.tables[id];
-  if (table === undefined) throw new Error(`unknown table ${id}`);
+  const ref = tableRef(evalExpr(tableExpr, world, locals), op);
+  const table = world.tables[ref.table];
+  if (table === undefined) throw new Error(`unknown table ${ref.table}`);
   const index = num(evalExpr(indexExpr, world, locals));
   if (table.kind === "ltable") {
+    // An ltable's count occupies the slot a view would have skipped past, so
+    // the two addressing schemes cannot be combined (no such use in the corpus).
+    if (ref.offset !== 0) throw new Error(`${op} cannot index an ltable through a REST view`);
     return { table, element: index === 0 ? "length" : index - 1 };
   }
-  return { table, element: index };
+  return { table, element: ref.offset + index };
 }
 
 function num(v: BehaviorValue): number {

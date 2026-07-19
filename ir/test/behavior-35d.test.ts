@@ -47,8 +47,10 @@ describe("stage 3.5 batch (d) extraction — daemons/timers", () => {
 
   it("remaining daemons are catalogued on the builtin frontier, not on QUEUE", () => {
     const reasons = new Map(catalog.map((c) => [c.id, c.reasons.join("; ")]));
-    expect(reasons.get("I-LANTERN")).toContain("<REST");
-    expect(reasons.get("I-CANDLES")).toContain("<REST");
+    // Batch (h) lowered <REST>, so the lamp/candle daemons now extract; their
+    // countdown goldens live in behavior-35h.test.ts.
+    expect(reasons.has("I-LANTERN")).toBe(false);
+    expect(reasons.has("I-CANDLES")).toBe(false);
     // Batch (g) lowered ABS, so I-CYCLOPS advanced to the next frontier form.
     expect(reasons.get("I-CYCLOPS")).toContain("<NTH");
     for (const [id, reason] of reasons) {

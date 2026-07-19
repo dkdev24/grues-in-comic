@@ -17,12 +17,31 @@
  * 0.2.0) happens when Milestone 3 extraction starts populating them at scale.
  */
 
-/** Scalar runtime values. Entity references evaluate to their id string. */
-export type BehaviorValue = boolean | number | string;
+/** Literal values representable in an IR document (`const`, table elements). */
+export type BehaviorLiteral = boolean | number | string;
+
+/**
+ * A table pointer: a table id plus an element offset. ZIL `<REST tbl bytes>`
+ * yields an interior pointer into the same storage, which the corpus stores in
+ * globals and re-reads with `GET` (the I-LANTERN/I-CANDLES countdown tables).
+ * Modelled as an element offset rather than a byte address, per the IR's
+ * platform-independence rule — the extractor halves the ZIL byte count.
+ * A bare table id is the same pointer at offset 0.
+ */
+export interface TableRef {
+  table: string;
+  offset: number;
+}
+
+/**
+ * Runtime values: literals plus table pointers. Entity references evaluate to
+ * their id string. Only literals can appear in the document itself.
+ */
+export type BehaviorValue = BehaviorLiteral | TableRef;
 
 export type Expr =
   /** Literal boolean/number/string. ZIL `T` / `<>` / numbers / strings. */
-  | { op: "const"; value: BehaviorValue }
+  | { op: "const"; value: BehaviorLiteral }
   /** Read a global variable (ZIL `,NAME`). */
   | { op: "global"; id: string }
   /** Read a routine parameter or local (ZIL `.NAME`). */
@@ -87,6 +106,14 @@ export type Expr =
    * count and index n is element n-1; for `table`, index n is element n.
    */
   | { op: "table-get"; table: Expr; index: Expr }
+  /**
+   * Advance a table pointer by `offset` elements, yielding a `TableRef` view
+   * over the same storage (ZIL `<REST tbl bytes>`, the byte count halved at
+   * extraction). `table` may be a bare table id (offset 0) or another view,
+   * so views compose. Only plain `table`s are viewable: an `ltable`'s count
+   * lives in the slot a view would skip past.
+   */
+  | { op: "table-rest"; table: Expr; offset: Expr }
   /**
    * Assignment in expression position, yielding the assigned value (ZIL is
    * expression-oriented: `<SET X …>` / `<SETG X …>` inside a predicate).

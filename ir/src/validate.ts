@@ -590,6 +590,11 @@ export function validateWorld(input: unknown): ValidationResult {
             checkExprNode(`${ePath}.table`, node.table, loopDepth);
             checkExprNode(`${ePath}.index`, node.index, loopDepth);
             break;
+          case "table-rest":
+            checkKeys(ctx, ePath, node, ["op", "table", "offset"]);
+            checkExprNode(`${ePath}.table`, node.table, loopDepth);
+            checkExprNode(`${ePath}.offset`, node.offset, loopDepth);
+            break;
           case "call": {
             checkKeys(ctx, ePath, node, ["op", "routine", "args"]);
             const target = reqString(ctx, ePath, node, "routine");

@@ -1,16 +1,8 @@
 {
   "0": "Schema Types & Public API",
   "1": "Validator Structural Checks",
-  "2": "Behavior AST & POC Routines",
   "3": "POC Test Harness & World State",
   "4": "Behavior Interpreter",
   "5": "World Builtins",
-  "6": "Transpiled Comparison",
-  "7": "Validator Types & Constants",
-  "8": "WorldDocument",
-  "9": "Room",
-  "10": "behavior-35b.test.ts",
-  "11": "behavior.ts",
-  "12": "behavior-35-triage.test.ts",
-  "13": "extract.test.ts"
+  "8": "WorldDocument"
 }

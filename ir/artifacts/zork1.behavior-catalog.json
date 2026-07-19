@@ -100,16 +100,6 @@
     ]
   },
   {
-    "id": "I-CANDLES",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2321
-    },
-    "reasons": [
-      "unknown form <REST …>"
-    ]
-  },
-  {
     "id": "I-CYCLOPS",
     "source": {
       "file": "1actions.zil",
@@ -117,16 +107,6 @@
     },
     "reasons": [
       "unknown form <NTH …>"
-    ]
-  },
-  {
-    "id": "I-LANTERN",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2315
-    },
-    "reasons": [
-      "unknown form <REST …>"
     ]
   },
   {
@@ -216,7 +196,7 @@
       "line": 127
     },
     "reasons": [
-      "unknown form <REST …>"
+      "REST offset is not a literal byte count"
     ]
   },
   {

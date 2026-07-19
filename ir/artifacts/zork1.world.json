@@ -1,5 +1,5 @@
 {
-  "irVersion": "0.8.0",
+  "irVersion": "0.9.0",
   "meta": {
     "title": "Zork I — world model (rooms, exits, objects)",
     "source": "importer/artifacts/ast (from original-projects/zork1)",
@@ -19665,6 +19665,124 @@
       }
     },
     {
+      "id": "I-CANDLES",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "TBL",
+          "value": {
+            "op": "global",
+            "id": "CANDLE-TABLE"
+          }
+        },
+        {
+          "op": "set-flag",
+          "entity": {
+            "op": "entity",
+            "id": "CANDLES"
+          },
+          "flag": "TOUCHBIT"
+        },
+        {
+          "op": "call",
+          "routine": "ENABLE",
+          "args": [
+            {
+              "op": "call",
+              "routine": "QUEUE",
+              "args": [
+                {
+                  "op": "const",
+                  "value": "I-CANDLES"
+                },
+                {
+                  "op": "set-local",
+                  "id": "TICK",
+                  "value": {
+                    "op": "table-get",
+                    "table": {
+                      "op": "local",
+                      "id": "TBL"
+                    },
+                    "index": {
+                      "op": "const",
+                      "value": 0
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "LIGHT-INT",
+          "args": [
+            {
+              "op": "entity",
+              "id": "CANDLES"
+            },
+            {
+              "op": "local",
+              "id": "TBL"
+            },
+            {
+              "op": "local",
+              "id": "TICK"
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "equal?",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "TICK"
+                    },
+                    {
+                      "op": "const",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "CANDLE-TABLE",
+                  "value": {
+                    "op": "table-rest",
+                    "table": {
+                      "op": "local",
+                      "id": "TBL"
+                    },
+                    "offset": {
+                      "op": "const",
+                      "value": 2
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "TICK",
+        "TBL"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2321
+      }
+    },
+    {
       "id": "I-CURE",
       "body": [
         {
@@ -19949,6 +20067,116 @@
       "source": {
         "file": "1actions.zil",
         "line": 2996
+      }
+    },
+    {
+      "id": "I-LANTERN",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "TBL",
+          "value": {
+            "op": "global",
+            "id": "LAMP-TABLE"
+          }
+        },
+        {
+          "op": "call",
+          "routine": "ENABLE",
+          "args": [
+            {
+              "op": "call",
+              "routine": "QUEUE",
+              "args": [
+                {
+                  "op": "const",
+                  "value": "I-LANTERN"
+                },
+                {
+                  "op": "set-local",
+                  "id": "TICK",
+                  "value": {
+                    "op": "table-get",
+                    "table": {
+                      "op": "local",
+                      "id": "TBL"
+                    },
+                    "index": {
+                      "op": "const",
+                      "value": 0
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "LIGHT-INT",
+          "args": [
+            {
+              "op": "entity",
+              "id": "LAMP"
+            },
+            {
+              "op": "local",
+              "id": "TBL"
+            },
+            {
+              "op": "local",
+              "id": "TICK"
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "equal?",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "TICK"
+                    },
+                    {
+                      "op": "const",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "LAMP-TABLE",
+                  "value": {
+                    "op": "table-rest",
+                    "table": {
+                      "op": "local",
+                      "id": "TBL"
+                    },
+                    "offset": {
+                      "op": "const",
+                      "value": 2
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "TICK",
+        "TBL"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2315
       }
     },
     {
@@ -22889,6 +23117,164 @@
       "source": {
         "file": "1actions.zil",
         "line": 774
+      }
+    },
+    {
+      "id": "LIGHT-INT",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "TICK"
+                  },
+                  {
+                    "op": "const",
+                    "value": 0
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "local",
+                    "id": "OBJ"
+                  },
+                  "flag": "ONBIT"
+                },
+                {
+                  "op": "set-flag",
+                  "entity": {
+                    "op": "local",
+                    "id": "OBJ"
+                  },
+                  "flag": "RMUNGBIT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "call",
+                    "routine": "HELD?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "OBJ"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "in?",
+                    "entity": {
+                      "op": "local",
+                      "id": "OBJ"
+                    },
+                    "container": {
+                      "op": "global",
+                      "id": "HERE"
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "TICK"
+                          },
+                          {
+                            "op": "const",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You'd better have more light than from the "
+                            },
+                            {
+                              "name": {
+                                "op": "local",
+                                "id": "OBJ"
+                              }
+                            },
+                            {
+                              "text": "."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "table-get",
+                                "table": {
+                                  "op": "local",
+                                  "id": "TBL"
+                                },
+                                "index": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              }
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "OBJ",
+        "TBL",
+        "TICK"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2328
       }
     },
     {

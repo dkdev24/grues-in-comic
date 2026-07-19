@@ -1,7 +1,7 @@
 {
   "poc/interpreter.ts": {
-    "mtime": 1784458740.2738812,
-    "ast_hash": "08a6f19e79ab285c1a19e6cdd9c0e812",
+    "mtime": 1784459551.628679,
+    "ast_hash": "d0a9788007419805987270ff60ff3cc5",
     "semantic_hash": ""
   },
   "poc/routines.ts": {
@@ -20,13 +20,13 @@
     "semantic_hash": ""
   },
   "samples/west-of-house.world.json": {
-    "mtime": 1784458740.2745376,
-    "ast_hash": "9b9135f70d548d65d1dfcd14881477e3",
+    "mtime": 1784459607.4277446,
+    "ast_hash": "411c450548b658f3b3e49b73a0496c25",
     "semantic_hash": ""
   },
   "src/behavior.ts": {
-    "mtime": 1784458740.275204,
-    "ast_hash": "716a7ea988d977c07b2d908d7a1bb0d0",
+    "mtime": 1784459520.8298044,
+    "ast_hash": "5b456428f299b4cfed4b884f2bc94cb9",
     "semantic_hash": ""
   },
   "src/cli.ts": {
@@ -40,13 +40,13 @@
     "semantic_hash": ""
   },
   "src/schema.ts": {
-    "mtime": 1784458740.2764735,
-    "ast_hash": "6f229ed848605e80d10aa85a14e2cc74",
+    "mtime": 1784459594.9793968,
+    "ast_hash": "84d4ed7e7b7f844084e15f84c81fc791",
     "semantic_hash": ""
   },
   "src/validate.ts": {
-    "mtime": 1784458740.2770655,
-    "ast_hash": "31a4f19a89abc9798ef5240e07b8fb91",
+    "mtime": 1784459556.805186,
+    "ast_hash": "b74c248d5a903ef84e7fa2ff09914d94",
     "semantic_hash": ""
   },
   "test/behavior-poc.test.ts": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784458740.2758198,
-    "ast_hash": "4213746647588c053c6800f68cca685f",
+    "mtime": 1784459591.5844173,
+    "ast_hash": "82c986485a83e55f28352dae9a2d8719",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "test/behavior-35d.test.ts": {
-    "mtime": 1784458784.2845752,
-    "ast_hash": "f4786d39576bdb9635aa416c335e53b1",
+    "mtime": 1784459643.5350037,
+    "ast_hash": "fac2702a8a5e00445452e828dee38021",
     "semantic_hash": ""
   },
   "test/behavior-35-triage.test.ts": {
@@ -112,6 +112,11 @@
   "test/behavior-35g.test.ts": {
     "mtime": 1784458861.855672,
     "ast_hash": "9840fe4a93de953cef25376323b550f4",
+    "semantic_hash": ""
+  },
+  "test/behavior-35h.test.ts": {
+    "mtime": 1784459763.4609733,
+    "ast_hash": "b4ec72c9bf112b976c0784be8a4b1b97",
     "semantic_hash": ""
   }
 }
