@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "src/parser.ts": {
-    "mtime": 1784480173.0712743,
-    "ast_hash": "123c464f585056244d42b1a6a0eb373f",
+    "mtime": 1784482967.9116657,
+    "ast_hash": "c0c5004fdea77a2c60b49b75ccf229a4",
     "semantic_hash": ""
   },
   "src/scope.ts": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/engine.ts": {
-    "mtime": 1784482293.9821105,
-    "ast_hash": "bfeec7aec3a6cdeca6bd20306716ab1e",
+    "mtime": 1784482848.4852433,
+    "ast_hash": "fc259158351fb1767bcbc95871cd917e",
     "semantic_hash": ""
   },
   "src/interpreter.ts": {
@@ -80,13 +80,13 @@
     "semantic_hash": ""
   },
   "src/runtime.ts": {
-    "mtime": 1784482293.9817576,
-    "ast_hash": "4fa9a9254a1411ed1bd3295b0df1586f",
+    "mtime": 1784482746.6988719,
+    "ast_hash": "79da039674c04c058728ed4aafed11e1",
     "semantic_hash": ""
   },
   "test/engine.test.ts": {
-    "mtime": 1784482446.9715152,
-    "ast_hash": "c7332f2884e2f9129bf2fe10bc84f54d",
+    "mtime": 1784482867.44095,
+    "ast_hash": "2f92293c37277b47afa919bb89e2b104",
     "semantic_hash": ""
   },
   "harness/golden.ts": {

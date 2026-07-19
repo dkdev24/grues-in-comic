@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.6.4**
+**0.6.5**
 
 ---
 
@@ -24,11 +24,48 @@ Historical sources imported:
   - 3.5 ✅ (Group B complete): 346 routines extracted, 32 catalogued (all triaged, ADR 0001 builtin list), 39/292 refs unresolved (87% coverage); IR schema 0.13.0
   - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL); world-doc gaps 1 (meta entities) + 2 (table-valued globals) + 3 (nested tables/ITABLE)
   - Remaining catalog = Group A engine builtins by design + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag)
-- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ interpreter, Group A builtins, dispatch chain, save/restore; 4.4 ✅ transcript harness; 4.5 ⏳ — corpus tripled to 6 walkthroughs, **64/64 strict turns (100%), 75/82 overall**. Gate C not yet claimed
+- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ interpreter, Group A builtins, dispatch chain, save/restore; 4.4 ✅ transcript harness; 4.5 ⏳ — 9 walkthroughs, **104/104 strict turns (100%), 115/122 overall**; `TAKE ALL` implemented. Gate C not yet claimed
 
 ---
 
-## Last Session (v0.6.4) — M4 stage 4.5 (partial): wider parity coverage
+## Last Session (v0.6.5) — M4 stage 4.5 continued: multiple objects, wider corpus
+
+**104/104 strict turns across 8 walkthroughs (100%)**, 115/122 overall. 89 engine tests,
+IR 184/184. Three more walkthroughs: `07-forest-and-tree`, `08-containers`,
+`09-take-all-surface`.
+
+**`TAKE ALL` (ZIL's MANY option)**, deferred in 4.3. Nearly every detail was settled by
+**asking the reference build rather than reasoning**:
+
+- `ALL` is a BUZZ word, so it must be recognised *before* buzzword filtering, or "TAKE ALL"
+  reduces to a bare "TAKE" and is rejected as ungrammatical
+- "All" covers the room's loose objects, things on a **surface** in the room, and what is
+  held. The surface case isn't obvious — "TAKE ALL" in the Kitchen takes the bottle and
+  sack, both *on the table* — but it does **not** take the water inside the (transparent,
+  in-scope) bottle. A surface is furniture; a container's contents come along inside it
+- **`TRYTAKEBIT` widens the slot's find flag.** In the Living Room "all" also answers for
+  the rug and trophy case ("The rug is extremely heavy...") because ZIL includes
+  "try-to-take-me" objects and lets their actions refuse. The wooden door, with neither
+  flag, is silently absent. Filtering them out would replace six answers with four
+
+**Two defects in existing code:** `flush` trimmed trailing spaces, wrong for a *mid-sentence*
+flush (`brown sack:Taken.`); and `run-transcripts.sh` fed the new `# parity:` directive
+lines to dfrotz as commands, silently corrupting 05's golden (0/18 until noticed).
+
+**⚑ A source/transcript conflict, resolved for the transcript.** HANDOFF has listed **P-WON
+demon-region gating** as 4.5 work since 3.5, and the source is unambiguous: meta-verbs cost
+no time, so SCORE shouldn't advance MOVES. **Implementing it broke walkthrough 06** — the
+golden has SCORE advancing 11→12. The trap: dfrotz redraws the status line only when it
+*changes*, so a SCORE turn shows none, which reads as "no move consumed" but means "the
+counter hadn't changed yet at that prompt". The second SCORE printing "in 13 moves" settles
+it. Per stage 0.2 the shipped Release 119 file is ground truth, not the ZILF-reconstructed
+source — **so the gating is deliberately NOT implemented**, and the reasoning sits in a
+comment at the call site, because the source reads the other way and the next reader will
+otherwise "fix" it back.
+
+---
+
+## Prior Session (v0.6.4) — M4 stage 4.5 (partial): wider parity coverage
 
 **Why:** v0.6.3 met Gate C's stated criterion on three short walkthroughs that never touch
 the lamp, darkness, scoring, the trap door, or combat. Claiming the gate on that basis
@@ -349,8 +386,9 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
    (c) by default, which is the weakest of the three. This is the main thing standing
    between the project and an honest Gate C
 3. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
-   Engine `CLOCKER` needs P-WON demon-region gating; the POC's `builtins.CLOCKER` in
-   `ir/poc/world.ts` is the starting point but does not implement that gating
+   **P-WON gating is settled: do not implement it** — the transcripts contradict the source
+   (v0.6.5). Remaining: death and resurrection, the thief's robbery pass, combat — all three
+   gated on the RNG decision above
    - **Gate C's own criterion is already met on the current three transcripts.** The honest
      next step is therefore **more walkthroughs** — the thief, combat, the lamp countdown,
      death and resurrection — before claiming the gate. Parity on three short transcripts

@@ -222,6 +222,35 @@ describe("ZIL semantics that failed silently", () => {
   });
 });
 
+describe("multiple objects (ZIL's MANY option)", () => {
+  it("takes everything loose in the room, naming each result", () => {
+    engine = createEngine(doc, { seed: 1, start: "KITCHEN" });
+    engine.start();
+    const out = text(say("take all"));
+    // ZIL prefixes each result with the object's name so several answers stay
+    // attributable — and the space after the colon is part of that.
+    expect(out).toMatch(/brown sack: Taken\./);
+  });
+
+  it("does not reach inside containers", () => {
+    // The sack holds garlic and a lunch; "take all" takes the sack, and they
+    // come along inside it rather than being taken individually.
+    engine = createEngine(doc, { seed: 1, start: "KITCHEN" });
+    engine.start();
+    const out = text(say("take all"));
+    expect(out).not.toMatch(/garlic:/);
+    expect(out).not.toMatch(/lunch:/);
+  });
+
+  it("understands ALL even though it is a buzzword", () => {
+    // ALL sits in the BUZZ list; it has to be recognised before buzzword
+    // filtering, or "take all" reduces to a bare "take" and is rejected.
+    engine = createEngine(doc, { seed: 1, start: "KITCHEN" });
+    engine.start();
+    expect(text(say("take all"))).not.toMatch(/isn't one I recognize/i);
+  });
+});
+
 describe("robustness across the map", () => {
   it("walks a long route without an interpreter crash", () => {
     engine.start();

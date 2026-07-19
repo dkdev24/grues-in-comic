@@ -13,9 +13,17 @@
  */
 
 import type { Direction, SyntaxRule } from "@grues-in-comic/ir";
-import { hasFlag, type GameState, type WorldIndex } from "./state.js";
+import { hasFlag, here, PLAYER_ID, type GameState, type WorldIndex } from "./state.js";
 import { originAllowed, scope, type ScopeEntry } from "./scope.js";
 import { isKnownWord, resolveWord, truncate, type Lexicon } from "./vocabulary.js";
+
+/**
+ * Words meaning "every eligible object" (ZIL P-ALL). They sit in the BUZZ list
+ * because the parser strips them once it has understood them — so they must be
+ * recognised *before* buzzword filtering, or "TAKE ALL" reduces to a bare
+ * "TAKE" with no object and is rejected as ungrammatical.
+ */
+const ALL_WORDS = new Set(["ALL", "EVERYTHING"]);
 
 export interface ParsedCommand {
   kind: "command";
@@ -27,6 +35,13 @@ export interface ParsedCommand {
   verb: string;
   /** ZIL PRSO. */
   directObject?: string;
+  /**
+   * Every object a `MANY` slot matched, when the player said "all". Dispatch
+   * runs the action once per entry, so this is set *instead of* iterating in
+   * the parser — whether taking six things is six turns or one is the action's
+   * business.
+   */
+  directObjects?: string[];
   /** ZIL PRSI. */
   indirectObject?: string;
   /** The rule that matched, so 4.3 can read its search options. */
@@ -70,8 +85,10 @@ export function parse(
     if (!isKnownWord(lexicon, word)) return { kind: "unknown-word", word };
   }
 
-  const words = raw.filter((w) => !lexicon.buzzwords.has(truncate(w)));
-  if (words.length === 0) return { kind: "empty" };
+  // "ALL" is understood here and stripped afterwards, in that order.
+  const wantsAll = raw.some((w) => ALL_WORDS.has(w));
+  const words = raw.filter((w) => !lexicon.buzzwords.has(truncate(w)) && !ALL_WORDS.has(w));
+  if (words.length === 0 && !wantsAll) return { kind: "empty" };
 
   // A bare direction is a command in its own right; ZIL rewrites it to WALK.
   if (words.length === 1) {
@@ -91,6 +108,54 @@ export function parse(
   }
 
   const visible = scope(world, state);
+
+  /*
+   * "TAKE ALL" — find the verb's rule whose object slot allows MANY, and match
+   * every object in scope that the slot would have accepted individually.
+   */
+  if (wantsAll && rest.length === 0) {
+    const rule = rules.find(
+      (r) => r.objects.length === 1 && r.objects[0]!.options?.includes("MANY"),
+    );
+    if (rule === undefined) return { kind: "no-syntax", verb };
+
+    const slot = rule.objects[0]!;
+    const eligible = new Set(allEligible(world, state));
+    const matched = visible
+      .filter((entry) => eligible.has(entry.id))
+      .filter((entry) => originAllowed(entry.origin, slot.options))
+      /*
+       * TRYTAKEBIT widens the slot's find flag here, and only here. "TAKE ALL"
+       * in the Living Room answers for the rug and the trophy case too — "The
+       * rug is extremely heavy and cannot be carried." — because ZIL includes
+       * objects flagged "try to take me and I will explain why not", then lets
+       * their action routines do the refusing. The wooden door, which carries
+       * neither flag, is silently absent from the list.
+       *
+       * So the parser must *not* filter these out: the refusal is gameplay, and
+       * dropping them would replace six answers with four.
+       */
+      .filter(
+        (entry) =>
+          slot.find === undefined ||
+          hasFlag(state, entry.id, slot.find) ||
+          hasFlag(state, entry.id, "TRYTAKEBIT"),
+      )
+      .map((entry) => entry.id);
+
+    if (matched.length === 0) return { kind: "not-here", words: ["ALL"] };
+
+    const command: ParsedCommand = {
+      kind: "command",
+      action: rule.action,
+      verb,
+      rule,
+      directObjects: matched,
+    };
+    if (rule.preAction !== undefined) command.preAction = rule.preAction;
+    return command;
+  }
+
   const phrases = splitPhrases(lexicon, rest);
 
   // Rules are pre-sorted most-specific-first, so the first structural match is
@@ -240,6 +305,36 @@ function resolveNoun(
     };
   }
   return { kind: "ok", id: best.id };
+}
+
+/**
+ * What "all" ranges over: things lying in the room, things on a surface in the
+ * room, and things the player holds.
+ *
+ * The surface case is the one worth stating, and it was settled by asking the
+ * reference build rather than by reasoning. "TAKE ALL" in the Kitchen takes the
+ * bottle and the sack — both sitting *on the table* — so a rule of "direct
+ * children of the room only" is too narrow. But it does **not** take the water
+ * inside the bottle, even though the bottle is transparent and the water is
+ * plainly in scope. So the rule is not "everything visible" either.
+ *
+ * A surface is furniture: its contents read as being in the room. An ordinary
+ * container's contents do not, open or not — they come along inside it.
+ */
+function allEligible(world: WorldIndex, state: GameState): string[] {
+  const room = here(state);
+  const ids: string[] = [];
+
+  for (const id of state.children[room] ?? []) {
+    if (id === PLAYER_ID) continue;
+    ids.push(id);
+    if (hasFlag(state, id, "SURFACEBIT")) {
+      ids.push(...(state.children[id] ?? []));
+    }
+  }
+  ids.push(...(state.children[PLAYER_ID] ?? []));
+
+  return ids.filter((id) => world.objects.has(id));
 }
 
 /**

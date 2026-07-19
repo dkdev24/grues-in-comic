@@ -724,3 +724,43 @@ Rather than delete the walkthrough (hiding the limitation) or leave it failing (
 83 engine tests (4 new), IR 184/184, typecheck clean. **64/64 strict turns (100%), 75/82 overall (91%).**
 
 Stage 4.5 remains open: daemons beyond the clock, death and resurrection, save/load verbs, and the P-WON demon-region gating. Gate C should not be declared until the RNG question is answered, since combat is a substantial part of Zork I's behavior and is currently unverifiable by this method.
+
+---
+
+## v0.6.5 — Engine Core: Multiple Objects, Wider Corpus (Milestone 4, stage 4.5 continued)
+
+**Date:** 2026-07-20
+
+### Result
+
+**104/104 strict turns across 8 walkthroughs — 100%.** 115/122 overall including the informational one. 89 engine tests, IR 184/184.
+
+Three more walkthroughs: `07-forest-and-tree` (climbing, the egg, nested scoring), `08-containers` (bottle/sack manipulation), `09-take-all-surface` (multiple objects, surfaces, refusals).
+
+### `TAKE ALL` — ZIL's MANY search option
+
+Deferred in 4.3 as "constrains the action, not where to look". Implemented here, and almost every detail was settled by **asking the reference build rather than reasoning about it**:
+
+- **`ALL` is a BUZZ word**, so it must be recognised *before* buzzword filtering — otherwise "TAKE ALL" reduces to a bare "TAKE" with no object and is rejected as ungrammatical.
+- **"All" ranges over the room's loose objects, things on a *surface* in the room, and what the player holds.** The surface case is not obvious: "TAKE ALL" in the Kitchen takes the bottle and sack, both sitting *on the table*, so "direct children of the room" is too narrow. But it does **not** take the water inside the bottle, though the bottle is transparent and the water plainly in scope — so "everything visible" is too broad. A surface is furniture; its contents read as being in the room. An ordinary container's contents come along inside it.
+- **`TRYTAKEBIT` widens the slot's find flag.** "TAKE ALL" in the Living Room answers for the rug and the trophy case as well — "The rug is extremely heavy and cannot be carried." — because ZIL includes objects flagged "try to take me and I will explain why not" and lets their action routines refuse. The wooden door, carrying neither TAKEBIT nor TRYTAKEBIT, is silently absent. Filtering these out would have replaced six answers with four, and each missing one is gameplay.
+- Each result is prefixed with the object's name (`brown sack: Taken.`) so several answers stay attributable. A single object gets no prefix.
+
+### Two defects in existing code
+
+1. **`flush` was trimming trailing spaces**, which is wrong for any flush that happens *mid-sentence*. "TAKE ALL" prints "brown sack: ", then dispatches; dispatch emits an `object-moved` event, which flushes; the trailing space vanished and the transcript read `brown sack:Taken.`
+2. **`run-transcripts.sh` fed `#` directive lines to dfrotz as commands.** Introduced by the `# parity:` directive added in v0.6.4 — the capture script had no reason to expect comments in a `.cmd` file, and silently corrupted walkthrough 05's golden (0/18 until noticed). The script now strips comments and blank lines before piping to dfrotz.
+
+### A source/transcript conflict, resolved in favour of the transcript
+
+HANDOFF has listed **P-WON demon-region gating** as 4.5 work since stage 3.5. The source reads unambiguously: `<COND (,P-WON <COND (<VERB? TELL BRIEF … SCORE …> T) (T <SET V <CLOCKER>>)>)>` — meta-verbs cost no time, so SCORE should not advance the move counter.
+
+Implementing it broke walkthrough 06. The golden has SCORE advancing MOVES from 11 to 12.
+
+The trap is that **dfrotz redraws the status line only when it changes**, so a SCORE turn shows no status line at all — which reads as "no move was consumed" and actually means "the counter had not changed *yet* at that prompt". The second SCORE printing "in 13 moves" is what settles it: the clock ran.
+
+Per HANDOFF (stage 0.2), the shipped Release 119 story file is the ground truth, not the ZILF-reconstructed source in `original-projects/`. So the transcript wins and the gating is *not* implemented. The reasoning is recorded in a comment at the call site, because the source reads the other way and the next person to notice will otherwise "fix" it back.
+
+### Status
+
+Stage 4.5 substantially advanced. Remaining: death and resurrection, the thief's robbery pass, and combat — all three gated on the RNG decision, which remains the one thing standing between the project and an honest Gate C.

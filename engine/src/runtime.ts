@@ -79,8 +79,14 @@ export function tell(ctx: RuntimeContext, text: string): void {
  * is measured on the text, so we may tidy the edges and nothing else.
  */
 export function flush(ctx: RuntimeContext): void {
-  const text = ctx.buffer.replace(/[ \t]+$/g, "");
+  const text = ctx.buffer;
   ctx.buffer = "";
+  // Whitespace-only output is dropped, but text is emitted verbatim.
+  //
+  // An earlier version also trimmed trailing spaces, which is wrong for any
+  // flush that happens *mid-sentence*: "TAKE ALL" prints "brown sack: " and
+  // then dispatches, and dispatch emits an object-moved event, which flushes.
+  // The trailing space vanished and the transcript read "brown sack:Taken."
   if (text.trim().length === 0) return;
   ctx.events.push({ type: "narration", channel: ctx.channel, text });
 }

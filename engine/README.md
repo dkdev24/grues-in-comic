@@ -43,7 +43,7 @@ Rendering is entirely the UI layer's job (milestone 5). The engine says
 | 4.2 | Command parser | ✅ |
 | 4.3 | Action dispatch & events | ✅ |
 | 4.4 | Transcript replay harness | ✅ |
-| 4.5 | Systems completion (⚑ Gate C) | ⏳ 64/64 strict turns across 6 walkthroughs |
+| 4.5 | Systems completion (⚑ Gate C) | ⏳ 104/104 strict turns across 8 walkthroughs |
 
 ## Parity
 

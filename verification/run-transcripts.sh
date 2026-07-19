@@ -33,7 +33,13 @@ for cmd in "$ROOT"/verification/walkthroughs/*.cmd; do
     name="$(basename "$cmd" .cmd)"
     golden="$ROOT/verification/golden/$name.txt"
     actual="$(mktemp)"
-    dfrotz -m -p -s "$SEED" "$STORY" < "$cmd" > "$actual" 2>&1 || true
+    # Strip `#` directives and blank lines: walkthroughs may carry parity
+    # metadata for the engine harness (see engine/harness/golden.ts), and
+    # feeding those lines to dfrotz would execute them as commands.
+    commands="$(mktemp)"
+    grep -v '^[[:space:]]*#' "$cmd" | grep -v '^[[:space:]]*$' > "$commands"
+    dfrotz -m -p -s "$SEED" "$STORY" < "$commands" > "$actual" 2>&1 || true
+    rm -f "$commands"
 
     case "$MODE" in
         capture)

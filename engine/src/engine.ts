@@ -238,7 +238,7 @@ function runTurn(
     travel(ctx, dir as Direction);
   }
 
-  runClock(ctx);
+  if (advancesTheClock(ctx)) runClock(ctx);
   state.turn = Number(state.globals["MOVES"] ?? state.turn);
 }
 
@@ -249,13 +249,32 @@ function handleParse(ctx: RuntimeContext, parsed: ParseResult): boolean {
       travel(ctx, parsed.direction);
       return true;
 
-    case "command":
+    case "command": {
       ctx.action = parsed.action;
       ctx.verb = parsed.verb;
+
+      /*
+       * "TAKE ALL" runs the action once per object, each answer prefixed with
+       * the object's name — ZIL prints "brown sack: Taken." so the player can
+       * tell which of several results belongs to what. A single object gets no
+       * prefix, which is why this is not simply the one-object path with a list
+       * of length one.
+       */
+      if (parsed.directObjects !== undefined) {
+        for (const id of parsed.directObjects) {
+          ctx.directObject = id;
+          ctx.indirectObject = undefined;
+          tell(ctx, `${ctx.world.objects.get(id)?.name ?? id}: `);
+          dispatch(ctx, parsed.preAction);
+        }
+        return true;
+      }
+
       if (parsed.directObject !== undefined) ctx.directObject = parsed.directObject;
       if (parsed.indirectObject !== undefined) ctx.indirectObject = parsed.indirectObject;
       dispatch(ctx, parsed.preAction);
       return true;
+    }
 
     case "empty":
       emitOn(ctx, "system", "I beg your pardon?\n");
@@ -420,6 +439,31 @@ function travel(ctx: RuntimeContext, direction: Direction): void {
       tell(ctx, "You can't go that way.\n");
       return;
   }
+}
+
+/**
+ * ZIL's demon-region gating (gmain.zil MAIN-LOOP-1, the `P-WON` clause).
+ *
+ * **Only the parse-succeeded half of that gate is real for this build**, and it
+ * is enforced by `runTurn` returning early on a parse failure.
+ *
+ * The source also appears to exempt the meta-verbs — `<COND (,P-WON <COND
+ * (<VERB? TELL BRIEF … SCORE …> T) (T <SET V <CLOCKER>>)>)>` reads as "SCORE
+ * costs no time". Implementing that made walkthrough 06 diverge: the golden has
+ * SCORE advancing the move counter from 11 to 12.
+ *
+ * The confusion is that dfrotz redraws the status line only when it *changes*,
+ * so a SCORE turn shows no status line — which looks like "no move was
+ * consumed" and is actually "the counter had not changed yet at the prompt".
+ * The second SCORE printing "in 13 moves" is what settles it: the clock ran.
+ *
+ * The shipped Release 119 story file is the ground truth (HANDOFF, stage 0.2),
+ * not the ZILF-reconstructed source in `original-projects/`, so the transcript
+ * wins. Recorded here because the source reads the other way and the next
+ * person to notice will otherwise "fix" it back.
+ */
+function advancesTheClock(_ctx: RuntimeContext): boolean {
+  return true;
 }
 
 /* ---------------- clock ---------------- */
