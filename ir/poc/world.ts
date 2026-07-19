@@ -40,6 +40,13 @@ export interface WorldState {
   walks: string[];
   /** Pronoun referent set by THIS-IS-IT (ZIL P-IT-OBJECT). */
   itObject?: string;
+  /**
+   * Interrupt record table ids in CLOCKER iteration order (gclock.zil
+   * C-TABLE): newest allocation first, matching the ZIL walk from C-INTS
+   * toward the table end. Each record is a 3-slot table in `tables` —
+   * [C-ENABLED?, C-TICK, C-RTN] = [0|1, tick, routine name].
+   */
+  clock: string[];
 }
 
 export function makeWorld(init: {
@@ -76,6 +83,7 @@ export function makeWorld(init: {
     verb: init.verb,
     output: [],
     walks: [],
+    clock: [],
   };
 }
 
@@ -184,4 +192,73 @@ export const builtins: Record<string, Builtin> = {
     world.itObject = obj;
     return true;
   },
+  /* ZIL clock (gclock.zil): the interrupt table is engine state. QUEUE/INT
+   * return an interrupt record — a 3-slot table addressed by the
+   * C-ENABLED?/C-TICK/C-RTN constants (0/1/2) — so extracted GET/PUT code
+   * works on it unchanged. ENABLE/DISABLE (gmacros.zil DEFMACs) flip slot 0. */
+  QUEUE: (world, [rtn, tick]) => {
+    if (typeof rtn !== "string" || typeof tick !== "number") {
+      throw new Error("QUEUE expects (routine, tick)");
+    }
+    const id = builtins["INT"]!(world, [rtn]);
+    interruptRecord(world, id).elements[C_TICK] = tick;
+    return id;
+  },
+  INT: (world, [rtn]) => {
+    if (typeof rtn !== "string") throw new Error("INT expects a routine name");
+    const id = `INT-${rtn}`;
+    if (world.tables[id] === undefined) {
+      world.tables[id] = { kind: "table", elements: [0, 0, rtn] };
+      world.clock.unshift(id);
+    }
+    return id;
+  },
+  ENABLE: (world, [int]) => {
+    interruptRecord(world, int).elements[C_ENABLED] = 1;
+    return int!;
+  },
+  DISABLE: (world, [int]) => {
+    interruptRecord(world, int).elements[C_ENABLED] = 0;
+    return int!;
+  },
+  /**
+   * One end-of-turn tick: decrement every enabled record's tick and apply
+   * its routine when the pre-decrement tick was ≤ 1 (so a tick of −1 is a
+   * demon firing every turn, and 0 means dormant). Honors CLOCK-WAIT and
+   * increments MOVES, as in gclock.zil. The engine's P-WON demon-region
+   * gating (parser-failure turns run demons only) is stage 4.5 work.
+   */
+  CLOCKER: (world) => {
+    if (truthy(world.globals["CLOCK-WAIT"] ?? false)) {
+      world.globals["CLOCK-WAIT"] = false;
+      return false;
+    }
+    let flg: BehaviorValue = false;
+    for (const id of [...world.clock]) {
+      const rec = interruptRecord(world, id);
+      if (rec.elements[C_ENABLED] !== 1) continue;
+      const tick = rec.elements[C_TICK];
+      if (typeof tick !== "number" || tick === 0) continue;
+      rec.elements[C_TICK] = tick - 1;
+      if (tick <= 1) {
+        const rtn = rec.elements[C_RTN];
+        const fire = builtins[String(rtn)];
+        if (fire === undefined) throw new Error(`CLOCKER: unknown routine ${String(rtn)}`);
+        if (truthy(fire(world, []))) flg = true;
+      }
+    }
+    world.globals["MOVES"] = (Number(world.globals["MOVES"]) || 0) + 1;
+    return flg;
+  },
 };
+
+/** Interrupt record slots (gclock.zil C-ENABLED?/C-TICK/C-RTN constants). */
+const C_ENABLED = 0;
+const C_TICK = 1;
+const C_RTN = 2;
+
+function interruptRecord(world: WorldState, id: BehaviorValue | undefined): RuntimeTable {
+  const record = typeof id === "string" ? world.tables[id] : undefined;
+  if (record === undefined) throw new Error(`not an interrupt record: ${String(id)}`);
+  return record;
+}

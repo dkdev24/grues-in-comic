@@ -40,16 +40,6 @@
     ]
   },
   {
-    "id": "CLOCKER",
-    "source": {
-      "file": "gclock.zil",
-      "line": 43
-    },
-    "reasons": [
-      "unknown form <REST …>"
-    ]
-  },
-  {
     "id": "CYCLOPS-FCN",
     "source": {
       "file": "1actions.zil",
@@ -150,13 +140,73 @@
     ]
   },
   {
-    "id": "INT",
+    "id": "I-CANDLES",
     "source": {
-      "file": "gclock.zil",
-      "line": 26
+      "file": "1actions.zil",
+      "line": 2321
     },
     "reasons": [
       "unknown form <REST …>"
+    ]
+  },
+  {
+    "id": "I-CYCLOPS",
+    "source": {
+      "file": "1actions.zil",
+      "line": 1596
+    },
+    "reasons": [
+      "operator ABS"
+    ]
+  },
+  {
+    "id": "I-LANTERN",
+    "source": {
+      "file": "1actions.zil",
+      "line": 2315
+    },
+    "reasons": [
+      "unknown form <REST …>"
+    ]
+  },
+  {
+    "id": "I-RFILL",
+    "source": {
+      "file": "1actions.zil",
+      "line": 1226
+    },
+    "reasons": [
+      "unknown form <FSET …>"
+    ]
+  },
+  {
+    "id": "I-SWORD",
+    "source": {
+      "file": "1actions.zil",
+      "line": 3851
+    },
+    "reasons": [
+      "unknown form <NEXTP …>"
+    ]
+  },
+  {
+    "id": "I-THIEF",
+    "source": {
+      "file": "1actions.zil",
+      "line": 3890
+    },
+    "reasons": [
+      "unknown form <COND …>"
+    ]
+  },
+  {
+    "id": "I-XB",
+    "source": {
+      "file": "1actions.zil",
+      "line": 1131
+    },
+    "reasons": [
+      "bare atom CR in expression position"
     ]
   },
   {

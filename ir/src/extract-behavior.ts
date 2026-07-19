@@ -65,6 +65,18 @@ const PROPERTY_MAP = new Map<string, string>([
   ["VTYPE", "vehicleType"],
 ]);
 
+/**
+ * gclock.zil machinery the engine implements as builtins (stage 3.5 batch d).
+ * The interrupt table (C-TABLE and its 6-word records) is engine state, not
+ * IR: QUEUE/INT return a record handle whose slots extracted code addresses
+ * via GET/PUT with the C-ENABLED?/C-TICK/C-RTN constants (0/1/2), and
+ * CLOCKER ticks enabled records each turn (honoring CLOCK-WAIT). Calls
+ * lower to `call` like the DEFMAC builtins (ENABLE, DISABLE); the gclock
+ * ROUTINE bodies are never extracted — their REST/APPLY vector arithmetic
+ * is Z-machine plumbing, not game semantics.
+ */
+const CLOCK_BUILTINS = new Set(["QUEUE", "INT", "CLOCKER"]);
+
 const TRUE: Expr = { op: "const", value: true };
 const FALSE: Expr = { op: "const", value: false };
 
@@ -131,6 +143,7 @@ export function extractBehavior(entryRefs: string[], sources: BehaviorSources): 
 
   while (queue.length > 0) {
     const id = queue.shift()!;
+    if (CLOCK_BUILTINS.has(id)) continue;
     const def = sources.routineForms.get(id);
     if (def === undefined) {
       catalog.push({
@@ -358,7 +371,9 @@ class RoutineTransformer {
   private callForm(head: string, rest: AstNode[]): Stmt & { op: "call" } {
     if (DENIED_OPERATORS.has(head)) this.deny(`operator ${head}`);
     if (!this.sources.callableNames.has(head)) this.deny(`unknown form <${head} …>`);
-    if (this.sources.routineForms.has(head)) this.callTargets.add(head);
+    if (this.sources.routineForms.has(head) && !CLOCK_BUILTINS.has(head)) {
+      this.callTargets.add(head);
+    }
     return { op: "call", routine: head, args: rest.map((a) => this.expr(a)) };
   }
 
@@ -377,7 +392,12 @@ class RoutineTransformer {
       case "Atom":
         if (node.name === "T") return TRUE;
         // Routine reference passed by name (e.g. `<QUEUE I-CANDLES -1>`).
+        // The named routine is reachable at run time (CLOCKER applies it),
+        // so it joins the extraction closure like a direct call target.
         if (this.sources.callableNames.has(node.name!)) {
+          if (this.sources.routineForms.has(node.name!) && !CLOCK_BUILTINS.has(node.name!)) {
+            this.callTargets.add(node.name!);
+          }
           return { op: "const", value: node.name! };
         }
         this.deny(`bare atom ${node.name} in expression position`);
@@ -453,6 +473,11 @@ class RoutineTransformer {
       case "*":
       case "/":
         return this.arith(head, rest);
+      case "VALUE": {
+        // `<VALUE X>` reads global X — identical to `,X` (GVal).
+        const id = atomName(rest[0]) ?? this.deny("VALUE target is not an atom");
+        return this.resolveName(id);
+      }
       case "GETP":
         return { op: "prop", entity: this.expr(rest[0]!), prop: this.propKey("GETP", rest[1]) };
       case "GET":

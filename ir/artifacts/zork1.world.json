@@ -417,6 +417,36 @@
       ]
     },
     {
+      "id": "CANDLE-TABLE",
+      "kind": "table",
+      "elements": [
+        20,
+        "The candles grow shorter.",
+        10,
+        "The candles are becoming quite short.",
+        5,
+        "The candles won't last long now.",
+        0
+      ],
+      "pure": true
+    },
+    {
+      "id": "DROWNINGS",
+      "kind": "table",
+      "elements": [
+        "up to your ankles.",
+        "up to your shin.",
+        "up to your knees.",
+        "up to your hips.",
+        "up to your waist.",
+        "up to your chest.",
+        "up to your neck.",
+        "over your head.",
+        "high in your lungs."
+      ],
+      "pure": true
+    },
+    {
       "id": "DUMMY",
       "kind": "ltable",
       "elements": [
@@ -504,6 +534,20 @@
       "pure": true
     },
     {
+      "id": "LAMP-TABLE",
+      "kind": "table",
+      "elements": [
+        100,
+        "The lamp appears a bit dimmer.",
+        70,
+        "The lamp is definitely dimmer now.",
+        15,
+        "The lamp is nearly out.",
+        0
+      ],
+      "pure": true
+    },
+    {
       "id": "LOUD-RUNS",
       "kind": "ltable",
       "elements": [
@@ -570,6 +614,28 @@
         },
         {
           "ref": "IN-STREAM"
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "RIVER-NEXT",
+      "kind": "ltable",
+      "elements": [
+        {
+          "ref": "RIVER-1"
+        },
+        {
+          "ref": "RIVER-2"
+        },
+        {
+          "ref": "RIVER-3"
+        },
+        {
+          "ref": "RIVER-4"
+        },
+        {
+          "ref": "RIVER-5"
         }
       ],
       "pure": true
@@ -16989,6 +17055,61 @@
       }
     },
     {
+      "id": "FOREST-ROOM?",
+      "body": [
+        {
+          "op": "value",
+          "expr": {
+            "op": "or",
+            "args": [
+              {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "FOREST-1"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "FOREST-2"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "FOREST-3"
+                  }
+                ]
+              },
+              {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "PATH"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "UP-A-TREE"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2992
+      }
+    },
+    {
       "id": "FRONT-DOOR-FCN",
       "body": [
         {
@@ -18308,6 +18429,720 @@
       }
     },
     {
+      "id": "I-FOREST-ROOM",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "call",
+                  "routine": "FOREST-ROOM?",
+                  "args": []
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "DISABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "INT",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-FOREST-ROOM"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "call",
+                "routine": "PROB",
+                "args": [
+                  {
+                    "op": "const",
+                    "value": 15
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You hear in the distance the chirping of a song bird."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2996
+      }
+    },
+    {
+      "id": "I-MAINT-ROOM",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "HERE?",
+          "value": {
+            "op": "equal?",
+            "args": [
+              {
+                "op": "global",
+                "id": "HERE"
+              },
+              {
+                "op": "entity",
+                "id": "MAINTENANCE-ROOM"
+              }
+            ]
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "local",
+                "id": "HERE?"
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The water level here is now "
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "expr": {
+                        "op": "table-get",
+                        "table": {
+                          "op": "global",
+                          "id": "DROWNINGS"
+                        },
+                        "index": {
+                          "op": "div",
+                          "a": {
+                            "op": "global",
+                            "id": "WATER-LEVEL"
+                          },
+                          "b": {
+                            "op": "const",
+                            "value": 2
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-global",
+          "id": "WATER-LEVEL",
+          "value": {
+            "op": "add",
+            "a": {
+              "op": "const",
+              "value": 1
+            },
+            "b": {
+              "op": "global",
+              "id": "WATER-LEVEL"
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "lt?",
+                  "a": {
+                    "op": "global",
+                    "id": "WATER-LEVEL"
+                  },
+                  "b": {
+                    "op": "const",
+                    "value": 14
+                  }
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "MUNG-ROOM",
+                  "args": [
+                    {
+                      "op": "entity",
+                      "id": "MAINTENANCE-ROOM"
+                    },
+                    {
+                      "op": "const",
+                      "value": "The room is full of water and cannot be entered."
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "QUEUE",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "I-MAINT-ROOM"
+                    },
+                    {
+                      "op": "const",
+                      "value": 0
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "local",
+                        "id": "HERE?"
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "JIGS-UP",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "I'm afraid you have done drowned yourself."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "in?",
+                    "entity": {
+                      "op": "global",
+                      "id": "WINNER"
+                    },
+                    "container": {
+                      "op": "entity",
+                      "id": "INFLATED-BOAT"
+                    }
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "HERE"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "MAINTENANCE-ROOM"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "DAM-ROOM"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "DAM-LOBBY"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "JIGS-UP",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "The rising water carries the boat over the dam, down the river, and over the falls. Tsk, tsk."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "return",
+          "value": {
+            "op": "const",
+            "value": true
+          }
+        }
+      ],
+      "locals": [
+        "HERE?"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 1343
+      }
+    },
+    {
+      "id": "I-MATCH",
+      "body": [
+        {
+          "op": "tell",
+          "parts": [
+            {
+              "text": "The match has gone out."
+            },
+            {
+              "newline": true
+            }
+          ]
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "MATCH"
+          },
+          "flag": "FLAMEBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "MATCH"
+          },
+          "flag": "ONBIT"
+        },
+        {
+          "op": "set-global",
+          "id": "LIT",
+          "value": {
+            "op": "call",
+            "routine": "LIT?",
+            "args": [
+              {
+                "op": "global",
+                "id": "HERE"
+              }
+            ]
+          }
+        },
+        {
+          "op": "return",
+          "value": {
+            "op": "const",
+            "value": true
+          }
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2308
+      }
+    },
+    {
+      "id": "I-REMPTY",
+      "body": [
+        {
+          "op": "set-flag",
+          "entity": {
+            "op": "entity",
+            "id": "RESERVOIR"
+          },
+          "flag": "RLANDBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "RESERVOIR"
+          },
+          "flag": "NONLANDBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "DEEP-CANYON"
+          },
+          "flag": "TOUCHBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "LOUD-ROOM"
+          },
+          "flag": "TOUCHBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "TRUNK"
+          },
+          "flag": "INVISIBLE"
+        },
+        {
+          "op": "set-global",
+          "id": "LOW-TIDE",
+          "value": {
+            "op": "const",
+            "value": true
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "HERE"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "RESERVOIR"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "loc",
+                      "entity": {
+                        "op": "global",
+                        "id": "WINNER"
+                      }
+                    },
+                    "flag": "VEHBIT"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The water level has dropped to the point at which the boat can no longer stay afloat. It sinks into the mud."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "DEEP-CANYON"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The roar of rushing water is quieter now."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "RESERVOIR-NORTH"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "RESERVOIR-SOUTH"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The water level is now quite low here and you could easily cross over to the other side."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "value",
+          "expr": {
+            "op": "const",
+            "value": true
+          }
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 1263
+      }
+    },
+    {
+      "id": "I-RIVER",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "equal?",
+                      "args": [
+                        {
+                          "op": "global",
+                          "id": "HERE"
+                        },
+                        {
+                          "op": "entity",
+                          "id": "RIVER-1"
+                        },
+                        {
+                          "op": "entity",
+                          "id": "RIVER-2"
+                        },
+                        {
+                          "op": "entity",
+                          "id": "RIVER-3"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "equal?",
+                      "args": [
+                        {
+                          "op": "global",
+                          "id": "HERE"
+                        },
+                        {
+                          "op": "entity",
+                          "id": "RIVER-4"
+                        },
+                        {
+                          "op": "entity",
+                          "id": "RIVER-5"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "DISABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "INT",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-RIVER"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "set-local",
+                "id": "RM",
+                "value": {
+                  "op": "call",
+                  "routine": "LKP",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "HERE"
+                    },
+                    {
+                      "op": "global",
+                      "id": "RIVER-NEXT"
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The flow of the river carries you downstream."
+                    },
+                    {
+                      "newline": true
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "GOTO",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "RM"
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "ENABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "QUEUE",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-RIVER"
+                        },
+                        {
+                          "op": "call",
+                          "routine": "LKP",
+                          "args": [
+                            {
+                              "op": "global",
+                              "id": "HERE"
+                            },
+                            {
+                              "op": "global",
+                              "id": "RIVER-SPEEDS"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "JIGS-UP",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "Unfortunately, the magic boat doesn't provide protection from the rocks and boulders one meets at the bottom of waterfalls. Including this one."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "RM"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2708
+      }
+    },
+    {
       "id": "I-XBH",
       "body": [
         {
@@ -18368,6 +19203,28 @@
       "source": {
         "file": "1actions.zil",
         "line": 1143
+      }
+    },
+    {
+      "id": "I-XC",
+      "body": [
+        {
+          "op": "set-global",
+          "id": "XC",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "call",
+          "routine": "I-XB",
+          "args": []
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 1139
       }
     },
     {
@@ -23541,6 +24398,46 @@
       }
     },
     {
+      "id": "MUNG-ROOM",
+      "body": [
+        {
+          "op": "value",
+          "expr": {
+            "op": "const",
+            "value": true
+          }
+        },
+        {
+          "op": "set-flag",
+          "entity": {
+            "op": "local",
+            "id": "RM"
+          },
+          "flag": "RMUNGBIT"
+        },
+        {
+          "op": "set-prop",
+          "entity": {
+            "op": "local",
+            "id": "RM"
+          },
+          "prop": "description",
+          "value": {
+            "op": "local",
+            "id": "STR"
+          }
+        }
+      ],
+      "params": [
+        "RM",
+        "STR"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 2183
+      }
+    },
+    {
       "id": "NAILS-PSEUDO",
       "body": [
         {
@@ -26312,54 +27209,6 @@
       "source": {
         "file": "1actions.zil",
         "line": 1379
-      }
-    },
-    {
-      "id": "QUEUE",
-      "body": [
-        {
-          "op": "table-set",
-          "table": {
-            "op": "set-local",
-            "id": "CINT",
-            "value": {
-              "op": "call",
-              "routine": "INT",
-              "args": [
-                {
-                  "op": "local",
-                  "id": "RTN"
-                }
-              ]
-            }
-          },
-          "index": {
-            "op": "const",
-            "value": 1
-          },
-          "value": {
-            "op": "local",
-            "id": "TICK"
-          }
-        },
-        {
-          "op": "value",
-          "expr": {
-            "op": "local",
-            "id": "CINT"
-          }
-        }
-      ],
-      "params": [
-        "RTN",
-        "TICK"
-      ],
-      "locals": [
-        "CINT"
-      ],
-      "source": {
-        "file": "gclock.zil",
-        "line": 21
       }
     },
     {

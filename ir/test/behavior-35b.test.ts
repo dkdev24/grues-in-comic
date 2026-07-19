@@ -48,10 +48,10 @@ describe("stage 3.5 batch (b) extraction", () => {
     });
   });
 
-  it("keeps daemon machinery catalogued for batch (d)", () => {
-    for (const id of ["CLOCKER"]) {
+  it("treats clock machinery as engine builtins since batch (d)", () => {
+    for (const id of ["QUEUE", "INT", "CLOCKER"]) {
       expect(routineById.has(id), `${id} should not be extracted`).toBe(false);
-      expect(catalogIds.has(id), `${id} should stay catalogued`).toBe(true);
+      expect(catalogIds.has(id), `${id} should not be catalogued`).toBe(false);
     }
   });
 
@@ -66,7 +66,7 @@ describe("stage 3.5 batch (e) extraction — compile-time macro resolution", () 
   it("extracts the %<COND>-gated and DECL/empty-form routines", () => {
     for (const id of [
       "V-PRAY", "V-LOOK-INSIDE", "V-ATTACK", "V-SCORE", "V-TREASURE", "PRE-PUT",
-      "CRETIN-FCN", "AXE-F", "ROBBER-FUNCTION", "QUEUE", "PRINT-CONT", "SCORE-UPD",
+      "CRETIN-FCN", "AXE-F", "ROBBER-FUNCTION", "PRINT-CONT", "SCORE-UPD",
     ]) {
       expect(routineById.has(id), `${id} should be extracted`).toBe(true);
     }
