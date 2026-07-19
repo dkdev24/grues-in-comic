@@ -50,6 +50,13 @@ export interface GameState {
   turn: number;
   /** Rooms the player has already entered, for first-visit scoring/description. */
   visited: Set<string>;
+  /**
+   * Interrupt record table ids in CLOCKER iteration order (gclock.zil C-TABLE):
+   * newest allocation first, matching the ZIL walk from C-INTS toward the table
+   * end. Each record is a 3-slot table in `tables` —
+   * [C-ENABLED?, C-TICK, C-RTN] = [0|1, tick, routine name].
+   */
+  clock: string[];
 }
 
 /** Read-only view of the IR document, indexed for O(1) lookup during play. */

@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.6.1**
+**0.6.2**
 
 ---
 
@@ -24,11 +24,59 @@ Historical sources imported:
   - 3.5 ✅ (Group B complete): 346 routines extracted, 32 catalogued (all triaged, ADR 0001 builtin list), 39/292 refs unresolved (87% coverage); IR schema 0.13.0
   - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL); world-doc gaps 1 (meta entities) + 2 (table-valued globals) + 3 (nested tables/ITABLE)
   - Remaining catalog = Group A engine builtins by design + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag)
-- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser (PRSA/PRSO/PRSI). 4.3–4.5 remaining
+- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ behavior interpreter, Group A builtins, dispatch chain, save/restore — **the engine plays Zork I**. 4.4–4.5 remaining
 
 ---
 
-## Last Session (v0.6.1) — M4 stage 4.2: command parser
+## Last Session (v0.6.2) — M4 stage 4.3: action dispatch & events
+
+**The engine plays Zork I.** A walkthrough from West of House into the Living Room
+reproduces the original's prose. 68 engine tests (22 new), IR 184/184, typecheck clean.
+
+- **`src/runtime.ts`** — per-turn context: PRSA/PRSO/PRSI, seeded RNG, and an event sink
+  in place of the POC's string buffer. Text buffers across `TELL` calls (one ZIL routine
+  prints a sentence in many pieces); structural events flush first, so prose printed before
+  a move stays before it
+- **`src/interpreter.ts`** — the ADR 0001 evaluator ported from `ir/poc/interpreter.ts`,
+  substance unchanged. Document routines resolve **before** engine builtins, so a game can
+  override a utility
+- **`src/builtins.ts`** — Group A: clock, light rule, GOTO, PICK-ONE, PROB, GLOBAL-IN?,
+  FLAMING?, OPENABLE?, OTHER-SIDE. Implements the **ZIL library**, not Zork's call sites —
+  no `zork1` identifier in `engine/`
+- **`src/engine.ts`** — `createEngine`, turn loop, the four-step dispatch chain, and
+  `snapshot`/`restore` over a fully JSON-serializable save
+
+**The engine delegates room description to the game's own `DESCRIBE-ROOM`/`DESCRIBE-OBJECTS`.**
+Those already implement verbose/brief, the light rule, and first-visit; reimplementing them
+in the engine would be a second competing answer to a question the IR has answered — what
+ADR 0001's Group A/B split exists to prevent. A fallback describer remains for partial docs.
+
+**Six bugs, every one producing a plausible wrong answer rather than a crash.** All are now
+named regression tests in `test/engine.test.ts` ("ZIL semantics that failed silently"):
+
+1. **`verb?` compares against PRSA, not the verb word** — `<VERB? THROUGH>` means "the
+   action is V-THROUGH". Invisible wherever verb and action agree (TAKE → V-TAKE), which is
+   what made it dangerous; it surfaced only on "ENTER WINDOW" (verb ENTER, action V-THROUGH)
+2. **Room action contexts are numbers** — `M-LOOK` is 3. The string `"M-LOOK"` is a type
+   error nowhere; the comparison just never matches and computed rooms lose their prose
+3. **`PERFORM`'s first argument is a verb name** — `<PERFORM ,V?WALK .DIR>` extracts to
+   `"WALK"`, so the action is `V-WALK`
+4. **ZIL `PROPDEF` defaults were missing** — the player declares no SIZE (default 5), so
+   V-TAKE's arithmetic threw and *every* take failed
+5. **Rooms had no properties in state** — `load.ts` did objects only, so
+   `<GETP ,HERE ,P?ACTION>` always returned the default
+6. **`GOTO` set TOUCHBIT to mark a visit** — but TOUCHBIT is DESCRIBE-ROOM's "already
+   described" flag, so marking the visit erased the description. First-visit scoring now
+   uses the engine's own `visited` set
+
+**`PICK-ONE` rewritten** against the real algorithm: a *rotating* choice, layout
+`[cursor, ...messages]` in IR element terms, and ZIL's `<REST .FROB 2>` skips two **bytes**
+(one element). Reading it as two elements returns the cursor as a message. A plain random
+pick would drift from the transcripts within a few turns even under one seed.
+
+---
+
+## Prior Session (v0.6.1) — M4 stage 4.2: command parser
 
 Three new modules in `engine/`. 46 tests pass (24 new), IR 184/184, both typecheck clean.
 
@@ -200,17 +248,12 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M4 in progress. 4.1 ✅ 4.2 ✅ — next is 4.3, action dispatch.**
+**M4 in progress. 4.1 ✅ 4.2 ✅ 4.3 ✅ — next is 4.4, the transcript harness.**
 
-1. **Stage 4.3 — action dispatch & events.** Port `ir/poc/interpreter.ts` (the ADR 0001
-   behavior-AST evaluator, already proven over 346 routines) into `engine/` and drive it
-   from the parser. Two things 4.1 deliberately deferred land here: `PER` exits
-   (`ExitResolution.routine`) and light sources carried into dark rooms (`roomIsLit` covers
-   only the static half). Also room descriptions and first-visit scoring
-2. **Stage 4.4 — transcript replay harness** against `verification/` goldens. Parity is
+1. **Stage 4.4 — transcript replay harness** against `verification/` goldens. Parity is
    measured on `transcriptText()`; the sanctioned diffs are the banner and Kitchen object
    order (see Open Issues)
-3. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
+2. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
    Engine `CLOCKER` needs P-WON demon-region gating; the POC's `builtins.CLOCKER` in
    `ir/poc/world.ts` is the starting point but does not implement that gating
 
@@ -237,6 +280,9 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 - Repo is prepared for public release but not yet public (carried from v0.5.17; nothing blocks it)
 - **Backdrop scarcity**: 3 shipped Comic Chat backdrops vs. 110 Zork rooms, and no `AT_BACKDROP` assets exist. Options sketched but undecided — panel compositions that avoid backdrops, deriving variants from the three originals, or new art in the Woodring hatch idiom for the ~10 rooms that carry the game. M5 decision
 - `art/` has **no test harness**; the 4656-image corpus sweep was ad hoc. Needs a regression test once the module gains a toolchain
+- **`room-title` channel is unused in practice.** The engine delegates room description to Zork's own `DESCRIBE-ROOM`, which prints the name with `<TELL D ,HERE>`, so the title cannot be split onto its own channel without parsing prose — which the ADR 0002 contract forbids. A UI wanting the title should read `player-moved`.to and look the name up in the world document. Decide in 4.4/5.2 whether the channel stays in the contract
+- **ZIL property defaults live in the engine, not the IR.** `PROPDEF SIZE 5` etc. are encoded in `engine/src/interpreter.ts`. The document is the correct home; adding a `propdefs` section is an IR schema change deferred rather than rejected
+- **Stubbed builtins**: `RANDOMIZE-OBJECTS`, `HERO-BLOW`, `V-CLIMB-UP` return no-ops so call sites reach a defined value instead of crashing a turn. They belong to the thief/combat systems in 4.5
 - `README.md:27` still says the engine is "inspired by the original gameplay" — understates the commitment to behavioral compatibility verified by golden transcripts. Minor wording
 
 ---

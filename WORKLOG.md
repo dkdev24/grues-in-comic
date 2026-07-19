@@ -601,3 +601,47 @@ Two further initial failures were **wrong test assumptions**: `PUT X IN Y` dispa
 Stage 4.2 ✅ — exit criteria met. Engine 46/46, IR 184/184, both typecheck clean.
 
 Next: stage 4.3, action dispatch — port the ADR 0001 behavior-AST evaluator from `ir/poc/interpreter.ts` into `engine/` and drive it from the parser, emitting the ADR 0002 events.
+
+---
+
+## v0.6.2 — Engine Core: Action Dispatch & Events (Milestone 4, stage 4.3)
+
+**Date:** 2026-07-20
+
+### Changes
+
+The engine now plays Zork I. `createEngine(doc).command("open mailbox")` returns the right events, and a walkthrough from West of House into the Living Room reproduces the original's prose.
+
+- **`src/runtime.ts`** — the per-turn context. The POC threaded a bare world and appended prose to a string array; the engine adds PRSA/PRSO/PRSI, the seeded RNG, and an **event sink** in place of a transcript buffer. Text is buffered rather than emitted per `TELL`, since one ZIL routine prints a sentence across many calls and one event per fragment would be unusable. Structural events flush the buffer first, so prose printed *before* a move stays before it in the stream.
+- **`src/interpreter.ts`** — the ADR 0001 evaluator, ported from `ir/poc/interpreter.ts` (already proven over 346 routines). Substance unchanged; what changed is the surroundings — output goes to events, `move`/`remove` emit `object-moved`, and routine resolution tries the document's own routines *before* engine builtins so a game can legitimately override a utility.
+- **`src/builtins.ts`** — ZIL's Group A utility layer: the clock (QUEUE/INT/ENABLE/DISABLE/CLOCKER), the light rule, GOTO, PICK-ONE, PROB, GLOBAL-IN?, FLAMING?, OPENABLE?, OTHER-SIDE. Per ADR 0002's portability rule these implement the **ZIL library**, not Zork I's call sites: no `zork1` identifier appears in `engine/`.
+- **`src/engine.ts`** — `createEngine`, the turn loop, and ZIL's four-step dispatch chain (pre-action → PRSI action → PRSO action → room action → verb default), plus `snapshot`/`restore` over a fully JSON-serializable save.
+
+**The engine delegates room description to the game's own `DESCRIBE-ROOM`/`DESCRIBE-OBJECTS`** when the document carries them. Those routines already implement verbose/brief modes, the light rule, and the first-visit distinction; reimplementing that in the engine would be a second, competing answer to questions the IR has already answered — exactly what ADR 0001's Group A/B split exists to prevent. A fallback describer remains for partial documents.
+
+### Six bugs, every one of which produced a plausible wrong answer rather than a crash
+
+This is the stage where "it runs" and "it is correct" diverge, and each of these is now a named regression test.
+
+1. **`verb?` resolves against PRSA, not the typed verb word.** ZIL's `<VERB? WALK BOARD THROUGH>` compares against the *action*, with the `V-` prefix dropped. The difference is invisible wherever a verb and its action agree — "TAKE" → V-TAKE — which is what makes it dangerous. It surfaced on "ENTER WINDOW": verb ENTER, action V-THROUGH, and the window's routine tests THROUGH. The window simply could not be entered while every ordinary verb worked.
+2. **Room action contexts are numbers, not names.** `M-LOOK` is 3 (gmain.zil); the extracted AST compares `RARG` against `{op:"const", value:3}`. Passing the string `"M-LOOK"` is a type error nowhere — the comparison just never matches, and rooms whose description is computed lose it while rooms with a static LDESC read correctly.
+3. **`PERFORM`'s first argument is a verb name.** `DO-WALK` calls `<PERFORM ,V?WALK .DIR>`, which extraction reduces to `"WALK"`. Using it verbatim as the action dispatched to nothing.
+4. **ZIL property defaults (`PROPDEF`) were missing.** The player object declares no SIZE, so `V-TAKE`'s weight check read `false` and the arithmetic threw — *every* take failed. SIZE defaults to 5, CAPACITY/VALUE/TVALUE to 0.
+5. **Rooms had no properties in state.** `load.ts` populated objects only, so `<GETP ,HERE ,P?ACTION>` always returned the default and `DESCRIBE-ROOM` printed nothing for computed rooms.
+6. **`GOTO` set TOUCHBIT to mark a visit.** TOUCHBIT belongs to `DESCRIBE-ROOM`, which sets it itself and reads it as "already described" — so marking the visit made the room's description vanish. First-visit scoring now uses the engine's own `visited` set.
+
+**`PICK-ONE` was also rewritten** against the real algorithm. It is a *rotating* choice, not a plain random one: the table carries a cursor and each pick swaps the winner to the front of the unused region, so every message is seen once before any repeats. The layout in IR element terms is `[cursor, ...messages]` — an LTABLE's length word is synthesized rather than stored — and ZIL's `<REST .FROB 2>` skips two *bytes*, i.e. one element. Reading it as two shifts the window and returns the cursor as a message. A plain random pick would also have drifted from the transcripts within a few turns even under an identical seed.
+
+### Known tension, recorded rather than papered over
+
+Delegating to the game's `DESCRIBE-ROOM` costs the **`room-title` channel**: Zork prints the room name with its own `<TELL D ,HERE>`, so the engine cannot separate it without parsing prose, which the contract forbids. A UI wanting the title should read `player-moved`.to and look the name up in the world document. Revisit in 4.4/5.2 — see Open Issues.
+
+### Tests
+
+68 engine tests (22 new), IR 184/184, both typecheck clean. Two are deliberately broad: determinism (same seed + same commands ⇒ identical events, and a JSON save round-trip), and a crude fuzz applying **every one of the 135 verbs** to a visible object, asserting that no command throws whatever it does — behavior is data, and an unhandled AST shape must surface as a refusal, never as an exception escaping into the host.
+
+### Status
+
+Stage 4.3 ✅ — exit criteria met: LOOK/TAKE/DROP/inventory all produce correct events.
+
+Next: stage 4.4, the transcript replay harness — diff engine output against the dfrotz goldens in `verification/`.

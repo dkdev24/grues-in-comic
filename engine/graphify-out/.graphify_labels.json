@@ -5,5 +5,8 @@
   "3": "movement.ts",
   "4": "state.ts",
   "5": "movement.test.ts",
-  "6": "load.test.ts"
+  "6": "load.test.ts",
+  "7": "engine.ts",
+  "8": "interpreter.ts",
+  "9": "builtins.ts"
 }

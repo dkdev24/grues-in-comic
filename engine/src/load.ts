@@ -64,6 +64,7 @@ export function loadWorld(doc: WorldDocument, options: LoadOptions = {}): Loaded
     tables: {},
     turn: 0,
     visited: new Set(),
+    clock: [],
   };
 
   for (const g of doc.globals) state.globals[g.id] = g.value;
@@ -91,6 +92,18 @@ export function loadWorld(doc: WorldDocument, options: LoadOptions = {}): Loaded
   const roomsContainer = roleContainer.get("rooms");
   for (const room of doc.rooms) {
     state.flags[room.id] = new Set(room.flags);
+    /*
+     * Rooms carry properties too, and behavior reads them the same way it reads
+     * an object's: DESCRIBE-ROOM does `<APPLY <GETP ,HERE ,P?ACTION> ,M-LOOK>`
+     * and `<GETP ,HERE ,P?LDESC>`. Populating objects only left every such read
+     * returning the property default, so rooms whose description is computed
+     * printed nothing at all while rooms with a static one were unaffected.
+     */
+    const props: Record<string, BehaviorValue> = {};
+    if (room.action !== undefined) props["action"] = room.action;
+    if (room.description !== undefined) props["description"] = room.description;
+    state.properties[room.id] = props;
+
     if (roomsContainer !== undefined) link(state, room.id, roomsContainer);
   }
 

@@ -45,3 +45,10 @@ export type { ScopeEntry, ScopeOrigin } from "./scope.js";
 
 export { parse, describeCandidates } from "./parser.js";
 export type { ParsedCommand, ParsedTravel, ParseFailure, ParseResult } from "./parser.js";
+
+export { createEngine } from "./engine.js";
+export type { Engine, EngineOptions, SaveState } from "./engine.js";
+
+export { createBuiltins, isLit, describeRoom } from "./builtins.js";
+export { runRoutine, callRoutine, FatalSignal } from "./interpreter.js";
+export type { RuntimeContext, Builtin } from "./runtime.js";

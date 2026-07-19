@@ -30,6 +30,10 @@ Rendering is entirely the UI layer's job (milestone 5). The engine says
 | `src/vocabulary.ts` | The lexicon: verbs, synonyms, nouns, adjectives, directions |
 | `src/scope.ts` | What the player can refer to from where they stand |
 | `src/parser.ts` | Text in → ZIL's PRSA/PRSO/PRSI out |
+| `src/runtime.ts` | Per-turn context and the event sink |
+| `src/interpreter.ts` | The ADR 0001 behavior-AST evaluator |
+| `src/builtins.ts` | ZIL's utility layer (Group A): clock, light, PICK-ONE |
+| `src/engine.ts` | `createEngine`, the turn loop, ZIL's dispatch chain |
 
 ## Status
 
@@ -37,7 +41,7 @@ Rendering is entirely the UI layer's job (milestone 5). The engine says
 |---|---|---|
 | 4.1 | State & world runtime | ✅ |
 | 4.2 | Command parser | ✅ |
-| 4.3 | Action dispatch & events | ☐ |
+| 4.3 | Action dispatch & events | ✅ |
 | 4.4 | Transcript replay harness | ☐ |
 | 4.5 | Systems completion (⚑ Gate C) | ☐ |
 
