@@ -11,6 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.5.17] - 2026-07-20 — Licensing, Provenance, and Public-Repo Preparation
+
+Documentation and repository hygiene only. No engine, IR, or artifact changes.
+
+### Added
+- **ADR 0002 "Alternatives Considered"** — records why the project does not reuse an existing Z-machine interpreter (ZLR, ZVM/ifvms.js). A compiled story file is an opaque memory image; the engine↔UI contract needs semantics (`speech.speaker`, `player-moved` room ids) that only the IR preserves. Establishes the **Z-Machine Standards Document 1.1** as the normative source for Milestone 4 Group A builtin semantics.
+- **Attribution for build tools** in `NOTICE` and `THIRD_PARTY.md` — ZILF/ZAPF 0.11.1 (GPL-3.0) and Frotz/dfrotz 2.55 (GPL-2.0-or-later), invoked as external executables and neither vendored nor redistributed, so their copyleft terms do not reach this project's Apache-2.0 source.
+- **`README.md` "Provenance and Licensing"** — what is imported and under what grant, what is deliberately absent, and how the project relates to existing Z-machine tooling.
+- **`reference/`** (gitignored) for third-party reading material, with a local `README.md` recording provenance and warnings.
+
+### Changed
+- Comic Chat paper moved `docs/` → `reference/`; references updated in `HANDOFF.md` and `docs/DEVELOPMENT_PLAN.md`.
+- Commit authorship switched to a GitHub `users.noreply` address; existing history rewritten to match, ahead of making the repository public.
+
+### Removed
+- **Comic Chat build outputs untracked** (299 files, ~33 MB): `.exe`, `.dll`, `.ocx`, `.lib`, `.class`, `.map`, `.sym`, plus a vendored Sun JDK 1.1.4 (`classes.zip`) not covered by Microsoft's MIT grant. All are build products of source that remains tracked. **Source, documentation, and comic art (`.avb`/`.bmp`/`.gif`/`.jpg`/`.ico`, 661 files) are untouched** — the art is a Milestone 5 input. `original-projects/zork1/` is entirely unaffected.
+
+### Notes
+- ZLR ships **no license for its own code** (verified 2026-07-19: no LICENSE/COPYING, no copyright headers in `ZLR.VM/*.cs`; the license files under `Demona/Gargoyle/` cover a vendored Gargoyle and its dependencies). Default copyright therefore applies — more restrictive than GPL. It is a last-resort reference only; the Standards Document is the primary source.
+- `original-projects/` remains version-controlled by design (`AGENTS.md`). Both imports carry genuine Microsoft MIT grants, and the pipeline reads from them.
+
+---
+
 ## [v0.5.4] - 2026-07-18 — Behavior Extraction Complete
 
 ### Added

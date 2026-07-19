@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.5.16**
+**0.5.17**
 
 ---
 
@@ -28,7 +28,25 @@ Historical sources imported:
 
 ---
 
-## Last Session (v0.5.14 → v0.5.16)
+## Last Session (v0.5.17) — licensing, provenance, public-repo prep
+
+**Documentation and repo hygiene only. No engine, IR, or artifact changes; M4 is still the next actual work.**
+
+Triggered by a question about whether ZILF/ZLR make this project redundant. They do not, and the reasoning is now written down instead of being tribal knowledge:
+
+- **ADR 0002 gained an "Alternatives Considered" section.** The ADR argued TypeScript vs. C++/WASM but never recorded why an engine is written at all rather than reusing an interpreter. A compiled story file is an opaque memory image; `speech.speaker` and `player-moved` room ids are recoverable from the IR and not from `zork1.z3`. **The Z-Machine Standards Document 1.1 is now the normative source for M4 Group A builtin semantics** — read `reference/z-machine-standards-1.1.md`, not an interpreter's source.
+- **ZLR ships no license** (verified: no LICENSE/COPYING, no headers in `ZLR.VM/*.cs`; the Gargoyle licenses in the tree cover a vendored dependency). Default copyright applies — stricter than GPL. Last-resort reference only; if consulted, describe observed *behavior*, not implementation, and record it in ADR 0002.
+- **Build tools attributed**: ZILF/ZAPF 0.11.1 (GPL-3.0), Frotz 2.55 (GPL-2.0-or-later) in `NOTICE` + `THIRD_PARTY.md`. Invoked as external executables — not vendored, so no copyleft reach into Apache-2.0 source. Both upstream imports verified to carry genuine Microsoft MIT grants.
+- **`reference/`** created and gitignored: Z-Machine Standard, Comic Chat paper (moved from `docs/`), ZILF/ZLR sources. See `reference/README.md` — note it warns that `reference/zilf/AGENTS.md` is ZILF's own agent guide and has **no authority here**.
+- **299 Comic Chat build outputs untracked** (~33 MB: `.exe`/`.dll`/`.ocx`/`.lib`/`.class`/`.map`/`.sym` + a vendored Sun JDK). Source, docs, and **661 comic art files kept** — the `.avb` art is an M5 input. `original-projects/zork1/` untouched.
+- **`original-projects/` stays version-controlled** — MIT permits redistribution, `AGENTS.md` requires it, and `importer/`/`ir/`/`verification/` read from it. Gitignoring it was considered and rejected.
+- Commit authorship moved to `11153426+dkdev24@users.noreply.github.com`; history rewritten.
+
+**Open decision:** the repo is prepared for public release but has not been made public. Nothing further blocks it.
+
+---
+
+## Prior Session (v0.5.14 → v0.5.16)
 - **v0.5.16 — world-doc gap 3: nested table elements + ITABLE**: IR schema 0.13.0 — a `TableElement` may be a `{table, offset}` pointer, **no new behavior ops**. VILLAINS is an LTABLE of three anonymous `<TABLE …>` rows; ZIL stores an *address* in the slot, which batch (h)'s `TableRef` already models, so `<GET ,VILLAINS .CNT>` hands HERO-BLOW a pointer it indexes straight through. Nested tables get a derived `parent#index` id and **no pointer variable** — ZIL never named them, so v0.5.15's flat-id exception does not widen. Three element forms had to be learned, two of them only visible once nesting worked: bare `<>` (the cyclops has no weapon), an atom naming a table-valued global, and a numeric `CONSTANT` — the last two are the melee message tables, deeply nested `(PURE)` LTABLEs whose leaves interleave strings with the `F-WEP`/`F-DEF` markers. Declaring the atom pulled the whole tree in: **tables 19→132**, globals 86→103. `<ITABLE NONE n>` now extracts as zero-filled `itable` storage (P-PRSO/P-PRSI); it addresses like `table`, so only `RuntimeTable`'s kind union changed. gparser.zil's `(LEXV)`/`(BYTE LENGTH)` ITABLEs stay **denied by design** — READ's parser buffers (Group A), not world state. Unlocked NOT-HERE-OBJECT-F; **HERO-BLOW advanced past the document to `operator RANDOM`**, a Group A builtin, so it is no longer a world-doc blocker. 345→346 routines, catalog flat at 32 (NOT-HERE-PRINT/`PRINTB` entered as the closure widened), unresolved steady 39/292; 184 tests
 - **v0.5.15 — world-doc gap 2: table-valued globals**: IR schema 0.12.0 — `GlobalVariable.value` accepts a `{table, offset}` pointer; **no new behavior ops**. `<GLOBAL X <TABLE …>>` declares storage *and* a variable pointing at it; extraction emitted only the table, so `,X` read a global the document never had. **Wider than batch (h) reported**: 29 unbound reads across all 19 table-valued globals, not just LAMP-TABLE. Globals 66→86. **The pointer must stay a variable** — I-LANTERN/I-CANDLES advance by `<SETG LAMP-TABLE <REST .TBL 4>>`, so a `{op:"table"}` constant expr would have been unwritable and wrong; keeping it a global meant zero vocabulary change. Table and pointer share the one ZIL name (sole flat-id exception, narrowly enforced in `claimId`; the runtime already separates variable and table namespaces). **Validator tightened**: `global` ref kind was `global-or-table`, which is what let those 29 reads validate for five batches — now strict, and the artifact still passes. Golden boots the lamp daemon from document state alone (batch h's golden with its hand-seeding removed). Routine counts unchanged — this gap corrupted extracted routines rather than blocking them; 175 tests
 - **v0.5.14 — world-doc gap 1: meta entities**: IR schema 0.11.0 — new `metaEntities` section, **no new behavior ops**. The 13 routines stuck on `unknown name ,ROOMS` / `,GLOBAL-OBJECTS` were blocked by the *document*, not the vocabulary: stage 3.2 dropped ZIL's three scaffolding objects, so `resolveName` had no entity to resolve to. They are now `{id, role, location?}` anchors (roles `rooms` / `global-objects` / `local-globals`) in the flat entity namespace, so `,ROOMS` lowers to a plain `{op:"entity"}` and `in?`/`first`/`next`/`equal?` work unchanged. **Not** entities-with-properties — GLOBAL-OBJECTS' FLAGS list and LOCAL-GLOBALS' DESCFCN/FDESC are ZIL property-slot allocation, not game state. **Membership stays derived** (rooms list + `global`/`local-globals` location kinds); only the anchors' own nesting is stored, because LOCAL-GLOBALS sits inside GLOBAL-OBJECTS and gparser.zil's scope walk climbs that edge. Validator enforces one anchor per role, meta-only parents, no cycles. Unlocked DESCRIBE-ROOM, FIRSTER, HACK-HACK, I-THIEF, PRE-TURN, ROPE-FUNCTION, TREE-ROOM, V-DISEMBARK, V-EAT, V-EXIT, V-FIND; RANDOMIZE-OBJECTS/V-CLIMB-UP advanced to RANDOM/GETPT. 324→345 routines, catalog 43→32, unresolved 29→39/292 (90%→87% — the widened closure reached more Group A builtin refs; nothing regressed); 165 tests. Also backfilled `docs/IR_SCHEMA.md`, which had drifted at schema 0.6.0 since batch b
@@ -51,7 +69,7 @@ Historical sources imported:
 3. ✅ **Nested table elements + ITABLE** — done in v0.5.16 (`{table, offset}` table elements, IR 0.13.0); HERO-BLOW now blocks only on Group A `RANDOM`
 - The world-document unit is **complete**: the document loads and boots a world with nothing seeded by hand, which was the precondition for M4
 4. One-off tail, unassigned: `<NEXTP …>` (I-SWORD, OTHER-SIDE), `<NTH …>` (I-CYCLOPS), String-in-statement-position (GRATE-FUNCTION), bare `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with a non-literal byte count (PICK-ONE — Group A regardless)
-5. Stage 5.1 (Comic Chat analysis) = filler, independent of every gate. Read `docs/comic-chat-paper.md` (the authors' SIGGRAPH '96 paper — balloon layout, character placement, gesture selection, camera zoom) alongside `original-projects/comic-chat/`; it explains the intent behind that source. Gitignored, so it may be absent from a fresh checkout — see the reference note in `docs/DEVELOPMENT_PLAN.md` M5
+5. Stage 5.1 (Comic Chat analysis) = filler, independent of every gate. Read `reference/comic-chat-paper.md` (the authors' SIGGRAPH '96 paper — balloon layout, character placement, gesture selection, camera zoom) alongside `original-projects/comic-chat/`; it explains the intent behind that source. Gitignored, so it may be absent from a fresh checkout — see the reference note in `docs/DEVELOPMENT_PLAN.md` M5
 4. M4 can start against the Group A builtin contract (walk map from IR); engine CLOCKER needs P-WON demon-region gating (stage 4.5)
 
 **M0 complete** (0.1–0.3):
@@ -74,7 +92,10 @@ Historical sources imported:
 | `ir/` | IR schema, validator, extraction → `artifacts/zork1.world.json` |
 | `original-projects/zork1/` | ZIL source reference |
 | `original-projects/comic-chat/` | Comic Chat source reference |
-| `docs/comic-chat-paper.md` | Kurlander/Skelly/Salesin SIGGRAPH '96 Comic Chat paper — presentation-algorithm reference for stage 5.1/5.3. **Gitignored** (third-party); local-only, may be absent |
+| `reference/` | Third-party reference material. **Gitignored** in full (third-party, some copyleft, some unlicensed); local-only, may be absent from a fresh checkout. See `reference/README.md` |
+| `reference/comic-chat-paper.md` | Kurlander/Skelly/Salesin SIGGRAPH '96 Comic Chat paper — presentation-algorithm reference for stage 5.1/5.3 |
+| `reference/z-machine-standards-1.1.md` | Z-Machine Standards Document 1.1 — **normative source** for M4 Group A builtin semantics (ADR 0002) |
+| `reference/zilf/`, `reference/zlr/` | ZILF and ZLR sources, read-only. ZLR is a fallback only; see ADR 0002 and `reference/README.md` before reading it |
 | `docs/` | Project documentation |
 | `wiki/` | Semantic notes (hand-authored) |
 | `<module>/graphify-out/` | Graphify graphs (config: `.graphifyignore`) |

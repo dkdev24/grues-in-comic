@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-07-18
+- **Amended:** 2026-07-19 — added "Alternatives Considered: existing Z-machine interpreters" (no change to the decision)
 - **Stage:** 2.3 (⚑ **Gate B resolution**; see `docs/DEVELOPMENT_PLAN.md`)
 - **Related:** ADR 0001 (behavior representation), `docs/gemini-analysis-on-plan-and-strategy.md` (interface-first recommendation)
 
@@ -68,6 +69,32 @@ Contract rules:
 - **Events are semantic, never presentational.** `speech` carries a speaker id, not a bubble position; `player-moved` carries room ids, not panel layouts. The text UI (stage 5.2) renders `narration`/`speech`/`question` and ignores the rest; the comic renderer (stage 5.3) maps the same events to panels. Gate D may *add* event metadata (e.g. emotion hints) — additively, under `contractVersion`.
 - **The event vocabulary above is the architectural shape, not a frozen list.** Milestone 4 will grow payloads/variants additively as systems land (inventory listing, light/darkness, daemon messages); breaking changes bump `contractVersion`.
 - **Narration fidelity comes first**: golden-transcript parity is measured on the concatenated `narration`/`speech`/`question` text of each turn, which must reproduce dfrotz output (modulo the sanctioned banner/ordering diffs noted in HANDOFF).
+
+## Alternatives Considered: existing Z-machine interpreters
+
+*(Added 2026-07-19. The original ADR argued TypeScript vs. C++/WASM and never recorded why the engine is written at all rather than reused. This is the first question a new reader asks, so it is answered here.)*
+
+Zork I is a solved execution problem. Mature Z-machine interpreters exist, and at least one is already a dependency of this repository:
+
+- **ZILF / ZAPF** (Tara McGrew and contributors) — ZIL compiler and assembler. **Adopted, not reinvented.** Pinned at 0.11.1 since stage 0.1; `verification/build.sh` uses it to produce `verification/build/zork1.z3`, which `verification/run-transcripts.sh` replays under dfrotz to generate the golden transcripts that stage 4.4 diffs the engine against. ZILF is this project's ground-truth oracle and nothing here duplicates it.
+- **ZLR** (Tara McGrew) — Z-machine interpreter for .NET that JIT-compiles routines. Correct and fast, but a .NET runtime is not a browser target, and speed is irrelevant at IF scale (see Context).
+- **ZVM / ifvms.js** (Parchment) — a browser-native Z-machine in JavaScript. This is the strongest form of the objection: it would run Zork I in a browser today, with no `importer/` and no `ir/`.
+
+None of these are Microsoft projects, a common misreading of the open-sourcing announcement. Microsoft/Activision released the **ZIL source**; the toolchain around it is independent community work.
+
+**Why the engine is still written.** A Z-machine executes a *memory image*. Compilation is lossy in exactly the dimension this project needs: rooms, objects, verbs and routines become bytes at fixed offsets, and the names, structure, and intent are gone. An interpreter can therefore tell you what text the game printed, but not *who spoke it, from where, or why*.
+
+The engine↔UI contract above depends on precisely that missing information. `speech` carries a `speaker` id; `player-moved` carries room ids; Gate D may add emotion hints. Those fields are recoverable from the IR — `ir/artifacts/` holds 110 rooms with exits, 137 objects, 267 parser rules, and 346 routines as behavior AST — and are not recoverable from `zork1.z3` without reverse-engineering semantics back out of compiled bytes, which is strictly harder than extracting them from the ZIL that produced it. The comic renderer (stage 5.3) needs semantic events to choose a character, gesture, and balloon; a Z-machine cannot supply them, and bolting heuristic text-scraping onto an interpreter's output would reintroduce the fragility the IR exists to remove.
+
+Restated as the project's core principle (`AGENTS.md`): reusing an interpreter is *recreating the historical runtime*. Extracting semantics into the IR is the stated objective, and the two paths produce different artifacts — a playable binary versus an introspectable world document.
+
+**Consequences of this reading:**
+
+- The ZILF dependency is deliberate and should stay. Removing it would cost the verification oracle; there is no reason to reimplement a ZIL compiler.
+- **For Group A builtin semantics, the normative source is the Z-Machine Standards Document 1.1**, not any interpreter's source. Object-tree operations, property/flag behavior, and parser-buffer layout — including the `(LEXV)` / `(BYTE LENGTH)` buffers that stage 3 denies by design — are all specified there. The standard is freely available, licensing-neutral, and is the document ZLR itself implements against; consulting it is strictly better than reverse-engineering an implementation of it.
+- **ZLR is a last-resort reference, not a dependency and not the primary source.** Milestone 4 re-expresses semantics that ZLR also implements, so reading it and then implementing against it is where a derivation argument would live. Two facts sharpen this: ZLR **ships no license for its own code** (verified 2026-07-19 — see `THIRD_PARTY.md`; default copyright therefore applies, which is more restrictive than GPL), and the Standards Document answers the same questions normatively. Consult ZLR only where the standard is genuinely ambiguous, prefer describing the observed *behavior* over reading the implementation, and record any such consultation here. No ZLR code is used, adapted, or distributed.
+- **Reference material stays out of version control.** ZILF/ZLR sources, the Z-Machine Standard, and the Comic Chat paper live in a gitignored `reference/` directory. They are never placed in `original-projects/`, which is version-controlled by design — ZILF is GPL-3.0, ZLR is unlicensed, and vendoring either would contradict `NOTICE` and this repository's Apache-2.0 licensing.
+- If the objective ever narrowed to "play Zork I in a browser," this ADR should be revisited: ZVM would win outright.
 
 ## Consequences
 

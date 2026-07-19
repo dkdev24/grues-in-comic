@@ -55,5 +55,26 @@ node_modules/
 # ZILF build output
 verification/build/
 
-# Third-party reference papers — kept locally, not redistributed
+# Third-party reference material — read locally, never vendored or redistributed.
+# Holds the Comic Chat paper, the Z-Machine Standard, and ZILF/ZLR sources.
+# ZILF is GPL-3.0 and ZLR ships no license at all; committing any of it would
+# contradict NOTICE and this repository's Apache-2.0 licensing.
+reference/
+
+# Legacy path — the Comic Chat paper now lives in reference/ (kept so an old
+# checkout with the file still in docs/ does not accidentally commit it).
 docs/comic-chat-paper.md
+
+# Comic Chat build outputs — untracked 2026-07-20 ahead of making this repo
+# public. These are compiled artifacts of source that is already in the tree,
+# plus one vendored Sun JDK 1.1.4 that Microsoft's MIT grant does not cover.
+# Source, documentation, and comic art (.avb/.bmp/.gif/.jpg/.ico) stay tracked.
+# Local copies are kept on disk; they are simply no longer version-controlled.
+original-projects/comic-chat/**/*.exe
+original-projects/comic-chat/**/*.dll
+original-projects/comic-chat/**/*.ocx
+original-projects/comic-chat/**/*.lib
+original-projects/comic-chat/**/*.class
+original-projects/comic-chat/**/*.map
+original-projects/comic-chat/**/*.sym
+original-projects/comic-chat/artifacts/jchat/jdk114/lib/classes.zip

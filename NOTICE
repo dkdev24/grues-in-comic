@@ -16,9 +16,26 @@ See THIRD_PARTY.md for import details and original repository locations.
 The original license files are preserved in original-projects/zork1/LICENSE
 and original-projects/comic-chat/LICENSE.
 
+This project's verification pipeline additionally invokes the following
+external tools. They are installed separately by the developer and are NOT
+vendored into, linked with, or redistributed as part of this project; no
+source or binary from them appears in this repository. Their copyleft terms
+apply to those tools themselves and do not extend to this project's source.
+
+  a. ZILF / ZAPF 0.11.1 — ZIL compiler and assembler
+     Copyright (c) Tara McGrew and contributors
+     Licensed under the GNU General Public License, version 3
+     https://foss.heptapod.net/zilf/zilf
+
+  b. Frotz (dfrotz) 2.55 — Z-machine interpreter
+     Copyright (c) Stefan Jokisch, David Griffith, and contributors
+     Licensed under the GNU General Public License, version 2 or later
+     https://gitlab.com/DavidGriffith/frotz
+
 ----------------------------------------------------------------------
 
-MIT License (applies to both components listed above)
+MIT License (applies to incorporated components 1 and 2 above; the external
+tools (a) and (b) are covered by their own licenses, linked above)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

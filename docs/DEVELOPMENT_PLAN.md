@@ -98,7 +98,7 @@ Goal: browser shell consuming engine events; Comic Chat–inspired presentation.
 
 **Reference paper for 5.1/5.3:** Kurlander, Skelly & Salesin, *Comic Chat* (SIGGRAPH '96) — the authors' own account of the algorithms this milestone borrows: balloon construction and layout, character placement and orientation, default gesture/expression selection, semantic panel elements, and virtual-camera zoom. It describes the *intent* behind the code in `original-projects/comic-chat/`, so it is the faster way in for anyone starting 5.1 or designing the event→panel mapping at 5.3.
 
-The text sits at `docs/comic-chat-paper.md` but is **gitignored** — it is a third-party copyrighted ACM publication, kept locally rather than redistributed. If it is not in your checkout, retrieve it from the ACM Digital Library or the authors' pages; nothing in the build depends on it.
+The text sits at `reference/comic-chat-paper.md` but is **gitignored** — it is a third-party copyrighted ACM publication, kept locally rather than redistributed. If it is not in your checkout, retrieve it from the ACM Digital Library or the authors' pages; nothing in the build depends on it. (It lived at `docs/comic-chat-paper.md` until 2026-07-19, when all third-party reference material was consolidated under `reference/`.)
 
 ---
 
