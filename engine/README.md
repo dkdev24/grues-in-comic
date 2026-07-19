@@ -1,0 +1,50 @@
+# `@grues-in-comic/engine`
+
+The engine core (milestone 4): a platform-independent state machine that executes
+an IR world document and emits structured gameplay events.
+
+## What this package is
+
+Per **ADR 0002** (Gate B), the engine is:
+
+- **TypeScript, zero runtime dependencies.** `@grues-in-comic/ir` is imported for
+  *types only* (`import type`), so nothing survives into emitted JS.
+- **Pure, deterministic, synchronous.** No DOM, no timers, no I/O, no rendering
+  vocabulary. Same world + same seed + same commands ⇒ identical events.
+- **JSON at the boundary.** Every value crossing the engine↔UI contract is
+  serializable, which makes Worker hosting, save files, and the transcript
+  harness the same problem.
+
+Rendering is entirely the UI layer's job (milestone 5). The engine says
+*"the player moved from A to B"*; it never says how to draw it.
+
+## Layout
+
+| Module | Role |
+|---|---|
+| `src/events.ts` | The ADR 0002 event contract, as code (`CONTRACT_VERSION`) |
+| `src/state.ts` | `GameState` + object-tree primitives (`move`, `isIn`, flags) |
+| `src/load.ts` | Boots an IR `WorldDocument` into live state |
+| `src/movement.ts` | Exit resolution and room transitions |
+| `src/rng.ts` | Seeded RNG — the *only* source of randomness |
+
+## Status
+
+| Stage | Task | Status |
+|---|---|---|
+| 4.1 | State & world runtime | ✅ |
+| 4.2 | Command parser | ☐ |
+| 4.3 | Action dispatch & events | ☐ |
+| 4.4 | Transcript replay harness | ☐ |
+| 4.5 | Systems completion (⚑ Gate C) | ☐ |
+
+## Commands
+
+```sh
+npm test        # vitest
+npm run typecheck
+```
+
+Tests run against the real extracted Zork I world (`ir/artifacts/zork1.world.json`),
+not fixtures — a load or movement regression shows up against 110 rooms and 137
+objects rather than a toy map.

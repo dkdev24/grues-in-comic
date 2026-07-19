@@ -539,3 +539,35 @@ Documentation and tooling only — **no engine, IR, or artifact changes; M4 rema
 Stage 5.1 is partly started ahead of schedule: `.avb` decoding is solved and specified, which de-risks the M5 art pipeline. Remaining 5.1 work is face/torso compositing (`GetHeadAndBodyFromEmotion`), mask and aura planes for DIB-format poses, and the TypeScript port of the decoder.
 
 Two M5 questions are now open and recorded in HANDOFF rather than settled here: the backdrop gap (3 available, 110 needed), and panel grammar — Comic Chat assumes dialogue between peers, while Zork is second-person narration whose turns mostly emit `narration` with no speaker, so caption boxes must be first-class and "who is on screen when nobody speaks" needs an answer.
+
+---
+
+## v0.6.0 — Engine Core: State & World Runtime (Milestone 4, stage 4.1)
+
+**Date:** 2026-07-20
+
+### Changes
+
+- **New `engine/` module** — `@grues-in-comic/engine`, the first code written against ADR 0002's Gate B decision. Zero runtime dependencies: `@grues-in-comic/ir` is consumed through `import type` only (resolved by a tsconfig path to `../ir/src`), so the IR contributes types at compile time and nothing at all to emitted JS. No DOM, no timers, no I/O.
+- **`src/events.ts` — the ADR 0002 contract as code.** The `EngineEvent` union, `TurnResult`, and `CONTRACT_VERSION` ("1.0.0"). Also `transcriptText()`, which defines *once* what "the text the player saw this turn" means (the `narration`/`speech`/`question`/`game-over` text, concatenated) so the stage 4.4 harness and the stage 5.2 text UI cannot drift apart on the question parity is measured by.
+- **`src/state.ts` — `GameState` and the object tree.** The split that matters: the IR document is immutable input (it *is* the compiled game) and `GameState` is everything that changes, which is what makes the state a complete save file on its own. Primitives mirror ZIL's semantics rather than convenience: `isIn` is a *direct* containment test (one level, ZIL `IN?`) with `isWithin` offered separately for the transitive question, and `move` inserts at the FRONT of the child list per the Z-machine `insert_obj` opcode, because room-listing order depends on it. `isWithin` bounds its walk at 64 hops — the tree is data, and data lies.
+- **`src/load.ts` — booting a document into state.** Every relationship the schema calls "derived" is materialised here exactly once, so no later stage has to special-case an implicit container: rooms parent under the `rooms` meta entity in document order, `global`/`local-globals` objects under theirs, and LOCAL-GLOBALS nests inside GLOBAL-OBJECTS as the parser's scope walk requires. Flags, mutable properties, and table storage are **copied** out of the document, so a world shared between two engines cannot be corrupted by play (tested directly). Load-time linking appends rather than prepending — ZIL declaration order is the listing order — which is deliberately the opposite of runtime `move`.
+- **`src/movement.ts` — exit resolution split from performing the move.** `resolveExit` answers "where does this direction lead, and may I go?" without touching state, returning a discriminated `ExitResolution` (`go` / `blocked` with the authored message / `refused` / `routine` / `none`). The split exists because the parser, a vehicle, a daemon's forced move, and the thief all need to ask without committing, and because stage 4.3 needs the *reason* for a refusal to pick the right narration event. `PER` exits resolve to `{kind: "routine"}` — deferred until the behavior interpreter lands in 4.3.
+- **`src/rng.ts` — the only source of randomness.** mulberry32, seeded, with the whole generator state round-tripping through one number so it saves and restores with the game. Determinism is a contract term (ADR 0002), not an implementation detail: golden-transcript replay in 4.4 is meaningless without it. `random(n)` returns 1..n inclusive, matching the Z-machine `random` opcode rather than 0-based indexing.
+
+### Tests
+
+22 tests, all against the **real** extracted Zork I world (110 rooms, 137 objects) rather than fixtures, so a regression shows up at full scale. Two are load-bearing beyond their own assertions:
+
+- **No exit points at a nonexistent room** — a whole-document sweep. A dangling exit is exactly the extraction defect that would otherwise surface in stage 4.4 as an unexplainable crash.
+- **Unconditional-exit reachability from the start is exactly 16 rooms** — the entire surface world and no more. Everything underground sits behind the kitchen window (a door exit) or the trap door (a `PER` routine), so the number is a real statement about Zork I's topology: if it grows, an exit that should be gated has stopped being gated.
+
+One genuine bug was caught by the tests rather than by review: the start room was not marked visited at load, so walking out and back read as a first visit — which would have mis-scored first-entry room values in 4.3.
+
+Three other initial failures were **wrong test assumptions, not wrong code**, and are worth recording because each is a trap for the next reader: the leaflet's id is `ADVERTISEMENT`, not `LEAFLET`; "Behind House" is the *display name* of the room whose id is `EAST-OF-HOUSE` (the engine must never conflate id and `name`); and the 16-room reachability figure that looked too low is correct.
+
+### Status
+
+Stage 4.1 ✅ — the exit criteria ("can walk the map; state transitions correct") are met against the full Zork I document. `npm test` 22/22, `npm run typecheck` clean.
+
+Next: stage 4.2, the command parser (tokenization, vocabulary lookup, syntax matching, disambiguation) against the `vocabulary` section — 267 extracted parser rules.

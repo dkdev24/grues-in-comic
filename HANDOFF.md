@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.5.18**
+**0.6.0**
 
 ---
 
@@ -24,11 +24,54 @@ Historical sources imported:
   - 3.5 ✅ (Group B complete): 346 routines extracted, 32 catalogued (all triaged, ADR 0001 builtin list), 39/292 refs unresolved (87% coverage); IR schema 0.13.0
   - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL); world-doc gaps 1 (meta entities) + 2 (table-valued globals) + 3 (nested tables/ITABLE)
   - Remaining catalog = Group A engine builtins by design + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag)
-- M4 ⏳: Engine core (next — not started)
+- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ `engine/` module: world runtime, object tree, exit resolution, seeded RNG, ADR 0002 event contract as code. 4.2–4.5 remaining
 
 ---
 
-## Last Session (v0.5.18) — project scope, trademark notices, `.avb` format cracked
+## Last Session (v0.6.0) — M4 stage 4.1: engine core, state & world runtime
+
+**First code written against Gate B.** New `engine/` module — `@grues-in-comic/engine`,
+zero runtime dependencies (`ir` imported `import type` only, via a tsconfig path), no
+DOM/timers/I/O.
+
+- **`src/events.ts`** — the ADR 0002 contract as code: `EngineEvent`, `TurnResult`,
+  `CONTRACT_VERSION` "1.0.0", plus `transcriptText()` which defines *once* what "the text
+  the player saw" means, so the 4.4 harness and the 5.2 text UI cannot drift on the
+  question parity is measured by
+- **`src/state.ts`** — `GameState` (everything mutable; the document stays immutable input,
+  which is what makes state a complete save file) and object-tree primitives with ZIL
+  semantics: `isIn` is direct containment, `isWithin` transitive, and `move` inserts at the
+  FRONT per `insert_obj` because room-listing order depends on it
+- **`src/load.ts`** — materialises every "derived" relationship exactly once (rooms under
+  ROOMS in document order, global/local-globals pools, LOCAL-GLOBALS nested in
+  GLOBAL-OBJECTS for the scope walk). Flags/properties/tables are **copied**, so play cannot
+  corrupt a shared world. Load-time linking *appends* (ZIL declaration order = listing
+  order) — deliberately the opposite of runtime `move`
+- **`src/movement.ts`** — `resolveExit` answers "where does this lead, may I go?" without
+  touching state, returning `go`/`blocked`/`refused`/`routine`/`none`. Split from performing
+  the move because parser, vehicles, daemons and the thief all ask without committing, and
+  4.3 needs the refusal *reason* to pick the right event. `PER` exits defer to 4.3
+- **`src/rng.ts`** — mulberry32; determinism is a contract term, not an implementation
+  detail. Whole state round-trips through one number; `random(n)` is 1..n inclusive per the
+  Z-machine opcode
+
+**22 tests, all against the real 110-room/137-object world, not fixtures.** Two are
+load-bearing: a whole-document sweep proving no exit points at a nonexistent room (the
+defect class that would otherwise crash 4.4 inexplicably), and **unconditional-exit
+reachability from the start is exactly 16** — the entire surface world, since everything
+underground is behind the kitchen window (door exit) or trap door (`PER`). If that number
+grows, an exit that should be gated has stopped being gated.
+
+One real bug caught by tests: the start room was not marked visited at load, so walking out
+and back read as a first visit — would have mis-scored first-entry room values in 4.3.
+Three other failures were **wrong test assumptions, not wrong code**, each a trap worth
+recording: the leaflet's id is `ADVERTISEMENT`; "Behind House" is the *display name* of the
+room whose id is `EAST-OF-HOUSE` (never conflate id and `name`); and the 16-room figure that
+looked too low is correct.
+
+---
+
+## Prior Session (v0.5.18) — project scope, trademark notices, `.avb` format cracked
 
 **No engine, IR, or artifact changes. M4 is still the next actual work.** Two doc threads
 and one real technical result.
@@ -80,7 +123,7 @@ decoding one. `AK_USAGE_FLAGS` unset everywhere; nothing complicates the MIT pos
 
 ---
 
-## Prior Session (v0.5.17) — licensing, provenance, public-repo prep
+## Earlier Session (v0.5.17) — licensing, provenance, public-repo prep
 
 **Documentation and repo hygiene only. No engine, IR, or artifact changes; M4 is still the next actual work.**
 
@@ -115,7 +158,27 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M3 complete: Group B done, all three world-doc gaps closed. M4 is next.**
+**M4 in progress. 4.1 ✅ — next is 4.2, the command parser.**
+
+1. **Stage 4.2 — command parser.** Tokenize input, look up the `vocabulary` section
+   (directions, buzzwords, synonyms, 267 syntax rules), match a rule, and disambiguate.
+   Object nouns/adjectives live on the objects, not in `vocabulary`. Needs a scope walk —
+   what the player can refer to from here — which is also what 4.3's `SyntaxSearchOption`
+   handling (HELD/CARRIED/IN-ROOM/ON-GROUND/MANY/HAVE/TAKE) consumes. `engine/src/state.ts`
+   already has the tree primitives; scope itself is new
+2. **Stage 4.3 — action dispatch & events.** Port `ir/poc/interpreter.ts` (the ADR 0001
+   behavior-AST evaluator, already proven over 346 routines) into `engine/` and drive it
+   from the parser. Two things 4.1 deliberately deferred land here: `PER` exits
+   (`ExitResolution.routine`) and light sources carried into dark rooms (`roomIsLit` covers
+   only the static half). Also room descriptions and first-visit scoring
+3. **Stage 4.4 — transcript replay harness** against `verification/` goldens. Parity is
+   measured on `transcriptText()`; the sanctioned diffs are the banner and Kitchen object
+   order (see Open Issues)
+4. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
+   Engine `CLOCKER` needs P-WON demon-region gating; the POC's `builtins.CLOCKER` in
+   `ir/poc/world.ts` is the starting point but does not implement that gating
+
+**Done in M3** (kept for reference):
 1. ✅ **Meta entities** — done in v0.5.14 (`metaEntities`, IR 0.11.0); I-THIEF unblocked
 2. ✅ **Table-valued globals** — done in v0.5.15 (`{table, offset}` global values, IR 0.12.0); validator `global` ref kind tightened
 3. ✅ **Nested table elements + ITABLE** — done in v0.5.16 (`{table, offset}` table elements, IR 0.13.0); HERO-BLOW now blocks only on Group A `RANDOM`
@@ -124,7 +187,6 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 5. Stage 5.1 (Comic Chat analysis) = filler, independent of every gate. Read `reference/comic-chat-paper.md` (the authors' SIGGRAPH '96 paper — balloon layout, character placement, gesture selection, camera zoom) alongside `original-projects/comic-chat/`; it explains the intent behind that source. Gitignored, so it may be absent from a fresh checkout — see the reference note in `docs/DEVELOPMENT_PLAN.md` M5
    - **Partly started (v0.5.18)**: `.avb` decoding is solved — `art/`, `docs/AVB_FORMAT.md`. Remaining 5.1 work: **face/torso compositing** (`cx`/`cy`/`cxDelta`/`cyDelta`; selection in `GetHeadAndBodyFromEmotion`, `v2.1b/cchat/avatar.cpp`), mask/aura planes for DIB-format poses, and the TS port of the decoder
    - **Panel grammar is an open design question, not a decoding one.** Comic Chat assumes dialogue between peers; Zork is second-person narration with 5 NPCs (`GHOSTS`, `BAT`, `CYCLOPS`, `THIEF`, `TROLL`). Most turns emit `narration` with no speaker, so caption boxes must be first-class, not just balloons — and "who is on screen when nobody speaks" needs an answer (the player is deliberately undescribed in Zork)
-4. M4 can start against the Group A builtin contract (walk map from IR); engine CLOCKER needs P-WON demon-region gating (stage 4.5)
 
 **M0 complete** (0.1–0.3):
 - 0.1: ZILF/ZAPF 0.11.1, frotz 2.55; builds to `verification/build/zork1.z3` (86,696 bytes)
@@ -148,6 +210,7 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 |---|---|
 | `importer/` | ZIL parser, tests, AST artifacts |
 | `ir/` | IR schema, validator, extraction → `artifacts/zork1.world.json` |
+| `engine/` | **Engine core (M4).** Zero-dep TS; `src/events.ts` is the ADR 0002 contract as code. `npm test` runs against the real Zork I world |
 | `art/` | Comic Chat art tooling. `poc/avbdec.py` decodes `.avb` → PNG (stage 5.1 POC; Python by exception — port to TS per ADR 0002) |
 | `docs/AVB_FORMAT.md` | **Normative** `.avb` format spec + the five silent-failure gotchas. Read before touching `art/` |
 | `original-projects/zork1/` | ZIL source reference |

@@ -72,7 +72,7 @@ Goal: a platform-independent engine that executes the IR and emits structured ga
 
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|
-| 4.1 | **State & world runtime** — load IR, world state, object tree, movement | Can walk the map; state transitions correct | ☐ |
+| 4.1 | **State & world runtime** — load IR, world state, object tree, movement | Can walk the map; state transitions correct | ✅ |
 | 4.2 | **Command parser** — tokenization, vocabulary lookup, syntax matching, disambiguation | Parses the command set used by golden transcripts | ☐ |
 | 4.3 | **Action dispatch & events** — execute IR behavior, emit narration/state events per the Gate B contract | LOOK/TAKE/DROP/inventory flows produce correct events | ☐ |
 | 4.4 | **Transcript replay harness** — feed golden-transcript commands to the engine, diff output | First golden transcript replays with acceptable diff; harness in CI-style script | ☐ |
