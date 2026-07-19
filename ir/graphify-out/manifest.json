@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/extract-world.ts": {
-    "mtime": 1784386360.377487,
-    "ast_hash": "31e7f1a18019a8f8895f83589ef4e790",
+    "mtime": 1784420700.0506907,
+    "ast_hash": "751a62e339093e7079f501397ad24f60",
     "semantic_hash": ""
   },
   "test/extract.test.ts": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784420058.425263,
-    "ast_hash": "a12df3d3f250b21ef714ce2f59a285b0",
+    "mtime": 1784420764.0856307,
+    "ast_hash": "c96d26d4f699b62c9a9e6be2c476463e",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -90,8 +90,8 @@
     "semantic_hash": ""
   },
   "test/behavior-35b.test.ts": {
-    "mtime": 1784420299.8513105,
-    "ast_hash": "b051c3b8da9507d629cea7fbba1f3940",
+    "mtime": 1784420838.3365767,
+    "ast_hash": "bc25e7cd6996f1e30d13d3f109f3a5be",
     "semantic_hash": ""
   }
 }

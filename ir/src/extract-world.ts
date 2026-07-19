@@ -391,7 +391,7 @@ function extractObject(form: AstNode, roomIds: Set<string>): WorldObject {
  * `==?` / `N==?` against a number literal, and the first true clause's body
  * joins the top-level form stream. Anything else is a hard error.
  */
-function expandCompileTimeConds(programs: AstProgram[]): AstNode[] {
+function findZorkNumber(programs: AstProgram[]): number | undefined {
   let zorkNumber: number | undefined;
   for (const program of programs) {
     for (const node of program.body) {
@@ -402,7 +402,11 @@ function expandCompileTimeConds(programs: AstProgram[]): AstNode[] {
       }
     }
   }
+  return zorkNumber;
+}
 
+function expandCompileTimeConds(programs: AstProgram[]): AstNode[] {
+  const zorkNumber = findZorkNumber(programs);
   const out: AstNode[] = [];
   for (const program of programs) {
     for (const node of program.body) {
@@ -632,6 +636,7 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
     constants,
     directionWords: new Map(Object.entries(DIRECTION_MAP)),
     decodeString: decodeZilString,
+    zorkNumber: findZorkNumber(programs),
   });
 
   const globals: GlobalVariable[] = [...globalRefs]

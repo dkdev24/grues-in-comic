@@ -1,12 +1,12 @@
 [
   {
-    "id": "AXE-F",
+    "id": "AWAKEN",
     "source": {
       "file": "1actions.zil",
-      "line": 622
+      "line": 3843
     },
     "reasons": [
-      "form without an atom head"
+      "operator APPLY"
     ]
   },
   {
@@ -46,17 +46,7 @@
       "line": 43
     },
     "reasons": [
-      "unexpected Chtype in statement position"
-    ]
-  },
-  {
-    "id": "CRETIN-FCN",
-    "source": {
-      "file": "gglobals.zil",
-      "line": 221
-    },
-    "reasons": [
-      "COND clause is not a list"
+      "unknown form <REST …>"
     ]
   },
   {
@@ -70,13 +60,33 @@
     ]
   },
   {
+    "id": "DESCRIBE-OBJECT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1693
+    },
+    "reasons": [
+      "operator APPLY"
+    ]
+  },
+  {
     "id": "DESCRIBE-ROOM",
     "source": {
       "file": "gverbs.zil",
       "line": 1635
     },
     "reasons": [
-      "unexpected MacroEval in statement position"
+      "unknown name ,ROOMS"
+    ]
+  },
+  {
+    "id": "FIRSTER",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1818
+    },
+    "reasons": [
+      "unknown name ,ROOMS"
     ]
   },
   {
@@ -120,16 +130,6 @@
     ]
   },
   {
-    "id": "GROUND-FUNCTION",
-    "source": {
-      "file": "gglobals.zil",
-      "line": 170
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
     "id": "HACK-HACK",
     "source": {
       "file": "gverbs.zil",
@@ -140,13 +140,23 @@
     ]
   },
   {
+    "id": "HERO-BLOW",
+    "source": {
+      "file": "1actions.zil",
+      "line": 3476
+    },
+    "reasons": [
+      "table VILLAINS has an unsupported element (Form)"
+    ]
+  },
+  {
     "id": "INT",
     "source": {
       "file": "gclock.zil",
       "line": 26
     },
     "reasons": [
-      "unexpected Chtype in statement position"
+      "unknown form <REST …>"
     ]
   },
   {
@@ -156,7 +166,7 @@
       "line": 1900
     },
     "reasons": [
-      "unexpected Chtype in statement position"
+      "operator RFATAL"
     ]
   },
   {
@@ -167,26 +177,6 @@
     },
     "reasons": [
       "operator RFATAL"
-    ]
-  },
-  {
-    "id": "LANTERN",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2230
-    },
-    "reasons": [
-      "form without an atom head"
-    ]
-  },
-  {
-    "id": "LEAVES-APPEAR",
-    "source": {
-      "file": "1actions.zil",
-      "line": 774
-    },
-    "reasons": [
-      "form without an atom head"
     ]
   },
   {
@@ -220,6 +210,16 @@
     ]
   },
   {
+    "id": "OTHER-SIDE",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 2173
+    },
+    "reasons": [
+      "unknown form <NEXTP …>"
+    ]
+  },
+  {
     "id": "PICK-ONE",
     "source": {
       "file": "gmacros.zil",
@@ -236,7 +236,7 @@
       "line": 201
     },
     "reasons": [
-      "COND clause is not a list"
+      "operator RFATAL"
     ]
   },
   {
@@ -250,83 +250,13 @@
     ]
   },
   {
-    "id": "PRE-MUNG",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 923
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "PRE-PUT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1075
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "PRE-TAKE",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1353
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
-    ]
-  },
-  {
     "id": "PRE-TURN",
     "source": {
       "file": "gverbs.zil",
       "line": 1488
     },
     "reasons": [
-      "unexpected MacroEval in statement position"
-    ]
-  },
-  {
-    "id": "PRINT-CONT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1750
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "QUEUE",
-    "source": {
-      "file": "gclock.zil",
-      "line": 21
-    },
-    "reasons": [
-      "unexpected Chtype in statement position"
-    ]
-  },
-  {
-    "id": "RBOAT-FUNCTION",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2722
-    },
-    "reasons": [
-      "form without an atom head"
-    ]
-  },
-  {
-    "id": "ROBBER-FUNCTION",
-    "source": {
-      "file": "1actions.zil",
-      "line": 1947
-    },
-    "reasons": [
-      "form without an atom head"
+      "unknown name ,ROOMS"
     ]
   },
   {
@@ -356,7 +286,7 @@
       "line": 122
     },
     "reasons": [
-      "unexpected MacroEval in statement position"
+      "operator MOD"
     ]
   },
   {
@@ -370,13 +300,13 @@
     ]
   },
   {
-    "id": "SCORE-UPD",
+    "id": "SHAKE-LOOP",
     "source": {
       "file": "gverbs.zil",
-      "line": 1851
+      "line": 1242
     },
     "reasons": [
-      "unexpected MacroEval in statement position"
+      "unknown form <COND …>"
     ]
   },
   {
@@ -387,16 +317,6 @@
     },
     "reasons": [
       "operator BAND"
-    ]
-  },
-  {
-    "id": "SWORD-FCN",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2432
-    },
-    "reasons": [
-      "form without an atom head"
     ]
   },
   {
@@ -426,27 +346,7 @@
       "line": 640
     },
     "reasons": [
-      "form without an atom head"
-    ]
-  },
-  {
-    "id": "V-ALARM",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 156
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "V-ATTACK",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 176
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
+      "bare atom CR in expression position"
     ]
   },
   {
@@ -457,36 +357,6 @@
     },
     "reasons": [
       "operator APPLY"
-    ]
-  },
-  {
-    "id": "V-BURN",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 251
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "V-CLIMB-FOO",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 281
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
-    ]
-  },
-  {
-    "id": "V-CLIMB-ON",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 290
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
     ]
   },
   {
@@ -516,17 +386,7 @@
       "line": 3993
     },
     "reasons": [
-      "unexpected Chtype in statement position"
-    ]
-  },
-  {
-    "id": "V-DIG",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 405
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
+      "operator PRINTN"
     ]
   },
   {
@@ -537,16 +397,6 @@
     },
     "reasons": [
       "unknown name ,ROOMS"
-    ]
-  },
-  {
-    "id": "V-DISENCHANT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 434
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
     ]
   },
   {
@@ -566,17 +416,7 @@
       "line": 526
     },
     "reasons": [
-      "unexpected Chtype in statement position"
-    ]
-  },
-  {
-    "id": "V-ENCHANT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 550
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
+      "operator GETB"
     ]
   },
   {
@@ -600,16 +440,6 @@
     ]
   },
   {
-    "id": "V-INCANT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 736
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
-    ]
-  },
-  {
     "id": "V-LEAP",
     "source": {
       "file": "gverbs.zil",
@@ -617,66 +447,6 @@
     },
     "reasons": [
       "operator GETPT"
-    ]
-  },
-  {
-    "id": "V-LOOK-INSIDE",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 865
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "V-ODYSSEUS",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 945
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "V-OVERBOARD",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 996
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "V-POUR-ON",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1024
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
-    ]
-  },
-  {
-    "id": "V-PRAY",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1046
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "V-PUMP",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1056
-    },
-    "reasons": [
-      "COND clause is not a list"
     ]
   },
   {
@@ -746,17 +516,7 @@
       "line": 1167
     },
     "reasons": [
-      "unexpected MacroEval in statement position"
-    ]
-  },
-  {
-    "id": "V-SCORE",
-    "source": {
-      "file": "1actions.zil",
-      "line": 4026
-    },
-    "reasons": [
-      "unexpected Chtype in statement position"
+      "unknown name ,ACTORBIT"
     ]
   },
   {
@@ -770,26 +530,6 @@
     ]
   },
   {
-    "id": "V-SHAKE",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1213
-    },
-    "reasons": [
-      "unsupported MacroEval in expression position"
-    ]
-  },
-  {
-    "id": "V-SWIM",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1324
-    },
-    "reasons": [
-      "COND clause is not a list"
-    ]
-  },
-  {
     "id": "V-TELL",
     "source": {
       "file": "gverbs.zil",
@@ -797,26 +537,6 @@
     },
     "reasons": [
       "operator RFATAL"
-    ]
-  },
-  {
-    "id": "V-THROUGH",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1404
-    },
-    "reasons": [
-      "unexpected Chtype in statement position"
-    ]
-  },
-  {
-    "id": "V-TREASURE",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1474
-    },
-    "reasons": [
-      "COND clause is not a list"
     ]
   },
   {
@@ -856,7 +576,7 @@
       "line": 98
     },
     "reasons": [
-      "unexpected MacroEval in statement position"
+      "operator PRINTN"
     ]
   },
   {
@@ -867,16 +587,6 @@
     },
     "reasons": [
       "operator GETPT"
-    ]
-  },
-  {
-    "id": "V-WISH",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1610
-    },
-    "reasons": [
-      "unexpected MacroEval in statement position"
     ]
   }
 ]

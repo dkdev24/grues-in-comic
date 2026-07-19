@@ -6,7 +6,7 @@ Cross-session context memory. Update this file at the end of every session.
 
 ## Current Version
 
-**0.5.6**
+**0.5.7**
 
 ---
 
@@ -17,19 +17,18 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 - `original-projects/zork1/` — ZIL source for Zork I
 - `original-projects/comic-chat/` — Microsoft Comic Chat (v1.0, v2.1b, v2.5-beta-1, v2.5-beta-1-modern)
 
-**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A: Graphify adopted with per-module graphs; OpenWiki **not adopted** — no budget, `wiki/` hand-authored). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stages 3.1–3.4 complete — all 110 Zork I rooms/exits, all 137 objects, the full parser vocabulary (267 syntax rules) in `ir/artifacts/`. Stage 3.5 (complex behavior) in progress: batches a (property/table access), c (opt-param defaults, SET-as-expression), arithmetic, and b (loops + object-tree iteration) done — **247 routines extracted, 88 catalogued, 94/292 refs unresolved**; IR schema at 0.6.0. Next: batch e (compile-time MacroEval + quoted COND clauses) or d (daemons/timers). No engine or browser runtime started (Milestone 4).
+**Milestone 1 complete**: `importer/` (TypeScript) contains the deterministic ZIL S-expression parser, validated against the full corpus, with committed AST artifacts and statistics (`importer/artifacts/`). **Milestone 2 in progress**: `ir/` (TypeScript) holds the IR schema + validator; declarative-world subset (stage 2.1) is defined and sample-validated. Behavior representation decided (stage 2.2, ADR 0001): structured behavior AST interpreted by the engine, with a builtin layer for generic ZIL utilities. Engine runtime decided (stage 2.3, ADR 0002, **⚑ Gate B resolved**): TypeScript, WASM dropped; engine↔UI JSON event contract fixed interface-first. **Milestone 2 complete** (stage 2.4 / ⚑ Gate A: Graphify adopted with per-module graphs; OpenWiki **not adopted** — no budget, `wiki/` hand-authored). **Milestone 3 (Semantic Extraction ZIL→IR) in progress**: stages 3.1–3.4 complete — all 110 Zork I rooms/exits, all 137 objects, the full parser vocabulary (267 syntax rules) in `ir/artifacts/`. Stage 3.5 (complex behavior) in progress: batches a (property/table), c (defaults/SET-expr), arithmetic, b (loops/iteration), and e (compile-time macro resolution) done — **288 routines extracted, 59 catalogued, 65/292 refs unresolved (78% handler coverage)**; IR schema at 0.6.0. Next: batch d (daemons/timers), then the extract-vs-builtin triage of the long tail. No engine or browser runtime started (Milestone 4).
 
 ---
 
 ## Last Session
 
-- **Stage 3.5 batch (b) complete — loops + object-tree iteration** (v0.5.6):
-  - **IR schema 0.6.0**: stmts `loop` (REPEAT), `block` (PROG — runs once, yields last value), `break`, `continue` (AGAIN); exprs `first`/`next`. Exact ZIL activation semantics: RETURN inside REPEAT/PROG → `break`, outside → routine `return`; RTRUE/RFALSE always routine returns; validator statically rejects break/continue outside a container. POC world grew ordered child lists (`move` inserts FIRST, Z-machine `insert_obj`)
-  - **228 → 247 routines, catalog 104 → 88, unresolved 110 → 94.** Unlocked: V-OPEN, V-INVENTORY, V-WAIT, ROB, OTVAL-FROB (first `defaults` user), TOUCH-ALL, WEIGHT, FIND-WEAPON, DESCRIBE-OBJECTS, MACHINE-F, and more. Newly catalogued call targets: CLOCKER (batch d), PRINT-CONT
-  - **Historical quirk preserved**: OTVAL-FROB discards its recursive call's value (nested treasure never scores) — extraction is faithful, test asserts the quirk
-  - **Diagnosed the "COND clause is not a list" cluster** (15 routines: V-PRAY, V-LOOK-INSIDE, PRE-PUT, …): compile-time `%<COND (ZORK-NUMBER gate)>` yielding quoted clauses — batch (e) reuses the stage 3.3 gate-resolution machinery (ZORK-NUMBER=1)
-  - I-THIEF is neither extracted nor catalogued: QUEUE passes routines by name (lowered to name strings), so daemons enter the worklist only when batch (d) wires QUEUE targets in
-  - 89 tests pass (12 new: loop semantics, sibling-order tree ops, corpus routines FIND-WEAPON/OTVAL-FROB/TOUCH-ALL run by the interpreter over mini worlds); typecheck + validate clean; graphify regenerated
+- **Stage 3.5 batch (e) complete — compile-time macro resolution** (v0.5.7, no schema change):
+  - Extractor-only lowerings: `%<COND …>` MacroEval resolved in stmt/expr/clause position (stage 3.3 ZORK-NUMBER gate machinery: `==?`/`N==?`, `OR`, `T`/`ELSE`; selected quoted form unquoted; no-live-clause → ZIL `<>` false). `#DECL` Chtypes filtered like comments; `<>` empty-form statements → false expression statements
+  - **247 → 288 routines, catalog 88 → 59, unresolved 94 → 65 (78% coverage).** Cleared the MacroEval (16), quoted-clause (15), Chtype (8), and empty-form (7) clusters. Unlocked V-PRAY, V-ATTACK, V-SCORE, ROBBER-FUNCTION, QUEUE, PRINT-CONT + 29 more
+  - Gate selection verified end-to-end: V-PRAY carries the Zork I clause (SOUTH-TEMPLE → GOTO FOREST-1), not the Zork II/III NULL-F variant; AXE-F's `<>` clause executes to false. 92 tests pass
+  - Remaining 59 = mostly the deliberate builtin frontier: ,ROOMS/,GLOBAL-OBJECTS iteration (11), RFATAL (5), GETPT (4), SAVE/RESTORE/QUIT/VERIFY, DIROUT/DIRIN, RANDOM/MOD/MIN; stragglers: `<REST …>` (3), expr-position `<COND …>` (3), TROLL-FCN's TELL-CR-as-argument
+- Earlier same day: batch (b) loops/iteration (v0.5.6), batches (a)+(c)+arithmetic (v0.5.5) — see WORKLOG
 
 ---
 
@@ -37,7 +36,7 @@ Project renamed from **Comic-Zork** to **Grues in Comic** (trademark-safe: "grue
 
 Follow `docs/DEVELOPMENT_PLAN.md` (Session Protocol section). **Milestone 3 continues** (Semantic Extraction ZIL→IR, v0.5.x):
 
-1. Stage 3.5 continues — 88 routines still catalogued. **Batch (e) next: compile-time macro evaluation** — the dominant cluster (16 MacroEval + 15 quoted-COND-clause + 8 Chtype first-blockers ≈ 31 routines: V-PRAY, V-LOOK-INSIDE, PRE-PUT, CRETIN-FCN, …). Reuse the stage 3.3 `<COND (<==? ,ZORK-NUMBER n> …)>` gate resolution (ZORK-NUMBER=1) to expand `%<COND …>` in clause/statement position and unquote the selected form; deny non-ZORK-NUMBER macros. Then (d) daemons/timers: QUEUE/INT machinery — decide engine-daemon protocol, wire QUEUE name-string targets (I-THIEF, I-LANTERN, I-CANDLES, …) into the worklist. Each batch: ADR governance (schema+validator+interpreter+appendix), re-extract to surface next blockers (reasons are first-blocker only), cross-check against goldens. Remaining deliberate non-extractions (engine builtins): PICK-ONE, V-SCRIPT/V-UNSCRIPT, PRE-FILL, SAVE/RESTORE/QUIT, ,ROOMS/,GLOBAL-OBJECTS scope iteration, GETPT/PTSIZE, DIROUT/DIRIN, RFATAL — end state is a deliberate builtin list, not an empty catalog
+1. Stage 3.5 continues — 59 routines still catalogued. **Batch (d) next: daemons/timers.** QUEUE/INT/CLOCKER already partially extract (QUEUE did); the work is (i) wiring QUEUE name-string targets (I-THIEF, I-LANTERN, I-CANDLES, I-SWORD, …) into the worklist closure, (ii) deciding the engine daemon protocol (CLOCKER as builtin vs extracted, C-INTS table representation — currently blocked on `<ITABLE …>` global P-PRSO and VILLAINS table Form elements), (iii) goldens for lantern/candle countdowns. After (d): **triage the long tail** into extract-with-new-ops vs deliberate engine builtins, and write the builtin list into the ADR: ,ROOMS/,GLOBAL-OBJECTS iteration (needs a scope-iteration decision), RFATAL (parser dispatch), GETPT/PTSIZE, SAVE/RESTORE/RESTART/QUIT/VERIFY, DIROUT/DIRIN, RANDOM/MOD/MIN, `<REST …>`, expr-position `<COND …>`, TROLL-FCN's TELL-CR-argument. End state is a deliberate builtin list, not an empty catalog
 2. Stage 5.1 (Comic Chat analysis) remains the sanctioned filler stage
 3. After 3.5: Milestone 4 (engine core) can start walking the map from the IR
 

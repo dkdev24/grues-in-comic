@@ -31,6 +31,8 @@ interface AstNode {
   value?: unknown;
   elements?: AstNode[];
   radix?: number;
+  /** Chtype target type (`#DECL`, `#BYTE`, …). */
+  typeName?: string;
   start?: { line: number };
 }
 
@@ -108,6 +110,8 @@ export interface BehaviorSources {
   constants: Map<string, number>;
   directionWords: Map<string, Direction>;
   decodeString: (raw: string) => string;
+  /** `<SETG ZORK-NUMBER n>` (1 for Zork I) — resolves `%<COND …>` gates. */
+  zorkNumber?: number | undefined;
 }
 
 class Unsupported extends Error {
@@ -241,12 +245,18 @@ class RoutineTransformer {
   // ---- statements ----
 
   stmt(node: AstNode): Stmt {
+    // Compile-time `%<COND …>`: substitute the selected form; a macro that
+    // yields false is ZIL `<>` — a false-valued expression statement.
+    const resolved = this.resolveMacro(node);
+    if (resolved === undefined) return { op: "value", expr: FALSE };
+    node = resolved;
     // Bare `T` ending a COND clause, or a value reference in statement
     // position — an expression statement (the routine may return its value).
     if (node.type === "Atom" && node.name === "T") return { op: "value", expr: TRUE };
     if (node.type === "GVal" || node.type === "LVal") return { op: "value", expr: this.expr(node) };
     if (node.type !== "Form") this.deny(`unexpected ${node.type} in statement position`);
     const parts = meaningful(node.elements ?? []);
+    if (parts.length === 0) return { op: "value", expr: FALSE }; // ZIL `<>` statement
     const head = atomName(parts[0]);
     if (head === undefined) this.deny("form without an atom head");
     const rest = parts.slice(1);
@@ -316,6 +326,8 @@ class RoutineTransformer {
   }
 
   private condClause(node: AstNode): CondClause {
+    // A clause may be produced wholesale by `%<COND …>` (quoted per game).
+    node = this.resolveMacro(node) ?? this.deny("MacroEval COND clause selected no form");
     if (node.type !== "List" || !node.elements?.length) this.deny("COND clause is not a list");
     const [pred, ...body] = meaningful(node.elements);
     // ZIL else-clauses: `(T …)` or `(ELSE …)`.
@@ -353,6 +365,10 @@ class RoutineTransformer {
   // ---- expressions ----
 
   expr(node: AstNode): Expr {
+    if (node.type === "MacroEval") {
+      const resolved = this.resolveMacro(node);
+      return resolved === undefined ? FALSE : this.expr(resolved);
+    }
     switch (node.type) {
       case "String":
         return { op: "const", value: this.sources.decodeString(node.value as string) };
@@ -450,6 +466,58 @@ class RoutineTransformer {
         return { op: "call", routine: call.routine, args: call.args };
       }
     }
+  }
+
+  /**
+   * Resolve compile-time `%<COND …>` macro evaluation (ZIL reader macros).
+   * Predicates are `,ZORK-NUMBER` gates (`==?`/`N==?`, `OR` of gates,
+   * `T`/`ELSE`) — the same machinery stage 3.3 uses for top-level forms.
+   * Returns the selected clause's (unquoted) form, or undefined when no
+   * clause fires (the macro yields false at compile time).
+   */
+  private resolveMacro(node: AstNode): AstNode | undefined {
+    if (node.type !== "MacroEval") return node;
+    const form = node.value as AstNode;
+    const parts = meaningful(form?.elements ?? []);
+    if (atomName(parts[0]) !== "COND") {
+      this.deny(`unsupported MacroEval <${atomName(parts[0]) ?? form?.type} …>`);
+    }
+    for (const clause of parts.slice(1)) {
+      if (clause.type !== "List" || !clause.elements?.length) {
+        this.deny("MacroEval COND clause is not a list");
+      }
+      const [predicate, ...body] = meaningful(clause.elements);
+      if (!this.evalGate(predicate!)) continue;
+      if (body.length !== 1) this.deny("MacroEval COND clause must select exactly one form");
+      const selected = body[0]!;
+      return selected.type === "Quote" ? (selected.value as AstNode) : selected;
+    }
+    return undefined;
+  }
+
+  /** Evaluate a compile-time `,ZORK-NUMBER` gate predicate. */
+  private evalGate(predicate: AstNode): boolean {
+    const name = atomName(predicate);
+    if (name === "T" || name === "ELSE") return true;
+    const parts = meaningful(predicate.elements ?? []);
+    const op = atomName(parts[0]);
+    if (op === "OR") return parts.slice(1).some((p) => this.evalGate(p));
+    if (op === "==?" || op === "N==?") {
+      const lhs = parts[1];
+      const rhs = parts[2];
+      if (
+        lhs?.type !== "GVal" ||
+        atomName(lhs.value as AstNode) !== "ZORK-NUMBER" ||
+        rhs?.type !== "Number"
+      ) {
+        this.deny("MacroEval predicate is not ,ZORK-NUMBER vs a number literal");
+      }
+      const zorkNumber =
+        this.sources.zorkNumber ?? this.deny("ZORK-NUMBER is not set by any provided AST");
+      const equal = zorkNumber === (rhs.value as number);
+      return op === "==?" ? equal : !equal;
+    }
+    this.deny(`unsupported compile-time predicate ${op ?? predicate.type}`);
   }
 
   /** Lower `<REPEAT () …>` → `loop`, `<PROG () …>` → `block`. */
@@ -568,7 +636,11 @@ class RoutineTransformer {
 }
 
 function meaningful(elements: AstNode[]): AstNode[] {
-  return elements.filter((e) => e.type !== "Comment");
+  // `#DECL` type declarations (Chtype/DECL) are compile-time metadata, as
+  // ignorable as comments. Other Chtypes (e.g. #BYTE) stay visible.
+  return elements.filter(
+    (e) => e.type !== "Comment" && !(e.type === "Chtype" && e.typeName === "DECL"),
+  );
 }
 
 function atomName(node: AstNode | undefined): string | undefined {

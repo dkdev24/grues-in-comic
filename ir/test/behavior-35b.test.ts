@@ -49,7 +49,7 @@ describe("stage 3.5 batch (b) extraction", () => {
   });
 
   it("keeps daemon machinery catalogued for batch (d)", () => {
-    for (const id of ["CLOCKER", "PRINT-CONT"]) {
+    for (const id of ["CLOCKER"]) {
       expect(routineById.has(id), `${id} should not be extracted`).toBe(false);
       expect(catalogIds.has(id), `${id} should stay catalogued`).toBe(true);
     }
@@ -59,6 +59,32 @@ describe("stage 3.5 batch (b) extraction", () => {
     const findWeapon = JSON.stringify(routineById.get("FIND-WEAPON"));
     expect(findWeapon).toContain('"op":"loop"');
     expect(findWeapon).toContain('"op":"break"');
+  });
+});
+
+describe("stage 3.5 batch (e) extraction — compile-time macro resolution", () => {
+  it("extracts the %<COND>-gated and DECL/empty-form routines", () => {
+    for (const id of [
+      "V-PRAY", "V-LOOK-INSIDE", "V-ATTACK", "V-SCORE", "V-TREASURE", "PRE-PUT",
+      "CRETIN-FCN", "AXE-F", "ROBBER-FUNCTION", "QUEUE", "PRINT-CONT", "SCORE-UPD",
+    ]) {
+      expect(routineById.has(id), `${id} should be extracted`).toBe(true);
+    }
+  });
+
+  it("selects the ZORK-NUMBER=1 clause and drops the Zork II/III variants", () => {
+    // V-PRAY's Zork I gate: (EQUAL? HERE SOUTH-TEMPLE → GOTO FOREST-1);
+    // the Zork II/III alternative is '(<NULL-F> <RTRUE>).
+    const vPray = JSON.stringify(routineById.get("V-PRAY"));
+    expect(vPray).toContain("SOUTH-TEMPLE");
+    expect(vPray).toContain("FOREST-1");
+    expect(vPray).not.toContain("NULL-F");
+  });
+
+  it("AXE-F's empty-form clause body yields false (ZIL <>)", () => {
+    const axeF = routineById.get("AXE-F")!;
+    const w = makeWorld({ here: "TROLL-ROOM", verb: "X", globals: { "TROLL-FLAG": true } });
+    expect(runRoutine(axeF, w)).toBe(false);
   });
 });
 
