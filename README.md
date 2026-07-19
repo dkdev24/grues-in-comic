@@ -9,7 +9,7 @@ Grues in Comic is an experimental software modernization project that combines t
 * **Microsoft Comic Chat** (comic-style visual presentation)
 
 The objective is not to reproduce the original runtime environments.
-Instead, Grues in Comic extracts gameplay semantics from the original source code and reimplements them using a modern browser-native architecture powered by WebAssembly.
+Instead, Grues in Comic extracts gameplay semantics from the original source code into a runtime-independent Intermediate Representation, executed by a TypeScript engine that runs natively in the browser.
 
 The project also serves as a reference implementation for AI-assisted modernization of legacy software.
 
@@ -40,14 +40,18 @@ Historical Source Code
 Intermediate Representation (IR)
         │
         ▼
- Grues in Comic Engine
+ Grues in Comic Engine  (TypeScript, zero runtime deps)
         │
-        ▼
- WebAssembly Runtime
+        ▼  JSON event stream (versioned engine↔UI contract)
         │
-        ▼
- Browser Application
+ Browser Application  (text UI · comic renderer)
 ```
+
+The engine is a pure, deterministic, synchronous state machine — no DOM, no
+timers, no rendering vocabulary. It emits semantic events (`narration`,
+`speech`, `player-moved`, …) that a UI layer maps to text or comic panels.
+"Browser-native" is achieved by being JavaScript, not by compiling to
+WebAssembly; see ADR 0002 for the reasoning and the full contract.
 
 ---
 
@@ -56,23 +60,22 @@ Intermediate Representation (IR)
 ```text
 grues-in-comic/
 
-├── original-projects/
-│   ├── zork/
-│   └── comic-chat/
+├── original-projects/     historical source, version-controlled
+│   ├── zork1/             ZIL source (MIT, Microsoft)
+│   └── comic-chat/        Comic Chat source + art (MIT, Microsoft)
 │
-├── importers/
-├── ir/
-├── engine/
-├── renderer/
-├── wasm/
-├── web/
-├── assets/
-├── docs/
-├── wiki/
-├── graph/
-├── tests/
-└── scripts/
+├── importer/              ZIL parser → AST artifacts
+├── ir/                    IR schema, validator, extraction → world document
+├── verification/          ZILF build + dfrotz golden transcripts
+├── docs/                  ADRs, plans, decision records
+├── reference/             third-party reference material (gitignored)
+│
+├── engine/                planned — IR runtime (Milestone 4)
+└── web/                   planned — text UI, then comic renderer (Milestone 5)
 ```
+
+Each TypeScript module carries its own Graphify knowledge graph in
+`<module>/graphify-out/`.
 
 ---
 
