@@ -34,10 +34,9 @@ interface AstNode {
   start?: { line: number };
 }
 
-/** ZIL operators deliberately outside the vocabulary (batches 3.4/3.5a). */
+/** ZIL operators deliberately outside the vocabulary (batches 3.4/3.5a–b). */
 const DENIED_OPERATORS = new Set([
-  "REPEAT", "PROG", "AGAIN", "MAPF", "MAPR",
-  "FIRST?", "NEXT?",
+  "MAPF", "MAPR",
   "GETPT", "PTSIZE", "GETB", "PUTB",
   "MOD", "MIN", "ABS", "RANDOM",
   "BAND", "BOR", "BTST", "BCOM",
@@ -71,7 +70,7 @@ const FALSE: Expr = { op: "const", value: false };
 const EXPR_HEADS = new Set([
   "VERB?", "EQUAL?", "==?", "FSET?", "AND", "OR", "NOT",
   "G?", "L?", "0?", "1?", "IN?", "LOC", "GETP", "GET",
-  "+", "-", "*", "/",
+  "+", "-", "*", "/", "FIRST?", "NEXT?",
 ]);
 
 export interface CatalogEntry {
@@ -176,6 +175,8 @@ class RoutineTransformer {
   private params: string[] = [];
   private locals: string[] = [];
   private defaults = new Map<string, Expr>();
+  /** Nesting depth of REPEAT/PROG containers (RETURN/AGAIN target scope). */
+  private loopDepth = 0;
 
   constructor(
     private sources: BehaviorSources,
@@ -296,8 +297,18 @@ class RoutineTransformer {
         return { op: "return", value: TRUE };
       case "RFALSE":
         return { op: "return", value: FALSE };
-      case "RETURN":
-        return { op: "return", value: rest.length === 0 ? TRUE : this.expr(rest[0]!) };
+      case "RETURN": {
+        // ZIL RETURN exits the nearest PROG/REPEAT activation, or the
+        // routine when there is none. RTRUE/RFALSE always exit the routine.
+        const value = rest.length === 0 ? TRUE : this.expr(rest[0]!);
+        return this.loopDepth > 0 ? { op: "break", value } : { op: "return", value };
+      }
+      case "AGAIN":
+        if (this.loopDepth === 0) this.deny("AGAIN outside a REPEAT/PROG");
+        return { op: "continue" };
+      case "REPEAT":
+      case "PROG":
+        return this.container(head, rest);
       default:
         if (EXPR_HEADS.has(head)) return { op: "value", expr: this.formExpr(node) };
         return this.callForm(head, rest);
@@ -405,6 +416,10 @@ class RoutineTransformer {
         return { op: "in?", entity: this.expr(rest[0]!), container: this.expr(rest[1]!) };
       case "LOC":
         return { op: "loc", entity: this.expr(rest[0]!) };
+      case "FIRST?":
+        return { op: "first", entity: this.expr(rest[0]!) };
+      case "NEXT?":
+        return { op: "next", entity: this.expr(rest[0]!) };
       case "SETG": {
         const id = atomName(rest[0]) ?? this.deny("SETG target is not an atom");
         this.needGlobal(id);
@@ -434,6 +449,21 @@ class RoutineTransformer {
         const call = this.callForm(head, rest);
         return { op: "call", routine: call.routine, args: call.args };
       }
+    }
+  }
+
+  /** Lower `<REPEAT () …>` → `loop`, `<PROG () …>` → `block`. */
+  private container(head: "REPEAT" | "PROG", rest: AstNode[]): Stmt {
+    const bindings = rest[0];
+    if (bindings?.type !== "List" || meaningful(bindings.elements ?? []).length > 0) {
+      this.deny(`${head} with a non-empty binding list`);
+    }
+    this.loopDepth++;
+    try {
+      const body = rest.slice(1).map((n) => this.stmt(n));
+      return { op: head === "REPEAT" ? "loop" : "block", body };
+    } finally {
+      this.loopDepth--;
     }
   }
 

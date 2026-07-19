@@ -40,6 +40,16 @@
     ]
   },
   {
+    "id": "CLOCKER",
+    "source": {
+      "file": "gclock.zil",
+      "line": 43
+    },
+    "reasons": [
+      "unexpected Chtype in statement position"
+    ]
+  },
+  {
     "id": "CRETIN-FCN",
     "source": {
       "file": "gglobals.zil",
@@ -60,16 +70,6 @@
     ]
   },
   {
-    "id": "DESCRIBE-OBJECTS",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1681
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
     "id": "DESCRIBE-ROOM",
     "source": {
       "file": "gverbs.zil",
@@ -77,26 +77,6 @@
     },
     "reasons": [
       "unexpected MacroEval in statement position"
-    ]
-  },
-  {
-    "id": "FIND-WEAPON",
-    "source": {
-      "file": "1actions.zil",
-      "line": 3401
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
-    "id": "FWEEP",
-    "source": {
-      "file": "1actions.zil",
-      "line": 326
-    },
-    "reasons": [
-      "operator REPEAT"
     ]
   },
   {
@@ -160,16 +140,6 @@
     ]
   },
   {
-    "id": "HELD?",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 2167
-    },
-    "reasons": [
-      "operator REPEAT"
-    ]
-  },
-  {
     "id": "INT",
     "source": {
       "file": "gclock.zil",
@@ -196,7 +166,7 @@
       "line": 4046
     },
     "reasons": [
-      "operator PROG"
+      "operator RFATAL"
     ]
   },
   {
@@ -236,47 +206,7 @@
       "line": 1660
     },
     "reasons": [
-      "operator REPEAT"
-    ]
-  },
-  {
-    "id": "MACHINE-F",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2502
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
-    "id": "MIRROR-MIRROR",
-    "source": {
-      "file": "1actions.zil",
-      "line": 971
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
-    "id": "MSWITCH-FUNCTION",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2531
-    },
-    "reasons": [
-      "operator REPEAT"
-    ]
-  },
-  {
-    "id": "NO-OBJS",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2558
-    },
-    "reasons": [
-      "operator FIRST?"
+      "unknown form <READ …>"
     ]
   },
   {
@@ -287,16 +217,6 @@
     },
     "reasons": [
       "global P-PRSO has an unsupported initializer (<ITABLE …>)"
-    ]
-  },
-  {
-    "id": "OTVAL-FROB",
-    "source": {
-      "file": "1actions.zil",
-      "line": 496
-    },
-    "reasons": [
-      "operator FIRST?"
     ]
   },
   {
@@ -370,6 +290,16 @@
     ]
   },
   {
+    "id": "PRINT-CONT",
+    "source": {
+      "file": "gverbs.zil",
+      "line": 1750
+    },
+    "reasons": [
+      "COND clause is not a list"
+    ]
+  },
+  {
     "id": "QUEUE",
     "source": {
       "file": "gclock.zil",
@@ -390,23 +320,13 @@
     ]
   },
   {
-    "id": "ROB",
-    "source": {
-      "file": "1actions.zil",
-      "line": 3976
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
     "id": "ROBBER-FUNCTION",
     "source": {
       "file": "1actions.zil",
       "line": 1947
     },
     "reasons": [
-      "operator FIRST?"
+      "form without an atom head"
     ]
   },
   {
@@ -480,26 +400,6 @@
     ]
   },
   {
-    "id": "THIEF-IN-TREASURE",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2151
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
-    "id": "TOUCH-ALL",
-    "source": {
-      "file": "1actions.zil",
-      "line": 487
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
     "id": "TRAP-DOOR-FCN",
     "source": {
       "file": "1actions.zil",
@@ -516,7 +416,7 @@
       "line": 2880
     },
     "reasons": [
-      "operator FIRST?"
+      "unknown name ,ROOMS"
     ]
   },
   {
@@ -527,16 +427,6 @@
     },
     "reasons": [
       "form without an atom head"
-    ]
-  },
-  {
-    "id": "UP-CHIMNEY-FUNCTION",
-    "source": {
-      "file": "1actions.zil",
-      "line": 553
-    },
-    "reasons": [
-      "operator FIRST?"
     ]
   },
   {
@@ -720,16 +610,6 @@
     ]
   },
   {
-    "id": "V-INVENTORY",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 29
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
     "id": "V-LEAP",
     "source": {
       "file": "gverbs.zil",
@@ -746,7 +626,7 @@
       "line": 865
     },
     "reasons": [
-      "operator FIRST?"
+      "COND clause is not a list"
     ]
   },
   {
@@ -757,16 +637,6 @@
     },
     "reasons": [
       "COND clause is not a list"
-    ]
-  },
-  {
-    "id": "V-OPEN",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 966
-    },
-    "reasons": [
-      "operator FIRST?"
     ]
   },
   {
@@ -906,7 +776,7 @@
       "line": 1213
     },
     "reasons": [
-      "operator FIRST?"
+      "unsupported MacroEval in expression position"
     ]
   },
   {
@@ -990,16 +860,6 @@
     ]
   },
   {
-    "id": "V-WAIT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1514
-    },
-    "reasons": [
-      "operator REPEAT"
-    ]
-  },
-  {
     "id": "V-WALK",
     "source": {
       "file": "gverbs.zil",
@@ -1017,26 +877,6 @@
     },
     "reasons": [
       "unexpected MacroEval in statement position"
-    ]
-  },
-  {
-    "id": "WATER-F",
-    "source": {
-      "file": "1actions.zil",
-      "line": 157
-    },
-    "reasons": [
-      "operator FIRST?"
-    ]
-  },
-  {
-    "id": "WEIGHT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1988
-    },
-    "reasons": [
-      "operator FIRST?"
     ]
   }
 ]

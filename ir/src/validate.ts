@@ -532,6 +532,8 @@ export function validateWorld(input: unknown): ValidationResult {
             checkExprNode(`${ePath}.container`, node.container);
             break;
           case "loc":
+          case "first":
+          case "next":
             checkKeys(ctx, ePath, node, ["op", "entity"]);
             checkExprNode(`${ePath}.entity`, node.entity);
             break;
@@ -573,9 +575,25 @@ export function validateWorld(input: unknown): ValidationResult {
         }
       };
 
-      const checkStmtNode = (sPath: string, node: unknown): void => {
+      const checkStmtNode = (sPath: string, node: unknown, loopDepth = 0): void => {
         if (!isObject(node)) return ctx.fail(sPath, "must be a statement object");
         switch (node.op) {
+          case "loop":
+          case "block":
+            checkKeys(ctx, sPath, node, ["op", "body"]);
+            reqArray(ctx, sPath, node, "body").forEach((s, j) =>
+              checkStmtNode(`${sPath}.body[${j}]`, s, loopDepth + 1),
+            );
+            break;
+          case "break":
+            checkKeys(ctx, sPath, node, ["op", "value"]);
+            if (loopDepth === 0) ctx.fail(sPath, "break outside a loop/block");
+            checkExprNode(`${sPath}.value`, node.value);
+            break;
+          case "continue":
+            checkKeys(ctx, sPath, node, ["op"]);
+            if (loopDepth === 0) ctx.fail(sPath, "continue outside a loop/block");
+            break;
           case "cond":
             checkKeys(ctx, sPath, node, ["op", "clauses"]);
             reqArray(ctx, sPath, node, "clauses").forEach((clause, j) => {
@@ -583,7 +601,9 @@ export function validateWorld(input: unknown): ValidationResult {
               if (!isObject(clause)) return ctx.fail(cPath, "must be an object");
               checkKeys(ctx, cPath, clause, ["when", "do"]);
               checkExprNode(`${cPath}.when`, clause.when);
-              reqArray(ctx, cPath, clause, "do").forEach((s, k) => checkStmtNode(`${cPath}.do[${k}]`, s));
+              reqArray(ctx, cPath, clause, "do").forEach((s, k) =>
+                checkStmtNode(`${cPath}.do[${k}]`, s, loopDepth),
+              );
             });
             break;
           case "tell":

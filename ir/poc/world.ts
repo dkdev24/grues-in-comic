@@ -20,6 +20,12 @@ export interface WorldState {
   flags: Record<string, Set<string>>;
   /** Entity id → containing entity id (object tree; absent = nowhere). */
   locations: Record<string, string>;
+  /**
+   * Container id → ordered child list, consistent with `locations` (for
+   * `first`/`next`). `moveEntity` inserts at the FRONT (Z-machine
+   * `insert_obj`); initial order is the `locations` init insertion order.
+   */
+  children: Record<string, string[]>;
   /** Entity id → short name, for TELL `D` parts (defaults to the id). */
   names: Record<string, string>;
   /** Entity id → property values, for `prop`/`set-prop` (IR field names). */
@@ -54,10 +60,16 @@ export function makeWorld(init: {
   for (const [id, t] of Object.entries(init.tables ?? {})) {
     tables[id] = { kind: t.kind, elements: [...t.elements] };
   }
+  const locations = { ...init.locations };
+  const children: Record<string, string[]> = {};
+  for (const [child, parent] of Object.entries(locations)) {
+    (children[parent] ??= []).push(child);
+  }
   return {
     globals: { HERE: init.here, ...init.globals },
     flags,
-    locations: { ...init.locations },
+    locations,
+    children,
     names: { ...init.names },
     properties,
     tables,
@@ -75,6 +87,8 @@ export function snapshot(world: WorldState, returned: BehaviorValue) {
     walks: [...world.walks],
     itObject: world.itObject,
     globals: { ...world.globals },
+    locations: { ...world.locations },
+    children: Object.fromEntries(Object.entries(world.children).map(([id, c]) => [id, [...c]])),
     flags: Object.fromEntries(Object.entries(world.flags).map(([id, s]) => [id, [...s].sort()])),
     properties: Object.fromEntries(
       Object.entries(world.properties).map(([id, props]) => [id, { ...props }]),
@@ -99,6 +113,24 @@ export function setFlag(world: WorldState, entity: string, flag: string): void {
 
 export function clearFlag(world: WorldState, entity: string, flag: string): void {
   world.flags[entity]?.delete(flag);
+}
+
+/** Reparent an entity (behavior `move`): becomes the new container's FIRST child. */
+export function moveEntity(world: WorldState, entity: string, to: string): void {
+  removeEntity(world, entity);
+  world.locations[entity] = to;
+  (world.children[to] ??= []).unshift(entity);
+}
+
+/** Take an entity out of the world (behavior `remove`). */
+export function removeEntity(world: WorldState, entity: string): void {
+  const parent = world.locations[entity];
+  if (parent !== undefined) {
+    const siblings = world.children[parent];
+    const i = siblings?.indexOf(entity) ?? -1;
+    if (i >= 0) siblings!.splice(i, 1);
+  }
+  delete world.locations[entity];
 }
 
 export function tell(world: WorldState, text: string, newline = false): void {

@@ -1,5 +1,5 @@
 {
-  "irVersion": "0.5.0",
+  "irVersion": "0.6.0",
   "meta": {
     "title": "Zork I — world model (rooms, exits, objects)",
     "source": "importer/artifacts/ast (from original-projects/zork1)",
@@ -152,6 +152,10 @@
       "value": true
     },
     {
+      "id": "CLOCK-WAIT",
+      "value": false
+    },
+    {
       "id": "COFFIN-CURE",
       "value": false
     },
@@ -166,6 +170,10 @@
     {
       "id": "DEAD",
       "value": false
+    },
+    {
+      "id": "DEATHS",
+      "value": 0
     },
     {
       "id": "DEFLATE",
@@ -206,6 +214,10 @@
     {
       "id": "KITCHEN-WINDOW-FLAG",
       "value": false
+    },
+    {
+      "id": "LIGHT-SHAFT",
+      "value": 13
     },
     {
       "id": "LIT",
@@ -284,6 +296,10 @@
       "value": false
     },
     {
+      "id": "ROBBER-C-DESC",
+      "value": "There is a suspicious-looking individual, holding a bag, leaning against one wall. He is armed with a vicious-looking stiletto."
+    },
+    {
       "id": "ROBBER-U-DESC",
       "value": "There is a suspicious-looking individual lying unconscious on the ground."
     },
@@ -305,6 +321,10 @@
     },
     {
       "id": "SUPER-BRIEF",
+      "value": false
+    },
+    {
+      "id": "THIEF-ENGROSSED",
       "value": false
     },
     {
@@ -14722,6 +14742,97 @@
       }
     },
     {
+      "id": "DESCRIBE-OBJECTS",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "global",
+                "id": "LIT"
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "first",
+                        "entity": {
+                          "op": "global",
+                          "id": "HERE"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "PRINT-CONT",
+                          "args": [
+                            {
+                              "op": "global",
+                              "id": "HERE"
+                            },
+                            {
+                              "op": "set-local",
+                              "id": "V?",
+                              "value": {
+                                "op": "or",
+                                "args": [
+                                  {
+                                    "op": "local",
+                                    "id": "V?"
+                                  },
+                                  {
+                                    "op": "global",
+                                    "id": "VERBOSE"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "op": "const",
+                              "value": -1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "Only bats can see in the dark. And you're not one."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "V?"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1681
+      }
+    },
+    {
       "id": "DO-WALK",
       "body": [
         {
@@ -15583,6 +15694,144 @@
       }
     },
     {
+      "id": "FIND-WEAPON",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "W",
+          "value": {
+            "op": "first",
+            "entity": {
+              "op": "local",
+              "id": "O"
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "local",
+                  "id": "W"
+                }
+              },
+              "do": [
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "or",
+                    "args": [
+                      {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "W"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "STILETTO"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "AXE"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "SWORD"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "W"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "KNIFE"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "RUSTY-KNIFE"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "local",
+                        "id": "W"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "set-local",
+                      "id": "W",
+                      "value": {
+                        "op": "next",
+                        "entity": {
+                          "op": "local",
+                          "id": "W"
+                        }
+                      }
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "op": "const",
+                        "value": false
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "O"
+      ],
+      "locals": [
+        "W"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3401
+      }
+    },
+    {
       "id": "FIX-BOAT",
       "body": [
         {
@@ -16125,6 +16374,88 @@
       "source": {
         "file": "1actions.zil",
         "line": 2163
+      }
+    },
+    {
+      "id": "FWEEP",
+      "body": [
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "lt?",
+                    "a": {
+                      "op": "set-local",
+                      "id": "N",
+                      "value": {
+                        "op": "sub",
+                        "a": {
+                          "op": "local",
+                          "id": "N"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 1
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "const",
+                    "value": true
+                  },
+                  "do": [
+                    {
+                      "op": "tell",
+                      "parts": [
+                        {
+                          "text": "    Fweep!"
+                        },
+                        {
+                          "newline": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "tell",
+          "parts": [
+            {
+              "newline": true
+            }
+          ]
+        }
+      ],
+      "params": [
+        "N"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 326
       }
     },
     {
@@ -16852,6 +17183,81 @@
       "source": {
         "file": "1actions.zil",
         "line": 2553
+      }
+    },
+    {
+      "id": "HELD?",
+      "body": [
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "set-local",
+              "id": "CAN",
+              "value": {
+                "op": "loc",
+                "entity": {
+                  "op": "local",
+                  "id": "CAN"
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "CAN"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "op": "const",
+                        "value": false
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "CAN"
+                      },
+                      {
+                        "op": "global",
+                        "id": "WINNER"
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "CAN"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 2167
       }
     },
     {
@@ -19564,6 +19970,332 @@
       }
     },
     {
+      "id": "MACHINE-F",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "TAKE"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "MACHINE"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "It is far too large to carry."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "OPEN"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "entity",
+                          "id": "MACHINE"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "call",
+                                "routine": "PICK-ONE",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "DUMMY"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "first",
+                        "entity": {
+                          "op": "entity",
+                          "id": "MACHINE"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The lid opens, revealing "
+                            }
+                          ]
+                        },
+                        {
+                          "op": "call",
+                          "routine": "PRINT-CONTENTS",
+                          "args": [
+                            {
+                              "op": "entity",
+                              "id": "MACHINE"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "MACHINE"
+                          },
+                          "flag": "OPENBIT"
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The lid opens."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "MACHINE"
+                          },
+                          "flag": "OPENBIT"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "CLOSE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "entity",
+                          "id": "MACHINE"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The lid closes."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "clear-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "MACHINE"
+                          },
+                          "flag": "OPENBIT"
+                        },
+                        {
+                          "op": "value",
+                          "expr": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "call",
+                                "routine": "PICK-ONE",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "DUMMY"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "LAMP-ON"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "global",
+                          "id": "PRSI"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It's not clear how to turn it on with your bare hands."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "PERFORM",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "TURN"
+                            },
+                            {
+                              "op": "entity",
+                              "id": "MACHINE-SWITCH"
+                            },
+                            {
+                              "op": "global",
+                              "id": "PRSI"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2502
+      }
+    },
+    {
       "id": "MACHINE-ROOM-FCN",
       "body": [
         {
@@ -20525,6 +21257,458 @@
       }
     },
     {
+      "id": "MIRROR-MIRROR",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "RM2",
+          "value": {
+            "op": "entity",
+            "id": "MIRROR-ROOM-2"
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "global",
+                      "id": "MIRROR-MUNG"
+                    }
+                  },
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "RUB"
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSI"
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "equal?",
+                              "args": [
+                                {
+                                  "op": "global",
+                                  "id": "PRSI"
+                                },
+                                {
+                                  "op": "entity",
+                                  "id": "HANDS"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You feel a faint tingling transmitted through the "
+                            },
+                            {
+                              "name": {
+                                "op": "global",
+                                "id": "PRSI"
+                              }
+                            },
+                            {
+                              "text": "."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "HERE"
+                          },
+                          {
+                            "op": "local",
+                            "id": "RM2"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "RM2",
+                          "value": {
+                            "op": "entity",
+                            "id": "MIRROR-ROOM-1"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "set-local",
+                  "id": "L1",
+                  "value": {
+                    "op": "first",
+                    "entity": {
+                      "op": "global",
+                      "id": "HERE"
+                    }
+                  }
+                },
+                {
+                  "op": "set-local",
+                  "id": "L2",
+                  "value": {
+                    "op": "first",
+                    "entity": {
+                      "op": "local",
+                      "id": "RM2"
+                    }
+                  }
+                },
+                {
+                  "op": "loop",
+                  "body": [
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "not",
+                            "arg": {
+                              "op": "local",
+                              "id": "L1"
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "break",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "set-local",
+                      "id": "N",
+                      "value": {
+                        "op": "next",
+                        "entity": {
+                          "op": "local",
+                          "id": "L1"
+                        }
+                      }
+                    },
+                    {
+                      "op": "move",
+                      "entity": {
+                        "op": "local",
+                        "id": "L1"
+                      },
+                      "to": {
+                        "op": "local",
+                        "id": "RM2"
+                      }
+                    },
+                    {
+                      "op": "set-local",
+                      "id": "L1",
+                      "value": {
+                        "op": "local",
+                        "id": "N"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "loop",
+                  "body": [
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "not",
+                            "arg": {
+                              "op": "local",
+                              "id": "L2"
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "break",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "set-local",
+                      "id": "N",
+                      "value": {
+                        "op": "next",
+                        "entity": {
+                          "op": "local",
+                          "id": "L2"
+                        }
+                      }
+                    },
+                    {
+                      "op": "move",
+                      "entity": {
+                        "op": "local",
+                        "id": "L2"
+                      },
+                      "to": {
+                        "op": "global",
+                        "id": "HERE"
+                      }
+                    },
+                    {
+                      "op": "set-local",
+                      "id": "L2",
+                      "value": {
+                        "op": "local",
+                        "id": "N"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "GOTO",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "RM2"
+                    },
+                    {
+                      "op": "const",
+                      "value": false
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "There is a rumble from deep within the earth and the room shakes."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "LOOK-INSIDE",
+                  "EXAMINE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "global",
+                        "id": "MIRROR-MUNG"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The mirror is broken into many pieces."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "There is an ugly person staring back at you."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TAKE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The mirror is many times your size. Give up."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "MUNG",
+                  "THROW",
+                  "ATTACK"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "global",
+                        "id": "MIRROR-MUNG"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Haven't you done enough damage already?"
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "MIRROR-MUNG",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        },
+                        {
+                          "op": "set-global",
+                          "id": "LUCKY",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You have broken the mirror. I hope you have a seven years' supply of good luck handy."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "RM2",
+        "L1",
+        "L2",
+        "N"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 971
+      }
+    },
+    {
       "id": "MIRROR-ROOM",
       "body": [
         {
@@ -20631,6 +21815,240 @@
       }
     },
     {
+      "id": "MSWITCH-FUNCTION",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TURN"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSI"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "SCREWDRIVER"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "flag?",
+                                "entity": {
+                                  "op": "entity",
+                                  "id": "MACHINE"
+                                },
+                                "flag": "OPENBIT"
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The machine doesn't seem to want to do anything."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The machine comes to life (figuratively) with a dazzling display of colored lights and bizarre noises. After a few moments, the excitement abates."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "cond",
+                                  "clauses": [
+                                    {
+                                      "when": {
+                                        "op": "in?",
+                                        "entity": {
+                                          "op": "entity",
+                                          "id": "COAL"
+                                        },
+                                        "container": {
+                                          "op": "entity",
+                                          "id": "MACHINE"
+                                        }
+                                      },
+                                      "do": [
+                                        {
+                                          "op": "call",
+                                          "routine": "REMOVE-CAREFULLY",
+                                          "args": [
+                                            {
+                                              "op": "entity",
+                                              "id": "COAL"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "op": "move",
+                                          "entity": {
+                                            "op": "entity",
+                                            "id": "DIAMOND"
+                                          },
+                                          "to": {
+                                            "op": "entity",
+                                            "id": "MACHINE"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "when": {
+                                        "op": "const",
+                                        "value": true
+                                      },
+                                      "do": [
+                                        {
+                                          "op": "loop",
+                                          "body": [
+                                            {
+                                              "op": "cond",
+                                              "clauses": [
+                                                {
+                                                  "when": {
+                                                    "op": "set-local",
+                                                    "id": "O",
+                                                    "value": {
+                                                      "op": "first",
+                                                      "entity": {
+                                                        "op": "entity",
+                                                        "id": "MACHINE"
+                                                      }
+                                                    }
+                                                  },
+                                                  "do": [
+                                                    {
+                                                      "op": "call",
+                                                      "routine": "REMOVE-CAREFULLY",
+                                                      "args": [
+                                                        {
+                                                          "op": "local",
+                                                          "id": "O"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "when": {
+                                                    "op": "const",
+                                                    "value": true
+                                                  },
+                                                  "do": [
+                                                    {
+                                                      "op": "break",
+                                                      "value": {
+                                                        "op": "const",
+                                                        "value": true
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "op": "move",
+                                          "entity": {
+                                            "op": "entity",
+                                            "id": "GUNK"
+                                          },
+                                          "to": {
+                                            "op": "entity",
+                                            "id": "MACHINE"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It seems that a "
+                            },
+                            {
+                              "name": {
+                                "op": "global",
+                                "id": "PRSI"
+                              }
+                            },
+                            {
+                              "text": " won't do."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "O"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2531
+      }
+    },
+    {
       "id": "NAILS-PSEUDO",
       "body": [
         {
@@ -20663,6 +22081,193 @@
       "source": {
         "file": "1actions.zil",
         "line": 376
+      }
+    },
+    {
+      "id": "NO-OBJS",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RARG"
+                  },
+                  {
+                    "op": "const",
+                    "value": 1
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "F",
+                  "value": {
+                    "op": "first",
+                    "entity": {
+                      "op": "global",
+                      "id": "WINNER"
+                    }
+                  }
+                },
+                {
+                  "op": "set-global",
+                  "id": "EMPTY-HANDED",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                },
+                {
+                  "op": "loop",
+                  "body": [
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "not",
+                            "arg": {
+                              "op": "local",
+                              "id": "F"
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "break",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "when": {
+                            "op": "gt?",
+                            "a": {
+                              "op": "call",
+                              "routine": "WEIGHT",
+                              "args": [
+                                {
+                                  "op": "local",
+                                  "id": "F"
+                                }
+                              ]
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 4
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "set-global",
+                              "id": "EMPTY-HANDED",
+                              "value": {
+                                "op": "const",
+                                "value": false
+                              }
+                            },
+                            {
+                              "op": "break",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "set-local",
+                      "id": "F",
+                      "value": {
+                        "op": "next",
+                        "entity": {
+                          "op": "local",
+                          "id": "F"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "global",
+                                "id": "HERE"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "LOWER-SHAFT"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "global",
+                            "id": "LIT"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "SCORE-UPD",
+                          "args": [
+                            {
+                              "op": "global",
+                              "id": "LIGHT-SHAFT"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-global",
+                          "id": "LIGHT-SHAFT",
+                          "value": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "RARG"
+      ],
+      "locals": [
+        "F"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2558
       }
     },
     {
@@ -20847,6 +22452,131 @@
       "source": {
         "file": "1actions.zil",
         "line": 28
+      }
+    },
+    {
+      "id": "OTVAL-FROB",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "SCORE",
+          "value": {
+            "op": "const",
+            "value": 0
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "F",
+          "value": {
+            "op": "first",
+            "entity": {
+              "op": "local",
+              "id": "O"
+            }
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "F"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "local",
+                        "id": "SCORE"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "SCORE",
+              "value": {
+                "op": "add",
+                "a": {
+                  "op": "local",
+                  "id": "SCORE"
+                },
+                "b": {
+                  "op": "prop",
+                  "entity": {
+                    "op": "local",
+                    "id": "F"
+                  },
+                  "prop": "treasureValue"
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "first",
+                    "entity": {
+                      "op": "local",
+                      "id": "F"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "call",
+                      "routine": "OTVAL-FROB",
+                      "args": [
+                        {
+                          "op": "local",
+                          "id": "F"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "F",
+              "value": {
+                "op": "next",
+                "entity": {
+                  "op": "local",
+                  "id": "F"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "params": [
+        "O"
+      ],
+      "defaults": {
+        "O": {
+          "op": "entity",
+          "id": "TROPHY-CASE"
+        }
+      },
+      "locals": [
+        "F",
+        "SCORE"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 496
       }
     },
     {
@@ -21357,6 +23087,286 @@
       "source": {
         "file": "gverbs.zil",
         "line": 1206
+      }
+    },
+    {
+      "id": "PRINT-CONTENTS",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "1ST?",
+          "value": {
+            "op": "const",
+            "value": true
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "IT?",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "TWO?",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "set-local",
+                "id": "F",
+                "value": {
+                  "op": "first",
+                  "entity": {
+                    "op": "local",
+                    "id": "OBJ"
+                  }
+                }
+              },
+              "do": [
+                {
+                  "op": "loop",
+                  "body": [
+                    {
+                      "op": "set-local",
+                      "id": "N",
+                      "value": {
+                        "op": "next",
+                        "entity": {
+                          "op": "local",
+                          "id": "F"
+                        }
+                      }
+                    },
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "local",
+                            "id": "1ST?"
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "1ST?",
+                              "value": {
+                                "op": "const",
+                                "value": false
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "when": {
+                            "op": "const",
+                            "value": true
+                          },
+                          "do": [
+                            {
+                              "op": "tell",
+                              "parts": [
+                                {
+                                  "text": ", "
+                                }
+                              ]
+                            },
+                            {
+                              "op": "cond",
+                              "clauses": [
+                                {
+                                  "when": {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "local",
+                                      "id": "N"
+                                    }
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "tell",
+                                      "parts": [
+                                        {
+                                          "text": "and "
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "tell",
+                      "parts": [
+                        {
+                          "text": "a "
+                        },
+                        {
+                          "name": {
+                            "op": "local",
+                            "id": "F"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "and",
+                            "args": [
+                              {
+                                "op": "not",
+                                "arg": {
+                                  "op": "local",
+                                  "id": "IT?"
+                                }
+                              },
+                              {
+                                "op": "not",
+                                "arg": {
+                                  "op": "local",
+                                  "id": "TWO?"
+                                }
+                              }
+                            ]
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "IT?",
+                              "value": {
+                                "op": "local",
+                                "id": "F"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "when": {
+                            "op": "const",
+                            "value": true
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "TWO?",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            },
+                            {
+                              "op": "set-local",
+                              "id": "IT?",
+                              "value": {
+                                "op": "const",
+                                "value": false
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "set-local",
+                      "id": "F",
+                      "value": {
+                        "op": "local",
+                        "id": "N"
+                      }
+                    },
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "not",
+                            "arg": {
+                              "op": "local",
+                              "id": "F"
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "cond",
+                              "clauses": [
+                                {
+                                  "when": {
+                                    "op": "and",
+                                    "args": [
+                                      {
+                                        "op": "local",
+                                        "id": "IT?"
+                                      },
+                                      {
+                                        "op": "not",
+                                        "arg": {
+                                          "op": "local",
+                                          "id": "TWO?"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "call",
+                                      "routine": "THIS-IS-IT",
+                                      "args": [
+                                        {
+                                          "op": "local",
+                                          "id": "IT?"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "return",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "OBJ"
+      ],
+      "locals": [
+        "F",
+        "N",
+        "1ST?",
+        "IT?",
+        "TWO?"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1730
       }
     },
     {
@@ -22450,6 +24460,221 @@
       "source": {
         "file": "1actions.zil",
         "line": 2844
+      }
+    },
+    {
+      "id": "ROB",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "ROBBED?",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "X",
+          "value": {
+            "op": "first",
+            "entity": {
+              "op": "local",
+              "id": "WHAT"
+            }
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "X"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "local",
+                        "id": "ROBBED?"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "N",
+              "value": {
+                "op": "next",
+                "entity": {
+                  "op": "local",
+                  "id": "X"
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "and",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "flag?",
+                          "entity": {
+                            "op": "local",
+                            "id": "X"
+                          },
+                          "flag": "INVISIBLE"
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "flag?",
+                          "entity": {
+                            "op": "local",
+                            "id": "X"
+                          },
+                          "flag": "SACREDBIT"
+                        }
+                      },
+                      {
+                        "op": "gt?",
+                        "a": {
+                          "op": "prop",
+                          "entity": {
+                            "op": "local",
+                            "id": "X"
+                          },
+                          "prop": "treasureValue"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "args": [
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "local",
+                              "id": "PROB"
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "routine": "PROB",
+                            "args": [
+                              {
+                                "op": "local",
+                                "id": "PROB"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "move",
+                      "entity": {
+                        "op": "local",
+                        "id": "X"
+                      },
+                      "to": {
+                        "op": "local",
+                        "id": "WHERE"
+                      }
+                    },
+                    {
+                      "op": "set-flag",
+                      "entity": {
+                        "op": "local",
+                        "id": "X"
+                      },
+                      "flag": "TOUCHBIT"
+                    },
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "local",
+                                "id": "WHERE"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "THIEF"
+                              }
+                            ]
+                          },
+                          "do": [
+                            {
+                              "op": "set-flag",
+                              "entity": {
+                                "op": "local",
+                                "id": "X"
+                              },
+                              "flag": "INVISIBLE"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "set-local",
+                      "id": "ROBBED?",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "X",
+              "value": {
+                "op": "local",
+                "id": "N"
+              }
+            }
+          ]
+        }
+      ],
+      "params": [
+        "WHAT",
+        "WHERE",
+        "PROB"
+      ],
+      "locals": [
+        "N",
+        "X",
+        "ROBBED?"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3976
       }
     },
     {
@@ -24033,6 +26258,140 @@
       }
     },
     {
+      "id": "THIEF-IN-TREASURE",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "F",
+          "value": {
+            "op": "first",
+            "entity": {
+              "op": "global",
+              "id": "HERE"
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "F"
+                  },
+                  {
+                    "op": "next",
+                    "entity": {
+                      "op": "local",
+                      "id": "F"
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The thief gestures mysteriously, and the treasures in the room suddenly vanish."
+                    },
+                    {
+                      "newline": true
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "F"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "equal?",
+                      "args": [
+                        {
+                          "op": "local",
+                          "id": "F"
+                        },
+                        {
+                          "op": "entity",
+                          "id": "CHALICE"
+                        },
+                        {
+                          "op": "entity",
+                          "id": "THIEF"
+                        }
+                      ]
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "set-flag",
+                      "entity": {
+                        "op": "local",
+                        "id": "F"
+                      },
+                      "flag": "INVISIBLE"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "F",
+              "value": {
+                "op": "next",
+                "entity": {
+                  "op": "local",
+                  "id": "F"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "F",
+        "N"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2151
+      }
+    },
+    {
       "id": "THIS-IS-IT",
       "body": [
         {
@@ -24316,6 +26675,113 @@
       "source": {
         "file": "1actions.zil",
         "line": 1018
+      }
+    },
+    {
+      "id": "TOUCH-ALL",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "F",
+          "value": {
+            "op": "first",
+            "entity": {
+              "op": "local",
+              "id": "OBJ"
+            }
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "F"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "const",
+                    "value": true
+                  },
+                  "do": [
+                    {
+                      "op": "set-flag",
+                      "entity": {
+                        "op": "local",
+                        "id": "F"
+                      },
+                      "flag": "TOUCHBIT"
+                    },
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "first",
+                            "entity": {
+                              "op": "local",
+                              "id": "F"
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "call",
+                              "routine": "TOUCH-ALL",
+                              "args": [
+                                {
+                                  "op": "local",
+                                  "id": "F"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "F",
+              "value": {
+                "op": "next",
+                "entity": {
+                  "op": "local",
+                  "id": "F"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "params": [
+        "OBJ"
+      ],
+      "locals": [
+        "F"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 487
       }
     },
     {
@@ -24902,6 +27368,169 @@
       "source": {
         "file": "1actions.zil",
         "line": 1386
+      }
+    },
+    {
+      "id": "UP-CHIMNEY-FUNCTION",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "set-local",
+                  "id": "F",
+                  "value": {
+                    "op": "first",
+                    "entity": {
+                      "op": "global",
+                      "id": "WINNER"
+                    }
+                  }
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "Going up empty-handed is a bad idea."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "or",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "set-local",
+                          "id": "F",
+                          "value": {
+                            "op": "next",
+                            "entity": {
+                              "op": "local",
+                              "id": "F"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "next",
+                          "entity": {
+                            "op": "local",
+                            "id": "F"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "in?",
+                    "entity": {
+                      "op": "entity",
+                      "id": "LAMP"
+                    },
+                    "container": {
+                      "op": "global",
+                      "id": "WINNER"
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "flag?",
+                          "entity": {
+                            "op": "entity",
+                            "id": "TRAP-DOOR"
+                          },
+                          "flag": "OPENBIT"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "clear-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "TRAP-DOOR"
+                          },
+                          "flag": "TOUCHBIT"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "entity",
+                    "id": "KITCHEN"
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You can't get up there with what you're carrying."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "F"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 553
       }
     },
     {
@@ -26613,6 +29242,60 @@
       }
     },
     {
+      "id": "V-INVENTORY",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "first",
+                "entity": {
+                  "op": "global",
+                  "id": "WINNER"
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "PRINT-CONT",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "WINNER"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You are empty-handed."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 29
+      }
+    },
+    {
       "id": "V-KICK",
       "body": [
         {
@@ -27632,6 +30315,393 @@
       "source": {
         "file": "gverbs.zil",
         "line": 963
+      }
+    },
+    {
+      "id": "V-OPEN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "global",
+                      "id": "PRSO"
+                    },
+                    "flag": "CONTBIT"
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "equal?",
+                      "args": [
+                        {
+                          "op": "prop",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "prop": "capacity"
+                        },
+                        {
+                          "op": "const",
+                          "value": 0
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "global",
+                          "id": "PRSO"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It is already open."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "flag": "OPENBIT"
+                        },
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "flag": "TOUCHBIT"
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "or",
+                                "args": [
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "first",
+                                      "entity": {
+                                        "op": "global",
+                                        "id": "PRSO"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "flag?",
+                                    "entity": {
+                                      "op": "global",
+                                      "id": "PRSO"
+                                    },
+                                    "flag": "TRANSBIT"
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "Opened."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "and",
+                                "args": [
+                                  {
+                                    "op": "set-local",
+                                    "id": "F",
+                                    "value": {
+                                      "op": "first",
+                                      "entity": {
+                                        "op": "global",
+                                        "id": "PRSO"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "next",
+                                      "entity": {
+                                        "op": "local",
+                                        "id": "F"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "flag?",
+                                      "entity": {
+                                        "op": "local",
+                                        "id": "F"
+                                      },
+                                      "flag": "TOUCHBIT"
+                                    }
+                                  },
+                                  {
+                                    "op": "set-local",
+                                    "id": "STR",
+                                    "value": {
+                                      "op": "prop",
+                                      "entity": {
+                                        "op": "local",
+                                        "id": "F"
+                                      },
+                                      "prop": "initialDescription"
+                                    }
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The "
+                                    },
+                                    {
+                                      "name": {
+                                        "op": "global",
+                                        "id": "PRSO"
+                                      }
+                                    },
+                                    {
+                                      "text": " opens."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "expr": {
+                                        "op": "local",
+                                        "id": "STR"
+                                      }
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "Opening the "
+                                    },
+                                    {
+                                      "name": {
+                                        "op": "global",
+                                        "id": "PRSO"
+                                      }
+                                    },
+                                    {
+                                      "text": " reveals "
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "call",
+                                  "routine": "PRINT-CONTENTS",
+                                  "args": [
+                                    {
+                                      "op": "global",
+                                      "id": "PRSO"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "flag?",
+                "entity": {
+                  "op": "global",
+                  "id": "PRSO"
+                },
+                "flag": "DOORBIT"
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "global",
+                          "id": "PRSO"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It is already open."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The "
+                            },
+                            {
+                              "name": {
+                                "op": "global",
+                                "id": "PRSO"
+                              }
+                            },
+                            {
+                              "text": " opens."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "flag": "OPENBIT"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You must tell me how to do that to a "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    },
+                    {
+                      "text": "."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "F",
+        "STR"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 966
       }
     },
     {
@@ -29663,6 +32733,102 @@
       }
     },
     {
+      "id": "V-WAIT",
+      "body": [
+        {
+          "op": "tell",
+          "parts": [
+            {
+              "text": "Time passes..."
+            },
+            {
+              "newline": true
+            }
+          ]
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "lt?",
+                    "a": {
+                      "op": "set-local",
+                      "id": "NUM",
+                      "value": {
+                        "op": "sub",
+                        "a": {
+                          "op": "local",
+                          "id": "NUM"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 0
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "call",
+                    "routine": "CLOCKER",
+                    "args": []
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-global",
+          "id": "CLOCK-WAIT",
+          "value": {
+            "op": "const",
+            "value": true
+          }
+        }
+      ],
+      "params": [
+        "NUM"
+      ],
+      "defaults": {
+        "NUM": {
+          "op": "const",
+          "value": 3
+        }
+      },
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1514
+      }
+    },
+    {
       "id": "V-WALK-AROUND",
       "body": [
         {
@@ -29956,6 +33122,992 @@
       }
     },
     {
+      "id": "WATER-F",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "SGIVE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "THROUGH",
+                  "BOARD"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "expr": {
+                        "op": "call",
+                        "routine": "PICK-ONE",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "SWIMYUKS"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "FILL"
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "W",
+                  "value": {
+                    "op": "global",
+                    "id": "PRSI"
+                  }
+                },
+                {
+                  "op": "set-global",
+                  "id": "PRSA",
+                  "value": {
+                    "op": "const",
+                    "value": "PUT"
+                  }
+                },
+                {
+                  "op": "set-global",
+                  "id": "PRSI",
+                  "value": {
+                    "op": "global",
+                    "id": "PRSO"
+                  }
+                },
+                {
+                  "op": "set-global",
+                  "id": "PRSO",
+                  "value": {
+                    "op": "local",
+                    "id": "W"
+                  }
+                },
+                {
+                  "op": "set-local",
+                  "id": "PI?",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "GLOBAL-WATER"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "WATER"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "W",
+                  "value": {
+                    "op": "global",
+                    "id": "PRSO"
+                  }
+                },
+                {
+                  "op": "set-local",
+                  "id": "PI?",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "W",
+                  "value": {
+                    "op": "global",
+                    "id": "PRSI"
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "local",
+                        "id": "W"
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "PI?",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "W"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "GLOBAL-WATER"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "W",
+                  "value": {
+                    "op": "entity",
+                    "id": "WATER"
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "verb?",
+                        "verbs": [
+                          "TAKE",
+                          "PUT"
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "REMOVE-CAREFULLY",
+                          "args": [
+                            {
+                              "op": "local",
+                              "id": "W"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "local",
+                "id": "PI?"
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "PRSI",
+                  "value": {
+                    "op": "local",
+                    "id": "W"
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "PRSO",
+                  "value": {
+                    "op": "local",
+                    "id": "W"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-local",
+          "id": "AV",
+          "value": {
+            "op": "loc",
+            "entity": {
+              "op": "global",
+              "id": "WINNER"
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "flag?",
+                  "entity": {
+                    "op": "local",
+                    "id": "AV"
+                  },
+                  "flag": "VEHBIT"
+                }
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "AV",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "TAKE",
+                      "PUT"
+                    ]
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "PI?"
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "AV"
+                          },
+                          {
+                            "op": "or",
+                            "args": [
+                              {
+                                "op": "equal?",
+                                "args": [
+                                  {
+                                    "op": "local",
+                                    "id": "AV"
+                                  },
+                                  {
+                                    "op": "global",
+                                    "id": "PRSI"
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "and",
+                                "args": [
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "global",
+                                      "id": "PRSI"
+                                    }
+                                  },
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "in?",
+                                      "entity": {
+                                        "op": "local",
+                                        "id": "W"
+                                      },
+                                      "container": {
+                                        "op": "local",
+                                        "id": "AV"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "There is now a puddle in the bottom of the "
+                            },
+                            {
+                              "name": {
+                                "op": "local",
+                                "id": "AV"
+                              }
+                            },
+                            {
+                              "text": "."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "call",
+                          "routine": "REMOVE-CAREFULLY",
+                          "args": [
+                            {
+                              "op": "global",
+                              "id": "PRSO"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "to": {
+                            "op": "local",
+                            "id": "AV"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSI"
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "equal?",
+                              "args": [
+                                {
+                                  "op": "global",
+                                  "id": "PRSI"
+                                },
+                                {
+                                  "op": "entity",
+                                  "id": "BOTTLE"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The water leaks out of the "
+                            },
+                            {
+                              "name": {
+                                "op": "global",
+                                "id": "PRSI"
+                              }
+                            },
+                            {
+                              "text": " and evaporates immediately."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "call",
+                          "routine": "REMOVE-CAREFULLY",
+                          "args": [
+                            {
+                              "op": "local",
+                              "id": "W"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "in?",
+                        "entity": {
+                          "op": "entity",
+                          "id": "BOTTLE"
+                        },
+                        "container": {
+                          "op": "global",
+                          "id": "WINNER"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "not",
+                                "arg": {
+                                  "op": "flag?",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "BOTTLE"
+                                  },
+                                  "flag": "OPENBIT"
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The bottle is closed."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "call",
+                                  "routine": "THIS-IS-IT",
+                                  "args": [
+                                    {
+                                      "op": "entity",
+                                      "id": "BOTTLE"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "not",
+                                "arg": {
+                                  "op": "first",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "BOTTLE"
+                                  }
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "move",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "WATER"
+                                  },
+                                  "to": {
+                                    "op": "entity",
+                                    "id": "BOTTLE"
+                                  }
+                                },
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The bottle is now full of water."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The water slips through your fingers."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "return",
+                                  "value": {
+                                    "op": "const",
+                                    "value": true
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "in?",
+                            "entity": {
+                              "op": "global",
+                              "id": "PRSO"
+                            },
+                            "container": {
+                              "op": "entity",
+                              "id": "BOTTLE"
+                            }
+                          },
+                          {
+                            "op": "verb?",
+                            "verbs": [
+                              "TAKE"
+                            ]
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "global",
+                              "id": "PRSI"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It's in the bottle. Perhaps you should take that instead."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The water slips through your fingers."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "local",
+                "id": "PI?"
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "verb?",
+                            "verbs": [
+                              "PUT"
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "routine": "GLOBAL-IN?",
+                            "args": [
+                              {
+                                "op": "entity",
+                                "id": "RIVER"
+                              },
+                              {
+                                "op": "global",
+                                "id": "HERE"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "PERFORM",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "PUT"
+                            },
+                            {
+                              "op": "global",
+                              "id": "PRSO"
+                            },
+                            {
+                              "op": "entity",
+                              "id": "RIVER"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Nice try."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "DROP",
+                  "GIVE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "verb?",
+                            "verbs": [
+                              "DROP"
+                            ]
+                          },
+                          {
+                            "op": "in?",
+                            "entity": {
+                              "op": "entity",
+                              "id": "WATER"
+                            },
+                            "container": {
+                              "op": "entity",
+                              "id": "BOTTLE"
+                            }
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "flag?",
+                              "entity": {
+                                "op": "entity",
+                                "id": "BOTTLE"
+                              },
+                              "flag": "OPENBIT"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The bottle is closed."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "REMOVE-CAREFULLY",
+                  "args": [
+                    {
+                      "op": "entity",
+                      "id": "WATER"
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "local",
+                        "id": "AV"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "There is now a puddle in the bottom of the "
+                            },
+                            {
+                              "name": {
+                                "op": "local",
+                                "id": "AV"
+                              }
+                            },
+                            {
+                              "text": "."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "entity",
+                            "id": "WATER"
+                          },
+                          "to": {
+                            "op": "local",
+                            "id": "AV"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The water spills to the floor and evaporates immediately."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "call",
+                          "routine": "REMOVE-CAREFULLY",
+                          "args": [
+                            {
+                              "op": "entity",
+                              "id": "WATER"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "THROW"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The water splashes on the walls and evaporates immediately."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "REMOVE-CAREFULLY",
+                  "args": [
+                    {
+                      "op": "entity",
+                      "id": "WATER"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "AV",
+        "W",
+        "PI?"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 157
+      }
+    },
+    {
       "id": "WCLIF-OBJECT",
       "body": [
         {
@@ -30118,6 +34270,182 @@
       "source": {
         "file": "1actions.zil",
         "line": 629
+      }
+    },
+    {
+      "id": "WEIGHT",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "WT",
+          "value": {
+            "op": "const",
+            "value": 0
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "set-local",
+                "id": "CONT",
+                "value": {
+                  "op": "first",
+                  "entity": {
+                    "op": "local",
+                    "id": "OBJ"
+                  }
+                }
+              },
+              "do": [
+                {
+                  "op": "loop",
+                  "body": [
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "and",
+                            "args": [
+                              {
+                                "op": "equal?",
+                                "args": [
+                                  {
+                                    "op": "local",
+                                    "id": "OBJ"
+                                  },
+                                  {
+                                    "op": "global",
+                                    "id": "PLAYER"
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "flag?",
+                                "entity": {
+                                  "op": "local",
+                                  "id": "CONT"
+                                },
+                                "flag": "WEARBIT"
+                              }
+                            ]
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "WT",
+                              "value": {
+                                "op": "add",
+                                "a": {
+                                  "op": "local",
+                                  "id": "WT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "when": {
+                            "op": "const",
+                            "value": true
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "WT",
+                              "value": {
+                                "op": "add",
+                                "a": {
+                                  "op": "local",
+                                  "id": "WT"
+                                },
+                                "b": {
+                                  "op": "call",
+                                  "routine": "WEIGHT",
+                                  "args": [
+                                    {
+                                      "op": "local",
+                                      "id": "CONT"
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "not",
+                            "arg": {
+                              "op": "set-local",
+                              "id": "CONT",
+                              "value": {
+                                "op": "next",
+                                "entity": {
+                                  "op": "local",
+                                  "id": "CONT"
+                                }
+                              }
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "break",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "value",
+          "expr": {
+            "op": "add",
+            "a": {
+              "op": "local",
+              "id": "WT"
+            },
+            "b": {
+              "op": "prop",
+              "entity": {
+                "op": "local",
+                "id": "OBJ"
+              },
+              "prop": "size"
+            }
+          }
+        }
+      ],
+      "params": [
+        "OBJ"
+      ],
+      "locals": [
+        "CONT",
+        "WT"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1988
       }
     },
     {

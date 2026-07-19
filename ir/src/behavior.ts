@@ -54,6 +54,14 @@ export type Expr =
   /** The entity's direct container/room (ZIL `LOC`). */
   | { op: "loc"; entity: Expr }
   /**
+   * Object-tree iteration (ZIL `FIRST?` / `NEXT?`): the entity's first child
+   * / next sibling, or false when there is none. Sibling order: `move`
+   * inserts an entity as its new container's FIRST child (Z-machine
+   * `insert_obj`); initial order comes from the world document.
+   */
+  | { op: "first"; entity: Expr }
+  | { op: "next"; entity: Expr }
+  /**
    * Read an entity property (ZIL `GETP`). `prop` is the IR field name of the
    * property (`,P?LDESC` → `"description"`, `,P?TVALUE` → `"treasureValue"`,
    * …), keeping the AST independent of ZIL naming. An absent property yields
@@ -91,6 +99,19 @@ export interface CondClause {
 export type Stmt =
   /** First clause whose predicate is truthy runs (ZIL `COND`). */
   | { op: "cond"; clauses: CondClause[] }
+  /**
+   * Loop containers. `loop` (ZIL `REPEAT ()`) restarts its body when it
+   * completes; only `break` (or a routine return) exits it. `block` (ZIL
+   * `PROG ()`) runs its body once and yields the last statement's value;
+   * `break` exits it early and `continue` restarts it (ZIL `AGAIN` in a
+   * PROG). `break`/`continue` target the nearest enclosing loop/block —
+   * exactly ZIL's RETURN/AGAIN-to-activation semantics; `return` always
+   * exits the routine (ZIL RTRUE/RFALSE, or RETURN outside any block).
+   */
+  | { op: "loop"; body: Stmt[] }
+  | { op: "block"; body: Stmt[] }
+  | { op: "break"; value: Expr }
+  | { op: "continue" }
   /** Emit narration (ZIL `TELL` / `CRLF`). */
   | { op: "tell"; parts: TellPart[] }
   /** Assign a global (ZIL `SETG`). */
@@ -129,7 +150,9 @@ export type Stmt =
  * clause fires), `tell`/`set-flag`/`clear-flag`/`move`/`remove` yield true,
  * `set-global`/`set-local` yield the assigned value, `set-prop`/`table-set`
  * yield their entity/table operand (ZIL `PUTP`/`PUT` return their first
- * argument), `call` yields the callee's value. An empty body yields false.
+ * argument), `call` yields the callee's value, `loop`/`block` yield the
+ * exiting `break`'s value (a `block` that falls off its end yields its last
+ * statement's value). An empty body yields false.
  */
 export interface BehaviorRoutine {
   id: string;

@@ -13,12 +13,20 @@
  */
 
 import type { BehaviorRoutine, BehaviorValue, Expr, Stmt, TellPart } from "../src/behavior.js";
-import { builtins, tell, truthy, clearFlag, hasFlag, setFlag } from "./world.js";
+import { builtins, tell, truthy, clearFlag, hasFlag, setFlag, moveEntity, removeEntity } from "./world.js";
 import type { RuntimeTable, WorldState } from "./world.js";
 
 class ReturnSignal {
   constructor(readonly value: BehaviorValue) {}
 }
+
+/** `break` unwinds to the nearest enclosing loop/block with a value. */
+class BreakSignal {
+  constructor(readonly value: BehaviorValue) {}
+}
+
+/** `continue` restarts the nearest enclosing loop/block (ZIL AGAIN). */
+class ContinueSignal {}
 
 type Locals = Record<string, BehaviorValue>;
 
@@ -91,6 +99,17 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
     case "loc": {
       const entity = entityId(evalExpr(expr.entity, world, locals), "loc");
       return world.locations[entity] ?? false;
+    }
+    case "first": {
+      const entity = entityId(evalExpr(expr.entity, world, locals), "first");
+      return world.children[entity]?.[0] ?? false;
+    }
+    case "next": {
+      const entity = entityId(evalExpr(expr.entity, world, locals), "next");
+      const parent = world.locations[entity];
+      if (parent === undefined) return false;
+      const siblings = world.children[parent] ?? [];
+      return siblings[siblings.indexOf(entity) + 1] ?? false;
     }
     case "prop": {
       const entity = entityId(evalExpr(expr.entity, world, locals), "prop");
@@ -173,14 +192,29 @@ function execStmt(stmt: Stmt, world: WorldState, locals: Locals): BehaviorValue 
     }
     case "move": {
       const entity = entityId(evalExpr(stmt.entity, world, locals), "move");
-      world.locations[entity] = entityId(evalExpr(stmt.to, world, locals), "move");
+      moveEntity(world, entity, entityId(evalExpr(stmt.to, world, locals), "move"));
       return true;
     }
     case "remove": {
       const entity = entityId(evalExpr(stmt.entity, world, locals), "remove");
-      delete world.locations[entity];
+      removeEntity(world, entity);
       return true;
     }
+    case "loop":
+    case "block":
+      while (true) {
+        try {
+          const value = execBody(stmt.body, world, locals);
+          if (stmt.op === "block") return value; // PROG falls off its end
+        } catch (signal) {
+          if (signal instanceof BreakSignal) return signal.value;
+          if (!(signal instanceof ContinueSignal)) throw signal;
+        }
+      }
+    case "break":
+      throw new BreakSignal(evalExpr(stmt.value, world, locals));
+    case "continue":
+      throw new ContinueSignal();
     case "set-prop": {
       const entity = entityId(evalExpr(stmt.entity, world, locals), "set-prop");
       (world.properties[entity] ??= {})[stmt.prop] = evalExpr(stmt.value, world, locals);

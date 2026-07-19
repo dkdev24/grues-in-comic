@@ -1,6 +1,6 @@
 # IR Schema — Declarative World (stage 2.1)
 
-Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.5.0"`** (0.5.0 added property/table access, arithmetic, expression-position assignment, and optional-parameter `defaults` to the behavior AST for stage 3.5 batches a+c).
+Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.6.0"`** (0.6.0 added loops — `loop`/`block`/`break`/`continue` — and object-tree iteration `first`/`next` to the behavior AST for stage 3.5 batch b).
 
 ## Scope and non-goals
 
@@ -19,7 +19,7 @@ Out of scope (stage 2.2 decides): imperative behavior — ROUTINE bodies, ACTION
 
 ```jsonc
 {
-  "irVersion": "0.5.0",       // must match the schema version exactly
+  "irVersion": "0.6.0",       // must match the schema version exactly
   "meta": { "title", "source", "coverage", "notes" },   // optional provenance
   "flags":   [ { "id": "ONBIT", "description": "…" } ], // registry of every usable flag
   "globals": [ { "id": "WON-FLAG", "value": false } ],  // scalar globals only
@@ -103,7 +103,7 @@ A valid document yields a summary (entity counts, exit count, sorted `routineRef
 
 ## Versioning
 
-`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`); `0.3.0` stage 3.3 `vocabulary` section (directions, buzzwords, synonyms, syntax rules); `0.4.0` stage 3.4 `routines` section (ADR 0001 behavior AST, expression-oriented value semantics); `0.5.0` stage 3.5 batches a+c (behavior `prop`/`set-prop`/`table-get`/`table-set`, `add`/`sub`/`mul`/`div`, expression-position `set-local`/`set-global`, routine `defaults`).
+`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`); `0.3.0` stage 3.3 `vocabulary` section (directions, buzzwords, synonyms, syntax rules); `0.4.0` stage 3.4 `routines` section (ADR 0001 behavior AST, expression-oriented value semantics); `0.5.0` stage 3.5 batches a+c (behavior `prop`/`set-prop`/`table-get`/`table-set`, `add`/`sub`/`mul`/`div`, expression-position `set-local`/`set-global`, routine `defaults`); `0.6.0` stage 3.5 batch b (`loop`/`block`/`break`/`continue`, object-tree `first`/`next`).
 
 ## Known deferrals
 
