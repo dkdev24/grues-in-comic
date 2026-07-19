@@ -468,7 +468,7 @@ export function validateWorld(input: unknown): ValidationResult {
         }
       }
 
-      const checkTellParts = (path: string, node: Record<string, unknown>): void => {
+      const checkTellParts = (path: string, node: Record<string, unknown>, loopDepth: number): void => {
         reqArray(ctx, path, node, "parts").forEach((part, j) => {
           const pPath = `${path}.parts[${j}]`;
           if (!isObject(part)) return ctx.fail(pPath, "must be an object");
@@ -480,17 +480,19 @@ export function validateWorld(input: unknown): ValidationResult {
             if (part.newline !== true) ctx.fail(`${pPath}.newline`, "must be true");
           } else if ("expr" in part) {
             checkKeys(ctx, pPath, part, ["expr"]);
-            checkExprNode(`${pPath}.expr`, part.expr);
+            checkExprNode(`${pPath}.expr`, part.expr, loopDepth);
           } else if ("name" in part) {
             checkKeys(ctx, pPath, part, ["name"]);
-            checkExprNode(`${pPath}.name`, part.name);
+            checkExprNode(`${pPath}.name`, part.name, loopDepth);
           } else {
             ctx.fail(pPath, "must be a text, newline, expr, or name part");
           }
         });
       };
 
-      const checkExprNode = (ePath: string, node: unknown): void => {
+      // loopDepth threads the enclosing REPEAT/PROG nesting into expression
+      // position, where a `cond` clause body may hold `break`/`continue`.
+      const checkExprNode = (ePath: string, node: unknown, loopDepth = 0): void => {
         if (!isObject(node)) return ctx.fail(ePath, "must be an expression object");
         switch (node.op) {
           case "const":
@@ -525,11 +527,12 @@ export function validateWorld(input: unknown): ValidationResult {
           case "and":
           case "or":
             checkKeys(ctx, ePath, node, ["op", "args"]);
-            reqArray(ctx, ePath, node, "args").forEach((a, j) => checkExprNode(`${ePath}.args[${j}]`, a));
+            reqArray(ctx, ePath, node, "args").forEach((a, j) => checkExprNode(`${ePath}.args[${j}]`, a, loopDepth));
             break;
           case "not":
+          case "abs":
             checkKeys(ctx, ePath, node, ["op", "arg"]);
-            checkExprNode(`${ePath}.arg`, node.arg);
+            checkExprNode(`${ePath}.arg`, node.arg, loopDepth);
             break;
           case "gt?":
           case "lt?":
@@ -537,38 +540,40 @@ export function validateWorld(input: unknown): ValidationResult {
           case "sub":
           case "mul":
           case "div":
+          case "mod":
+          case "min":
             checkKeys(ctx, ePath, node, ["op", "a", "b"]);
-            checkExprNode(`${ePath}.a`, node.a);
-            checkExprNode(`${ePath}.b`, node.b);
+            checkExprNode(`${ePath}.a`, node.a, loopDepth);
+            checkExprNode(`${ePath}.b`, node.b, loopDepth);
             break;
           case "flag?": {
             checkKeys(ctx, ePath, node, ["op", "entity", "flag"]);
-            checkExprNode(`${ePath}.entity`, node.entity);
+            checkExprNode(`${ePath}.entity`, node.entity, loopDepth);
             const flag = reqString(ctx, ePath, node, "flag");
             if (flag !== undefined) usedFlags.push({ path: `${ePath}.flag`, id: flag });
             break;
           }
           case "in?":
             checkKeys(ctx, ePath, node, ["op", "entity", "container"]);
-            checkExprNode(`${ePath}.entity`, node.entity);
-            checkExprNode(`${ePath}.container`, node.container);
+            checkExprNode(`${ePath}.entity`, node.entity, loopDepth);
+            checkExprNode(`${ePath}.container`, node.container, loopDepth);
             break;
           case "loc":
           case "first":
           case "next":
             checkKeys(ctx, ePath, node, ["op", "entity"]);
-            checkExprNode(`${ePath}.entity`, node.entity);
+            checkExprNode(`${ePath}.entity`, node.entity, loopDepth);
             break;
           case "prop":
             checkKeys(ctx, ePath, node, ["op", "entity", "prop"]);
-            checkExprNode(`${ePath}.entity`, node.entity);
+            checkExprNode(`${ePath}.entity`, node.entity, loopDepth);
             checkPropKey(ctx, ePath, node);
             break;
           case "set-global": {
             checkKeys(ctx, ePath, node, ["op", "id", "value"]);
             const gid = reqString(ctx, ePath, node, "id");
             if (gid !== undefined) refs.push({ path: `${ePath}.id`, id: gid, kind: "global-or-table" });
-            checkExprNode(`${ePath}.value`, node.value);
+            checkExprNode(`${ePath}.value`, node.value, loopDepth);
             break;
           }
           case "set-local": {
@@ -577,33 +582,45 @@ export function validateWorld(input: unknown): ValidationResult {
             if (lid !== undefined && !declaredLocals.has(lid)) {
               ctx.fail(`${ePath}.id`, `undeclared local "${lid}"`);
             }
-            checkExprNode(`${ePath}.value`, node.value);
+            checkExprNode(`${ePath}.value`, node.value, loopDepth);
             break;
           }
           case "table-get":
             checkKeys(ctx, ePath, node, ["op", "table", "index"]);
-            checkExprNode(`${ePath}.table`, node.table);
-            checkExprNode(`${ePath}.index`, node.index);
+            checkExprNode(`${ePath}.table`, node.table, loopDepth);
+            checkExprNode(`${ePath}.index`, node.index, loopDepth);
             break;
           case "call": {
             checkKeys(ctx, ePath, node, ["op", "routine", "args"]);
             const target = reqString(ctx, ePath, node, "routine");
             if (target !== undefined) behaviorCallTargets.add(target);
-            reqArray(ctx, ePath, node, "args").forEach((a, j) => checkExprNode(`${ePath}.args[${j}]`, a));
+            reqArray(ctx, ePath, node, "args").forEach((a, j) => checkExprNode(`${ePath}.args[${j}]`, a, loopDepth));
             break;
           }
           case "tell":
             checkKeys(ctx, ePath, node, ["op", "parts"]);
-            checkTellParts(ePath, node);
+            checkTellParts(ePath, node, loopDepth);
             break;
           case "set-flag":
           case "clear-flag": {
             checkKeys(ctx, ePath, node, ["op", "entity", "flag"]);
-            checkExprNode(`${ePath}.entity`, node.entity);
+            checkExprNode(`${ePath}.entity`, node.entity, loopDepth);
             const flag = reqString(ctx, ePath, node, "flag");
             if (flag !== undefined) usedFlags.push({ path: `${ePath}.flag`, id: flag });
             break;
           }
+          case "cond":
+            checkKeys(ctx, ePath, node, ["op", "clauses"]);
+            reqArray(ctx, ePath, node, "clauses").forEach((clause, j) => {
+              const cPath = `${ePath}.clauses[${j}]`;
+              if (!isObject(clause)) return ctx.fail(cPath, "must be an object");
+              checkKeys(ctx, cPath, clause, ["when", "do"]);
+              checkExprNode(`${cPath}.when`, clause.when, loopDepth);
+              reqArray(ctx, cPath, clause, "do").forEach((s, k) =>
+                checkStmtNode(`${cPath}.do[${k}]`, s, loopDepth),
+              );
+            });
+            break;
           default:
             ctx.fail(`${ePath}.op`, `unknown expression op "${String(node.op)}"`);
         }
@@ -622,7 +639,7 @@ export function validateWorld(input: unknown): ValidationResult {
           case "break":
             checkKeys(ctx, sPath, node, ["op", "value"]);
             if (loopDepth === 0) ctx.fail(sPath, "break outside a loop/block");
-            checkExprNode(`${sPath}.value`, node.value);
+            checkExprNode(`${sPath}.value`, node.value, loopDepth);
             break;
           case "continue":
             checkKeys(ctx, sPath, node, ["op"]);
@@ -634,7 +651,7 @@ export function validateWorld(input: unknown): ValidationResult {
               const cPath = `${sPath}.clauses[${j}]`;
               if (!isObject(clause)) return ctx.fail(cPath, "must be an object");
               checkKeys(ctx, cPath, clause, ["when", "do"]);
-              checkExprNode(`${cPath}.when`, clause.when);
+              checkExprNode(`${cPath}.when`, clause.when, loopDepth);
               reqArray(ctx, cPath, clause, "do").forEach((s, k) =>
                 checkStmtNode(`${cPath}.do[${k}]`, s, loopDepth),
               );
@@ -642,13 +659,13 @@ export function validateWorld(input: unknown): ValidationResult {
             break;
           case "tell":
             checkKeys(ctx, sPath, node, ["op", "parts"]);
-            checkTellParts(sPath, node);
+            checkTellParts(sPath, node, loopDepth);
             break;
           case "set-global": {
             checkKeys(ctx, sPath, node, ["op", "id", "value"]);
             const gid = reqString(ctx, sPath, node, "id");
             if (gid !== undefined) refs.push({ path: `${sPath}.id`, id: gid, kind: "global-or-table" });
-            checkExprNode(`${sPath}.value`, node.value);
+            checkExprNode(`${sPath}.value`, node.value, loopDepth);
             break;
           }
           case "set-local": {
@@ -657,51 +674,51 @@ export function validateWorld(input: unknown): ValidationResult {
             if (lid !== undefined && !declaredLocals.has(lid)) {
               ctx.fail(`${sPath}.id`, `undeclared local "${lid}"`);
             }
-            checkExprNode(`${sPath}.value`, node.value);
+            checkExprNode(`${sPath}.value`, node.value, loopDepth);
             break;
           }
           case "set-flag":
           case "clear-flag": {
             checkKeys(ctx, sPath, node, ["op", "entity", "flag"]);
-            checkExprNode(`${sPath}.entity`, node.entity);
+            checkExprNode(`${sPath}.entity`, node.entity, loopDepth);
             const flag = reqString(ctx, sPath, node, "flag");
             if (flag !== undefined) usedFlags.push({ path: `${sPath}.flag`, id: flag });
             break;
           }
           case "move":
             checkKeys(ctx, sPath, node, ["op", "entity", "to"]);
-            checkExprNode(`${sPath}.entity`, node.entity);
-            checkExprNode(`${sPath}.to`, node.to);
+            checkExprNode(`${sPath}.entity`, node.entity, loopDepth);
+            checkExprNode(`${sPath}.to`, node.to, loopDepth);
             break;
           case "remove":
             checkKeys(ctx, sPath, node, ["op", "entity"]);
-            checkExprNode(`${sPath}.entity`, node.entity);
+            checkExprNode(`${sPath}.entity`, node.entity, loopDepth);
             break;
           case "set-prop":
             checkKeys(ctx, sPath, node, ["op", "entity", "prop", "value"]);
-            checkExprNode(`${sPath}.entity`, node.entity);
+            checkExprNode(`${sPath}.entity`, node.entity, loopDepth);
             checkPropKey(ctx, sPath, node);
-            checkExprNode(`${sPath}.value`, node.value);
+            checkExprNode(`${sPath}.value`, node.value, loopDepth);
             break;
           case "table-set":
             checkKeys(ctx, sPath, node, ["op", "table", "index", "value"]);
-            checkExprNode(`${sPath}.table`, node.table);
-            checkExprNode(`${sPath}.index`, node.index);
-            checkExprNode(`${sPath}.value`, node.value);
+            checkExprNode(`${sPath}.table`, node.table, loopDepth);
+            checkExprNode(`${sPath}.index`, node.index, loopDepth);
+            checkExprNode(`${sPath}.value`, node.value, loopDepth);
             break;
           case "return":
             checkKeys(ctx, sPath, node, ["op", "value"]);
-            checkExprNode(`${sPath}.value`, node.value);
+            checkExprNode(`${sPath}.value`, node.value, loopDepth);
             break;
           case "value":
             checkKeys(ctx, sPath, node, ["op", "expr"]);
-            checkExprNode(`${sPath}.expr`, node.expr);
+            checkExprNode(`${sPath}.expr`, node.expr, loopDepth);
             break;
           case "call": {
             checkKeys(ctx, sPath, node, ["op", "routine", "args"]);
             const target = reqString(ctx, sPath, node, "routine");
             if (target !== undefined) behaviorCallTargets.add(target);
-            reqArray(ctx, sPath, node, "args").forEach((a, j) => checkExprNode(`${sPath}.args[${j}]`, a));
+            reqArray(ctx, sPath, node, "args").forEach((a, j) => checkExprNode(`${sPath}.args[${j}]`, a, loopDepth));
             break;
           }
           default:

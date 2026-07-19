@@ -49,7 +49,8 @@ describe("stage 3.5 batch (d) extraction — daemons/timers", () => {
     const reasons = new Map(catalog.map((c) => [c.id, c.reasons.join("; ")]));
     expect(reasons.get("I-LANTERN")).toContain("<REST");
     expect(reasons.get("I-CANDLES")).toContain("<REST");
-    expect(reasons.get("I-CYCLOPS")).toContain("ABS");
+    // Batch (g) lowered ABS, so I-CYCLOPS advanced to the next frontier form.
+    expect(reasons.get("I-CYCLOPS")).toContain("<NTH");
     for (const [id, reason] of reasons) {
       expect(reason, `${id} must not fail on QUEUE/INT/CLOCKER`).not.toMatch(/QUEUE|CLOCKER/);
     }

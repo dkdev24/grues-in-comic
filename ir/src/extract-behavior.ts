@@ -40,7 +40,7 @@ interface AstNode {
 const DENIED_OPERATORS = new Set([
   "MAPF", "MAPR",
   "GETPT", "PTSIZE", "GETB", "PUTB",
-  "MOD", "MIN", "ABS", "RANDOM",
+  "RANDOM",
   "BAND", "BOR", "BTST", "BCOM",
   "APPLY", "RFATAL", "ASSIGNED?", "DLESS?", "IGRTR?",
   "PRINT", "PRINTB", "PRINC", "PRINTD",
@@ -84,7 +84,7 @@ const FALSE: Expr = { op: "const", value: false };
 const EXPR_HEADS = new Set([
   "VERB?", "EQUAL?", "==?", "FSET?", "AND", "OR", "NOT",
   "G?", "L?", "0?", "1?", "IN?", "LOC", "GETP", "GET",
-  "+", "-", "*", "/", "FIRST?", "NEXT?",
+  "+", "-", "*", "/", "MOD", "MIN", "ABS", "FIRST?", "NEXT?",
 ]);
 
 export interface CatalogEntry {
@@ -483,6 +483,19 @@ class RoutineTransformer {
       case "*":
       case "/":
         return this.arith(head, rest);
+      case "MOD":
+        return { op: "mod", a: this.expr(rest[0]!), b: this.expr(rest[1]!) };
+      case "MIN": {
+        const args = rest.map((a) => this.expr(a));
+        if (args.length === 0) this.deny("MIN with no operands");
+        return args.slice(1).reduce((a, b) => ({ op: "min", a, b }), args[0]!);
+      }
+      case "ABS":
+        return { op: "abs", arg: this.expr(rest[0]!) };
+      // Conditional inside AND/OR or as an argument (batch g) — the same
+      // lowering as the statement case, yielding the taken clause's value.
+      case "COND":
+        return { op: "cond", clauses: rest.map((c) => this.condClause(c)) };
       case "VALUE": {
         // `<VALUE X>` reads global X — identical to `,X` (GVal).
         const id = atomName(rest[0]) ?? this.deny("VALUE target is not an atom");

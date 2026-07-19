@@ -1,5 +1,5 @@
 {
-  "irVersion": "0.7.0",
+  "irVersion": "0.8.0",
   "meta": {
     "title": "Zork I — world model (rooms, exits, objects)",
     "source": "importer/artifacts/ast (from original-projects/zork1)",
@@ -13161,6 +13161,186 @@
       }
     },
     {
+      "id": "CANARY-OBJECT",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "WIND"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "CANARY"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "and",
+                                "args": [
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "global",
+                                      "id": "SING-SONG"
+                                    }
+                                  },
+                                  {
+                                    "op": "call",
+                                    "routine": "FOREST-ROOM?",
+                                    "args": []
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The canary chirps, slightly off-key, an aria from a forgotten opera. From out of the greenery flies a lovely songbird. It perches on a limb just over your head and opens its beak to sing. As it does so a beautiful brass bauble drops from its mouth, bounces off the top of your head, and lands glimmering in the grass. As the canary winds down, the songbird flies away."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "set-global",
+                                  "id": "SING-SONG",
+                                  "value": {
+                                    "op": "const",
+                                    "value": true
+                                  }
+                                },
+                                {
+                                  "op": "move",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "BAUBLE"
+                                  },
+                                  "to": {
+                                    "op": "cond",
+                                    "clauses": [
+                                      {
+                                        "when": {
+                                          "op": "equal?",
+                                          "args": [
+                                            {
+                                              "op": "global",
+                                              "id": "HERE"
+                                            },
+                                            {
+                                              "op": "entity",
+                                              "id": "UP-A-TREE"
+                                            }
+                                          ]
+                                        },
+                                        "do": [
+                                          {
+                                            "op": "value",
+                                            "expr": {
+                                              "op": "entity",
+                                              "id": "PATH"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "when": {
+                                          "op": "const",
+                                          "value": true
+                                        },
+                                        "do": [
+                                          {
+                                            "op": "value",
+                                            "expr": {
+                                              "op": "global",
+                                              "id": "HERE"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The canary chirps blithely, if somewhat tinnily, for a short time."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "There is an unpleasant grinding noise from inside the canary."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2970
+      }
+    },
+    {
       "id": "CANYON-VIEW-F",
       "body": [
         {
@@ -14654,6 +14834,775 @@
       "source": {
         "file": "gglobals.zil",
         "line": 221
+      }
+    },
+    {
+      "id": "CYCLOPS-FCN",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "COUNT",
+          "value": {
+            "op": "global",
+            "id": "CYCLOWRATH"
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "WINNER"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "CYCLOPS"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "global",
+                        "id": "CYCLOPS-FLAG"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "No use talking to him. He's fast asleep."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "verb?",
+                        "verbs": [
+                          "ODYSSEUS"
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "WINNER",
+                          "value": {
+                            "op": "entity",
+                            "id": "ADVENTURER"
+                          }
+                        },
+                        {
+                          "op": "call",
+                          "routine": "PERFORM",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "ODYSSEUS"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The cyclops prefers eating to making conversation."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "global",
+                "id": "CYCLOPS-FLAG"
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "verb?",
+                        "verbs": [
+                          "EXAMINE"
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The cyclops is sleeping like a baby, albeit a very ugly one."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "verb?",
+                        "verbs": [
+                          "ALARM",
+                          "KICK",
+                          "ATTACK",
+                          "BURN",
+                          "MUNG"
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The cyclops yawns and stares at the thing that woke him up."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-global",
+                          "id": "CYCLOPS-FLAG",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        },
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "CYCLOPS"
+                          },
+                          "flag": "FIGHTBIT"
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "lt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "COUNT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 0
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-global",
+                                  "id": "CYCLOWRATH",
+                                  "value": {
+                                    "op": "sub",
+                                    "a": {
+                                      "op": "const",
+                                      "value": 0
+                                    },
+                                    "b": {
+                                      "op": "local",
+                                      "id": "COUNT"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "set-global",
+                                  "id": "CYCLOWRATH",
+                                  "value": {
+                                    "op": "local",
+                                    "id": "COUNT"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "EXAMINE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "A hungry cyclops is standing at the foot of the stairs."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "GIVE"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "CYCLOPS"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "LUNCH"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "not",
+                                "arg": {
+                                  "op": "lt?",
+                                  "a": {
+                                    "op": "local",
+                                    "id": "COUNT"
+                                  },
+                                  "b": {
+                                    "op": "const",
+                                    "value": 0
+                                  }
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "call",
+                                  "routine": "REMOVE-CAREFULLY",
+                                  "args": [
+                                    {
+                                      "op": "entity",
+                                      "id": "LUNCH"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The cyclops says \"Mmm Mmm. I love hot peppers! But oh, could I use a drink. Perhaps I could drink the blood of that thing.\"  From the gleam in his eye, it could be surmised that you are \"that thing\"."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "set-global",
+                                  "id": "CYCLOWRATH",
+                                  "value": {
+                                    "op": "min",
+                                    "a": {
+                                      "op": "const",
+                                      "value": -1
+                                    },
+                                    "b": {
+                                      "op": "sub",
+                                      "a": {
+                                        "op": "const",
+                                        "value": 0
+                                      },
+                                      "b": {
+                                        "op": "local",
+                                        "id": "COUNT"
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "call",
+                          "routine": "ENABLE",
+                          "args": [
+                            {
+                              "op": "call",
+                              "routine": "QUEUE",
+                              "args": [
+                                {
+                                  "op": "const",
+                                  "value": "I-CYCLOPS"
+                                },
+                                {
+                                  "op": "const",
+                                  "value": -1
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "or",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "global",
+                                "id": "PRSO"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "WATER"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "args": [
+                              {
+                                "op": "equal?",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "PRSO"
+                                  },
+                                  {
+                                    "op": "entity",
+                                    "id": "BOTTLE"
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "in?",
+                                "entity": {
+                                  "op": "entity",
+                                  "id": "WATER"
+                                },
+                                "container": {
+                                  "op": "entity",
+                                  "id": "BOTTLE"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "lt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "COUNT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 0
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "call",
+                                  "routine": "REMOVE-CAREFULLY",
+                                  "args": [
+                                    {
+                                      "op": "entity",
+                                      "id": "WATER"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "move",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "BOTTLE"
+                                  },
+                                  "to": {
+                                    "op": "global",
+                                    "id": "HERE"
+                                  }
+                                },
+                                {
+                                  "op": "set-flag",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "BOTTLE"
+                                  },
+                                  "flag": "OPENBIT"
+                                },
+                                {
+                                  "op": "clear-flag",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "CYCLOPS"
+                                  },
+                                  "flag": "FIGHTBIT"
+                                },
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The cyclops takes the bottle, checks that it's open, and drinks the water. A moment later, he lets out a yawn that nearly blows you over, and then falls fast asleep (what did you put in that drink, anyway?)."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "set-global",
+                                  "id": "CYCLOPS-FLAG",
+                                  "value": {
+                                    "op": "const",
+                                    "value": true
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "The cyclops apparently is not thirsty and refuses your generous offer."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "GARLIC"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The cyclops may be hungry, but there is a limit."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The cyclops is not so stupid as to eat THAT!"
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "THROW",
+                  "ATTACK",
+                  "MUNG"
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "ENABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "QUEUE",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-CYCLOPS"
+                        },
+                        {
+                          "op": "const",
+                          "value": -1
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "verb?",
+                        "verbs": [
+                          "MUNG"
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "\"Do you think I'm as stupid as my father was?\", he says, dodging."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The cyclops shrugs but otherwise ignores your pitiful attempt."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "verb?",
+                                "verbs": [
+                                  "THROW"
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "move",
+                                  "entity": {
+                                    "op": "global",
+                                    "id": "PRSO"
+                                  },
+                                  "to": {
+                                    "op": "global",
+                                    "id": "HERE"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TAKE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The cyclops doesn't take kindly to being grabbed."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TIE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You cannot tie the cyclops, though he is fit to be tied."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "LISTEN"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You can hear his stomach rumbling."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "COUNT"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 1515
       }
     },
     {
@@ -32189,6 +33138,204 @@
       }
     },
     {
+      "id": "SAILOR-FCN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TELL"
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "P-CONT",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                },
+                {
+                  "op": "set-global",
+                  "id": "QUOTE-FLAG",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You can't talk to the sailor that way."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "EXAMINE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "const",
+                    "value": true
+                  }
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "There is no sailor to be seen."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "HELLO"
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "HS",
+                  "value": {
+                    "op": "add",
+                    "a": {
+                      "op": "global",
+                      "id": "HS"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 1
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "mod",
+                            "a": {
+                              "op": "global",
+                              "id": "HS"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 20
+                            }
+                          },
+                          {
+                            "op": "const",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You seem to be repeating yourself."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "mod",
+                            "a": {
+                              "op": "global",
+                              "id": "HS"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 10
+                            }
+                          },
+                          {
+                            "op": "const",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "I think that phrase is getting a bit worn out."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Nothing happens here."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "gglobals.zil",
+        "line": 122
+      }
+    },
+    {
       "id": "SAND-FUNCTION",
       "body": [
         {
@@ -32945,6 +34092,139 @@
       "source": {
         "file": "gverbs.zil",
         "line": 1837
+      }
+    },
+    {
+      "id": "SHAKE-LOOP",
+      "body": [
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "set-local",
+                    "id": "X",
+                    "value": {
+                      "op": "first",
+                      "entity": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "set-flag",
+                      "entity": {
+                        "op": "local",
+                        "id": "X"
+                      },
+                      "flag": "TOUCHBIT"
+                    },
+                    {
+                      "op": "move",
+                      "entity": {
+                        "op": "local",
+                        "id": "X"
+                      },
+                      "to": {
+                        "op": "cond",
+                        "clauses": [
+                          {
+                            "when": {
+                              "op": "equal?",
+                              "args": [
+                                {
+                                  "op": "global",
+                                  "id": "HERE"
+                                },
+                                {
+                                  "op": "entity",
+                                  "id": "UP-A-TREE"
+                                }
+                              ]
+                            },
+                            "do": [
+                              {
+                                "op": "value",
+                                "expr": {
+                                  "op": "entity",
+                                  "id": "PATH"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "when": {
+                              "op": "not",
+                              "arg": {
+                                "op": "flag?",
+                                "entity": {
+                                  "op": "global",
+                                  "id": "HERE"
+                                },
+                                "flag": "RLANDBIT"
+                              }
+                            },
+                            "do": [
+                              {
+                                "op": "value",
+                                "expr": {
+                                  "op": "entity",
+                                  "id": "PSEUDO-OBJECT"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "when": {
+                              "op": "const",
+                              "value": true
+                            },
+                            "do": [
+                              {
+                                "op": "value",
+                                "expr": {
+                                  "op": "global",
+                                  "id": "HERE"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "const",
+                    "value": true
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "X"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1242
       }
     },
     {

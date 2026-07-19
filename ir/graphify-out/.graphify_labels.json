@@ -9,5 +9,8 @@
   "7": "Validator Types & Constants",
   "8": "WorldDocument",
   "9": "Room",
-  "10": "behavior-35b.test.ts"
+  "10": "behavior-35b.test.ts",
+  "11": "behavior.ts",
+  "12": "behavior-35-triage.test.ts",
+  "13": "extract.test.ts"
 }

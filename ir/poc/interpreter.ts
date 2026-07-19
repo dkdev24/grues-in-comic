@@ -80,17 +80,32 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
     case "add":
     case "sub":
     case "mul":
-    case "div": {
+    case "div":
+    case "mod":
+    case "min": {
       const a = num(evalExpr(expr.a, world, locals));
       const b = num(evalExpr(expr.b, world, locals));
       const raw =
         expr.op === "add" ? a + b
         : expr.op === "sub" ? a - b
         : expr.op === "mul" ? a * b
-        : Math.trunc(a / b); // ZIL `/` truncates toward zero.
+        : expr.op === "div" ? Math.trunc(a / b) // ZIL `/` truncates toward zero.
+        : expr.op === "mod" ? a % b // sign of the dividend, as on the Z-machine
+        : Math.min(a, b);
       // Z-machine arithmetic is 16-bit signed with wraparound.
       return ((raw + 0x8000) & 0xffff) - 0x8000;
     }
+    case "abs":
+      // 16-bit wrap keeps ABS −32768 = −32768, as on the Z-machine.
+      return ((Math.abs(num(evalExpr(expr.arg, world, locals))) + 0x8000) & 0xffff) - 0x8000;
+    case "cond":
+      for (const clause of expr.clauses) {
+        const predicate = evalExpr(clause.when, world, locals);
+        if (truthy(predicate)) {
+          return clause.do.length === 0 ? predicate : execBody(clause.do, world, locals);
+        }
+      }
+      return false;
     case "in?": {
       const entity = entityId(evalExpr(expr.entity, world, locals), "in?");
       const container = entityId(evalExpr(expr.container, world, locals), "in?");

@@ -49,6 +49,19 @@ export type Expr =
   | { op: "sub"; a: Expr; b: Expr }
   | { op: "mul"; a: Expr; b: Expr }
   | { op: "div"; a: Expr; b: Expr }
+  /** Truncating remainder, sign of the dividend (ZIL `MOD`). */
+  | { op: "mod"; a: Expr; b: Expr }
+  /** Smaller operand (ZIL `MIN`; n-ary source forms lower to left folds). */
+  | { op: "min"; a: Expr; b: Expr }
+  /** Absolute value (ZIL `ABS`; −32768 wraps to itself, as on the Z-machine). */
+  | { op: "abs"; arg: Expr }
+  /**
+   * Conditional in expression position (ZIL COND inside AND/OR or as an
+   * argument) — the same shape as the statement op, yielding the taken
+   * clause's last value (predicate value on an empty body, false when no
+   * clause fires).
+   */
+  | { op: "cond"; clauses: CondClause[] }
   /** True when entity is directly inside container (ZIL `IN?`). */
   | { op: "in?"; entity: Expr; container: Expr }
   /** The entity's direct container/room (ZIL `LOC`). */

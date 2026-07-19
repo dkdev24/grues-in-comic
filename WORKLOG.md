@@ -403,3 +403,18 @@ Stage 3.5 triage complete: every catalogued routine now has a written dispositio
 ### Status
 
 Stage 3.5 batch (f) complete. Handler coverage 255/292 (87%). Next per ADR 0001 Group B: batch (g) expression-position cond + abs/mod/min, then (h) table-rest, (i) apply, (j) RFATAL.
+
+## v0.5.11 — Complex Behavior Batch g: Expression-Position Cond + Deterministic Arithmetic (stage 3.5)
+
+**Date:** 2026-07-19
+
+### Changes
+
+- **IR schema 0.8.0** (ADR 0001 appendix): expr `cond` — a conditional in expression position (ZIL COND inside AND/OR or as an argument), the same shape as the statement op and yielding the taken clause's last value (predicate value on an empty body, false when no clause fires), so the stage 3.4 expression-oriented semantics now hold in both positions. Plus the deterministic arithmetic ops `mod` (truncating remainder, sign of the dividend as on the Z-machine), `min` (n-ary source forms → left folds, per batch (a)), and `abs` (−32768 wraps to itself under the shared 16-bit signed wrap). `RANDOM` stays denied — randomness remains an engine builtin per the determinism rule — as do the bit ops. Validator threads the enclosing loop/block depth into expression position so a `cond` clause body's `break`/`continue` is still checked
+- **Extraction: 305 → 309 routines, catalog 56 → 52, unresolved refs 37 → 34 (88% handler coverage).** Unlocked CANARY-OBJECT, SHAKE-LOOP, SAILOR-FCN (the corpus's only `MOD`), CYCLOPS-FCN (its only `MIN`). The remaining batch (g) candidates advanced past ABS/cond to their real blockers: I-CYCLOPS → `<NTH …>`, I-THIEF → the `,ROOMS` meta entity (a world-document gap, not a behavior op), GRATE-FUNCTION → a String in statement position. `ABS` is lowerable but currently unexercised by the corpus, since its only user I-CYCLOPS still catalogs on `<NTH …>`
+- 124 tests pass (11 new in `test/behavior-35g.test.ts`): artifact shapes (`mod` in SAILOR-FCN, `min` in CYCLOPS-FCN), the advanced catalog reasons, and op semantics — mod's dividend sign, min, abs's −32768 wrap, and expr-position cond's taken-clause / empty-body / no-clause-fires / nested-in-`and` cases
+- **Session note:** the batch was interrupted mid-flight by a usage limit. Source work was already complete and typechecking; the resume finished the `irVersion` fixture bumps (sample + regenerated artifact), corrected a stale `I-CYCLOPS`-fails-on-`ABS` assertion in `behavior-35d.test.ts` to the new `<NTH` frontier, and added the batch (g) tests. No source logic changed on resume
+
+### Status
+
+Stage 3.5 batch (g) complete. Handler coverage 258/292 (88%). Next per ADR 0001 Group B: (h) table-rest (completes the I-LANTERN/I-CANDLES countdown goldens), (i) apply, (j) RFATAL, and the world-document meta entities that unblock I-THIEF. Newly surfaced and not yet assigned to a batch: `<NTH …>` and String-in-statement-position.

@@ -10,16 +10,6 @@
     ]
   },
   {
-    "id": "CANARY-OBJECT",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2970
-    },
-    "reasons": [
-      "unknown form <COND …>"
-    ]
-  },
-  {
     "id": "CANDLES-FCN",
     "source": {
       "file": "1actions.zil",
@@ -27,16 +17,6 @@
     },
     "reasons": [
       "operator RFATAL"
-    ]
-  },
-  {
-    "id": "CYCLOPS-FCN",
-    "source": {
-      "file": "1actions.zil",
-      "line": 1515
-    },
-    "reasons": [
-      "operator MIN"
     ]
   },
   {
@@ -96,7 +76,7 @@
       "line": 850
     },
     "reasons": [
-      "unknown form <COND …>"
+      "unexpected String in statement position"
     ]
   },
   {
@@ -136,7 +116,7 @@
       "line": 1596
     },
     "reasons": [
-      "operator ABS"
+      "unknown form <NTH …>"
     ]
   },
   {
@@ -166,7 +146,7 @@
       "line": 3890
     },
     "reasons": [
-      "unknown form <COND …>"
+      "unknown name ,ROOMS"
     ]
   },
   {
@@ -277,26 +257,6 @@
     },
     "reasons": [
       "unknown name ,ROOMS"
-    ]
-  },
-  {
-    "id": "SAILOR-FCN",
-    "source": {
-      "file": "gglobals.zil",
-      "line": 122
-    },
-    "reasons": [
-      "operator MOD"
-    ]
-  },
-  {
-    "id": "SHAKE-LOOP",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1242
-    },
-    "reasons": [
-      "unknown form <COND …>"
     ]
   },
   {
