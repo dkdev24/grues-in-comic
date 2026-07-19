@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784440798.355851,
-    "ast_hash": "6f5548f400606aec9473491c79b78f9c",
+    "mtime": 1784441608.0070722,
+    "ast_hash": "87811ae376229a4a822bf554fedf2daa",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -97,6 +97,11 @@
   "test/behavior-35d.test.ts": {
     "mtime": 1784441009.0472667,
     "ast_hash": "1dc3e2bab980d7f6c11ba3da876cc868",
+    "semantic_hash": ""
+  },
+  "test/behavior-35-triage.test.ts": {
+    "mtime": 1784441729.094425,
+    "ast_hash": "7c5539fa49d5d753fc2474e51fd9d110",
     "semantic_hash": ""
   }
 }

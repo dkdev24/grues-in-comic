@@ -11599,6 +11599,90 @@
       }
     },
     {
+      "id": "BELL-F",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "RING"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "global",
+                                "id": "HERE"
+                              },
+                              {
+                                "op": "const",
+                                "value": "LLD-ROOM"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "global",
+                              "id": "LLD-FLAG"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Ding, dong."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 343
+      }
+    },
+    {
       "id": "BLACK-BOOK",
       "body": [
         {
@@ -17571,6 +17655,92 @@
       "source": {
         "file": "1actions.zil",
         "line": 264
+      }
+    },
+    {
+      "id": "GO-NEXT",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "set-local",
+                "id": "VAL",
+                "value": {
+                  "op": "call",
+                  "routine": "LKP",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "HERE"
+                    },
+                    {
+                      "op": "local",
+                      "id": "TBL"
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "call",
+                          "routine": "GOTO",
+                          "args": [
+                            {
+                              "op": "local",
+                              "id": "VAL"
+                            }
+                          ]
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "value",
+                          "expr": {
+                            "op": "const",
+                            "value": 2
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "value",
+                          "expr": {
+                            "op": "const",
+                            "value": 1
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "TBL"
+      ],
+      "locals": [
+        "VAL"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 131
       }
     },
     {
@@ -33472,6 +33642,317 @@
       "source": {
         "file": "1actions.zil",
         "line": 567
+      }
+    },
+    {
+      "id": "TRAP-DOOR-FCN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "RAISE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "PERFORM",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "OPEN"
+                    },
+                    {
+                      "op": "entity",
+                      "id": "TRAP-DOOR"
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "OPEN",
+                      "CLOSE"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "HERE"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "LIVING-ROOM"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "OPEN-CLOSE",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "PRSO"
+                    },
+                    {
+                      "op": "const",
+                      "value": "The door reluctantly opens to reveal a rickety staircase descending into darkness."
+                    },
+                    {
+                      "op": "const",
+                      "value": "The door swings shut and closes."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "LOOK-UNDER"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "HERE"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "LIVING-ROOM"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "entity",
+                          "id": "TRAP-DOOR"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You see a rickety staircase descending into darkness."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It's closed."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "CELLAR"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "verb?",
+                            "verbs": [
+                              "OPEN",
+                              "UNLOCK"
+                            ]
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "flag?",
+                              "entity": {
+                                "op": "entity",
+                                "id": "TRAP-DOOR"
+                              },
+                              "flag": "OPENBIT"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The door is locked from above."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "verb?",
+                            "verbs": [
+                              "CLOSE"
+                            ]
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "flag?",
+                              "entity": {
+                                "op": "entity",
+                                "id": "TRAP-DOOR"
+                              },
+                              "flag": "OPENBIT"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "clear-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "TRAP-DOOR"
+                          },
+                          "flag": "TOUCHBIT"
+                        },
+                        {
+                          "op": "clear-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "TRAP-DOOR"
+                          },
+                          "flag": "OPENBIT"
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The door closes and locks."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "verb?",
+                        "verbs": [
+                          "OPEN",
+                          "CLOSE"
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "call",
+                                "routine": "PICK-ONE",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "DUMMY"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 504
       }
     },
     {

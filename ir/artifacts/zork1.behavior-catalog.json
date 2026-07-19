@@ -10,16 +10,6 @@
     ]
   },
   {
-    "id": "BELL-F",
-    "source": {
-      "file": "1actions.zil",
-      "line": 343
-    },
-    "reasons": [
-      "unknown name ,LLD-ROOM"
-    ]
-  },
-  {
     "id": "CANARY-OBJECT",
     "source": {
       "file": "1actions.zil",
@@ -87,16 +77,6 @@
     },
     "reasons": [
       "operator GETPT"
-    ]
-  },
-  {
-    "id": "GO-NEXT",
-    "source": {
-      "file": "1actions.zil",
-      "line": 131
-    },
-    "reasons": [
-      "unexpected Number in statement position"
     ]
   },
   {
@@ -367,16 +347,6 @@
     },
     "reasons": [
       "operator BAND"
-    ]
-  },
-  {
-    "id": "TRAP-DOOR-FCN",
-    "source": {
-      "file": "1actions.zil",
-      "line": 504
-    },
-    "reasons": [
-      "bare atom LIVING-ROOM in expression position"
     ]
   },
   {

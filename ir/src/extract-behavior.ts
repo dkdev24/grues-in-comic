@@ -266,6 +266,8 @@ class RoutineTransformer {
     // Bare `T` ending a COND clause, or a value reference in statement
     // position — an expression statement (the routine may return its value).
     if (node.type === "Atom" && node.name === "T") return { op: "value", expr: TRUE };
+    // Number ending a COND clause (GO-NEXT's per-turn codes) — a value.
+    if (node.type === "Number") return { op: "value", expr: this.expr(node) };
     if (node.type === "GVal" || node.type === "LVal") return { op: "value", expr: this.expr(node) };
     if (node.type !== "Form") this.deny(`unexpected ${node.type} in statement position`);
     const parts = meaningful(node.elements ?? []);
@@ -399,6 +401,12 @@ class RoutineTransformer {
             this.callTargets.add(node.name!);
           }
           return { op: "const", value: node.name! };
+        }
+        // A bare room/object atom — `<EQUAL? ,HERE LIVING-ROOM>` in
+        // TRAP-DOOR-FCN (original-game missing comma; ZIL compiles the
+        // bare atom to the same object constant as `,LIVING-ROOM`).
+        if (this.sources.roomAndObjectIds.has(node.name!)) {
+          return { op: "entity", id: node.name! };
         }
         this.deny(`bare atom ${node.name} in expression position`);
         break;
@@ -605,6 +613,16 @@ class RoutineTransformer {
     if (this.sources.globalForms.has(name)) {
       this.needGlobal(name);
       return { op: "global", id: name };
+    }
+    // A routine atom as a value (`,LLD-ROOM` in BELL-F): its name string,
+    // matching bare-atom routine references — applied targets stay
+    // reachable, and BELL-F's routine-vs-room compare (an original-game
+    // quirk) stays always-false, as the Z-machine address compare was.
+    if (this.sources.callableNames.has(name)) {
+      if (this.sources.routineForms.has(name) && !CLOCK_BUILTINS.has(name)) {
+        this.callTargets.add(name);
+      }
+      return { op: "const", value: name };
     }
     this.deny(`unknown name ,${name}`);
   }

@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.5.8**
+**0.5.9**
 
 ---
 
@@ -21,29 +21,28 @@ Historical sources imported:
 - M2 ✅: `ir/` — IR schema/validator; declarative-world (2.1) done; behavior AST + builtin layer (ADR 0001, 2.2); TS engine, JSON event contract (ADR 0002, 2.3, ⚑ Gate B); Graphify adopted per-module (2.4, ⚑ Gate A); OpenWiki not adopted
 - M3 🔄: Semantic Extraction ZIL→IR (v0.5.x)
   - 3.1–3.4 ✅: 110 rooms/exits, 137 objects, 267 parser rules in `ir/artifacts/`
-  - 3.5 🔄: 295 routines extracted, 64 catalogued, 42/292 refs unresolved (86% coverage); IR schema 0.6.0
-  - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers)
-  - Next: builtin triage of long tail
+  - 3.5 🔄: 298 routines extracted, 61 catalogued (all triaged, ADR 0001 builtin list), 40/292 refs unresolved (86% coverage); IR schema 0.6.0
+  - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage
+  - Next: batch f (expr-position tell/set-flag + PRINTN), then g/h/i/j per ADR 0001 Group B
 - M4 ⏳: Engine core (not started)
 
 ---
 
-## Last Session (v0.5.8)
-- **Stage 3.5 batch (d) complete**: daemons/timers
-- **Clock is engine builtin** (ADR 0001 appendix): QUEUE/INT/CLOCKER never extracted; interrupt record = 3-slot table [C-ENABLED?, C-TICK, C-RTN] (constants 0/1/2), QUEUE/INT return it so extracted GET/PUT works unchanged; CLOCKER newest-first, fires at pre-decrement tick ≤ 1 (−1 = demon), honors CLOCK-WAIT, increments MOVES; P-WON demon gating → stage 4.5. Reference impl in `ir/poc/world.ts`
-- QUEUE name-string targets (`<QUEUE I-MATCH 2>`) join the extraction closure; `<VALUE X>` expr added
-- 288→295 routines, catalog 59→64, unresolved 65→42 (86% coverage)
-- Unlocked I-MATCH, I-XC, I-REMPTY, I-MAINT-ROOM, I-RIVER, I-FOREST-ROOM + FOREST-ROOM?, MUNG-ROOM
-- Countdown golden: extracted I-MATCH runs through CLOCKER end-to-end; 101 tests pass
-- Remaining daemons on true frontier: I-LANTERN/I-CANDLES (`<REST …>`), I-CYCLOPS (ABS), I-SWORD (NEXTP), I-THIEF (expr-`<COND …>`), I-XB (TELL-CR-arg), I-RFILL (FSET shape)
+## Last Session (v0.5.8 → v0.5.9)
+- **v0.5.8 — batch (d) daemons/timers**: clock is engine builtin (ADR 0001): QUEUE/INT/CLOCKER never extracted; interrupt record = 3-slot table [C-ENABLED?, C-TICK, C-RTN], QUEUE/INT return it so extracted GET/PUT works unchanged; CLOCKER fires at pre-decrement tick ≤ 1 (−1 = demon), honors CLOCK-WAIT; P-WON demon gating → stage 4.5. Reference impl in `ir/poc/world.ts`. QUEUE name-string targets join the closure; `<VALUE X>` added. Unlocked I-MATCH, I-XC, I-REMPTY, I-MAINT-ROOM, I-RIVER, I-FOREST-ROOM. Countdown golden: extracted I-MATCH runs through CLOCKER end-to-end
+- **v0.5.9 — builtin triage complete**: every catalogued routine has a written disposition in ADR 0001's "Deliberate engine-builtin list". Group A (builtins by design): meta verbs, randomness (V-RANDOM, PICK-ONE), parser/scope/movement (LIT?, GOTO, V-WALK, GLOBAL-IN?, OTHER-SIDE, …). Group B (named future batches): (f) expr-position tell/set-flag + PRINTN, (g) expr-cond + abs/mod/min, (h) table-rest (→ I-LANTERN/I-CANDLES), (i) apply, (j) RFATAL, world-doc meta entities (ROOMS/GLOBAL-OBJECTS), M4 deferrals (READ, I-SWORD)
+- Triage lowerings landed: Number stmt, bare entity atom, routine-name GVal → unlocked BELL-F, GO-NEXT, TRAP-DOOR-FCN
+- 288→298 routines, catalog 59→61, unresolved 65→40 (86% coverage); 105 tests pass
 
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M3 continues:**
-1. **Builtin triage**: ,ROOMS/,GLOBAL-OBJECTS iteration, RFATAL, GETPT/PTSIZE, SAVE/RESTORE/RESTART/QUIT/VERIFY, DIROUT/DIRIN, RANDOM/MOD/MIN, `<REST …>` (unlocks I-LANTERN/I-CANDLES countdowns), expr-`<COND …>` (I-THIEF), ABS/NEXTP/TELL-CR-arg → deliberate builtin list in ADR
-2. Stage 5.1 (Comic Chat) = filler
-3. After 3.5: M4 starts (walk map from IR); engine CLOCKER needs P-WON demon-region gating (stage 4.5)
+**M3 continues (Group B batches per ADR 0001 triage):**
+1. **Batch (f)**: expression-position tell/set-flag/clear-flag (+ PRINTN → TELL number part) — unlocks I-XB, RUSTY-KNIFE-FCN, TROLL-FCN, I-RFILL, SAND-FUNCTION, V-DIAGNOSE
+2. **Batch (g)**: expression-position cond + abs/mod/min ops — unlocks I-THIEF, CANARY-OBJECT, GRATE-FUNCTION, SHAKE-LOOP, I-CYCLOPS, SAILOR-FCN, CYCLOPS-FCN
+3. **Batch (h)**: table-rest views — completes I-LANTERN/I-CANDLES countdown goldens; **(i)** apply; **(j)** RFATAL; world-doc meta entities (ROOMS/GLOBAL-OBJECTS/LOCAL-GLOBALS), nested VILLAINS tables
+4. Stage 5.1 (Comic Chat) = filler
+5. M4 can start against the Group A builtin contract (walk map from IR); engine CLOCKER needs P-WON demon-region gating (stage 4.5)
 
 **M0 complete** (0.1–0.3):
 - 0.1: ZILF/ZAPF 0.11.1, frotz 2.55; builds to `verification/build/zork1.z3` (86,696 bytes)
