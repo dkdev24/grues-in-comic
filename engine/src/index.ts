@@ -36,3 +36,12 @@ export type { GameState, RuntimeTable, WorldIndex } from "./state.js";
 
 export { exitFor, resolveExit, goTo, roomIsLit } from "./movement.js";
 export type { ExitResolution } from "./movement.js";
+
+export { buildLexicon, resolveWord, isKnownWord, truncate } from "./vocabulary.js";
+export type { Lexicon } from "./vocabulary.js";
+
+export { scope, inScope, originAllowed, containerIsPermeable } from "./scope.js";
+export type { ScopeEntry, ScopeOrigin } from "./scope.js";
+
+export { parse, describeCandidates } from "./parser.js";
+export type { ParsedCommand, ParsedTravel, ParseFailure, ParseResult } from "./parser.js";

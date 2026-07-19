@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   "src/index.ts": {
-    "mtime": 1784479649.7405002,
-    "ast_hash": "85b17e6a92678e3cfb5d1361742dbb54",
+    "mtime": 1784480179.7105794,
+    "ast_hash": "4a62eec5b7e76301728f22a4aaaa2487",
     "semantic_hash": ""
   },
   "src/load.ts": {
@@ -42,6 +42,26 @@
   "test/rng.test.ts": {
     "mtime": 1784479698.275242,
     "ast_hash": "abf2ad6c66586e3c707f4ecbc596a0ae",
+    "semantic_hash": ""
+  },
+  "src/parser.ts": {
+    "mtime": 1784480173.0712743,
+    "ast_hash": "123c464f585056244d42b1a6a0eb373f",
+    "semantic_hash": ""
+  },
+  "src/scope.ts": {
+    "mtime": 1784480267.252667,
+    "ast_hash": "df7cb6c4b5b6c4e98f21f229cbf8f11b",
+    "semantic_hash": ""
+  },
+  "src/vocabulary.ts": {
+    "mtime": 1784480188.8546782,
+    "ast_hash": "a68bb4936df16c11bb4c958194da53cd",
+    "semantic_hash": ""
+  },
+  "test/parser.test.ts": {
+    "mtime": 1784480280.7825918,
+    "ast_hash": "400faa78626923920d4fb03288981f51",
     "semantic_hash": ""
   }
 }

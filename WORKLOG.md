@@ -571,3 +571,33 @@ Three other initial failures were **wrong test assumptions, not wrong code**, an
 Stage 4.1 ✅ — the exit criteria ("can walk the map; state transitions correct") are met against the full Zork I document. `npm test` 22/22, `npm run typecheck` clean.
 
 Next: stage 4.2, the command parser (tokenization, vocabulary lookup, syntax matching, disambiguation) against the `vocabulary` section — 267 extracted parser rules.
+
+---
+
+## v0.6.1 — Engine Core: Command Parser (Milestone 4, stage 4.2)
+
+**Date:** 2026-07-20
+
+### Changes
+
+- **`engine/src/vocabulary.ts` — the lexicon.** The IR splits vocabulary the way ZIL does: the `vocabulary` section holds words belonging to the *language* (135 verbs, prepositions, 13 directions, 21 noise words, 75 synonym groups), while nouns and adjectives live on the objects that answer to them. Both halves fold into one lookup structure at load time, so the parser never has to know which half a word came from. Two details are parity requirements rather than conveniences: words are truncated to **six characters**, because the Z-machine dictionary does and a golden transcript may well contain "MAILBO"; and direction abbreviations (N, NE) arrive as ordinary synonyms, so they are resolved into the direction table eagerly rather than looked up twice.
+- **Syntax rules are pre-sorted most-specific-first** (slot count, then preposition count) so the first structural match is the right one and no scoring pass is needed. This is what makes `PUT DOWN LAMP` reach V-DROP instead of matching plain `PUT`.
+- **`engine/src/scope.ts` — what the player can refer to.** All four ZIL sources: carried (recursively), the room (recursively), the room's scenery pool in LOCAL-GLOBALS, and GLOBAL-OBJECTS. Containers are permeable when OPEN, TRANS, or SURFACE — the rule that makes the glass bottle behave. `INVISIBLE` is honoured as what it actually is, the parser's "cannot see this yet" bit, which is how the thief stays unmentionable until he appears. Scope order is deliberate and doubles as the disambiguation preference: held things before floor things.
+- The parser and action dispatch share **one** definition of scope. A parser that finds an object the action layer then refuses is how IF engines end up with two different ideas of "here".
+- **`engine/src/parser.ts`** produces ZIL's three parser globals — PRSA, PRSO, PRSI — and nothing else. Whether taking the object is sensible, permitted, or fatal is the action's business. Failures are a **discriminated union**, not one error, because ZIL prints a different refusal for each and transcripts show the difference: `unknown-word` (never heard of it) is not `no-verb`, and neither is `not-here` or `ambiguous`. When several rules fit structurally, the parser reports why the *best-fitting* one failed — a "not-here" from a rule that nearly worked tells the player far more than a generic refusal from a worse rule.
+
+### Tests
+
+24 new tests (46 total, all passing). The standing check is **"parses every command the golden transcripts use"** — 39 commands drawn from `verification/transcripts`, so stage 4.4 cannot arrive to discover the parser never handled its input. That test counts only *grammar* failures: `not-here` is a successful parse of a command whose object is simply elsewhere.
+
+**One real bug, found by the tests and worth recording because the shape of it recurs.** ZIL's search-option list mixes two unrelated ideas: `HELD`/`CARRIED`/`ON-GROUND`/`IN-ROOM` say *where to look*, while `MANY`, `HAVE`, and `TAKE` constrain what the **action** may do. Treating the list uniformly as a location filter was silently wrong in one direction only — `EXAMINE`'s sole option is `MANY`, so its search narrowed to nothing and `EXAMINE MAILBOX` failed while `TAKE MAILBOX` kept working. `originAllowed` now partitions the list and treats a slot with no location option as accepting anything in scope, which is ZIL's default.
+
+Two further initial failures were **wrong test assumptions**: `PUT X IN Y` dispatches to `V-PUT` (ZIL distinguishes IN from ON at the rule level, where ON is `V-PUT-ON`, but both IN-forms share one action), and `TAKE` searching `ON-GROUND`/`IN-ROOM` only — an object already in hand is deliberately out of its reach, which is how ZIL produces "You already have that". Both are now tests in their own right.
+
+- `ir/src/index.ts` gained the vocabulary type exports (`Vocabulary`, `SyntaxRule`, `SyntaxObjectSlot`, `SyntaxSearchOption`, `DirectionWord`, `WordSynonym`). They existed in `schema.ts` but had never been re-exported, so no consumer could name them. IR tests unchanged: 184/184.
+
+### Status
+
+Stage 4.2 ✅ — exit criteria met. Engine 46/46, IR 184/184, both typecheck clean.
+
+Next: stage 4.3, action dispatch — port the ADR 0001 behavior-AST evaluator from `ir/poc/interpreter.ts` into `engine/` and drive it from the parser, emitting the ADR 0002 events.

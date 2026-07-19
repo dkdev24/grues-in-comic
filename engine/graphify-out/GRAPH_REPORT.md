@@ -1,16 +1,16 @@
 # Graph Report - engine  (2026-07-20)
 
 ## Corpus Check
-- 9 files · ~4,218 words
+- 13 files · ~8,072 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 53 nodes · 125 edges · 7 communities
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.5)
+- 85 nodes · 233 edges · 7 communities
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.6)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `38b3e26e`
+- Built from commit: `3c33ff5f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,28 +24,28 @@
 - load.test.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `loadWorld()` - 8 edges
-2. `Rng` - 8 edges
-3. `resolveExit()` - 6 edges
-4. `hasFlag()` - 6 edges
-5. `here()` - 6 edges
-6. `goTo()` - 5 edges
-7. `roomIsLit()` - 5 edges
-8. `GameState` - 5 edges
-9. `WorldIndex` - 5 edges
-10. `move()` - 5 edges
+1. `parse()` - 11 edges
+2. `hasFlag()` - 11 edges
+3. `loadWorld()` - 9 edges
+4. `scope()` - 9 edges
+5. `Rng` - 8 edges
+6. `GameState` - 8 edges
+7. `WorldIndex` - 8 edges
+8. `here()` - 8 edges
+9. `truncate()` - 8 edges
+10. `resolveWord()` - 7 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `goTo()` --calls--> `move()`  [EXTRACTED]
-  src/movement.ts → src/state.ts
-- `LoadedWorld` --references--> `GameState`  [EXTRACTED]
-  src/load.ts → src/state.ts
-- `LoadedWorld` --references--> `WorldIndex`  [EXTRACTED]
-  src/load.ts → src/state.ts
-- `loadWorld()` --calls--> `indexWorld()`  [EXTRACTED]
-  src/load.ts → src/state.ts
+- `run()` --calls--> `parse()`  [EXTRACTED]
+  test/parser.test.ts → src/parser.ts
 - `resolveExit()` --calls--> `hasFlag()`  [EXTRACTED]
   src/movement.ts → src/state.ts
+- `roomIsLit()` --calls--> `hasFlag()`  [EXTRACTED]
+  src/movement.ts → src/state.ts
+- `parse()` --calls--> `scope()`  [EXTRACTED]
+  src/parser.ts → src/scope.ts
+- `resolveNoun()` --calls--> `hasFlag()`  [EXTRACTED]
+  src/parser.ts → src/state.ts
 
 ## Import Cycles
 - None detected.
@@ -57,41 +57,41 @@ Cohesion: 0.29
 Nodes (10): containerFor(), elementValue(), link(), LoadedWorld, LoadOptions, loadWorld(), GameState, indexWorld() (+2 more)
 
 ### Community 1 - "Rng"
-Cohesion: 0.22
-Nodes (3): Rng, ADR-0002, ADR-0002
+Cohesion: 0.20
+Nodes (4): Rng, ADR-0002, run(), ADR-0002
 
 ### Community 2 - "index.ts"
-Cohesion: 0.33
-Nodes (7): EngineEvent, NarrationChannel, transcriptText(), ADR-0002, TurnResult, ADR-0002, nextSibling()
+Cohesion: 0.39
+Nodes (6): EngineEvent, NarrationChannel, transcriptText(), ADR-0002, TurnResult, ADR-0002
 
 ### Community 3 - "movement.ts"
-Cohesion: 0.52
-Nodes (6): exitFor(), ExitResolution, resolveExit(), roomIsLit(), hasFlag(), truthy()
+Cohesion: 0.18
+Nodes (17): exitFor(), ExitResolution, goTo(), resolveExit(), roomIsLit(), clearFlag(), firstChild(), here() (+9 more)
 
 ### Community 4 - "state.ts"
-Cohesion: 0.40
-Nodes (5): clearFlag(), firstChild(), locationOf(), move(), remove()
+Cohesion: 0.23
+Nodes (15): describeCandidates(), NounMatch, parse(), ParsedCommand, ParsedTravel, ParseFailure, Phrase, prepositionsAgree() (+7 more)
 
 ### Community 5 - "movement.test.ts"
-Cohesion: 0.50
-Nodes (4): goTo(), here(), setFlag(), doc
+Cohesion: 0.31
+Nodes (8): ParseResult, setFlag(), buildLexicon(), index(), Lexicon, prepCount(), specificityFirst(), doc
 
 ### Community 6 - "load.test.ts"
-Cohesion: 0.40
-Nodes (4): childrenOf(), isIn(), isWithin(), doc
+Cohesion: 0.43
+Nodes (7): containerIsPermeable(), inScope(), LOCATION_OPTIONS, scope(), ScopeOrigin, childrenOf(), hasFlag()
 
 ## Knowledge Gaps
-- **6 isolated node(s):** `ADR-0002`, `ADR-0002`, `ADR-0002`, `doc`, `doc` (+1 more)
+- **10 isolated node(s):** `ADR-0002`, `ADR-0002`, `Phrase`, `NounMatch`, `ADR-0002` (+5 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Rng` connect `Rng` to `index.ts`?**
-  _High betweenness centrality (0.217) - this node is a cross-community bridge._
-- **Why does `loadWorld()` connect `load.ts` to `index.ts`, `movement.test.ts`, `load.test.ts`?**
-  _High betweenness centrality (0.052) - this node is a cross-community bridge._
-- **Why does `here()` connect `movement.test.ts` to `index.ts`, `movement.ts`, `state.ts`, `load.test.ts`?**
-  _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **What connects `ADR-0002`, `ADR-0002`, `ADR-0002` to the rest of the system?**
-  _6 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.132) - this node is a cross-community bridge._
+- **Why does `loadWorld()` connect `load.ts` to `index.ts`, `movement.ts`, `movement.test.ts`?**
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+- **Why does `parse()` connect `state.ts` to `Rng`, `index.ts`, `movement.test.ts`, `load.test.ts`?**
+  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+- **What connects `ADR-0002`, `ADR-0002`, `Phrase` to the rest of the system?**
+  _10 weakly-connected nodes found - possible documentation gaps or missing edges._

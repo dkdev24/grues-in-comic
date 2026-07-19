@@ -5,12 +5,5 @@
   "3": "POC Test Harness & World State",
   "4": "Behavior Interpreter",
   "5": "World Builtins",
-  "6": "world.ts",
-  "7": "behavior-35b.test.ts",
-  "8": "WorldDocument",
-  "9": "behavior-35d.test.ts",
-  "11": "behavior-35h.test.ts",
-  "13": "behavior-35j.test.ts",
-  "15": "behavior.ts",
-  "16": "WorldDocument"
+  "15": "behavior.ts"
 }

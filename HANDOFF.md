@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.6.0**
+**0.6.1**
 
 ---
 
@@ -24,11 +24,53 @@ Historical sources imported:
   - 3.5 ✅ (Group B complete): 346 routines extracted, 32 catalogued (all triaged, ADR 0001 builtin list), 39/292 refs unresolved (87% coverage); IR schema 0.13.0
   - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL); world-doc gaps 1 (meta entities) + 2 (table-valued globals) + 3 (nested tables/ITABLE)
   - Remaining catalog = Group A engine builtins by design + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag)
-- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ `engine/` module: world runtime, object tree, exit resolution, seeded RNG, ADR 0002 event contract as code. 4.2–4.5 remaining
+- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser (PRSA/PRSO/PRSI). 4.3–4.5 remaining
 
 ---
 
-## Last Session (v0.6.0) — M4 stage 4.1: engine core, state & world runtime
+## Last Session (v0.6.1) — M4 stage 4.2: command parser
+
+Three new modules in `engine/`. 46 tests pass (24 new), IR 184/184, both typecheck clean.
+
+- **`src/vocabulary.ts`** — one lookup structure over both halves of the vocabulary (the
+  `vocabulary` section's 135 verbs/prepositions/directions/buzzwords/synonyms, plus the
+  nouns and adjectives that live on objects), so the parser never asks which half a word
+  came from. Words truncate to **6 chars** — the Z-machine dictionary does, and a golden
+  transcript may contain "MAILBO". Syntax rules are pre-sorted most-specific-first (slots,
+  then prepositions), which is what sends `PUT DOWN LAMP` to V-DROP rather than plain PUT
+- **`src/scope.ts`** — all four ZIL sources (carried, room, the room's LOCAL-GLOBALS
+  scenery pool, GLOBAL-OBJECTS), recursing through containers that are OPEN/TRANS/SURFACE.
+  `INVISIBLE` honoured as the parser's "cannot see this yet" bit (how the thief stays
+  unmentionable). Scope order doubles as disambiguation preference: held before floor.
+  **The parser and 4.3's action dispatch share this one definition** — two ideas of "here"
+  is how IF engines rot
+- **`src/parser.ts`** — produces PRSA/PRSO/PRSI and nothing else; permission and sense are
+  the action's business. Failures are a discriminated union (`unknown-word` ≠ `no-verb` ≠
+  `not-here` ≠ `ambiguous`) because ZIL prints a different refusal for each and transcripts
+  show it. When several rules fit, it reports why the *best-fitting* one failed
+
+**Standing check: "parses every command the golden transcripts use"** — 39 commands from
+`verification/transcripts`, so 4.4 cannot arrive and discover the parser never read its
+input.
+
+**One real bug, and its shape will recur.** ZIL's search-option list mixes two unrelated
+ideas: HELD/CARRIED/ON-GROUND/IN-ROOM say *where to look*; MANY/HAVE/TAKE constrain what
+the **action** may do. Treating the list uniformly as a location filter failed silently in
+one direction only — EXAMINE's sole option is MANY, so its search narrowed to nothing and
+`EXAMINE MAILBOX` broke while `TAKE MAILBOX` kept working. `originAllowed` now partitions
+the list; a slot with no location option accepts anything in scope (ZIL's default).
+
+Two other failures were **wrong test assumptions**, both now tests: `PUT X IN Y` is `V-PUT`
+(IN vs ON differ at the rule level — ON is `V-PUT-ON` — but both IN-forms share an action),
+and `TAKE` searches ON-GROUND/IN-ROOM only, so an object already held is deliberately out
+of reach (ZIL's "You already have that").
+
+`ir/src/index.ts` gained the vocabulary type exports; they existed in `schema.ts` but had
+never been re-exported, so no consumer could name them.
+
+---
+
+## Prior Session (v0.6.0) — M4 stage 4.1: engine core, state & world runtime
 
 **First code written against Gate B.** New `engine/` module — `@grues-in-comic/engine`,
 zero runtime dependencies (`ir` imported `import type` only, via a tsconfig path), no
@@ -158,23 +200,17 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M4 in progress. 4.1 ✅ — next is 4.2, the command parser.**
+**M4 in progress. 4.1 ✅ 4.2 ✅ — next is 4.3, action dispatch.**
 
-1. **Stage 4.2 — command parser.** Tokenize input, look up the `vocabulary` section
-   (directions, buzzwords, synonyms, 267 syntax rules), match a rule, and disambiguate.
-   Object nouns/adjectives live on the objects, not in `vocabulary`. Needs a scope walk —
-   what the player can refer to from here — which is also what 4.3's `SyntaxSearchOption`
-   handling (HELD/CARRIED/IN-ROOM/ON-GROUND/MANY/HAVE/TAKE) consumes. `engine/src/state.ts`
-   already has the tree primitives; scope itself is new
-2. **Stage 4.3 — action dispatch & events.** Port `ir/poc/interpreter.ts` (the ADR 0001
+1. **Stage 4.3 — action dispatch & events.** Port `ir/poc/interpreter.ts` (the ADR 0001
    behavior-AST evaluator, already proven over 346 routines) into `engine/` and drive it
    from the parser. Two things 4.1 deliberately deferred land here: `PER` exits
    (`ExitResolution.routine`) and light sources carried into dark rooms (`roomIsLit` covers
    only the static half). Also room descriptions and first-visit scoring
-3. **Stage 4.4 — transcript replay harness** against `verification/` goldens. Parity is
+2. **Stage 4.4 — transcript replay harness** against `verification/` goldens. Parity is
    measured on `transcriptText()`; the sanctioned diffs are the banner and Kitchen object
    order (see Open Issues)
-4. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
+3. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
    Engine `CLOCKER` needs P-WON demon-region gating; the POC's `builtins.CLOCKER` in
    `ir/poc/world.ts` is the starting point but does not implement that gating
 

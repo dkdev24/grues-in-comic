@@ -27,13 +27,16 @@ Rendering is entirely the UI layer's job (milestone 5). The engine says
 | `src/load.ts` | Boots an IR `WorldDocument` into live state |
 | `src/movement.ts` | Exit resolution and room transitions |
 | `src/rng.ts` | Seeded RNG — the *only* source of randomness |
+| `src/vocabulary.ts` | The lexicon: verbs, synonyms, nouns, adjectives, directions |
+| `src/scope.ts` | What the player can refer to from where they stand |
+| `src/parser.ts` | Text in → ZIL's PRSA/PRSO/PRSI out |
 
 ## Status
 
 | Stage | Task | Status |
 |---|---|---|
 | 4.1 | State & world runtime | ✅ |
-| 4.2 | Command parser | ☐ |
+| 4.2 | Command parser | ✅ |
 | 4.3 | Action dispatch & events | ☐ |
 | 4.4 | Transcript replay harness | ☐ |
 | 4.5 | Systems completion (⚑ Gate C) | ☐ |

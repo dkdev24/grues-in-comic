@@ -329,8 +329,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "poc_world_makeworld",
-      "community": 9,
-      "community_name": "behavior-35d.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "makeworld()"
     },
     {
@@ -692,8 +692,8 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "src_extract_behavior_catalogentry",
-      "community": 16,
-      "community_name": "WorldDocument",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "catalogentry"
     },
     {
@@ -703,8 +703,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "src_extract_behavior_behaviorextraction",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "behaviorextraction"
     },
     {
@@ -747,8 +747,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "src_extract_behavior_extractbehavior",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "extractbehavior()"
     },
     {
@@ -769,8 +769,8 @@
       "source_location": "L204",
       "_origin": "ast",
       "id": "src_extract_behavior_routinetransformer_constructor",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": ".constructor()"
     },
     {
@@ -1022,8 +1022,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_extract_cli",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "extract-cli.ts"
     },
     {
@@ -1033,8 +1033,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_extract_cli_astdir_importer_artifacts_ast_outfile_artifacts_zork1_world_json",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "[astdir = \"../importer/artifacts/ast\", outfile = \"artifacts/zork1.world.json\"]"
     },
     {
@@ -1044,8 +1044,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_extract_cli_programs",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "programs"
     },
     {
@@ -1055,8 +1055,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_extract_cli_world_catalog",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "{ world, catalog }"
     },
     {
@@ -1066,8 +1066,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_extract_cli_result",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "result"
     },
     {
@@ -1077,8 +1077,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "src_extract_cli_catalogfile",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "catalogfile"
     },
     {
@@ -1088,8 +1088,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_extract_world",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "extract-world.ts"
     },
     {
@@ -1099,8 +1099,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "src_extract_world_astnode",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "astnode"
     },
     {
@@ -1110,8 +1110,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "src_extract_world_astprogram",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "astprogram"
     },
     {
@@ -1187,8 +1187,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "src_extract_world_direction_map",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "direction_map"
     },
     {
@@ -1198,8 +1198,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "src_extract_world_flag_descriptions",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "flag_descriptions"
     },
     {
@@ -1253,8 +1253,8 @@
       "source_location": "L303",
       "_origin": "ast",
       "id": "src_extract_world_scaffolding",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "scaffolding"
     },
     {
@@ -1319,8 +1319,8 @@
       "source_location": "L474",
       "_origin": "ast",
       "id": "src_extract_world_option_set",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "option_set"
     },
     {
@@ -1363,8 +1363,8 @@
       "source_location": "L573",
       "_origin": "ast",
       "id": "src_extract_world_extractionresult",
-      "community": 16,
-      "community_name": "WorldDocument",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "extractionresult"
     },
     {
@@ -1451,8 +1451,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "src_schema_worlddocument",
-      "community": 16,
-      "community_name": "WorldDocument",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "worlddocument"
     },
     {
@@ -1495,8 +1495,8 @@
       "source_location": "L137",
       "_origin": "ast",
       "id": "src_schema_syntax_search_options",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 0,
+      "community_name": "Schema Types & Public API",
       "norm_label": "syntax_search_options"
     },
     {
@@ -1605,8 +1605,8 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "src_schema_table",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 3,
+      "community_name": "POC Test Harness & World State",
       "norm_label": "table"
     },
     {
@@ -2100,8 +2100,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_behavior_35_test",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "behavior-35.test.ts"
     },
     {
@@ -2111,8 +2111,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "test_behavior_35_test_here",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "here"
     },
     {
@@ -2122,8 +2122,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "test_behavior_35_test_world",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "world"
     },
     {
@@ -2133,8 +2133,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "test_behavior_35_test_catalog",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "catalog"
     },
     {
@@ -2144,8 +2144,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "test_behavior_35_test_golden",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "golden"
     },
     {
@@ -2155,8 +2155,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "test_behavior_35_test_routinebyid",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "routinebyid"
     },
     {
@@ -2166,8 +2166,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "test_behavior_35_test_catalogids",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "catalogids"
     },
     {
@@ -2177,8 +2177,8 @@
       "source_location": "L248",
       "_origin": "ast",
       "id": "test_behavior_35_test_behaviorroutinereturn",
-      "community": 8,
-      "community_name": "WorldDocument",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "behaviorroutinereturn"
     },
     {
@@ -2188,8 +2188,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_behavior_35b_test",
-      "community": 6,
-      "community_name": "world.ts",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "behavior-35b.test.ts"
     },
     {
@@ -2199,8 +2199,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "test_behavior_35b_test_here",
-      "community": 6,
-      "community_name": "world.ts",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "here"
     },
     {
@@ -2210,8 +2210,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "test_behavior_35b_test_world",
-      "community": 6,
-      "community_name": "world.ts",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "world"
     },
     {
@@ -2221,8 +2221,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "test_behavior_35b_test_catalog",
-      "community": 6,
-      "community_name": "world.ts",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "catalog"
     },
     {
@@ -2232,8 +2232,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "test_behavior_35b_test_routinebyid",
-      "community": 6,
-      "community_name": "world.ts",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "routinebyid"
     },
     {
@@ -2243,8 +2243,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "test_behavior_35b_test_catalogids",
-      "community": 6,
-      "community_name": "world.ts",
+      "community": 15,
+      "community_name": "behavior.ts",
       "norm_label": "catalogids"
     },
     {
@@ -2320,8 +2320,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_behavior_35f_test",
-      "community": 9,
-      "community_name": "behavior-35d.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "behavior-35f.test.ts"
     },
     {
@@ -2331,8 +2331,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "test_behavior_35f_test_here",
-      "community": 9,
-      "community_name": "behavior-35d.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "here"
     },
     {
@@ -2342,8 +2342,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "test_behavior_35f_test_world",
-      "community": 9,
-      "community_name": "behavior-35d.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "world"
     },
     {
@@ -2353,8 +2353,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "test_behavior_35f_test_catalog",
-      "community": 9,
-      "community_name": "behavior-35d.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "catalog"
     },
     {
@@ -2364,8 +2364,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "test_behavior_35f_test_routinebyid",
-      "community": 9,
-      "community_name": "behavior-35d.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "routinebyid"
     },
     {
@@ -2375,8 +2375,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_behavior_35g_test",
-      "community": 13,
-      "community_name": "behavior-35j.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "behavior-35g.test.ts"
     },
     {
@@ -2386,8 +2386,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "test_behavior_35g_test_here",
-      "community": 13,
-      "community_name": "behavior-35j.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "here"
     },
     {
@@ -2397,8 +2397,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "test_behavior_35g_test_world",
-      "community": 13,
-      "community_name": "behavior-35j.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "world"
     },
     {
@@ -2408,8 +2408,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "test_behavior_35g_test_catalog",
-      "community": 13,
-      "community_name": "behavior-35j.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "catalog"
     },
     {
@@ -2419,8 +2419,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "test_behavior_35g_test_routinebyid",
-      "community": 13,
-      "community_name": "behavior-35j.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "routinebyid"
     },
     {
@@ -2430,8 +2430,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "test_behavior_35g_test_catalogreasons",
-      "community": 13,
-      "community_name": "behavior-35j.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "catalogreasons"
     },
     {
@@ -2441,8 +2441,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_behavior_35h_test",
-      "community": 11,
-      "community_name": "behavior-35h.test.ts",
+      "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "behavior-35h.test.ts"
     },
     {
@@ -2452,8 +2452,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "test_behavior_35h_test_here",
-      "community": 11,
-      "community_name": "behavior-35h.test.ts",
+      "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "here"
     },
     {
@@ -2463,8 +2463,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "test_behavior_35h_test_world",
-      "community": 11,
-      "community_name": "behavior-35h.test.ts",
+      "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "world"
     },
     {
@@ -2474,8 +2474,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "test_behavior_35h_test_catalog",
-      "community": 11,
-      "community_name": "behavior-35h.test.ts",
+      "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "catalog"
     },
     {
@@ -2485,8 +2485,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "test_behavior_35h_test_routinebyid",
-      "community": 11,
-      "community_name": "behavior-35h.test.ts",
+      "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "routinebyid"
     },
     {
@@ -2496,8 +2496,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "test_behavior_35h_test_tablebyid",
-      "community": 11,
-      "community_name": "behavior-35h.test.ts",
+      "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "tablebyid"
     },
     {
@@ -2507,8 +2507,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "test_behavior_35h_test_lamptable",
-      "community": 11,
-      "community_name": "behavior-35h.test.ts",
+      "community": 5,
+      "community_name": "World Builtins",
       "norm_label": "lamptable()"
     },
     {
@@ -2573,8 +2573,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_behavior_35j_test",
-      "community": 7,
-      "community_name": "behavior-35b.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "behavior-35j.test.ts"
     },
     {
@@ -2584,8 +2584,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "test_behavior_35j_test_here",
-      "community": 7,
-      "community_name": "behavior-35b.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "here"
     },
     {
@@ -2595,8 +2595,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "test_behavior_35j_test_world",
-      "community": 7,
-      "community_name": "behavior-35b.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "world"
     },
     {
@@ -2606,8 +2606,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "test_behavior_35j_test_catalog",
-      "community": 7,
-      "community_name": "behavior-35b.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "catalog"
     },
     {
@@ -2617,8 +2617,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "test_behavior_35j_test_routinebyid",
-      "community": 7,
-      "community_name": "behavior-35b.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "routinebyid"
     },
     {
@@ -2628,8 +2628,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "test_behavior_35j_test_fataldepths",
-      "community": 7,
-      "community_name": "behavior-35b.test.ts",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "fataldepths()"
     },
     {
@@ -2694,8 +2694,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_extract_test",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "extract.test.ts"
     },
     {
@@ -2705,8 +2705,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "test_extract_test_here",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "here"
     },
     {
@@ -2716,8 +2716,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "test_extract_test_astdir",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "astdir"
     },
     {
@@ -2727,8 +2727,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "test_extract_test_programs",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "programs"
     },
     {
@@ -2738,8 +2738,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "test_extract_test_world_catalog",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "{ world, catalog }"
     },
     {
@@ -2749,8 +2749,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "test_extract_test_result",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "result"
     },
     {
@@ -2760,8 +2760,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "test_extract_test_sample",
-      "community": 4,
-      "community_name": "Behavior Interpreter",
+      "community": 1,
+      "community_name": "Validator Structural Checks",
       "norm_label": "sample"
     },
     {
@@ -2771,8 +2771,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_meta_entities_test",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "meta-entities.test.ts"
     },
     {
@@ -2782,8 +2782,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "test_meta_entities_test_here",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "here"
     },
     {
@@ -2793,8 +2793,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "test_meta_entities_test_world",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "world"
     },
     {
@@ -2804,8 +2804,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "test_meta_entities_test_catalog",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "catalog"
     },
     {
@@ -2815,8 +2815,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "test_meta_entities_test_routinebyid",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "routinebyid"
     },
     {
@@ -2826,8 +2826,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "test_meta_entities_test_metabyid",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "metabyid"
     },
     {
@@ -2837,8 +2837,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_nested_tables_test",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "nested-tables.test.ts"
     },
     {
@@ -2848,8 +2848,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "test_nested_tables_test_here",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "here"
     },
     {
@@ -2859,8 +2859,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "test_nested_tables_test_world",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "world"
     },
     {
@@ -2870,8 +2870,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "test_nested_tables_test_tablebyid",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "tablebyid"
     },
     {
@@ -2881,8 +2881,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "test_nested_tables_test_globalbyid",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "globalbyid"
     },
     {
@@ -2892,8 +2892,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "test_nested_tables_test_ispointer",
-      "community": 0,
-      "community_name": "Schema Types & Public API",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "ispointer()"
     },
     {
@@ -2903,8 +2903,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_sample_test",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "sample.test.ts"
     },
     {
@@ -2914,8 +2914,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "test_sample_test_samplepath",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "samplepath"
     },
     {
@@ -2925,8 +2925,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "test_sample_test_sample",
-      "community": 1,
-      "community_name": "Validator Structural Checks",
+      "community": 2,
+      "community_name": "behavior-35-triage.test.ts",
       "norm_label": "sample"
     },
     {
@@ -5207,7 +5207,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -5351,7 +5351,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -5471,7 +5471,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -5543,7 +5543,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -5579,7 +5579,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -5651,7 +5651,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -5711,7 +5711,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -6065,7 +6065,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L30",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -6185,7 +6185,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L30",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -8113,7 +8113,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L27",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -8149,7 +8149,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L28",
+      "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -8845,7 +8845,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L28",
+      "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -8857,7 +8857,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L27",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -8934,6 +8934,18 @@
       "_origin": "ast",
       "source": "src_index",
       "target": "src_schema_directions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_schema_directionword",
       "confidence_score": 1.0
     },
     {
@@ -9113,6 +9125,42 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
+      "target": "src_schema_syntaxobjectslot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_schema_syntaxrule",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_schema_syntaxsearchoption",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
       "target": "src_schema_table",
       "confidence_score": 1.0
     },
@@ -9126,6 +9174,30 @@
       "_origin": "ast",
       "source": "src_index",
       "target": "src_schema_tableelement",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_schema_vocabulary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_index",
+      "target": "src_schema_wordsynonym",
       "confidence_score": 1.0
     },
     {
@@ -9169,7 +9241,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L25",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -9181,7 +9253,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L25",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -9193,7 +9265,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L26",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -9205,7 +9277,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L26",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -9217,7 +9289,7 @@
       "context": "re-export",
       "confidence": "EXTRACTED",
       "source_file": "src/index.ts",
-      "source_location": "L26",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_index",
@@ -11697,5 +11769,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "7a67562388521053692fd8e7819567f052fd240b"
+  "built_at_commit": "3c33ff5f2c4ae0be0417337e33453d64e2faf372"
 }
