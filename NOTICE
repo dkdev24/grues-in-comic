@@ -54,3 +54,27 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+----------------------------------------------------------------------
+
+TRADEMARKS
+
+ZORK and INFOCOM are trademarks of Activision Publishing, Inc.
+MICROSOFT and COMIC CHAT are trademarks of the Microsoft group of companies.
+All other trademarks are the property of their respective owners.
+
+Grues in Comic is an independent project. It is not affiliated with,
+sponsored by, endorsed by, or approved by Activision Publishing, Inc.,
+Microsoft Corporation, or any of their affiliates.
+
+The MIT licenses covering incorporated components 1 (Zork I) and 2 (Microsoft
+Comic Chat) grant copyright permissions only. They convey no trademark rights,
+and no trademark license is granted or implied by this NOTICE, by the Apache
+License, Version 2.0 under which this project is distributed, or by any file
+in this repository.
+
+Trademarked names appear in this repository solely for nominative and
+descriptive purposes: to identify the historical works this project
+modernizes, to preserve upstream copyright notices as the MIT licenses
+require, and to reproduce original program output faithfully where behavioral
+compatibility depends on it. No claim of ownership in those marks is made.

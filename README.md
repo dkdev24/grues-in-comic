@@ -152,3 +152,25 @@ one. A compiled story file is an opaque memory image; this project extracts the
 emit events a comic renderer can draw. ZILF is used as the build oracle rather
 than reinvented. ADR 0002 records the full reasoning, including why an existing
 interpreter such as ZLR or ZVM would not serve the goal.
+
+### Trademarks
+
+ZORK is a trademark of Activision Publishing, Inc. INFOCOM is a trademark of
+Activision Publishing, Inc. MICROSOFT and COMIC CHAT are trademarks of the
+Microsoft group of companies. All other trademarks are the property of their
+respective owners.
+
+This project is an independent work. It is **not** affiliated with, sponsored
+by, endorsed by, or approved by Activision Publishing, Inc., Microsoft
+Corporation, or any of their affiliates.
+
+The MIT licenses covering the imported Zork I and Comic Chat source grant
+copyright permissions only; they convey no trademark rights. Trademark names
+appear in this repository solely for **nominative, descriptive purposes** — to
+identify the historical works this project modernizes and to reproduce original
+program output faithfully (for example, the `ZORK I: The Great Underground
+Empire` status banner, which golden-transcript parity requires). Such use does
+not imply any claim to those marks or any endorsement by their owners.
+
+The project name "Grues in Comic" is not derived from any trademark of
+Activision or Microsoft.
