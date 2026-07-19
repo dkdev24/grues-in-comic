@@ -41,10 +41,38 @@ export type Expr =
   /** Numeric comparison (ZIL `G?` / `L?`). */
   | { op: "gt?"; a: Expr; b: Expr }
   | { op: "lt?"; a: Expr; b: Expr }
+  /**
+   * Integer arithmetic (ZIL `+` `-` `*` `/`, 16-bit signed truncating).
+   * N-ary source forms are lowered to left folds; unary `-` to `0 − x`.
+   */
+  | { op: "add"; a: Expr; b: Expr }
+  | { op: "sub"; a: Expr; b: Expr }
+  | { op: "mul"; a: Expr; b: Expr }
+  | { op: "div"; a: Expr; b: Expr }
   /** True when entity is directly inside container (ZIL `IN?`). */
   | { op: "in?"; entity: Expr; container: Expr }
   /** The entity's direct container/room (ZIL `LOC`). */
   | { op: "loc"; entity: Expr }
+  /**
+   * Read an entity property (ZIL `GETP`). `prop` is the IR field name of the
+   * property (`,P?LDESC` → `"description"`, `,P?TVALUE` → `"treasureValue"`,
+   * …), keeping the AST independent of ZIL naming. An absent property yields
+   * false (ZIL's default 0, which is false in ZIL).
+   */
+  | { op: "prop"; entity: Expr; prop: string }
+  /**
+   * Read a table element (ZIL `GET`). `table` evaluates to a table id.
+   * Indexing follows the table's kind: for `ltable`, index 0 is the element
+   * count and index n is element n-1; for `table`, index n is element n.
+   */
+  | { op: "table-get"; table: Expr; index: Expr }
+  /**
+   * Assignment in expression position, yielding the assigned value (ZIL is
+   * expression-oriented: `<SET X …>` / `<SETG X …>` inside a predicate).
+   * Same shapes as the statement ops, like `call`.
+   */
+  | { op: "set-global"; id: string; value: Expr }
+  | { op: "set-local"; id: string; value: Expr }
   /** Invoke a routine or engine builtin for its value (ZIL form in expression position). */
   | { op: "call"; routine: string; args: Expr[] };
 
@@ -75,6 +103,10 @@ export type Stmt =
   /** Reparent an entity (ZIL `MOVE`) / take it out of the world (ZIL `REMOVE`). */
   | { op: "move"; entity: Expr; to: Expr }
   | { op: "remove"; entity: Expr }
+  /** Write an entity property (ZIL `PUTP`); `prop` as in the `prop` expr. */
+  | { op: "set-prop"; entity: Expr; prop: string; value: Expr }
+  /** Write a table element (ZIL `PUT`); indexing as in the `table-get` expr. */
+  | { op: "table-set"; table: Expr; index: Expr; value: Expr }
   /**
    * Return from the routine (ZIL `RTRUE` / `RFALSE` / `<RETURN v>`).
    * For action handlers the value means "handled"; for exit routines a
@@ -95,13 +127,21 @@ export type Stmt =
  * routine return values): a routine returns the value of the last statement
  * it executed, `cond` yields the taken clause's last value (false when no
  * clause fires), `tell`/`set-flag`/`clear-flag`/`move`/`remove` yield true,
- * `set-global`/`set-local` yield the assigned value, `call` yields the
- * callee's value. An empty body yields false.
+ * `set-global`/`set-local` yield the assigned value, `set-prop`/`table-set`
+ * yield their entity/table operand (ZIL `PUTP`/`PUT` return their first
+ * argument), `call` yields the callee's value. An empty body yields false.
  */
 export interface BehaviorRoutine {
   id: string;
   /** Parameter names, bound as locals (e.g. RARG for room actions). */
   params?: string[];
+  /**
+   * Defaults for optional parameters (ZIL `"OPT" (NAME <init>)`). Applied by
+   * arity, as in Z-code: when the caller omits the argument, the default is
+   * evaluated at entry (left-to-right in `params` order, earlier params
+   * already bound). Params without an entry default to false.
+   */
+  defaults?: Record<string, Expr>;
   /** ZIL "AUX" locals (initialized to false unless the body sets them). */
   locals?: string[];
   body: Stmt[];

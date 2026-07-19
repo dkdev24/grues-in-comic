@@ -1,5 +1,5 @@
 {
-  "irVersion": "0.4.0",
+  "irVersion": "0.5.0",
   "meta": {
     "title": "Zork I — world model (rooms, exits, objects)",
     "source": "importer/artifacts/ast (from original-projects/zork1)",
@@ -132,6 +132,14 @@
   ],
   "globals": [
     {
+      "id": "ALWAYS-LIT",
+      "value": false
+    },
+    {
+      "id": "BASE-SCORE",
+      "value": 0
+    },
+    {
       "id": "BEACH-DIG",
       "value": -1
     },
@@ -216,6 +224,10 @@
       "value": false
     },
     {
+      "id": "LUCKY",
+      "value": true
+    },
+    {
       "id": "MAGIC-FLAG",
       "value": false
     },
@@ -230,6 +242,10 @@
     {
       "id": "P-CONT",
       "value": false
+    },
+    {
+      "id": "P-GWIMBIT",
+      "value": 0
     },
     {
       "id": "P-IT-OBJECT",
@@ -268,6 +284,10 @@
       "value": false
     },
     {
+      "id": "ROBBER-U-DESC",
+      "value": "There is a suspicious-looking individual lying unconscious on the ground."
+    },
+    {
       "id": "RUG-MOVED",
       "value": false
     },
@@ -277,6 +297,10 @@
     },
     {
       "id": "SING-SONG",
+      "value": false
+    },
+    {
+      "id": "SPRAYED?",
       "value": false
     },
     {
@@ -10471,6 +10495,105 @@
   },
   "routines": [
     {
+      "id": "BAD-EGG",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "in?",
+                "entity": {
+                  "op": "entity",
+                  "id": "CANARY"
+                },
+                "container": {
+                  "op": "entity",
+                  "id": "EGG"
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": " "
+                    },
+                    {
+                      "expr": {
+                        "op": "prop",
+                        "entity": {
+                          "op": "entity",
+                          "id": "BROKEN-CANARY"
+                        },
+                        "prop": "initialDescription"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "REMOVE-CAREFULLY",
+                  "args": [
+                    {
+                      "op": "entity",
+                      "id": "BROKEN-CANARY"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "move",
+          "entity": {
+            "op": "entity",
+            "id": "BROKEN-EGG"
+          },
+          "to": {
+            "op": "loc",
+            "entity": {
+              "op": "entity",
+              "id": "EGG"
+            }
+          }
+        },
+        {
+          "op": "call",
+          "routine": "REMOVE-CAREFULLY",
+          "args": [
+            {
+              "op": "entity",
+              "id": "EGG"
+            }
+          ]
+        },
+        {
+          "op": "return",
+          "value": {
+            "op": "const",
+            "value": true
+          }
+        }
+      ],
+      "locals": [
+        "L"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2960
+      }
+    },
+    {
       "id": "BAG-OF-COINS-F",
       "body": [
         {
@@ -10561,6 +10684,369 @@
       "source": {
         "file": "1actions.zil",
         "line": 436
+      }
+    },
+    {
+      "id": "BASKET-F",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "RAISE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "global",
+                        "id": "CAGE-TOP"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "call",
+                                "routine": "PICK-ONE",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "DUMMY"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "entity",
+                            "id": "RAISED-BASKET"
+                          },
+                          "to": {
+                            "op": "entity",
+                            "id": "SHAFT-ROOM"
+                          }
+                        },
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "entity",
+                            "id": "LOWERED-BASKET"
+                          },
+                          "to": {
+                            "op": "entity",
+                            "id": "LOWER-SHAFT"
+                          }
+                        },
+                        {
+                          "op": "set-global",
+                          "id": "CAGE-TOP",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        },
+                        {
+                          "op": "call",
+                          "routine": "THIS-IS-IT",
+                          "args": [
+                            {
+                              "op": "entity",
+                              "id": "RAISED-BASKET"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The basket is raised to the top of the shaft."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "LOWER"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "global",
+                          "id": "CAGE-TOP"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "call",
+                                "routine": "PICK-ONE",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "DUMMY"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "entity",
+                            "id": "RAISED-BASKET"
+                          },
+                          "to": {
+                            "op": "entity",
+                            "id": "LOWER-SHAFT"
+                          }
+                        },
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "entity",
+                            "id": "LOWERED-BASKET"
+                          },
+                          "to": {
+                            "op": "entity",
+                            "id": "SHAFT-ROOM"
+                          }
+                        },
+                        {
+                          "op": "call",
+                          "routine": "THIS-IS-IT",
+                          "args": [
+                            {
+                              "op": "entity",
+                              "id": "LOWERED-BASKET"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The basket is lowered to the bottom of the shaft."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-global",
+                          "id": "CAGE-TOP",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "and",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "LIT"
+                                  },
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "set-global",
+                                      "id": "LIT",
+                                      "value": {
+                                        "op": "call",
+                                        "routine": "LIT?",
+                                        "args": [
+                                          {
+                                            "op": "global",
+                                            "id": "HERE"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "It is now pitch black."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "value",
+                          "expr": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "LOWERED-BASKET"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "LOWERED-BASKET"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The basket is at the other end of the chain."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "TAKE"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "RAISED-BASKET"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "LOWERED-BASKET"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The cage is securely fastened to the iron chain."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 277
       }
     },
     {
@@ -12399,6 +12885,159 @@
       }
     },
     {
+      "id": "CAVE2-ROOM",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RARG"
+                  },
+                  {
+                    "op": "const",
+                    "value": 6
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "in?",
+                            "entity": {
+                              "op": "entity",
+                              "id": "CANDLES"
+                            },
+                            "container": {
+                              "op": "global",
+                              "id": "WINNER"
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "routine": "PROB",
+                            "args": [
+                              {
+                                "op": "const",
+                                "value": 50
+                              },
+                              {
+                                "op": "const",
+                                "value": 80
+                              }
+                            ]
+                          },
+                          {
+                            "op": "flag?",
+                            "entity": {
+                              "op": "entity",
+                              "id": "CANDLES"
+                            },
+                            "flag": "ONBIT"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "DISABLE",
+                          "args": [
+                            {
+                              "op": "call",
+                              "routine": "INT",
+                              "args": [
+                                {
+                                  "op": "const",
+                                  "value": "I-CANDLES"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "clear-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "CANDLES"
+                          },
+                          "flag": "ONBIT"
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "A gust of wind blows out your candles!"
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "not",
+                                "arg": {
+                                  "op": "set-global",
+                                  "id": "LIT",
+                                  "value": {
+                                    "op": "call",
+                                    "routine": "LIT?",
+                                    "args": [
+                                      {
+                                        "op": "global",
+                                        "id": "HERE"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "It is now completely dark."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "RARG"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2416
+      }
+    },
+    {
       "id": "CELLAR-FCN",
       "body": [
         {
@@ -12600,6 +13239,168 @@
       "source": {
         "file": "1actions.zil",
         "line": 4167
+      }
+    },
+    {
+      "id": "CHALICE-FCN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TAKE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "in?",
+                            "entity": {
+                              "op": "global",
+                              "id": "PRSO"
+                            },
+                            "container": {
+                              "op": "entity",
+                              "id": "TREASURE-ROOM"
+                            }
+                          },
+                          {
+                            "op": "in?",
+                            "entity": {
+                              "op": "entity",
+                              "id": "THIEF"
+                            },
+                            "container": {
+                              "op": "entity",
+                              "id": "TREASURE-ROOM"
+                            }
+                          },
+                          {
+                            "op": "flag?",
+                            "entity": {
+                              "op": "entity",
+                              "id": "THIEF"
+                            },
+                            "flag": "FIGHTBIT"
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "flag?",
+                              "entity": {
+                                "op": "entity",
+                                "id": "THIEF"
+                              },
+                              "flag": "INVISIBLE"
+                            }
+                          },
+                          {
+                            "op": "not",
+                            "arg": {
+                              "op": "equal?",
+                              "args": [
+                                {
+                                  "op": "prop",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "THIEF"
+                                  },
+                                  "prop": "description"
+                                },
+                                {
+                                  "op": "global",
+                                  "id": "ROBBER-U-DESC"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You'd be stabbed in the back first."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "PUT"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "CHALICE"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You can't. It's not a very good chalice, is it?"
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "DUMB-CONTAINER",
+                  "args": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2123
       }
     },
     {
@@ -17279,6 +18080,169 @@
       }
     },
     {
+      "id": "LARGE-BAG-F",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TAKE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "prop",
+                            "entity": {
+                              "op": "entity",
+                              "id": "THIEF"
+                            },
+                            "prop": "description"
+                          },
+                          {
+                            "op": "global",
+                            "id": "ROBBER-U-DESC"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Sadly for you, the robber collapsed on top of the bag. Trying to take it would wake him."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The bag will be taken over his dead body."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "PUT"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "LARGE-BAG"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "It would be a good trick."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "OPEN",
+                  "CLOSE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "Getting close enough would be a good trick."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "EXAMINE",
+                  "LOOK-INSIDE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The bag is underneath the thief, so one can't say what, if anything, is inside."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2094
+      }
+    },
+    {
       "id": "LEAF-PILE",
       "body": [
         {
@@ -17673,6 +18637,330 @@
       "source": {
         "file": "1actions.zil",
         "line": 1362
+      }
+    },
+    {
+      "id": "LIVING-ROOM-FCN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RARG"
+                  },
+                  {
+                    "op": "const",
+                    "value": 3
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You are in the living room. There is a doorway to the east"
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "global",
+                        "id": "MAGIC-FLAG"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": ". To the west is a cyclops-shaped opening in an old wooden door, above which is some strange gothic lettering, "
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": ", a wooden door with strange gothic lettering to the west, which appears to be nailed shut, "
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "a trophy case, "
+                    }
+                  ]
+                },
+                {
+                  "op": "set-local",
+                  "id": "RUG?",
+                  "value": {
+                    "op": "global",
+                    "id": "RUG-MOVED"
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "RUG?"
+                          },
+                          {
+                            "op": "flag?",
+                            "entity": {
+                              "op": "entity",
+                              "id": "TRAP-DOOR"
+                            },
+                            "flag": "OPENBIT"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "and a rug lying beside an open trap door."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "local",
+                        "id": "RUG?"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "and a closed trap door at your feet."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "entity",
+                          "id": "TRAP-DOOR"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "and an open trap door at your feet."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "and a large oriental rug in the center of the room."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RARG"
+                  },
+                  {
+                    "op": "const",
+                    "value": 6
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "or",
+                        "args": [
+                          {
+                            "op": "verb?",
+                            "verbs": [
+                              "TAKE"
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "args": [
+                              {
+                                "op": "verb?",
+                                "verbs": [
+                                  "PUT"
+                                ]
+                              },
+                              {
+                                "op": "equal?",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "PRSI"
+                                  },
+                                  {
+                                    "op": "entity",
+                                    "id": "TROPHY-CASE"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "in?",
+                                "entity": {
+                                  "op": "global",
+                                  "id": "PRSO"
+                                },
+                                "container": {
+                                  "op": "entity",
+                                  "id": "TROPHY-CASE"
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "call",
+                                  "routine": "TOUCH-ALL",
+                                  "args": [
+                                    {
+                                      "op": "global",
+                                      "id": "PRSO"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-global",
+                          "id": "SCORE",
+                          "value": {
+                            "op": "add",
+                            "a": {
+                              "op": "global",
+                              "id": "BASE-SCORE"
+                            },
+                            "b": {
+                              "op": "call",
+                              "routine": "OTVAL-FROB",
+                              "args": []
+                            }
+                          }
+                        },
+                        {
+                          "op": "call",
+                          "routine": "SCORE-UPD",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": 0
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "RARG"
+      ],
+      "locals": [
+        "RUG?",
+        "TC"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 449
       }
     },
     {
@@ -18420,6 +19708,564 @@
       }
     },
     {
+      "id": "MATCH-FUNCTION",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "LAMP-ON",
+                      "BURN"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "MATCH"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "global",
+                          "id": "MATCH-COUNT"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "MATCH-COUNT",
+                          "value": {
+                            "op": "sub",
+                            "a": {
+                              "op": "global",
+                              "id": "MATCH-COUNT"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 1
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "gt?",
+                          "a": {
+                            "op": "global",
+                            "id": "MATCH-COUNT"
+                          },
+                          "b": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "I'm afraid that you have run out of matches."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "HERE"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "LOWER-SHAFT"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "TIMBER-ROOM"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "This room is drafty, and the match goes out instantly."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "MATCH"
+                          },
+                          "flag": "FLAMEBIT"
+                        },
+                        {
+                          "op": "set-flag",
+                          "entity": {
+                            "op": "entity",
+                            "id": "MATCH"
+                          },
+                          "flag": "ONBIT"
+                        },
+                        {
+                          "op": "call",
+                          "routine": "ENABLE",
+                          "args": [
+                            {
+                              "op": "call",
+                              "routine": "QUEUE",
+                              "args": [
+                                {
+                                  "op": "const",
+                                  "value": "I-MATCH"
+                                },
+                                {
+                                  "op": "const",
+                                  "value": 2
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "One of the matches starts to burn."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "not",
+                                "arg": {
+                                  "op": "global",
+                                  "id": "LIT"
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-global",
+                                  "id": "LIT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": true
+                                  }
+                                },
+                                {
+                                  "op": "call",
+                                  "routine": "V-LOOK",
+                                  "args": []
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "LAMP-OFF"
+                    ]
+                  },
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "entity",
+                      "id": "MATCH"
+                    },
+                    "flag": "FLAMEBIT"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The match is out."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "entity",
+                    "id": "MATCH"
+                  },
+                  "flag": "FLAMEBIT"
+                },
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "entity",
+                    "id": "MATCH"
+                  },
+                  "flag": "ONBIT"
+                },
+                {
+                  "op": "set-global",
+                  "id": "LIT",
+                  "value": {
+                    "op": "call",
+                    "routine": "LIT?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "HERE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "global",
+                          "id": "LIT"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It's pitch black in here!"
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "QUEUE",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "I-MATCH"
+                    },
+                    {
+                      "op": "const",
+                      "value": 0
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "COUNT",
+                  "OPEN"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You have "
+                    }
+                  ]
+                },
+                {
+                  "op": "set-local",
+                  "id": "CNT",
+                  "value": {
+                    "op": "sub",
+                    "a": {
+                      "op": "global",
+                      "id": "MATCH-COUNT"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 1
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "gt?",
+                          "a": {
+                            "op": "local",
+                            "id": "CNT"
+                          },
+                          "b": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "no"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "local",
+                                "id": "CNT"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": " match"
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "equal?",
+                          "args": [
+                            {
+                              "op": "local",
+                              "id": "CNT"
+                            },
+                            {
+                              "op": "const",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "es."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "EXAMINE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "entity",
+                          "id": "MATCH"
+                        },
+                        "flag": "ONBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The match is burning."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The matchbook isn't very interesting, except for what's written on it."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "CNT"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2265
+      }
+    },
+    {
       "id": "MAZE-11-FCN",
       "body": [
         {
@@ -19036,6 +20882,65 @@
       "source": {
         "file": "1actions.zil",
         "line": 3222
+      }
+    },
+    {
+      "id": "PAINTING-FCN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "MUNG"
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-prop",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSO"
+                  },
+                  "prop": "treasureValue",
+                  "value": {
+                    "op": "const",
+                    "value": 0
+                  }
+                },
+                {
+                  "op": "set-prop",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSO"
+                  },
+                  "prop": "description",
+                  "value": {
+                    "op": "const",
+                    "value": "There is a worthless piece of canvas here."
+                  }
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "Congratulations! Unlike the other vandals, who merely stole the artist's masterpieces, you have destroyed one."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2207
       }
     },
     {
@@ -21150,6 +23055,71 @@
       }
     },
     {
+      "id": "SCORE-OBJ",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "gt?",
+                "a": {
+                  "op": "set-local",
+                  "id": "TEMP",
+                  "value": {
+                    "op": "prop",
+                    "entity": {
+                      "op": "local",
+                      "id": "OBJ"
+                    },
+                    "prop": "value"
+                  }
+                },
+                "b": {
+                  "op": "const",
+                  "value": 0
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "SCORE-UPD",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "TEMP"
+                    }
+                  ]
+                },
+                {
+                  "op": "set-prop",
+                  "entity": {
+                    "op": "local",
+                    "id": "OBJ"
+                  },
+                  "prop": "value",
+                  "value": {
+                    "op": "const",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "OBJ"
+      ],
+      "locals": [
+        "TEMP"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1867
+      }
+    },
+    {
       "id": "SKELETON",
       "body": [
         {
@@ -22498,6 +24468,147 @@
       }
     },
     {
+      "id": "TREASURE-ROOM-FCN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RARG"
+                      },
+                      {
+                        "op": "const",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "table-get",
+                        "table": {
+                          "op": "call",
+                          "routine": "INT",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "I-THIEF"
+                            }
+                          ]
+                        },
+                        "index": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "const",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "global",
+                      "id": "DEAD"
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "in?",
+                          "entity": {
+                            "op": "entity",
+                            "id": "THIEF"
+                          },
+                          "container": {
+                            "op": "global",
+                            "id": "HERE"
+                          }
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You hear a scream of anguish as you violate the robber's hideaway. Using passages unknown to you, he rushes to its defense."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "entity",
+                            "id": "THIEF"
+                          },
+                          "to": {
+                            "op": "global",
+                            "id": "HERE"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "set-flag",
+                  "entity": {
+                    "op": "entity",
+                    "id": "THIEF"
+                  },
+                  "flag": "FIGHTBIT"
+                },
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "entity",
+                    "id": "THIEF"
+                  },
+                  "flag": "INVISIBLE"
+                },
+                {
+                  "op": "call",
+                  "routine": "THIEF-IN-TREASURE",
+                  "args": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "RARG"
+      ],
+      "locals": [
+        "TL"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2138
+      }
+    },
+    {
       "id": "TROLL-ROOM-F",
       "body": [
         {
@@ -23040,6 +25151,314 @@
       "source": {
         "file": "gverbs.zil",
         "line": 279
+      }
+    },
+    {
+      "id": "V-CLOSE",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "flag?",
+                      "entity": {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      "flag": "CONTBIT"
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "flag?",
+                      "entity": {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      "flag": "DOORBIT"
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You must tell me how to do that to a "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    },
+                    {
+                      "text": "."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "flag?",
+                      "entity": {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      "flag": "SURFACEBIT"
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "equal?",
+                      "args": [
+                        {
+                          "op": "prop",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "prop": "capacity"
+                        },
+                        {
+                          "op": "const",
+                          "value": 0
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "global",
+                          "id": "PRSO"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "clear-flag",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "flag": "OPENBIT"
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Closed."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "and",
+                                "args": [
+                                  {
+                                    "op": "global",
+                                    "id": "LIT"
+                                  },
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "set-global",
+                                      "id": "LIT",
+                                      "value": {
+                                        "op": "call",
+                                        "routine": "LIT?",
+                                        "args": [
+                                          {
+                                            "op": "global",
+                                            "id": "HERE"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "It is now pitch black."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It is already closed."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "flag?",
+                "entity": {
+                  "op": "global",
+                  "id": "PRSO"
+                },
+                "flag": "DOORBIT"
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "global",
+                          "id": "PRSO"
+                        },
+                        "flag": "OPENBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "clear-flag",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "flag": "OPENBIT"
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The "
+                            },
+                            {
+                              "name": {
+                                "op": "global",
+                                "id": "PRSO"
+                              }
+                            },
+                            {
+                              "text": " is now closed."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It is already closed."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You cannot close that."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 336
       }
     },
     {
@@ -23590,6 +26009,108 @@
       "source": {
         "file": "gverbs.zil",
         "line": 620
+      }
+    },
+    {
+      "id": "V-EXAMINE",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "prop",
+                "entity": {
+                  "op": "global",
+                  "id": "PRSO"
+                },
+                "prop": "text"
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "expr": {
+                        "op": "prop",
+                        "entity": {
+                          "op": "global",
+                          "id": "PRSO"
+                        },
+                        "prop": "text"
+                      }
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "global",
+                      "id": "PRSO"
+                    },
+                    "flag": "CONTBIT"
+                  },
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "global",
+                      "id": "PRSO"
+                    },
+                    "flag": "DOORBIT"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "V-LOOK-INSIDE",
+                  "args": []
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "There's nothing special about the "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    },
+                    {
+                      "text": "."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 623
       }
     },
     {
@@ -25268,6 +27789,404 @@
       }
     },
     {
+      "id": "V-PUT",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "global",
+                      "id": "PRSI"
+                    },
+                    "flag": "OPENBIT"
+                  },
+                  {
+                    "op": "call",
+                    "routine": "OPENABLE?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "global",
+                      "id": "PRSI"
+                    },
+                    "flag": "VEHBIT"
+                  }
+                ]
+              },
+              "do": []
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You can't do that."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "flag?",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSI"
+                  },
+                  "flag": "OPENBIT"
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSI"
+                      }
+                    },
+                    {
+                      "text": " isn't open."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "THIS-IS-IT",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "PRSI"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "PRSI"
+                  },
+                  {
+                    "op": "global",
+                    "id": "PRSO"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "How can you do that?"
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "in?",
+                "entity": {
+                  "op": "global",
+                  "id": "PRSO"
+                },
+                "container": {
+                  "op": "global",
+                  "id": "PRSI"
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    },
+                    {
+                      "text": " is already in the "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSI"
+                      }
+                    },
+                    {
+                      "text": "."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "gt?",
+                "a": {
+                  "op": "sub",
+                  "a": {
+                    "op": "add",
+                    "a": {
+                      "op": "call",
+                      "routine": "WEIGHT",
+                      "args": [
+                        {
+                          "op": "global",
+                          "id": "PRSI"
+                        }
+                      ]
+                    },
+                    "b": {
+                      "op": "call",
+                      "routine": "WEIGHT",
+                      "args": [
+                        {
+                          "op": "global",
+                          "id": "PRSO"
+                        }
+                      ]
+                    }
+                  },
+                  "b": {
+                    "op": "prop",
+                    "entity": {
+                      "op": "global",
+                      "id": "PRSI"
+                    },
+                    "prop": "size"
+                  }
+                },
+                "b": {
+                  "op": "prop",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSI"
+                  },
+                  "prop": "capacity"
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "There's no room."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "call",
+                      "routine": "HELD?",
+                      "args": [
+                        {
+                          "op": "global",
+                          "id": "PRSO"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "flag?",
+                    "entity": {
+                      "op": "global",
+                      "id": "PRSO"
+                    },
+                    "flag": "TRYTAKEBIT"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You don't have the "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    },
+                    {
+                      "text": "."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "call",
+                      "routine": "HELD?",
+                      "args": [
+                        {
+                          "op": "global",
+                          "id": "PRSO"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "call",
+                      "routine": "ITAKE",
+                      "args": []
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "move",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSO"
+                  },
+                  "to": {
+                    "op": "global",
+                    "id": "PRSI"
+                  }
+                },
+                {
+                  "op": "set-flag",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSO"
+                  },
+                  "flag": "TOUCHBIT"
+                },
+                {
+                  "op": "call",
+                  "routine": "SCORE-OBJ",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "PRSO"
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "Done."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1085
+      }
+    },
+    {
       "id": "V-PUT-BEHIND",
       "body": [
         {
@@ -25436,6 +28355,81 @@
       "source": {
         "file": "gverbs.zil",
         "line": 1134
+      }
+    },
+    {
+      "id": "V-READ",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "flag?",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSO"
+                  },
+                  "flag": "READBIT"
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "How does one read a "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    },
+                    {
+                      "text": "?"
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "expr": {
+                        "op": "prop",
+                        "entity": {
+                          "op": "global",
+                          "id": "PRSO"
+                        },
+                        "prop": "text"
+                      }
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1143
       }
     },
     {
@@ -25868,6 +28862,94 @@
       "source": {
         "file": "gverbs.zil",
         "line": 1294
+      }
+    },
+    {
+      "id": "V-STAB",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "set-local",
+                "id": "W",
+                "value": {
+                  "op": "call",
+                  "routine": "FIND-WEAPON",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "WINNER"
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "PERFORM",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "ATTACK"
+                    },
+                    {
+                      "op": "global",
+                      "id": "PRSO"
+                    },
+                    {
+                      "op": "local",
+                      "id": "W"
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "No doubt you propose to stab the "
+                    },
+                    {
+                      "name": {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    },
+                    {
+                      "text": " with your pinky?"
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "W"
+      ],
+      "source": {
+        "file": "gverbs.zil",
+        "line": 1297
       }
     },
     {

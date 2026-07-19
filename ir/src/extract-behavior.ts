@@ -34,16 +34,34 @@ interface AstNode {
   start?: { line: number };
 }
 
-/** ZIL operators deliberately outside the batch-1 vocabulary. */
+/** ZIL operators deliberately outside the vocabulary (batches 3.4/3.5a). */
 const DENIED_OPERATORS = new Set([
   "REPEAT", "PROG", "AGAIN", "MAPF", "MAPR",
   "FIRST?", "NEXT?",
-  "GETP", "PUTP", "GETPT", "PTSIZE",
-  "GET", "PUT", "GETB", "PUTB",
-  "+", "-", "*", "/", "MOD", "MIN", "ABS", "RANDOM",
+  "GETPT", "PTSIZE", "GETB", "PUTB",
+  "MOD", "MIN", "ABS", "RANDOM",
   "BAND", "BOR", "BTST", "BCOM",
   "APPLY", "RFATAL", "ASSIGNED?", "DLESS?", "IGRTR?",
   "PRINT", "PRINTN", "PRINTB", "PRINC", "PRINTD",
+]);
+
+/**
+ * ZIL property atoms → IR field names ({@link BEHAVIOR_PROPERTY_KEYS}).
+ * Every `,P?NAME` the corpus passes to GETP/PUTP; unmapped atoms (e.g.
+ * `P?GLOBAL`, reachable only via the denied GETPT) are denied.
+ */
+const PROPERTY_MAP = new Map<string, string>([
+  ["ACTION", "action"],
+  ["CAPACITY", "capacity"],
+  ["LDESC", "description"],
+  ["DESCFCN", "descriptionRoutine"],
+  ["FDESC", "initialDescription"],
+  ["SIZE", "size"],
+  ["STRENGTH", "strength"],
+  ["TEXT", "text"],
+  ["TVALUE", "treasureValue"],
+  ["VALUE", "value"],
+  ["VTYPE", "vehicleType"],
 ]);
 
 const TRUE: Expr = { op: "const", value: true };
@@ -52,7 +70,8 @@ const FALSE: Expr = { op: "const", value: false };
 /** Form heads that map to expressions (legal in statement position via `value`). */
 const EXPR_HEADS = new Set([
   "VERB?", "EQUAL?", "==?", "FSET?", "AND", "OR", "NOT",
-  "G?", "L?", "0?", "1?", "IN?", "LOC",
+  "G?", "L?", "0?", "1?", "IN?", "LOC", "GETP", "GET",
+  "+", "-", "*", "/",
 ]);
 
 export interface CatalogEntry {
@@ -156,6 +175,7 @@ class RoutineTransformer {
   reasons: string[] = [];
   private params: string[] = [];
   private locals: string[] = [];
+  private defaults = new Map<string, Expr>();
 
   constructor(
     private sources: BehaviorSources,
@@ -172,6 +192,11 @@ class RoutineTransformer {
     const body = prelude.concat(elements.slice(3).map((n) => this.stmt(n)));
     const routine: BehaviorRoutine = { id, body };
     if (this.params.length > 0) routine.params = this.params;
+    if (this.defaults.size > 0) {
+      routine.defaults = Object.fromEntries(
+        this.params.filter((p) => this.defaults.has(p)).map((p) => [p, this.defaults.get(p)!]),
+      );
+    }
     if (this.locals.length > 0) routine.locals = this.locals;
     return routine;
   }
@@ -194,7 +219,12 @@ class RoutineTransformer {
         this.locals.push(name);
         prelude.push({ op: "set-local", id: name, value: this.expr(init!) });
       } else if (entry.type === "List" && mode === "optional") {
-        throw new Unsupported("optional parameter with default value");
+        const [nameNode, init] = meaningful(entry.elements ?? []);
+        const name = atomName(nameNode) ?? this.deny("malformed optional parameter");
+        this.params.push(name);
+        // A `<>` default equals the no-default behavior (unsupplied → false).
+        const value = this.expr(init!);
+        if (value.op !== "const" || value.value !== false) this.defaults.set(name, value);
       } else {
         throw new Unsupported(`unexpected parameter entry (${entry.type})`);
       }
@@ -246,6 +276,20 @@ class RoutineTransformer {
       }
       case "MOVE":
         return { op: "move", entity: this.expr(rest[0]!), to: this.expr(rest[1]!) };
+      case "PUTP":
+        return {
+          op: "set-prop",
+          entity: this.expr(rest[0]!),
+          prop: this.propKey("PUTP", rest[1]),
+          value: this.expr(rest[2]!),
+        };
+      case "PUT":
+        return {
+          op: "table-set",
+          table: this.expr(rest[0]!),
+          index: this.expr(rest[1]!),
+          value: this.expr(rest[2]!),
+        };
       case "REMOVE":
         return { op: "remove", entity: this.expr(rest[0]!) };
       case "RTRUE":
@@ -361,11 +405,57 @@ class RoutineTransformer {
         return { op: "in?", entity: this.expr(rest[0]!), container: this.expr(rest[1]!) };
       case "LOC":
         return { op: "loc", entity: this.expr(rest[0]!) };
+      case "SETG": {
+        const id = atomName(rest[0]) ?? this.deny("SETG target is not an atom");
+        this.needGlobal(id);
+        return { op: "set-global", id, value: this.expr(rest[1]!) };
+      }
+      case "SET": {
+        const id = atomName(rest[0]) ?? this.deny("SET target is not an atom");
+        if (!this.params.includes(id) && !this.locals.includes(id)) {
+          this.deny(`SET of undeclared local "${id}"`);
+        }
+        return { op: "set-local", id, value: this.expr(rest[1]!) };
+      }
+      case "+":
+      case "-":
+      case "*":
+      case "/":
+        return this.arith(head, rest);
+      case "GETP":
+        return { op: "prop", entity: this.expr(rest[0]!), prop: this.propKey("GETP", rest[1]) };
+      case "GET":
+        return { op: "table-get", table: this.expr(rest[0]!), index: this.expr(rest[1]!) };
+      case "PUTP":
+      case "PUT":
+        this.deny(`operator ${head} in expression position`);
+        break;
       default: {
         const call = this.callForm(head, rest);
         return { op: "call", routine: call.routine, args: call.args };
       }
     }
+  }
+
+  /** Lower ZIL arithmetic: n-ary → left fold, unary `-` → 0 − x. */
+  private arith(head: "+" | "-" | "*" | "/", rest: AstNode[]): Expr {
+    const op = ({ "+": "add", "-": "sub", "*": "mul", "/": "div" } as const)[head];
+    const args = rest.map((a) => this.expr(a));
+    if (args.length === 0) this.deny(`operator ${head} with no operands`);
+    if (args.length === 1) {
+      if (head !== "-") this.deny(`operator ${head} with one operand`);
+      return { op: "sub", a: { op: "const", value: 0 }, b: args[0]! };
+    }
+    return args.slice(1).reduce((a, b) => ({ op, a, b }), args[0]!);
+  }
+
+  /** Lower a `,P?NAME` property argument to its IR field name. */
+  private propKey(op: string, node: AstNode | undefined): string {
+    const atom = node?.type === "GVal" ? atomName(node.value as AstNode) : atomName(node);
+    if (atom === undefined || !atom.startsWith("P?")) {
+      this.deny(`${op} property is not a ,P?NAME reference`);
+    }
+    return PROPERTY_MAP.get(atom.slice(2)) ?? this.deny(`unsupported property ,${atom}`);
   }
 
   private flagArgs(op: string, rest: AstNode[]): { entity: Expr; flag: string } {

@@ -13,7 +13,7 @@
  * stage 2.1; they are collected into the result summary but not resolved.
  */
 
-import { DIRECTIONS, IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
+import { BEHAVIOR_PROPERTY_KEYS, DIRECTIONS, IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
 
 export interface ValidationError {
   /** JSON-path-ish location, e.g. `rooms[2].exits[0].to`. */
@@ -85,6 +85,14 @@ function optString(ctx: Ctx, path: string, obj: Json, key: string): string | und
   if (typeof v === "string" && v.length > 0) return v;
   ctx.fail(`${path}.${key}`, "must be a non-empty string");
   return undefined;
+}
+
+/** Validate a behavior `prop`/`set-prop` property key against the closed set. */
+function checkPropKey(ctx: Ctx, path: string, obj: Json): void {
+  const prop = reqString(ctx, path, obj, "prop");
+  if (prop !== undefined && !(BEHAVIOR_PROPERTY_KEYS as readonly string[]).includes(prop)) {
+    ctx.fail(`${path}.prop`, `unknown property key "${prop}"`);
+  }
 }
 
 function optInt(ctx: Ctx, path: string, obj: Json, key: string): void {
@@ -440,7 +448,7 @@ export function validateWorld(input: unknown): ValidationResult {
     list.forEach((raw, i) => {
       const path = `routines[${i}]`;
       if (!isObject(raw)) return ctx.fail(path, "must be an object");
-      checkKeys(ctx, path, raw, ["id", "params", "locals", "body", "source"]);
+      checkKeys(ctx, path, raw, ["id", "params", "defaults", "locals", "body", "source"]);
       const id = reqString(ctx, path, raw, "id");
       if (id !== undefined) {
         if (extractedRoutineIds.has(id)) ctx.fail(`${path}.id`, `duplicate routine "${id}"`);
@@ -503,6 +511,10 @@ export function validateWorld(input: unknown): ValidationResult {
             break;
           case "gt?":
           case "lt?":
+          case "add":
+          case "sub":
+          case "mul":
+          case "div":
             checkKeys(ctx, ePath, node, ["op", "a", "b"]);
             checkExprNode(`${ePath}.a`, node.a);
             checkExprNode(`${ePath}.b`, node.b);
@@ -522,6 +534,32 @@ export function validateWorld(input: unknown): ValidationResult {
           case "loc":
             checkKeys(ctx, ePath, node, ["op", "entity"]);
             checkExprNode(`${ePath}.entity`, node.entity);
+            break;
+          case "prop":
+            checkKeys(ctx, ePath, node, ["op", "entity", "prop"]);
+            checkExprNode(`${ePath}.entity`, node.entity);
+            checkPropKey(ctx, ePath, node);
+            break;
+          case "set-global": {
+            checkKeys(ctx, ePath, node, ["op", "id", "value"]);
+            const gid = reqString(ctx, ePath, node, "id");
+            if (gid !== undefined) refs.push({ path: `${ePath}.id`, id: gid, kind: "global-or-table" });
+            checkExprNode(`${ePath}.value`, node.value);
+            break;
+          }
+          case "set-local": {
+            checkKeys(ctx, ePath, node, ["op", "id", "value"]);
+            const lid = reqString(ctx, ePath, node, "id");
+            if (lid !== undefined && !declaredLocals.has(lid)) {
+              ctx.fail(`${ePath}.id`, `undeclared local "${lid}"`);
+            }
+            checkExprNode(`${ePath}.value`, node.value);
+            break;
+          }
+          case "table-get":
+            checkKeys(ctx, ePath, node, ["op", "table", "index"]);
+            checkExprNode(`${ePath}.table`, node.table);
+            checkExprNode(`${ePath}.index`, node.index);
             break;
           case "call": {
             checkKeys(ctx, ePath, node, ["op", "routine", "args"]);
@@ -603,6 +641,18 @@ export function validateWorld(input: unknown): ValidationResult {
             checkKeys(ctx, sPath, node, ["op", "entity"]);
             checkExprNode(`${sPath}.entity`, node.entity);
             break;
+          case "set-prop":
+            checkKeys(ctx, sPath, node, ["op", "entity", "prop", "value"]);
+            checkExprNode(`${sPath}.entity`, node.entity);
+            checkPropKey(ctx, sPath, node);
+            checkExprNode(`${sPath}.value`, node.value);
+            break;
+          case "table-set":
+            checkKeys(ctx, sPath, node, ["op", "table", "index", "value"]);
+            checkExprNode(`${sPath}.table`, node.table);
+            checkExprNode(`${sPath}.index`, node.index);
+            checkExprNode(`${sPath}.value`, node.value);
+            break;
           case "return":
             checkKeys(ctx, sPath, node, ["op", "value"]);
             checkExprNode(`${sPath}.value`, node.value);
@@ -623,6 +673,18 @@ export function validateWorld(input: unknown): ValidationResult {
         }
       };
 
+      if (raw.defaults !== undefined) {
+        if (isObject(raw.defaults)) {
+          const params = new Set(optStringArray(ctx, path, raw, "params"));
+          for (const [param, expr] of Object.entries(raw.defaults)) {
+            const dPath = `${path}.defaults.${param}`;
+            if (!params.has(param)) ctx.fail(dPath, `default for undeclared param "${param}"`);
+            checkExprNode(dPath, expr);
+          }
+        } else {
+          ctx.fail(`${path}.defaults`, "must be an object");
+        }
+      }
       reqArray(ctx, path, raw, "body").forEach((s, j) => checkStmtNode(`${path}.body[${j}]`, s));
     });
   }

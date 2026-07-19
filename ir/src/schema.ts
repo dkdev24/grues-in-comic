@@ -16,10 +16,32 @@
  */
 
 /** Version of the IR schema itself (not the game data). */
-export const IR_VERSION = "0.4.0";
+export const IR_VERSION = "0.5.0";
 
 import type { BehaviorRoutine } from "./behavior.js";
 export type { BehaviorRoutine } from "./behavior.js";
+
+/**
+ * Property keys legal in behavior `prop`/`set-prop` ops — the IR field names
+ * of {@link WorldObject} properties that ZIL code reads/writes dynamically
+ * (`,P?LDESC` → "description", …). Closed set: extraction denies unmapped
+ * ZIL property atoms, validation rejects keys outside this list.
+ */
+export const BEHAVIOR_PROPERTY_KEYS = [
+  "action",
+  "capacity",
+  "description",
+  "descriptionRoutine",
+  "initialDescription",
+  "size",
+  "strength",
+  "text",
+  "treasureValue",
+  "value",
+  "vehicleType",
+] as const;
+
+export type BehaviorPropertyKey = (typeof BEHAVIOR_PROPERTY_KEYS)[number];
 
 /**
  * Travel directions. ZIL's abbreviated direction properties map to full words

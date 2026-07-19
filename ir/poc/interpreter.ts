@@ -14,7 +14,7 @@
 
 import type { BehaviorRoutine, BehaviorValue, Expr, Stmt, TellPart } from "../src/behavior.js";
 import { builtins, tell, truthy, clearFlag, hasFlag, setFlag } from "./world.js";
-import type { WorldState } from "./world.js";
+import type { RuntimeTable, WorldState } from "./world.js";
 
 class ReturnSignal {
   constructor(readonly value: BehaviorValue) {}
@@ -69,6 +69,20 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       return num(evalExpr(expr.a, world, locals)) > num(evalExpr(expr.b, world, locals));
     case "lt?":
       return num(evalExpr(expr.a, world, locals)) < num(evalExpr(expr.b, world, locals));
+    case "add":
+    case "sub":
+    case "mul":
+    case "div": {
+      const a = num(evalExpr(expr.a, world, locals));
+      const b = num(evalExpr(expr.b, world, locals));
+      const raw =
+        expr.op === "add" ? a + b
+        : expr.op === "sub" ? a - b
+        : expr.op === "mul" ? a * b
+        : Math.trunc(a / b); // ZIL `/` truncates toward zero.
+      // Z-machine arithmetic is 16-bit signed with wraparound.
+      return ((raw + 0x8000) & 0xffff) - 0x8000;
+    }
     case "in?": {
       const entity = entityId(evalExpr(expr.entity, world, locals), "in?");
       const container = entityId(evalExpr(expr.container, world, locals), "in?");
@@ -78,9 +92,44 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       const entity = entityId(evalExpr(expr.entity, world, locals), "loc");
       return world.locations[entity] ?? false;
     }
+    case "prop": {
+      const entity = entityId(evalExpr(expr.entity, world, locals), "prop");
+      // Absent property → false (ZIL GETP defaults to 0, which is false in ZIL).
+      return world.properties[entity]?.[expr.prop] ?? false;
+    }
+    case "table-get": {
+      const { table, element } = tableSlot(expr.table, expr.index, world, locals, "table-get");
+      if (element === "length") return table.elements.length;
+      return table.elements[element] ?? false;
+    }
+    case "set-global":
+      return (world.globals[expr.id] = evalExpr(expr.value, world, locals));
+    case "set-local":
+      return (locals[expr.id] = evalExpr(expr.value, world, locals));
     case "call":
       return callRoutine(expr.routine, expr.args, world, locals);
   }
+}
+
+/**
+ * Resolve a table expr + index to a concrete element slot. LTABLEs answer
+ * their element count at index 0 and store element n at index n+1.
+ */
+function tableSlot(
+  tableExpr: Expr,
+  indexExpr: Expr,
+  world: WorldState,
+  locals: Locals,
+  op: string,
+): { table: RuntimeTable; element: number | "length" } {
+  const id = entityId(evalExpr(tableExpr, world, locals), op);
+  const table = world.tables[id];
+  if (table === undefined) throw new Error(`unknown table ${id}`);
+  const index = num(evalExpr(indexExpr, world, locals));
+  if (table.kind === "ltable") {
+    return { table, element: index === 0 ? "length" : index - 1 };
+  }
+  return { table, element: index };
 }
 
 function num(v: BehaviorValue): number {
@@ -132,6 +181,17 @@ function execStmt(stmt: Stmt, world: WorldState, locals: Locals): BehaviorValue 
       delete world.locations[entity];
       return true;
     }
+    case "set-prop": {
+      const entity = entityId(evalExpr(stmt.entity, world, locals), "set-prop");
+      (world.properties[entity] ??= {})[stmt.prop] = evalExpr(stmt.value, world, locals);
+      return entity; // ZIL PUTP returns its first argument.
+    }
+    case "table-set": {
+      const { table, element } = tableSlot(stmt.table, stmt.index, world, locals, "table-set");
+      if (element === "length") throw new Error("table-set cannot write an ltable's length slot");
+      table.elements[element] = evalExpr(stmt.value, world, locals);
+      return evalExpr(stmt.table, world, locals); // ZIL PUT returns its first argument.
+    }
     case "return":
       throw new ReturnSignal(evalExpr(stmt.value, world, locals));
     case "call":
@@ -164,8 +224,15 @@ export function runRoutine(
 ): BehaviorValue {
   const locals: Locals = {};
   for (const name of routine.locals ?? []) locals[name] = false;
+  // Defaults apply by arity, as in Z-code: an explicitly passed false does
+  // NOT trigger the default. Earlier params are bound before later defaults.
   (routine.params ?? []).forEach((name, i) => {
-    locals[name] = args[i] ?? false;
+    if (i < args.length) {
+      locals[name] = args[i]!;
+    } else {
+      const dflt = routine.defaults?.[name];
+      locals[name] = dflt === undefined ? false : evalExpr(dflt, world, locals);
+    }
   });
   try {
     return execBody(routine.body, world, locals);
