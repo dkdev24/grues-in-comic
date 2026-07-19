@@ -8,9 +8,12 @@
 
 import type { BehaviorValue } from "../src/behavior.js";
 
-/** ZIL LTABLEs answer their element count at index 0 (see `table-get`). */
+/**
+ * ZIL LTABLEs answer their element count at index 0 (see `table-get`).
+ * `itable` addresses like `table` — the zero fill is already in `elements`.
+ */
 export interface RuntimeTable {
-  kind: "table" | "ltable";
+  kind: "table" | "ltable" | "itable";
   elements: BehaviorValue[];
 }
 

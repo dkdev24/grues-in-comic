@@ -1,15 +1,5 @@
 [
   {
-    "id": "DESCRIBE-ROOM",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1635
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
-    ]
-  },
-  {
     "id": "FINISH",
     "source": {
       "file": "gverbs.zil",
@@ -17,16 +7,6 @@
     },
     "reasons": [
       "unknown form <READ …>"
-    ]
-  },
-  {
-    "id": "FIRSTER",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1818
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
     ]
   },
   {
@@ -60,23 +40,13 @@
     ]
   },
   {
-    "id": "HACK-HACK",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 2024
-    },
-    "reasons": [
-      "unknown name ,GLOBAL-OBJECTS"
-    ]
-  },
-  {
     "id": "HERO-BLOW",
     "source": {
       "file": "1actions.zil",
       "line": 3476
     },
     "reasons": [
-      "table VILLAINS has an unsupported element (Form)"
+      "operator RANDOM"
     ]
   },
   {
@@ -100,16 +70,6 @@
     ]
   },
   {
-    "id": "I-THIEF",
-    "source": {
-      "file": "1actions.zil",
-      "line": 3890
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
-    ]
-  },
-  {
     "id": "LIT?",
     "source": {
       "file": "gparser.zil",
@@ -130,13 +90,13 @@
     ]
   },
   {
-    "id": "NOT-HERE-OBJECT-F",
+    "id": "NOT-HERE-PRINT",
     "source": {
       "file": "gglobals.zil",
-      "line": 52
+      "line": 76
     },
     "reasons": [
-      "global P-PRSO has an unsupported initializer (<ITABLE …>)"
+      "operator PRINTB"
     ]
   },
   {
@@ -170,33 +130,13 @@
     ]
   },
   {
-    "id": "PRE-TURN",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 1488
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
-    ]
-  },
-  {
     "id": "RANDOMIZE-OBJECTS",
     "source": {
       "file": "1actions.zil",
       "line": 4101
     },
     "reasons": [
-      "unknown name ,ROOMS"
-    ]
-  },
-  {
-    "id": "ROPE-FUNCTION",
-    "source": {
-      "file": "1actions.zil",
-      "line": 3030
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
+      "operator RANDOM"
     ]
   },
   {
@@ -210,23 +150,13 @@
     ]
   },
   {
-    "id": "TREE-ROOM",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2880
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
-    ]
-  },
-  {
     "id": "V-CLIMB-UP",
     "source": {
       "file": "gverbs.zil",
       "line": 300
     },
     "reasons": [
-      "unknown name ,ROOMS"
+      "operator GETPT"
     ]
   },
   {
@@ -240,26 +170,6 @@
     ]
   },
   {
-    "id": "V-DISEMBARK",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 418
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
-    ]
-  },
-  {
-    "id": "V-EAT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 483
-    },
-    "reasons": [
-      "unknown name ,GLOBAL-OBJECTS"
-    ]
-  },
-  {
     "id": "V-ECHO",
     "source": {
       "file": "gverbs.zil",
@@ -267,26 +177,6 @@
     },
     "reasons": [
       "operator GETB"
-    ]
-  },
-  {
-    "id": "V-EXIT",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 632
-    },
-    "reasons": [
-      "unknown name ,ROOMS"
-    ]
-  },
-  {
-    "id": "V-FIND",
-    "source": {
-      "file": "gverbs.zil",
-      "line": 677
-    },
-    "reasons": [
-      "unknown name ,GLOBAL-OBJECTS"
     ]
   },
   {

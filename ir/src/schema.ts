@@ -16,10 +16,10 @@
  */
 
 /** Version of the IR schema itself (not the game data). */
-export const IR_VERSION = "0.10.0";
+export const IR_VERSION = "0.13.0";
 
-import type { BehaviorRoutine } from "./behavior.js";
-export type { BehaviorRoutine } from "./behavior.js";
+import type { BehaviorRoutine, TableRef } from "./behavior.js";
+export type { BehaviorRoutine, TableRef } from "./behavior.js";
 
 /**
  * Property keys legal in behavior `prop`/`set-prop` ops — the IR field names
@@ -75,13 +75,24 @@ export interface WorldDocument {
   /** Scalar global variables (ZIL GLOBAL with an atom/number/string value). */
   globals: GlobalVariable[];
   /**
-   * Named tables (ZIL TABLE/LTABLE/ITABLE). A ZIL global whose value is a
-   * table (e.g. `<GLOBAL ABOVE-GROUND <LTABLE …>>`) is represented as a table
-   * entity only — the table id doubles as the global binding.
+   * Named tables (ZIL TABLE/LTABLE/ITABLE) — the storage itself.
+   *
+   * `<GLOBAL ABOVE-GROUND <LTABLE …>>` declares *two* things: a table and a
+   * global variable holding a pointer to it. Both are emitted, sharing the one
+   * ZIL name — the single exception to the flat-id rule, because the runtime
+   * keeps variables and table storage in separate namespaces and inventing a
+   * second id would cost the traceability the IR's ids exist for. The global's
+   * initial `value` is `{table, offset: 0}`; reads go through the variable, so
+   * a `set-global` that retargets the pointer works as ZIL's does.
    */
   tables: Table[];
   rooms: Room[];
   objects: WorldObject[];
+  /**
+   * The object tree's structural anchors (ZIL GLOBAL-OBJECTS / LOCAL-GLOBALS /
+   * ROOMS). Absent in documents whose behavior never names them.
+   */
+  metaEntities?: MetaEntity[];
   /** Parser vocabulary and verb syntax (stage 3.3); absent in partial worlds. */
   vocabulary?: Vocabulary;
   /**
@@ -183,7 +194,13 @@ export type ScalarValue = boolean | number | string;
 
 export interface GlobalVariable {
   id: string;
-  value: ScalarValue;
+  /**
+   * A scalar, or a pointer to a table when ZIL declared the global as
+   * `<GLOBAL name <TABLE …>>` (see {@link WorldDocument.tables}). The pointer
+   * is the initial value only — `set-global` may retarget it, which is how the
+   * lamp/candle countdowns advance (`<SETG LAMP-TABLE <REST .TBL 4>>`).
+   */
+  value: ScalarValue | TableRef;
   description?: string;
 }
 
@@ -192,11 +209,23 @@ export interface EntityRef {
   ref: string;
 }
 
-export type TableElement = ScalarValue | EntityRef;
+/**
+ * A table element. Beyond scalars and entity refs, an element may be a
+ * {@link TableRef} — ZIL nests anonymous `<TABLE …>` forms inside a table
+ * (VILLAINS holds one per villain). The nested table is emitted as its own
+ * entry in {@link WorldDocument.tables} under a derived id and the parent
+ * stores a pointer at offset 0, so `<GET ,VILLAINS .CNT>` yields exactly the
+ * pointer the runtime already understands — no new behavior ops.
+ */
+export type TableElement = ScalarValue | EntityRef | TableRef;
 
 export interface Table {
   id: string;
-  /** ZIL constructor: TABLE (no length word), LTABLE (length-prefixed), ITABLE (initialized). */
+  /**
+   * ZIL constructor: TABLE (no length word), LTABLE (length-prefixed),
+   * ITABLE (zero-filled to a fixed length). ITABLE addresses like TABLE —
+   * only its initializer differs, and that is already baked into `elements`.
+   */
   kind: "table" | "ltable" | "itable";
   /** ZIL (PURE) — the table is read-only at runtime. */
   pure?: boolean;
@@ -309,6 +338,40 @@ export interface Room {
    * scope (used by partial/sample worlds so references still resolve).
    */
   stub?: boolean;
+}
+
+/**
+ * The three roles ZIL's world-tree scaffolding objects play. Each is the
+ * container of one class of entity, and behavior code names them directly
+ * (`<IN? .OBJ ,ROOMS>`, `<FIRST? ,ROOMS>`, `<EQUAL? ,PRSO ,ROOMS>`).
+ */
+export const META_ENTITY_ROLES = ["rooms", "global-objects", "local-globals"] as const;
+
+export type MetaEntityRole = (typeof META_ENTITY_ROLES)[number];
+
+/**
+ * A structural anchor of the object tree (ZIL GLOBAL-OBJECTS / LOCAL-GLOBALS /
+ * ROOMS). These are not game entities — they hold no name, flags, or
+ * properties — but they are real containers: behavior tests membership with
+ * `in?`, walks their children with `first`/`next`, and compares against them
+ * with `equal?`, so an engine must give each one a node in the object tree.
+ *
+ * Membership is derived, never duplicated per entity. At load time an engine
+ * parents:
+ * - every {@link Room} under the `"rooms"` meta entity, in document order;
+ * - every {@link WorldObject} whose `location.kind` is `"global"` under the
+ *   `"global-objects"` one, and `"local-globals"` under the `"local-globals"`
+ *   one.
+ *
+ * The meta entities themselves nest per `location` (in Zork I, LOCAL-GLOBALS
+ * sits inside GLOBAL-OBJECTS — the parser's scope walk relies on that).
+ */
+export interface MetaEntity {
+  id: string;
+  role: MetaEntityRole;
+  /** Id of the meta entity containing this one; absent = object-tree root. */
+  location?: string;
+  description?: string;
 }
 
 /** Where an object starts (ZIL IN). */

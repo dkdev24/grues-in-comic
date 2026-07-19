@@ -54,3 +54,6 @@ node_modules/
 
 # ZILF build output
 verification/build/
+
+# Third-party reference papers — kept locally, not redistributed
+docs/comic-chat-paper.md

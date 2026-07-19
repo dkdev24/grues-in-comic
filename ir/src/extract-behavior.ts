@@ -711,14 +711,42 @@ class RoutineTransformer {
       const head = atomName(parts[0]);
       if (parts.length === 0) {
         this.globals.set(id, { id, value: false });
+      } else if (head === "ITABLE") {
+        // `<ITABLE NONE n>` is n zero-filled words — the parser's scratch
+        // buffers (P-PRSO/P-PRSI) are declared this way. The length is baked
+        // into `elements`, so it addresses exactly like a plain TABLE.
+        this.tables.set(id, this.itableEntity(id, parts.slice(1)));
+        this.globals.set(id, { id, value: { table: id, offset: 0 } });
       } else if (head === "TABLE" || head === "LTABLE") {
+        // `<GLOBAL X <TABLE …>>` declares storage *and* a variable pointing at
+        // it. Emitting only the table left `,X` reading an unbound global; the
+        // variable also has to exist because ZIL reassigns it — the lamp and
+        // candle countdowns advance by `<SETG LAMP-TABLE <REST .TBL 4>>`.
         this.tables.set(id, this.tableEntity(id, head, parts.slice(1)));
+        this.globals.set(id, { id, value: { table: id, offset: 0 } });
       } else {
         this.deny(`global ${id} has an unsupported initializer (<${head} …>)`);
       }
     } else {
       this.deny(`global ${id} has an unsupported initializer (${value.type})`);
     }
+  }
+
+  /**
+   * `<ITABLE NONE n>` — n zero-filled words, no length word. Only the NONE
+   * spec is accepted: the `(LEXV)`/`(BYTE LENGTH)` forms in gparser.zil are
+   * byte-addressed parser buffers owned by the M4 READ builtin (ADR 0001),
+   * not world state, and their layout is not element-addressable here.
+   */
+  private itableEntity(id: string, args: AstNode[]): Table {
+    const spec = atomName(args[0]);
+    if (spec !== "NONE") this.deny(`table ${id} has an unsupported ITABLE spec (${spec ?? args[0]?.type})`);
+    const count = args[1];
+    if (count?.type !== "Number") this.deny(`table ${id} has a non-literal ITABLE length`);
+    const n = count.value as number;
+    if (!Number.isInteger(n) || n < 0) this.deny(`table ${id} has an invalid ITABLE length (${n})`);
+    if (args.length > 2) this.deny(`table ${id} has an ITABLE initializer this stage does not model`);
+    return { id, kind: "itable", elements: Array.from({ length: n }, () => 0) };
   }
 
   private tableEntity(id: string, head: string, elements: AstNode[]): Table {
@@ -733,6 +761,36 @@ class RoutineTransformer {
         out.push(el.value as number);
       } else if (el.type === "Atom" && this.sources.roomAndObjectIds.has(el.name!)) {
         out.push({ ref: el.name! });
+      } else if (el.type === "Atom" && this.sources.constants.has(el.name!)) {
+        // A numeric CONSTANT inline in the table. The melee message tables
+        // interleave string chunks with F-WEP/F-DEF markers, which the
+        // renderer compares numerically as it walks the row.
+        out.push(this.sources.constants.get(el.name!)!);
+      } else if (el.type === "Atom" && this.sources.globalForms.has(el.name!)) {
+        // An atom naming a table-valued global (VILLAINS' per-villain rows end
+        // in TROLL-MELEE and friends). Declaring it pulls that table into the
+        // closure; the element itself is the address, as in ZIL.
+        this.needGlobal(el.name!);
+        if (!this.tables.has(el.name!)) {
+          this.deny(`table ${id} references non-table global ${el.name!}`);
+        }
+        out.push({ table: el.name!, offset: 0 });
+      } else if (el.type === "Form") {
+        const parts = meaningful(el.elements ?? []);
+        const nested = atomName(parts[0]);
+        if (parts.length === 0) {
+          // Bare `<>` — a false slot, e.g. the cyclops' absent weapon.
+          out.push(false);
+        } else if (nested === "TABLE" || nested === "LTABLE") {
+          // A nested anonymous table (VILLAINS). Give it a derived id and
+          // store a pointer, which is what `<GET ,VILLAINS .CNT>` returns in
+          // ZIL anyway — the element is an address, not inline storage.
+          const childId = `${id}#${out.length}`;
+          this.tables.set(childId, this.tableEntity(childId, nested, parts.slice(1)));
+          out.push({ table: childId, offset: 0 });
+        } else {
+          this.deny(`table ${id} has an unsupported element (<${nested} …>)`);
+        }
       } else {
         this.deny(`table ${id} has an unsupported element (${el.type === "Atom" ? el.name : el.type})`);
       }

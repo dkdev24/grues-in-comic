@@ -13,7 +13,13 @@
  * stage 2.1; they are collected into the result summary but not resolved.
  */
 
-import { BEHAVIOR_PROPERTY_KEYS, DIRECTIONS, IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
+import {
+  BEHAVIOR_PROPERTY_KEYS,
+  DIRECTIONS,
+  IR_VERSION,
+  META_ENTITY_ROLES,
+  SYNTAX_SEARCH_OPTIONS,
+} from "./schema.js";
 
 export interface ValidationError {
   /** JSON-path-ish location, e.g. `rooms[2].exits[0].to`. */
@@ -53,6 +59,13 @@ export interface WorldSummary {
 type Json = Record<string, unknown>;
 
 const DIRECTION_SET = new Set<string>(DIRECTIONS);
+
+/** A `{table, offset}` table pointer, as opposed to a scalar global value. */
+function isTableRef(v: unknown): v is Record<string, unknown> {
+  return isObject(v) && "table" in v;
+}
+
+const META_ENTITY_ROLE_SET = new Set<string>(META_ENTITY_ROLES);
 
 class Ctx {
   errors: ValidationError[] = [];
@@ -147,7 +160,7 @@ export function validateWorld(input: unknown): ValidationResult {
   if (!isObject(input)) {
     return { valid: false, errors: [{ path: "$", message: "document must be a JSON object" }] };
   }
-  checkKeys(ctx, "$", input, ["irVersion", "meta", "flags", "globals", "tables", "rooms", "objects", "vocabulary", "routines"]);
+  checkKeys(ctx, "$", input, ["irVersion", "meta", "flags", "globals", "tables", "rooms", "objects", "metaEntities", "vocabulary", "routines"]);
 
   if (input.irVersion !== IR_VERSION) {
     ctx.fail("$.irVersion", `must be "${IR_VERSION}"`);
@@ -169,6 +182,9 @@ export function validateWorld(input: unknown): ValidationResult {
   const tableIds = new Set<string>();
   const roomIds = new Set<string>();
   const objectIds = new Set<string>();
+  /** Globals initialized to a pointer at the same-named table (see claimId). */
+  const tablePointers = new Set<string>();
+  const tableRefs: { path: string; id: string }[] = [];
   const routineRefs = new Set<string>();
   let exitCount = 0;
   let stubRooms = 0;
@@ -176,7 +192,10 @@ export function validateWorld(input: unknown): ValidationResult {
 
   function claimId(path: string, id: string, section: string, set: Set<string>): void {
     const prior = entityIds.get(id);
-    if (prior !== undefined) {
+    // The one legal id collision: `<GLOBAL X <TABLE …>>` declares a table and
+    // a variable pointing at it, and both keep the single ZIL name.
+    const tableAndItsPointer = section === "tables" && prior === "globals" && tablePointers.has(id);
+    if (prior !== undefined && !tableAndItsPointer) {
       ctx.fail(path, `duplicate id "${id}" (already defined in ${prior})`);
       return;
     }
@@ -202,15 +221,32 @@ export function validateWorld(input: unknown): ValidationResult {
     checkKeys(ctx, path, raw, ["id", "value", "description"]);
     const id = reqString(ctx, path, raw, "id");
     optString(ctx, path, raw, "description");
-    if (raw.value === undefined) ctx.fail(`${path}.value`, "required");
-    else if (!isScalar(raw.value)) ctx.fail(`${path}.value`, "must be a boolean, integer, or string");
+    if (raw.value === undefined) {
+      ctx.fail(`${path}.value`, "required");
+    } else if (isTableRef(raw.value)) {
+      // A table pointer: `{table, offset}` (ZIL `<GLOBAL X <TABLE …>>`, or a
+      // `<REST …>` view stored back into the variable).
+      checkKeys(ctx, `${path}.value`, raw.value, ["table", "offset"]);
+      const target = reqString(ctx, `${path}.value`, raw.value, "table");
+      if (typeof raw.value.offset !== "number" || !Number.isInteger(raw.value.offset)) {
+        ctx.fail(`${path}.value.offset`, "must be an integer");
+      } else if (raw.value.offset < 0) {
+        ctx.fail(`${path}.value.offset`, "must not be negative");
+      }
+      if (target !== undefined) {
+        tableRefs.push({ path: `${path}.value.table`, id: target });
+        if (target === id) tablePointers.add(id);
+      }
+    } else if (!isScalar(raw.value)) {
+      ctx.fail(`${path}.value`, "must be a boolean, integer, string, or { table, offset }");
+    }
     if (id !== undefined) claimId(`${path}.id`, id, "globals", globalIds);
   });
 
   interface PendingRef {
     path: string;
     id: string;
-    kind: "room" | "object" | "door" | "scenery" | "global" | "entity" | "world-entity" | "global-or-table";
+    kind: "room" | "object" | "door" | "scenery" | "global" | "entity" | "world-entity";
   }
   const refs: PendingRef[] = [];
   const usedFlags: { path: string; id: string }[] = [];
@@ -228,13 +264,25 @@ export function validateWorld(input: unknown): ValidationResult {
     reqArray(ctx, path, raw, "elements").forEach((el, j) => {
       const elPath = `${path}.elements[${j}]`;
       if (isScalar(el)) return;
+      if (isTableRef(el)) {
+        // A pointer to another table — a nested `<TABLE …>` (VILLAINS) or an
+        // atom naming a table-valued global.
+        checkKeys(ctx, elPath, el, ["table", "offset"]);
+        const target = reqString(ctx, elPath, el, "table");
+        const offset = el.offset;
+        if (typeof offset !== "number" || !Number.isInteger(offset) || offset < 0) {
+          ctx.fail(`${elPath}.offset`, "must be a non-negative integer");
+        }
+        if (target !== undefined) tableRefs.push({ path: `${elPath}.table`, id: target });
+        return;
+      }
       if (isObject(el)) {
         checkKeys(ctx, elPath, el, ["ref"]);
         const ref = reqString(ctx, elPath, el, "ref");
         if (ref !== undefined) refs.push({ path: `${elPath}.ref`, id: ref, kind: "entity" });
         return;
       }
-      ctx.fail(elPath, "must be a scalar or { ref } object");
+      ctx.fail(elPath, "must be a scalar, { ref }, or { table, offset } object");
     });
     if (id !== undefined) claimId(`${path}.id`, id, "tables", tableIds);
   });
@@ -378,6 +426,50 @@ export function validateWorld(input: unknown): ValidationResult {
     if (id !== undefined) claimId(`${path}.id`, id, "objects", objectIds);
   });
 
+  // ---- meta entities (object-tree anchors) ----
+
+  const metaEntityIds = new Set<string>();
+  const metaRoles = new Map<string, string>(); // role → id (each role is unique)
+  const metaLocations: { path: string; id: string }[] = [];
+  const metaParents = new Map<string, string>(); // id → containing meta entity
+  if (input.metaEntities !== undefined) {
+    reqArray(ctx, "$", input, "metaEntities").forEach((raw, i) => {
+      const path = `metaEntities[${i}]`;
+      if (!isObject(raw)) return ctx.fail(path, "must be an object");
+      checkKeys(ctx, path, raw, ["id", "role", "location", "description"]);
+      const id = reqString(ctx, path, raw, "id");
+      optString(ctx, path, raw, "description");
+      if (typeof raw.role !== "string" || !META_ENTITY_ROLE_SET.has(raw.role)) {
+        ctx.fail(`${path}.role`, `must be one of: ${META_ENTITY_ROLES.join(", ")}`);
+      } else if (metaRoles.has(raw.role)) {
+        ctx.fail(`${path}.role`, `duplicate role "${raw.role}" (already held by "${metaRoles.get(raw.role)}")`);
+      } else if (id !== undefined) {
+        metaRoles.set(raw.role, id);
+      }
+      const location = optString(ctx, path, raw, "location");
+      if (location !== undefined) {
+        metaLocations.push({ path: `${path}.location`, id: location });
+        if (id !== undefined) metaParents.set(id, location);
+      }
+      if (id !== undefined) claimId(`${path}.id`, id, "metaEntities", metaEntityIds);
+    });
+    // A meta entity may only nest inside another meta entity, and the nesting
+    // must stay a tree — a cycle would leave the object tree without a root.
+    for (const { path, id } of metaLocations) {
+      if (!metaEntityIds.has(id)) ctx.fail(path, `unknown meta entity "${id}"`);
+    }
+    for (const [id] of metaParents) {
+      const seen = new Set<string>([id]);
+      for (let at = metaParents.get(id); at !== undefined; at = metaParents.get(at)) {
+        if (seen.has(at)) {
+          ctx.fail(`$.metaEntities`, `meta entity "${id}" is inside itself`);
+          break;
+        }
+        seen.add(at);
+      }
+    }
+  }
+
   // ---- vocabulary ----
 
   let syntaxRules = 0;
@@ -502,7 +594,7 @@ export function validateWorld(input: unknown): ValidationResult {
           case "global": {
             checkKeys(ctx, ePath, node, ["op", "id"]);
             const gid = reqString(ctx, ePath, node, "id");
-            if (gid !== undefined) refs.push({ path: `${ePath}.id`, id: gid, kind: "global-or-table" });
+            if (gid !== undefined) refs.push({ path: `${ePath}.id`, id: gid, kind: "global" });
             break;
           }
           case "local": {
@@ -572,7 +664,7 @@ export function validateWorld(input: unknown): ValidationResult {
           case "set-global": {
             checkKeys(ctx, ePath, node, ["op", "id", "value"]);
             const gid = reqString(ctx, ePath, node, "id");
-            if (gid !== undefined) refs.push({ path: `${ePath}.id`, id: gid, kind: "global-or-table" });
+            if (gid !== undefined) refs.push({ path: `${ePath}.id`, id: gid, kind: "global" });
             checkExprNode(`${ePath}.value`, node.value, loopDepth);
             break;
           }
@@ -678,7 +770,7 @@ export function validateWorld(input: unknown): ValidationResult {
           case "set-global": {
             checkKeys(ctx, sPath, node, ["op", "id", "value"]);
             const gid = reqString(ctx, sPath, node, "id");
-            if (gid !== undefined) refs.push({ path: `${sPath}.id`, id: gid, kind: "global-or-table" });
+            if (gid !== undefined) refs.push({ path: `${sPath}.id`, id: gid, kind: "global" });
             checkExprNode(`${sPath}.value`, node.value, loopDepth);
             break;
           }
@@ -787,12 +879,17 @@ export function validateWorld(input: unknown): ValidationResult {
         if (!entityIds.has(id)) ctx.fail(path, `unknown entity "${id}"`);
         break;
       case "world-entity":
-        if (!roomIds.has(id) && !objectIds.has(id)) ctx.fail(path, `unknown room/object "${id}"`);
-        break;
-      case "global-or-table":
-        if (!globalIds.has(id) && !tableIds.has(id)) ctx.fail(path, `unknown global/table "${id}"`);
+        // Behavior names meta entities the same way it names rooms and
+        // objects (`,ROOMS`), so they are legal `entity` targets.
+        if (!roomIds.has(id) && !objectIds.has(id) && !metaEntityIds.has(id)) {
+          ctx.fail(path, `unknown room/object "${id}"`);
+        }
         break;
     }
+  }
+
+  for (const { path, id } of tableRefs) {
+    if (!tableIds.has(id)) ctx.fail(path, `unknown table "${id}"`);
   }
 
   for (const { path, id } of usedFlags) {

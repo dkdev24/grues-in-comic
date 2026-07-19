@@ -1,4 +1,4 @@
-export { IR_VERSION, DIRECTIONS } from "./schema.js";
+export { IR_VERSION, DIRECTIONS, META_ENTITY_ROLES } from "./schema.js";
 export type {
   Direction,
   WorldDocument,
@@ -19,6 +19,8 @@ export type {
   Room,
   ObjectLocation,
   WorldObject,
+  MetaEntity,
+  MetaEntityRole,
 } from "./schema.js";
 export { validateWorld } from "./validate.js";
 export type { ValidationError, ValidationResult, WorldSummary } from "./validate.js";

@@ -452,3 +452,67 @@ Stage 3.5 batch (h) complete. Handler coverage 258/292 (88%); catalog down to 50
 **Stage 3.5 Group B is complete** — every named future batch (f)–(j) has landed. Handler coverage 263/292 (90%); catalog down to 43, which is now Group A engine builtins by design (GETPT/GETB, BAND/BOR, RANDOM, READ, DIROUT/DIRIN, SAVE/RESTORE/RESTART/VERIFY/QUIT), the world-document gaps, and a short tail of one-offs: `<NEXTP …>` (I-SWORD, OTHER-SIDE), `<NTH …>` (I-CYCLOPS), a String in statement position (GRATE-FUNCTION), `,ONBIT`/`,ACTORBIT` as bare names (LIT?, V-SAY), a non-atom FSET? flag (GOTO), P-PRSO's `<ITABLE …>` initializer.
 
 Next: the world-document gaps as one unit before M4 — the meta entities ROOMS/GLOBAL-OBJECTS/LOCAL-GLOBALS (13 catalogued routines, the largest single remaining group, and what blocks I-THIEF), nested VILLAINS table elements, and the table-valued globals from batch (h). M4 (engine core) is the first consumer that loads the document and boots a world, which is exactly what those gaps break.
+
+---
+
+## v0.5.14 — World-Document Gap 1: Meta Entities (stage 3.5)
+
+**Date:** 2026-07-19
+
+### Changes
+
+- **IR schema 0.11.0 — `metaEntities` section, no new behavior ops.** The 13 routines catalogued on `unknown name ,ROOMS` / `,GLOBAL-OBJECTS` were never blocked by the behavior vocabulary: `resolveName` had nothing to resolve those names *to*, because stage 3.2 dropped ZIL's three world-tree scaffolding objects entirely. They are now emitted as `{id, role, location?}` anchors with the roles `rooms` / `global-objects` / `local-globals`, which puts them in the flat entity namespace — so `,ROOMS` lowers to an ordinary `{op:"entity"}` and the existing `in?` / `first` / `next` / `equal?` ops work against them with no change
+- **Deliberately not entities-with-properties.** GLOBAL-OBJECTS' 13-flag FLAGS list and LOCAL-GLOBALS' DESCFCN/FDESC/SYNONYM are ZIL compile-time property-slot allocation, not game state; carrying them would import noise the game never reads. A meta entity holds a role and a tree position, nothing else
+- **Membership stays derived, never duplicated.** An engine parents rooms under the `rooms` anchor (document order) and objects under the anchor matching their `location.kind`; the rooms list and the `global`/`local-globals` location kinds remain the single place membership is written down. Only the anchors' own nesting is stored, because gglobals.zil puts LOCAL-GLOBALS *inside* GLOBAL-OBJECTS and gparser.zil's scope walk climbs that edge. Validation enforces one anchor per role, meta-only parents, and no cycles — a cycle would leave the object tree rootless
+- **Extraction: 324 → 345 routines, catalog 43 → 32.** Unlocked DESCRIBE-ROOM, FIRSTER, HACK-HACK, I-THIEF (the batch (h)/(i) prediction), PRE-TURN, ROPE-FUNCTION, TREE-ROOM, V-DISEMBARK, V-EAT, V-EXIT, V-FIND; RANDOMIZE-OBJECTS and V-CLIMB-UP advanced to their real blockers (RANDOM, GETPT). Unresolved refs 29 → 39/292 (90% → 87%) — the widened closure reached more Group A builtin references, so the ratio moved while nothing regressed
+- 165 tests pass (15 new in `test/meta-entities.test.ts`): the emitted anchors and their nesting, that they appear in neither `rooms` nor `objects`, that all 13 blocked routines cleared, that `,ROOMS` lowers to `entity` and not `global`, six validator rejections (unknown role, duplicate role, id collision, non-meta parent, cycle), and a FIRSTER golden — no header for a room because the room is in ROOMS, a header for a sack because it is not
+- `docs/IR_SCHEMA.md` gained a Meta entities section and had its version header and history backfilled through 0.7.0–0.11.0 (it had drifted at 0.6.0 since batch b)
+
+### Status
+
+Stage 3.5 world-document gap 1 complete. Handler coverage 253/292 (87%); catalog down to 32 — Group A engine builtins by design, plus the two remaining world-document gaps and the one-off tail.
+
+Next, finishing the world-document unit before M4: **table-valued globals** (`<GLOBAL LAMP-TABLE <TABLE …>>` declares both a binding and a table; `resolveName` still lowers it to `{op:"global"}` while extraction files it under `tables`, so the read has no target) and **nested table elements** (`VILLAINS` holds `<TABLE …>` forms — HERO-BLOW; plus P-PRSO's `<ITABLE …>` initializer).
+
+---
+
+## v0.5.15 — World-Document Gap 2: Table-Valued Globals (stage 3.5)
+
+**Date:** 2026-07-19
+
+### Changes
+
+- **IR schema 0.12.0 — a global may hold a `{table, offset}` pointer; no new behavior ops.** ZIL's `<GLOBAL X <TABLE …>>` declares *two* things, table storage and a variable pointing at it, but extraction emitted only the table. `resolveName` still returned `{op:"global", id}` — the name is in `globalForms` — against a binding the document never contained. `needGlobal` now emits both
+- **The gap was 6× wider than batch (h) reported.** It surfaced as a LAMP-TABLE observation; an audit of the artifact found **29 unbound reads across all 19 table-valued globals** (YUKS, INDENTS, DUMMY, RIVER-SPEEDS, HELLOS, …). Globals 66 → 86
+- **The pointer has to be a variable, not a constant.** The tempting fix — a `{op:"table", id}` constant expr parallel to `entity` — is wrong: I-LANTERN ends `<SETG LAMP-TABLE <REST .TBL 4>>` and I-CANDLES the same, so the countdowns advance precisely by *retargeting the binding*. A constant reference would have been unwritable. Keeping it a global also meant zero changes to the behavior vocabulary — `,LAMP-TABLE` and `<SETG LAMP-TABLE …>` already lowered correctly, they just had nothing to resolve against
+- **Table and pointer share the one ZIL name** — the single exception to the flat-id rule, enforced narrowly in `claimId` (a `tables` id may reuse a `globals` id only when that global's value points at that table). The runtime already keeps variables and table storage in separate namespaces (`poc/world.ts` has distinct `globals` and `tables` records), so the collision is only in the validator's bookkeeping, and synthesizing a second id would cost the traceability the IR's ids exist for
+- **Validator tightened**: the `global` reference kind was `global-or-table`, which accepted `{op:"global"}` naming a table — that looseness is what let 29 unbound reads validate cleanly for five batches. Now that every read is bound, it resolves strictly against `globals`, and the artifact still validates. New checks: a global's pointer target must be a declared table, offsets must be non-negative integers
+- 175 tests pass (10 new in `test/table-globals.test.ts`): both entities emitted, every table carrying its pointer, an artifact-wide sweep asserting no behavior read names a missing global, the retargeting `set-global` shape, five validator cases, and a golden that **boots the lamp daemon from document state alone** — a loader binding `globals` and `tables` straight out of `zork1.world.json`, no hand-seeding, burning through all three dimming messages to the terminator with the PURE table never written. This is the batch (h) golden with its hand-seeded pointer removed, which is the point
+
+### Status
+
+Stage 3.5 world-document gap 2 complete. Routine counts unchanged (345 extracted, 32 catalogued, 39/292 unresolved — this gap blocked no routines, it corrupted the ones already extracted).
+
+Next, last of the world-document unit before M4: **nested table elements** — `VILLAINS` holds `<TABLE …>` forms (HERO-BLOW), and P-PRSO's `<ITABLE …>` initializer (NOT-HERE-OBJECT-F).
+
+---
+
+## v0.5.16 — World-Document Gap 3: Nested Table Elements + ITABLE (stage 3.5)
+
+**Date:** 2026-07-19
+
+### Changes
+
+- **IR schema 0.13.0 — a table element may be a `{table, offset}` pointer; no new behavior ops.** ZIL nests tables inside tables (`VILLAINS` is an LTABLE of three anonymous `<TABLE …>` rows, one per villain). The slot holds an *address* in ZIL, which is exactly what `TableRef` already models from batch (h) — so the faithful lowering reuses the runtime's existing pointer value rather than inventing inline storage. `<GET ,VILLAINS .CNT>` hands HERO-BLOW a pointer it indexes straight through with `<GET .OO ,V-VILLAIN>`, unchanged.
+- **Nested tables get a derived `parent#index` id** and are emitted as ordinary top-level entries. They carry **no pointer variable** — unlike v0.5.15's named tables, ZIL never gave them a name, so the flat-id exception does not widen. `test/nested-tables.test.ts` asserts both halves of that (derived ids have a table parent; no global claims one).
+- **Two element forms the extractor also had to learn**, both found only after the nesting worked: a bare `<>` slot (the cyclops has no weapon — was denied as an unsupported `Form`), and an atom naming a table-valued global or a numeric `CONSTANT`. The latter two matter for the melee message tables: each villain row's `V-MSGS` slot names `TROLL-MELEE`/`THIEF-MELEE`/`CYCLOPS-MELEE`, and those are deeply nested `(PURE)` LTABLEs whose leaf rows interleave string chunks with the `F-WEP`/`F-DEF` marker constants the renderer compares numerically. Declaring the atom pulls the whole tree into the closure — **tables 19 → 132**, globals 86 → 103.
+- **`<ITABLE NONE n>` extracts as zero-filled `itable` storage** (P-PRSO/P-PRSI, 50 words each). The `itable` kind already existed in the schema but nothing produced it. It addresses exactly like `table` — the length is baked into `elements`, so only the initializer ever differed; `RuntimeTable` gains the kind and needs no other change. The byte-addressed `(LEXV)`/`(BYTE LENGTH)` ITABLEs in `gparser.zil` stay **denied by design**: they are READ's parser buffers (ADR 0001 Group A), not world state, and are not element-addressable.
+- **Validator** accepts a `{table, offset}` element and resolves it through the existing `tableRefs` pass, so a pointer at a missing table fails with `unknown table "…"` like any other.
+- **Unlocked NOT-HERE-OBJECT-F** (345 → 346 routines). **HERO-BLOW advanced past the document gap to `operator RANDOM`** — a Group A engine builtin by design, so it is no longer a world-doc blocker; the catalog holds at 32 because NOT-HERE-PRINT (`PRINTB`) entered as the closure widened. Unresolved refs steady at 39/292.
+- 184 tests pass (9 new in `test/nested-tables.test.ts`): the VILLAINS row layout by V-* constant, the cyclops' false slot, the melee tree walked to its leaves, derived-id invariants, P-PRSO's shape, an end-to-end runtime read of a villain row through the stored pointer, and the validator's accept/reject pair. The v0.5.15 "every table has a pointer" sweep is now scoped to named tables.
+
+### Status
+
+Stage 3.5 world-document unit **complete** — all three gaps (meta entities, table-valued globals, nested tables) closed. The document now loads and boots a world without hand-seeding, which was the precondition for M4.
+
+Remaining catalog is Group A engine builtins by design plus the one-off tail (`NEXTP`, `NTH`, String-in-statement-position, bare `,ONBIT`/`,ACTORBIT`, non-atom `FSET?` flag). Next: **M4 engine core** against the Group A builtin contract.

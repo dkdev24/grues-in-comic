@@ -104,7 +104,7 @@ describe("structural validation", () => {
   it("rejects non-integer numeric properties and non-scalar global values", () => {
     expect(errorsFor((w) => (room(w).score = 1.5))).toEqual(["rooms[0].score: must be an integer"]);
     expect(errorsFor((w) => ((w.globals as any[])[0].value = { ref: "ROOM-A" }))).toEqual([
-      "globals[0].value: must be a boolean, integer, or string",
+      "globals[0].value: must be a boolean, integer, string, or { table, offset }",
     ]);
   });
 });

@@ -6,11 +6,11 @@
  * exits, connections, flags, exit-condition globals — stage 3.1) and every
  * OBJECT form (properties, flags, containment, initial locations — stage 3.2).
  *
- * Three ZIL world-tree scaffolding objects are deliberately not extracted:
- * GLOBAL-OBJECTS, LOCAL-GLOBALS, and ROOMS. They exist to allocate property
- * slots and anchor the object tree; the IR represents their semantics
- * structurally instead (location kinds "global" / "local-globals" and the
- * rooms list).
+ * Three ZIL world-tree scaffolding objects — GLOBAL-OBJECTS, LOCAL-GLOBALS,
+ * and ROOMS — are not extracted as objects. Membership in them stays
+ * structural (location kinds "global" / "local-globals" and the rooms list),
+ * but because behavior code names the containers themselves they are emitted
+ * as `metaEntities` anchors.
  *
  * The transform is purely deterministic: any AST shape outside the known ZIL
  * exit/property grammar is a hard error, never a guess.
@@ -22,6 +22,8 @@ import type {
   Exit,
   FlagDeclaration,
   GlobalVariable,
+  MetaEntity,
+  MetaEntityRole,
   ObjectLocation,
   PseudoReference,
   Room,
@@ -286,8 +288,34 @@ function extractRoom(form: AstNode): RoomExtraction {
 
 // ---- object extraction (stage 3.2) ----
 
-/** ZIL world-tree scaffolding OBJECT forms that must not become IR objects. */
-const SCAFFOLDING_OBJECTS = new Set(["GLOBAL-OBJECTS", "LOCAL-GLOBALS", "ROOMS"]);
+/**
+ * ZIL world-tree scaffolding OBJECT forms. They must not become IR objects —
+ * they carry no game semantics, and their ZIL property lists (GLOBAL-OBJECTS'
+ * long FLAGS list, LOCAL-GLOBALS' DESCFCN/FDESC/SYNONYM) exist only to make
+ * the compiler allocate property slots. They *are* real object-tree
+ * containers, so the IR emits them as {@link MetaEntity} anchors instead.
+ *
+ * The tree shape is gglobals.zil's: GLOBAL-OBJECTS and ROOMS are roots
+ * (ROOMS' `(IN TO ROOMS)` is the usual self-anchor idiom, not a containment),
+ * and LOCAL-GLOBALS sits inside GLOBAL-OBJECTS — which gparser.zil's scope
+ * walk depends on.
+ */
+const SCAFFOLDING: { id: string; role: MetaEntityRole; location?: string; description: string }[] = [
+  {
+    id: "GLOBAL-OBJECTS",
+    role: "global-objects",
+    description: "Objects in scope in every room (hands, walls, the grue).",
+  },
+  {
+    id: "LOCAL-GLOBALS",
+    role: "local-globals",
+    location: "GLOBAL-OBJECTS",
+    description: "Scenery pool rooms draw on through their scenery lists.",
+  },
+  { id: "ROOMS", role: "rooms", description: "Container of every room; the object tree's map half." },
+];
+
+const SCAFFOLDING_OBJECTS = new Set(SCAFFOLDING.map((s) => s.id));
 
 function extractObject(form: AstNode, roomIds: Set<string>): WorldObject {
   const elements = meaningful(form.elements!);
@@ -576,6 +604,19 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
     objects.push(extractObject(form, roomIds));
   }
 
+  // Meta entities are emitted only for scaffolding the source actually
+  // declares, so the document never invents a container the game lacks.
+  const metaEntities: MetaEntity[] = SCAFFOLDING.filter((s) => objectForms.has(s.id)).map((s) => {
+    const entity: MetaEntity = { id: s.id, role: s.role, description: s.description };
+    if (s.location !== undefined) entity.location = s.location;
+    return entity;
+  });
+  for (const entity of metaEntities) {
+    if (entity.location !== undefined && !metaEntities.some((m) => m.id === entity.location)) {
+      fail(entity.id, `meta entity is inside undeclared "${entity.location}"`);
+    }
+  }
+
   const vocabulary = extractVocabulary(topLevel);
 
   // Behavior extraction (stage 3.4): worklist closure from every routine the
@@ -614,7 +655,11 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
       if (id !== undefined && parts[2]?.type === "Number") constants.set(id, parts[2].value as number);
     }
   }
-  const entityIds = new Set([...roomIds, ...objects.map((o) => o.id)]);
+  const entityIds = new Set([
+    ...roomIds,
+    ...objects.map((o) => o.id),
+    ...metaEntities.map((m) => m.id),
+  ]);
   const entryRefs = [
     ...new Set(
       [
@@ -641,7 +686,7 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
 
   const globals: GlobalVariable[] = [...globalRefs]
     .filter((id) => !behavior.globals.some((g) => g.id === id))
-    .map((id) => ({ id, value: findGlobalValue(topLevel, id) }))
+    .map((id): GlobalVariable => ({ id, value: findGlobalValue(topLevel, id) }))
     .concat(behavior.globals)
     .sort((a, b) => a.id.localeCompare(b.id));
 
@@ -664,13 +709,14 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
       source: "importer/artifacts/ast (from original-projects/zork1)",
       coverage: "partial",
       notes:
-        "Stages 3.1–3.4 deterministic extraction: all ROOM forms (exits, flags, scenery/pseudo references), all OBJECT forms (properties, flags, containment, initial locations; ZIL scaffolding objects represented structurally), the parser vocabulary (SYNTAX/SYNONYM/BUZZ/DIRECTIONS with ZORK-NUMBER CONDs resolved), and batch-1 behavior routines (ADR 0001 AST; complex routines catalogued in zork1.behavior-catalog.json). Globals/tables cover exit conditions plus everything extracted behavior references. Generated by ir/src/extract-world.ts — do not edit by hand.",
+        "Stages 3.1–3.4 deterministic extraction: all ROOM forms (exits, flags, scenery/pseudo references), all OBJECT forms (properties, flags, containment, initial locations; ZIL scaffolding objects emitted as metaEntities, membership in them structural), the parser vocabulary (SYNTAX/SYNONYM/BUZZ/DIRECTIONS with ZORK-NUMBER CONDs resolved), and batch-1 behavior routines (ADR 0001 AST; complex routines catalogued in zork1.behavior-catalog.json). Globals/tables cover exit conditions plus everything extracted behavior references. Generated by ir/src/extract-world.ts — do not edit by hand.",
     },
     flags,
     globals,
     tables: behavior.tables,
     rooms,
     objects,
+    metaEntities,
     vocabulary,
     routines: behavior.routines,
   };

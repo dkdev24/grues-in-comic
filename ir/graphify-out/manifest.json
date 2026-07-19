@@ -15,13 +15,13 @@
     "semantic_hash": ""
   },
   "poc/world.ts": {
-    "mtime": 1784441029.2805595,
-    "ast_hash": "50d7dc9aa85fd5a20920afda78934b5b",
+    "mtime": 1784468109.177163,
+    "ast_hash": "9ef850c3776304dc2e551fdce35a587a",
     "semantic_hash": ""
   },
   "samples/west-of-house.world.json": {
-    "mtime": 1784460438.7442772,
-    "ast_hash": "6b384143708fc0ef4435bac7df0a75a0",
+    "mtime": 1784468285.6321611,
+    "ast_hash": "4e70276f64ade08c621c1af1e0ac5b71",
     "semantic_hash": ""
   },
   "src/behavior.ts": {
@@ -35,18 +35,18 @@
     "semantic_hash": ""
   },
   "src/index.ts": {
-    "mtime": 1784386163.8041136,
-    "ast_hash": "c590617f56bfb17bfe52a26125b2e662",
+    "mtime": 1784463653.73362,
+    "ast_hash": "32746c74718872ee35f9ec3c2e304ce5",
     "semantic_hash": ""
   },
   "src/schema.ts": {
-    "mtime": 1784460438.7449741,
-    "ast_hash": "d7c5bd64aa2bced616c2206d9ffe9aaa",
+    "mtime": 1784468285.6265535,
+    "ast_hash": "3b95df01f57148c238a6d8a9195c60fe",
     "semantic_hash": ""
   },
   "src/validate.ts": {
-    "mtime": 1784460438.7451727,
-    "ast_hash": "046f4f01e37b86de5c6e243370803e10",
+    "mtime": 1784468099.9417496,
+    "ast_hash": "0b0120883431904a5992b1757de808bf",
     "semantic_hash": ""
   },
   "test/behavior-poc.test.ts": {
@@ -60,8 +60,8 @@
     "semantic_hash": "fb8f82e333be718a48a1bc2bf4f24bcd"
   },
   "test/validate.test.ts": {
-    "mtime": 1784386495.0612783,
-    "ast_hash": "f25dc501104dbc49182e93ed9bb137e5",
+    "mtime": 1784464695.4688993,
+    "ast_hash": "5cb5b82e8e1b8e0f73a3b52bcf6c3418",
     "semantic_hash": ""
   },
   "src/extract-cli.ts": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/extract-world.ts": {
-    "mtime": 1784420700.0506907,
-    "ast_hash": "751a62e339093e7079f501397ad24f60",
+    "mtime": 1784464620.586291,
+    "ast_hash": "7ce6531c4ead3ce2f0b37234be31d67f",
     "semantic_hash": ""
   },
   "test/extract.test.ts": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784460438.7447045,
-    "ast_hash": "827fcf58dad621a418abfd254db7db38",
+    "mtime": 1784468154.367519,
+    "ast_hash": "db43fd3ddeb393c5f9154cad451543df",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -110,8 +110,8 @@
     "semantic_hash": ""
   },
   "test/behavior-35g.test.ts": {
-    "mtime": 1784458861.855672,
-    "ast_hash": "9840fe4a93de953cef25376323b550f4",
+    "mtime": 1784463795.887619,
+    "ast_hash": "780c8d94f5825434f72cd9debf9c9db9",
     "semantic_hash": ""
   },
   "test/behavior-35h.test.ts": {
@@ -127,6 +127,21 @@
   "test/behavior-35j.test.ts": {
     "mtime": 1784460552.9352982,
     "ast_hash": "05a4e023bbc6229d92c56d2a27b707ec",
+    "semantic_hash": ""
+  },
+  "test/meta-entities.test.ts": {
+    "mtime": 1784463879.8325443,
+    "ast_hash": "fa970b754b22990506f78a116a51d707",
+    "semantic_hash": ""
+  },
+  "test/table-globals.test.ts": {
+    "mtime": 1784468193.1170819,
+    "ast_hash": "894bb59d9dbf1b41f7ce5d7c14e07d52",
+    "semantic_hash": ""
+  },
+  "test/nested-tables.test.ts": {
+    "mtime": 1784468262.912189,
+    "ast_hash": "b07f1dec96e97cbdbfcb4d1568cac95c",
     "semantic_hash": ""
   }
 }

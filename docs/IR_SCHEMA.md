@@ -1,6 +1,6 @@
 # IR Schema — Declarative World (stage 2.1)
 
-Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.6.0"`** (0.6.0 added loops — `loop`/`block`/`break`/`continue` — and object-tree iteration `first`/`next` to the behavior AST for stage 3.5 batch b).
+Normative specification of the Grues in Comic Intermediate Representation, declarative-world subset. The machine-readable source of truth is `ir/src/schema.ts`; this document explains the design and the ZIL mapping. Current schema version: **`irVersion: "0.13.0"`** (0.13.0 lets a table element be a `{table, offset}` pointer, so tables can nest, and models `<ITABLE NONE n>` storage).
 
 ## Scope and non-goals
 
@@ -19,18 +19,19 @@ Out of scope (stage 2.2 decides): imperative behavior — ROUTINE bodies, ACTION
 
 ```jsonc
 {
-  "irVersion": "0.6.0",       // must match the schema version exactly
+  "irVersion": "0.13.0",      // must match the schema version exactly
   "meta": { "title", "source", "coverage", "notes" },   // optional provenance
   "flags":   [ { "id": "ONBIT", "description": "…" } ], // registry of every usable flag
-  "globals": [ { "id": "WON-FLAG", "value": false } ],  // scalar globals only
+  "globals": [ { "id": "WON-FLAG", "value": false } ],  // scalar, or a { table, offset } pointer
   "tables":  [ { "id", "kind": "table|ltable|itable", "pure"?, "elements": [...] } ],
   "rooms":   [ ... ],
   "objects": [ ... ]
 }
 ```
 
-- **Globals** hold scalars: `false`/`true` (ZIL `<>`/`T`), integers, strings. A ZIL global whose value *is* a table (`<GLOBAL ABOVE-GROUND <LTABLE …>>`) is represented as a table entity only — the table id doubles as the global binding.
-- **Table elements** are scalars or entity references `{ "ref": "LIVING-ROOM" }` (resolvable to any room/object/global/table id).
+- **Globals** hold scalars — `false`/`true` (ZIL `<>`/`T`), integers, strings — or a **table pointer** `{table, offset}`. `<GLOBAL ABOVE-GROUND <LTABLE …>>` declares *two* things, a table and a variable pointing at it, and both are emitted under the one ZIL name (the sole exception to the flat-id rule; the runtime keeps variables and table storage in separate namespaces). The pointer must stay a variable rather than a constant reference because ZIL retargets it: the lamp and candle countdowns advance with `<SETG LAMP-TABLE <REST .TBL 4>>`.
+- **Table elements** are scalars, entity references `{ "ref": "LIVING-ROOM" }` (resolvable to any room/object/global/table id), or **table pointers** `{table, offset}`. A pointer element covers both ZIL forms that put a table inside a table: a nested anonymous `<TABLE …>` (VILLAINS holds one row per villain) and a bare atom naming a table-valued global (each row's `V-MSGS` slot names its melee message table). ZIL stores an address in the slot either way, so the pointer *is* the faithful lowering — `<GET ,VILLAINS .CNT>` hands back exactly what `<GET .OO ,V-VILLAIN>` can index. Nested anonymous tables are emitted as their own entries under a derived `parent#index` id and have no pointer variable, since ZIL never named them.
+- **`itable`** is `<ITABLE NONE n>` — n zero-filled words, used for the parser's scratch buffers (`P-PRSO`/`P-PRSI`). The length is baked into `elements`, so it addresses exactly like `table`; only the initializer differed. The byte-addressed `(LEXV)`/`(BYTE LENGTH)` ITABLE forms in `gparser.zil` are not modelled — they belong to the READ builtin (ADR 0001), not to world state.
 
 ### Rooms
 
@@ -73,7 +74,17 @@ Discriminated union on `kind`; `direction` is one of `north, south, east, west, 
 | `descriptionRoutine` | `DESCFCN` | opaque routine computing the description (bat) |
 | `stub` | — | placeholder marker |
 
-The three ZIL world-tree scaffolding objects — `GLOBAL-OBJECTS`, `LOCAL-GLOBALS`, `ROOMS` — are **not** represented as IR objects. They exist in ZIL to allocate property slots and anchor the object tree; the IR expresses their semantics structurally (the `global`/`local-globals` location kinds and the rooms list).
+### Meta entities (optional section)
+
+The three ZIL world-tree scaffolding objects — `GLOBAL-OBJECTS`, `LOCAL-GLOBALS`, `ROOMS` — are **not** IR objects. They hold no name, flags, or properties (their ZIL property lists exist only to make the compiler allocate slots), but they *are* real object-tree containers that behavior code names directly — `<IN? .OBJ ,ROOMS>`, `<FIRST? ,ROOMS>`, `<EQUAL? .L ,GLOBAL-OBJECTS>` — so the IR emits them as `metaEntities` anchors.
+
+| Field | ZIL origin | Notes |
+|---|---|---|
+| `id` | OBJECT name | shares the flat entity namespace; legal target of a behavior `entity` op |
+| `role` | — | `rooms` \| `global-objects` \| `local-globals`; each role appears at most once |
+| `location` | `IN` | id of the containing meta entity; absent = object-tree root. In Zork I `LOCAL-GLOBALS` sits inside `GLOBAL-OBJECTS`, which `gparser.zil`'s scope walk depends on. Validation rejects cycles |
+
+Membership is **derived, never duplicated**: at load time an engine parents every room under the `rooms` anchor (document order) and every object under the anchor matching its `location.kind` (`global` / `local-globals`). The `global`/`local-globals` location kinds and the rooms list remain the only place membership is written down.
 
 ### Vocabulary (optional section)
 
@@ -97,13 +108,13 @@ Behavior extracted into the ADR 0001 behavior AST (`ir/src/behavior.ts` is norma
 `ir/src/validate.ts` (`npm run validate` in `ir/`) runs two passes:
 
 1. **Structural** — required fields present, correct primitive types, valid discriminants, integer-valued numerics, no unknown keys, unique ids (flat entity namespace; flags separately), unique exit direction per room.
-2. **Referential** — exit `to` → room; exit `if` → global; exit `door` → object flagged `DOORBIT`; `location` → room/object; `scenery` → objects; table `ref` → any entity; every used flag declared.
+2. **Referential** — exit `to` → room; exit `if` → global; exit `door` → object flagged `DOORBIT`; `location` → room/object; `scenery` → objects; table `ref` → any entity; behavior `entity` → room/object/meta entity; behavior `global` and `set-global` → a declared global (strictly — this used to accept a table id, which is what hid unbound reads of table-valued globals); a global's `{table, offset}` value → a declared table; meta-entity `location` → a meta entity, acyclic; every used flag declared.
 
 A valid document yields a summary (entity counts, exit count, sorted `routineRefs`) — the routine list is the worklist stage 2.2 must give a representation to.
 
 ## Versioning
 
-`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`); `0.3.0` stage 3.3 `vocabulary` section (directions, buzzwords, synonyms, syntax rules); `0.4.0` stage 3.4 `routines` section (ADR 0001 behavior AST, expression-oriented value semantics); `0.5.0` stage 3.5 batches a+c (behavior `prop`/`set-prop`/`table-get`/`table-set`, `add`/`sub`/`mul`/`div`, expression-position `set-local`/`set-global`, routine `defaults`); `0.6.0` stage 3.5 batch b (`loop`/`block`/`break`/`continue`, object-tree `first`/`next`).
+`irVersion` follows semver, versioning the *schema*, independent of project versions. Documents must match the validator's expected version exactly while the schema is pre-1.0; migration tooling is a post-1.0 concern. History: `0.1.0` stage 2.1 declarative world; `0.2.0` stage 3.2 object additions (`global` location kind, `vehicleType`, `descriptionRoutine`); `0.3.0` stage 3.3 `vocabulary` section (directions, buzzwords, synonyms, syntax rules); `0.4.0` stage 3.4 `routines` section (ADR 0001 behavior AST, expression-oriented value semantics); `0.5.0` stage 3.5 batches a+c (behavior `prop`/`set-prop`/`table-get`/`table-set`, `add`/`sub`/`mul`/`div`, expression-position `set-local`/`set-global`, routine `defaults`); `0.6.0` stage 3.5 batch b (`loop`/`block`/`break`/`continue`, object-tree `first`/`next`); `0.7.0` batch f (expression-position `tell`/`set-flag`/`clear-flag`); `0.8.0` batch g (expression-position `cond`, `mod`/`min`/`abs`); `0.9.0` batch h (`table-rest` and table-pointer runtime values); `0.10.0` batch i (`apply` — a routine named at run time); `0.11.0` `metaEntities` section (object-tree anchors as first-class containers); `0.12.0` table-valued globals emit a `{table, offset}` binding alongside the table; `0.13.0` table elements accept a `{table, offset}` pointer (nested tables) and `<ITABLE NONE n>` extracts as zero-filled `itable` storage.
 
 ## Known deferrals
 
