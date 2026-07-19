@@ -125,6 +125,15 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       return (world.globals[expr.id] = evalExpr(expr.value, world, locals));
     case "set-local":
       return (locals[expr.id] = evalExpr(expr.value, world, locals));
+    case "tell":
+      for (const part of expr.parts) execTellPart(part, world, locals);
+      return true;
+    case "set-flag":
+    case "clear-flag": {
+      const entity = entityId(evalExpr(expr.entity, world, locals), expr.op);
+      (expr.op === "set-flag" ? setFlag : clearFlag)(world, entity, expr.flag);
+      return true;
+    }
     case "call":
       return callRoutine(expr.routine, expr.args, world, locals);
   }

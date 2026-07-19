@@ -81,6 +81,14 @@ export type Expr =
    */
   | { op: "set-global"; id: string; value: Expr }
   | { op: "set-local"; id: string; value: Expr }
+  /**
+   * Output or flag mutation in expression position, yielding true — the
+   * same shapes and semantics as the statement ops (ZIL TELL / PRINTN /
+   * FSET / FCLEAR inside AND/OR predicates).
+   */
+  | { op: "tell"; parts: TellPart[] }
+  | { op: "set-flag"; entity: Expr; flag: string }
+  | { op: "clear-flag"; entity: Expr; flag: string }
   /** Invoke a routine or engine builtin for its value (ZIL form in expression position). */
   | { op: "call"; routine: string; args: Expr[] };
 

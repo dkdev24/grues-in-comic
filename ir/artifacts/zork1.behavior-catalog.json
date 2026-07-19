@@ -150,16 +150,6 @@
     ]
   },
   {
-    "id": "I-RFILL",
-    "source": {
-      "file": "1actions.zil",
-      "line": 1226
-    },
-    "reasons": [
-      "unknown form <FSET …>"
-    ]
-  },
-  {
     "id": "I-SWORD",
     "source": {
       "file": "1actions.zil",
@@ -177,16 +167,6 @@
     },
     "reasons": [
       "unknown form <COND …>"
-    ]
-  },
-  {
-    "id": "I-XB",
-    "source": {
-      "file": "1actions.zil",
-      "line": 1131
-    },
-    "reasons": [
-      "bare atom CR in expression position"
     ]
   },
   {
@@ -300,16 +280,6 @@
     ]
   },
   {
-    "id": "RUSTY-KNIFE-FCN",
-    "source": {
-      "file": "1actions.zil",
-      "line": 907
-    },
-    "reasons": [
-      "bare atom CR in expression position"
-    ]
-  },
-  {
     "id": "SAILOR-FCN",
     "source": {
       "file": "gglobals.zil",
@@ -317,16 +287,6 @@
     },
     "reasons": [
       "operator MOD"
-    ]
-  },
-  {
-    "id": "SAND-FUNCTION",
-    "source": {
-      "file": "1actions.zil",
-      "line": 2855
-    },
-    "reasons": [
-      "unknown form <FSET …>"
     ]
   },
   {
@@ -366,7 +326,7 @@
       "line": 640
     },
     "reasons": [
-      "bare atom CR in expression position"
+      "operator APPLY"
     ]
   },
   {
@@ -397,16 +357,6 @@
     },
     "reasons": [
       "unknown form <DIRIN …>"
-    ]
-  },
-  {
-    "id": "V-DIAGNOSE",
-    "source": {
-      "file": "1actions.zil",
-      "line": 3993
-    },
-    "reasons": [
-      "operator PRINTN"
     ]
   },
   {
@@ -596,7 +546,7 @@
       "line": 98
     },
     "reasons": [
-      "operator PRINTN"
+      "operator BAND"
     ]
   },
   {

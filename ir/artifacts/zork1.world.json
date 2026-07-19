@@ -1,5 +1,5 @@
 {
-  "irVersion": "0.6.0",
+  "irVersion": "0.7.0",
   "meta": {
     "title": "Zork I — world model (rooms, exits, objects)",
     "source": "importer/artifacts/ast (from original-projects/zork1)",
@@ -336,6 +336,10 @@
       "value": 0
     },
     {
+      "id": "SCORE-MAX",
+      "value": 350
+    },
+    {
       "id": "SING-SONG",
       "value": false
     },
@@ -415,6 +419,16 @@
           "ref": "MINE-ENTRANCE"
         }
       ]
+    },
+    {
+      "id": "BDIGS",
+      "kind": "table",
+      "elements": [
+        "You seem to be digging a hole here.",
+        "The hole is getting deeper, but that's about it.",
+        "You are surrounded by a wall of sand on all sides."
+      ],
+      "pure": true
     },
     {
       "id": "CANDLE-TABLE",
@@ -16554,6 +16568,109 @@
       }
     },
     {
+      "id": "FIGHT-STRENGTH",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "S",
+          "value": {
+            "op": "add",
+            "a": {
+              "op": "const",
+              "value": 2
+            },
+            "b": {
+              "op": "div",
+              "a": {
+                "op": "global",
+                "id": "SCORE"
+              },
+              "b": {
+                "op": "div",
+                "a": {
+                  "op": "global",
+                  "id": "SCORE-MAX"
+                },
+                "b": {
+                  "op": "sub",
+                  "a": {
+                    "op": "const",
+                    "value": 7
+                  },
+                  "b": {
+                    "op": "const",
+                    "value": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "local",
+                "id": "ADJUST?"
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "add",
+                    "a": {
+                      "op": "local",
+                      "id": "S"
+                    },
+                    "b": {
+                      "op": "prop",
+                      "entity": {
+                        "op": "global",
+                        "id": "WINNER"
+                      },
+                      "prop": "strength"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "local",
+                    "id": "S"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "ADJUST?"
+      ],
+      "defaults": {
+        "ADJUST?": {
+          "op": "const",
+          "value": true
+        }
+      },
+      "locals": [
+        "S"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3375
+      }
+    },
+    {
       "id": "FIND-WEAPON",
       "body": [
         {
@@ -18599,6 +18716,219 @@
       }
     },
     {
+      "id": "I-CURE",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "S",
+          "value": {
+            "op": "prop",
+            "entity": {
+              "op": "global",
+              "id": "WINNER"
+            },
+            "prop": "strength"
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "gt?",
+                "a": {
+                  "op": "local",
+                  "id": "S"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 0
+                }
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "S",
+                  "value": {
+                    "op": "const",
+                    "value": 0
+                  }
+                },
+                {
+                  "op": "set-prop",
+                  "entity": {
+                    "op": "global",
+                    "id": "WINNER"
+                  },
+                  "prop": "strength",
+                  "value": {
+                    "op": "local",
+                    "id": "S"
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "lt?",
+                "a": {
+                  "op": "local",
+                  "id": "S"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 0
+                }
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "S",
+                  "value": {
+                    "op": "add",
+                    "a": {
+                      "op": "local",
+                      "id": "S"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 1
+                    }
+                  }
+                },
+                {
+                  "op": "set-prop",
+                  "entity": {
+                    "op": "global",
+                    "id": "WINNER"
+                  },
+                  "prop": "strength",
+                  "value": {
+                    "op": "local",
+                    "id": "S"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "lt?",
+                "a": {
+                  "op": "local",
+                  "id": "S"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 0
+                }
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "lt?",
+                        "a": {
+                          "op": "global",
+                          "id": "LOAD-ALLOWED"
+                        },
+                        "b": {
+                          "op": "global",
+                          "id": "LOAD-MAX"
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "LOAD-ALLOWED",
+                          "value": {
+                            "op": "add",
+                            "a": {
+                              "op": "global",
+                              "id": "LOAD-ALLOWED"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 10
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "ENABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "QUEUE",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-CURE"
+                        },
+                        {
+                          "op": "const",
+                          "value": 30
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "LOAD-ALLOWED",
+                  "value": {
+                    "op": "global",
+                    "id": "LOAD-MAX"
+                  }
+                },
+                {
+                  "op": "call",
+                  "routine": "DISABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "INT",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-CURE"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "S"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3593
+      }
+    },
+    {
       "id": "I-FOREST-ROOM",
       "body": [
         {
@@ -19133,6 +19463,264 @@
       }
     },
     {
+      "id": "I-RFILL",
+      "body": [
+        {
+          "op": "set-flag",
+          "entity": {
+            "op": "entity",
+            "id": "RESERVOIR"
+          },
+          "flag": "NONLANDBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "RESERVOIR"
+          },
+          "flag": "RLANDBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "DEEP-CANYON"
+          },
+          "flag": "TOUCHBIT"
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "entity",
+            "id": "LOUD-ROOM"
+          },
+          "flag": "TOUCHBIT"
+        },
+        {
+          "op": "value",
+          "expr": {
+            "op": "and",
+            "args": [
+              {
+                "op": "in?",
+                "entity": {
+                  "op": "entity",
+                  "id": "TRUNK"
+                },
+                "container": {
+                  "op": "entity",
+                  "id": "RESERVOIR"
+                }
+              },
+              {
+                "op": "set-flag",
+                "entity": {
+                  "op": "entity",
+                  "id": "TRUNK"
+                },
+                "flag": "INVISIBLE"
+              }
+            ]
+          }
+        },
+        {
+          "op": "set-global",
+          "id": "LOW-TIDE",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "RESERVOIR"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "loc",
+                          "entity": {
+                            "op": "global",
+                            "id": "WINNER"
+                          }
+                        },
+                        "flag": "VEHBIT"
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The boat lifts gently out of the mud and is now floating on the reservoir."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "JIGS-UP",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "You are lifted up by the rising river! You try to swim, but the currents are too strong. You come closer, closer to the awesome structure of Flood Control Dam #3. The dam beckons to you. The roar of the water nearly deafens you, but you remain conscious as you tumble over the dam toward your certain doom among the rocks at its base."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "DEEP-CANYON"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "A sound, like that of flowing water, starts to come from below."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "LOUD-ROOM"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "All of a sudden, an alarmingly loud roaring sound fills the room. Filled with fear, you scramble away."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "GOTO",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "PICK-ONE",
+                      "args": [
+                        {
+                          "op": "global",
+                          "id": "LOUD-RUNS"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "RESERVOIR-NORTH"
+                  },
+                  {
+                    "op": "entity",
+                    "id": "RESERVOIR-SOUTH"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You notice that the water level has risen to the point that it is impossible to cross."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "value",
+          "expr": {
+            "op": "const",
+            "value": true
+          }
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 1226
+      }
+    },
+    {
       "id": "I-RIVER",
       "body": [
         {
@@ -19310,6 +19898,64 @@
       "source": {
         "file": "1actions.zil",
         "line": 2708
+      }
+    },
+    {
+      "id": "I-XB",
+      "body": [
+        {
+          "op": "value",
+          "expr": {
+            "op": "or",
+            "args": [
+              {
+                "op": "global",
+                "id": "XC"
+              },
+              {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "HERE"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "ENTRANCE-TO-HADES"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "tell",
+                    "parts": [
+                      {
+                        "text": "The tension of this ceremony is broken, and the wraiths, amused but shaken at your clumsy attempt, resume their hideous jeering."
+                      },
+                      {
+                        "newline": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "set-global",
+          "id": "XB",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 1131
       }
     },
     {
@@ -31401,6 +32047,362 @@
       }
     },
     {
+      "id": "RUSTY-KNIFE-FCN",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "TAKE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "and",
+                    "args": [
+                      {
+                        "op": "in?",
+                        "entity": {
+                          "op": "entity",
+                          "id": "SWORD"
+                        },
+                        "container": {
+                          "op": "global",
+                          "id": "WINNER"
+                        }
+                      },
+                      {
+                        "op": "tell",
+                        "parts": [
+                          {
+                            "text": "As you touch the rusty knife, your sword gives a single pulse of blinding blue light."
+                          },
+                          {
+                            "newline": true
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "and",
+                    "args": [
+                      {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSI"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "RUSTY-KNIFE"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "verb?",
+                        "verbs": [
+                          "ATTACK"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "args": [
+                      {
+                        "op": "verb?",
+                        "verbs": [
+                          "SWING"
+                        ]
+                      },
+                      {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "RUSTY-KNIFE"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "REMOVE-CAREFULLY",
+                  "args": [
+                    {
+                      "op": "entity",
+                      "id": "RUSTY-KNIFE"
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "JIGS-UP",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "As the knife approaches its victim, your mind is submerged by an overmastering will. Slowly, your hand turns, until the rusty blade is an inch from your neck. The knife seems to sing as it savagely slits your throat."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 907
+      }
+    },
+    {
+      "id": "SAND-FUNCTION",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "DIG"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "SHOVEL"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-global",
+                  "id": "BEACH-DIG",
+                  "value": {
+                    "op": "add",
+                    "a": {
+                      "op": "const",
+                      "value": 1
+                    },
+                    "b": {
+                      "op": "global",
+                      "id": "BEACH-DIG"
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "global",
+                          "id": "BEACH-DIG"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 3
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "BEACH-DIG",
+                          "value": {
+                            "op": "const",
+                            "value": -1
+                          }
+                        },
+                        {
+                          "op": "value",
+                          "expr": {
+                            "op": "and",
+                            "args": [
+                              {
+                                "op": "in?",
+                                "entity": {
+                                  "op": "entity",
+                                  "id": "SCARAB"
+                                },
+                                "container": {
+                                  "op": "global",
+                                  "id": "HERE"
+                                }
+                              },
+                              {
+                                "op": "set-flag",
+                                "entity": {
+                                  "op": "entity",
+                                  "id": "SCARAB"
+                                },
+                                "flag": "INVISIBLE"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "call",
+                          "routine": "JIGS-UP",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "The hole collapses, smothering you."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "BEACH-DIG"
+                          },
+                          {
+                            "op": "const",
+                            "value": 3
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "flag?",
+                                "entity": {
+                                  "op": "entity",
+                                  "id": "SCARAB"
+                                },
+                                "flag": "INVISIBLE"
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "text": "You can see a scarab here in the sand."
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "call",
+                                  "routine": "THIS-IS-IT",
+                                  "args": [
+                                    {
+                                      "op": "entity",
+                                      "id": "SCARAB"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "clear-flag",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "SCARAB"
+                                  },
+                                  "flag": "INVISIBLE"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "expr": {
+                                "op": "table-get",
+                                "table": {
+                                  "op": "global",
+                                  "id": "BDIGS"
+                                },
+                                "index": {
+                                  "op": "global",
+                                  "id": "BEACH-DIG"
+                                }
+                              }
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 2855
+      }
+    },
+    {
       "id": "SANDWICH-BAG-FCN",
       "body": [
         {
@@ -36262,6 +37264,607 @@
       "source": {
         "file": "gverbs.zil",
         "line": 402
+      }
+    },
+    {
+      "id": "V-DIAGNOSE",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "MS",
+          "value": {
+            "op": "call",
+            "routine": "FIGHT-STRENGTH",
+            "args": [
+              {
+                "op": "const",
+                "value": false
+              }
+            ]
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "WD",
+          "value": {
+            "op": "prop",
+            "entity": {
+              "op": "global",
+              "id": "WINNER"
+            },
+            "prop": "strength"
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "RS",
+          "value": {
+            "op": "add",
+            "a": {
+              "op": "local",
+              "id": "MS"
+            },
+            "b": {
+              "op": "local",
+              "id": "WD"
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "table-get",
+                    "table": {
+                      "op": "call",
+                      "routine": "INT",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-CURE"
+                        }
+                      ]
+                    },
+                    "index": {
+                      "op": "const",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "const",
+                    "value": 0
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "WD",
+                  "value": {
+                    "op": "const",
+                    "value": 0
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "WD",
+                  "value": {
+                    "op": "sub",
+                    "a": {
+                      "op": "const",
+                      "value": 0
+                    },
+                    "b": {
+                      "op": "local",
+                      "id": "WD"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "WD"
+                  },
+                  {
+                    "op": "const",
+                    "value": 0
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You are in perfect health."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You have "
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "WD"
+                          },
+                          {
+                            "op": "const",
+                            "value": 1
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "a light wound,"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "WD"
+                          },
+                          {
+                            "op": "const",
+                            "value": 2
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "a serious wound,"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "WD"
+                          },
+                          {
+                            "op": "const",
+                            "value": 3
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "several wounds,"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "local",
+                          "id": "WD"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 3
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "serious wounds,"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "equal?",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "WD"
+                    },
+                    {
+                      "op": "const",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": " which will be cured after "
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "expr": {
+                        "op": "add",
+                        "a": {
+                          "op": "mul",
+                          "a": {
+                            "op": "const",
+                            "value": 30
+                          },
+                          "b": {
+                            "op": "sub",
+                            "a": {
+                              "op": "local",
+                              "id": "WD"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 1
+                            }
+                          }
+                        },
+                        "b": {
+                          "op": "table-get",
+                          "table": {
+                            "op": "call",
+                            "routine": "INT",
+                            "args": [
+                              {
+                                "op": "const",
+                                "value": "I-CURE"
+                              }
+                            ]
+                          },
+                          "index": {
+                            "op": "const",
+                            "value": 1
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": " moves."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "tell",
+          "parts": [
+            {
+              "newline": true
+            }
+          ]
+        },
+        {
+          "op": "tell",
+          "parts": [
+            {
+              "text": "You can "
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RS"
+                  },
+                  {
+                    "op": "const",
+                    "value": 0
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "expect death soon"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RS"
+                  },
+                  {
+                    "op": "const",
+                    "value": 1
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "be killed by one more light wound"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RS"
+                  },
+                  {
+                    "op": "const",
+                    "value": 2
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "be killed by a serious wound"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RS"
+                  },
+                  {
+                    "op": "const",
+                    "value": 3
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "survive one serious wound"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "gt?",
+                "a": {
+                  "op": "local",
+                  "id": "RS"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 3
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "survive several wounds"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "tell",
+          "parts": [
+            {
+              "text": "."
+            },
+            {
+              "newline": true
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "equal?",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "DEATHS"
+                    },
+                    {
+                      "op": "const",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You have been killed "
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "DEATHS"
+                          },
+                          {
+                            "op": "const",
+                            "value": 1
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "once"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "twice"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "MS",
+        "WD",
+        "RS"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3993
       }
     },
     {

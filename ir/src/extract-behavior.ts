@@ -43,7 +43,7 @@ const DENIED_OPERATORS = new Set([
   "MOD", "MIN", "ABS", "RANDOM",
   "BAND", "BOR", "BTST", "BCOM",
   "APPLY", "RFATAL", "ASSIGNED?", "DLESS?", "IGRTR?",
-  "PRINT", "PRINTN", "PRINTB", "PRINC", "PRINTD",
+  "PRINT", "PRINTB", "PRINC", "PRINTD",
 ]);
 
 /**
@@ -283,6 +283,8 @@ class RoutineTransformer {
         return { op: "tell", parts: this.tellParts(rest) };
       case "CRLF":
         return { op: "tell", parts: [{ newline: true }] };
+      case "PRINTN":
+        return { op: "tell", parts: [{ expr: this.expr(rest[0]!) }] };
       case "SETG": {
         const id = atomName(rest[0]) ?? this.deny("SETG target is not an atom");
         this.needGlobal(id);
@@ -485,6 +487,19 @@ class RoutineTransformer {
         // `<VALUE X>` reads global X — identical to `,X` (GVal).
         const id = atomName(rest[0]) ?? this.deny("VALUE target is not an atom");
         return this.resolveName(id);
+      }
+      // Output and flag mutation inside AND/OR predicates (batch f) — the
+      // same lowerings as the statement cases, yielding true.
+      case "TELL":
+        return { op: "tell", parts: this.tellParts(rest) };
+      case "CRLF":
+        return { op: "tell", parts: [{ newline: true }] };
+      case "PRINTN":
+        return { op: "tell", parts: [{ expr: this.expr(rest[0]!) }] };
+      case "FSET":
+      case "FCLEAR": {
+        const { entity, flag } = this.flagArgs(head, rest);
+        return { op: head === "FSET" ? "set-flag" : "clear-flag", entity, flag };
       }
       case "GETP":
         return { op: "prop", entity: this.expr(rest[0]!), prop: this.propKey("GETP", rest[1]) };

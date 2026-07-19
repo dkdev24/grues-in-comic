@@ -468,6 +468,28 @@ export function validateWorld(input: unknown): ValidationResult {
         }
       }
 
+      const checkTellParts = (path: string, node: Record<string, unknown>): void => {
+        reqArray(ctx, path, node, "parts").forEach((part, j) => {
+          const pPath = `${path}.parts[${j}]`;
+          if (!isObject(part)) return ctx.fail(pPath, "must be an object");
+          if ("text" in part) {
+            checkKeys(ctx, pPath, part, ["text"]);
+            if (typeof part.text !== "string") ctx.fail(`${pPath}.text`, "must be a string");
+          } else if ("newline" in part) {
+            checkKeys(ctx, pPath, part, ["newline"]);
+            if (part.newline !== true) ctx.fail(`${pPath}.newline`, "must be true");
+          } else if ("expr" in part) {
+            checkKeys(ctx, pPath, part, ["expr"]);
+            checkExprNode(`${pPath}.expr`, part.expr);
+          } else if ("name" in part) {
+            checkKeys(ctx, pPath, part, ["name"]);
+            checkExprNode(`${pPath}.name`, part.name);
+          } else {
+            ctx.fail(pPath, "must be a text, newline, expr, or name part");
+          }
+        });
+      };
+
       const checkExprNode = (ePath: string, node: unknown): void => {
         if (!isObject(node)) return ctx.fail(ePath, "must be an expression object");
         switch (node.op) {
@@ -570,6 +592,18 @@ export function validateWorld(input: unknown): ValidationResult {
             reqArray(ctx, ePath, node, "args").forEach((a, j) => checkExprNode(`${ePath}.args[${j}]`, a));
             break;
           }
+          case "tell":
+            checkKeys(ctx, ePath, node, ["op", "parts"]);
+            checkTellParts(ePath, node);
+            break;
+          case "set-flag":
+          case "clear-flag": {
+            checkKeys(ctx, ePath, node, ["op", "entity", "flag"]);
+            checkExprNode(`${ePath}.entity`, node.entity);
+            const flag = reqString(ctx, ePath, node, "flag");
+            if (flag !== undefined) usedFlags.push({ path: `${ePath}.flag`, id: flag });
+            break;
+          }
           default:
             ctx.fail(`${ePath}.op`, `unknown expression op "${String(node.op)}"`);
         }
@@ -608,25 +642,7 @@ export function validateWorld(input: unknown): ValidationResult {
             break;
           case "tell":
             checkKeys(ctx, sPath, node, ["op", "parts"]);
-            reqArray(ctx, sPath, node, "parts").forEach((part, j) => {
-              const pPath = `${sPath}.parts[${j}]`;
-              if (!isObject(part)) return ctx.fail(pPath, "must be an object");
-              if ("text" in part) {
-                checkKeys(ctx, pPath, part, ["text"]);
-                if (typeof part.text !== "string") ctx.fail(`${pPath}.text`, "must be a string");
-              } else if ("newline" in part) {
-                checkKeys(ctx, pPath, part, ["newline"]);
-                if (part.newline !== true) ctx.fail(`${pPath}.newline`, "must be true");
-              } else if ("expr" in part) {
-                checkKeys(ctx, pPath, part, ["expr"]);
-                checkExprNode(`${pPath}.expr`, part.expr);
-              } else if ("name" in part) {
-                checkKeys(ctx, pPath, part, ["name"]);
-                checkExprNode(`${pPath}.name`, part.name);
-              } else {
-                ctx.fail(pPath, "must be a text, newline, expr, or name part");
-              }
-            });
+            checkTellParts(sPath, node);
             break;
           case "set-global": {
             checkKeys(ctx, sPath, node, ["op", "id", "value"]);
