@@ -1,6 +1,7 @@
 {
   "0": "Schema Types & Public API",
   "1": "Validator Structural Checks",
+  "2": "behavior-35-triage.test.ts",
   "3": "POC Test Harness & World State",
   "4": "Behavior Interpreter",
   "5": "World Builtins",

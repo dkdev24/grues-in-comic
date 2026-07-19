@@ -138,6 +138,12 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
       if (element === "length") return table.elements.length;
       return table.elements[element] ?? false;
     }
+    case "apply":
+      return applyRoutine(
+        evalExpr(expr.routine, world, locals),
+        expr.args.map((a) => evalExpr(a, world, locals)),
+        world,
+      );
     case "table-rest": {
       const base = tableRef(evalExpr(expr.table, world, locals), "table-rest");
       const table = world.tables[base.table];
@@ -219,6 +225,19 @@ function callRoutine(routine: string, args: Expr[], world: WorldState, locals: L
   const builtin = builtins[routine];
   if (builtin === undefined) throw new Error(`unknown routine/builtin ${routine}`);
   return builtin(world, args.map((a) => evalExpr(a, world, locals)));
+}
+
+/**
+ * Call a routine whose name was computed at run time. A false/absent name
+ * yields false without calling — the Z-machine returns 0 for a call to
+ * address 0, which is how the corpus probes objects with no ACTION property.
+ */
+function applyRoutine(name: BehaviorValue, argValues: BehaviorValue[], world: WorldState): BehaviorValue {
+  if (name === false || name === 0) return false;
+  if (typeof name !== "string") throw new Error(`apply target must be a routine name, got ${typeof name}`);
+  const builtin = builtins[name];
+  if (builtin === undefined) throw new Error(`unknown routine/builtin ${name}`);
+  return builtin(world, argValues);
 }
 
 function execStmt(stmt: Stmt, world: WorldState, locals: Locals): BehaviorValue {

@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.5.12**
+**0.5.13**
 
 ---
 
@@ -21,14 +21,15 @@ Historical sources imported:
 - M2 ✅: `ir/` — IR schema/validator; declarative-world (2.1) done; behavior AST + builtin layer (ADR 0001, 2.2); TS engine, JSON event contract (ADR 0002, 2.3, ⚑ Gate B); Graphify adopted per-module (2.4, ⚑ Gate A); OpenWiki not adopted
 - M3 🔄: Semantic Extraction ZIL→IR (v0.5.x)
   - 3.1–3.4 ✅: 110 rooms/exits, 137 objects, 267 parser rules in `ir/artifacts/`
-  - 3.5 🔄: 312 routines extracted, 50 catalogued (all triaged, ADR 0001 builtin list), 34/292 refs unresolved (88% coverage); IR schema 0.9.0
-  - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views)
-  - Next: batches i/j per ADR 0001 Group B
+  - 3.5 ✅ (Group B complete): 324 routines extracted, 43 catalogued (all triaged, ADR 0001 builtin list), 29/292 refs unresolved (90% coverage); IR schema 0.10.0
+  - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL)
+  - Remaining catalog = Group A engine builtins by design + world-doc gaps + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag, P-PRSO ITABLE)
 - M4 ⏳: Engine core (not started)
 
 ---
 
-## Last Session (v0.5.10 → v0.5.12)
+## Last Session (v0.5.10 → v0.5.13)
+- **v0.5.13 — batches (i) apply + (j) RFATAL — Group B complete**: IR schema 0.10.0 — expr `apply` calls a routine named at run time (`<APPLY <GETP .O ,P?ACTION> …>`); a false/absent name yields false **without calling** (Z-machine call-to-address-0, how the corpus probes objects with no ACTION). `apply` contributes no static call target — reachability comes from the world doc's `action` refs. **(j) needed no new vocabulary**: RFATAL is `<PROG () <PUSH 2> <RSTACK>>` = return M-FATAL (2); the handler protocol is already plain values (false/1/2) that only the M4 parser loop compares. RSTACK is load-bearing — JIGS-UP ends `<PROG () … <RFATAL>)>`, so a `<RETURN>`-style lowering would have `break`d the PROG and run on past the player's death. Unlocked TROLL-FCN, AWAKEN, DESCRIBE-OBJECT, V-BOARD, CANDLES-FCN, ITAKE, JIGS-UP, PRE-BOARD, V-TELL. 312→324 routines, catalog 50→43, unresolved 34→29 (90%); world doc grew to 66 globals / 19 tables as the closure widened; 150 tests
 - **v0.5.12 — batch (h) table views**: IR schema 0.9.0 — expr `table-rest` (ZIL `<REST tbl bytes>`). Runtime values gain a table pointer: `BehaviorValue` splits into `BehaviorLiteral` (documents stay scalar) + `TableRef` `{table, offset}`; bare id = offset 0, views compose, `table-get`/`table-set` read through them. Offset counts **elements**, not bytes — the extractor halves the ZIL byte count and denies odd/non-literal. LTABLEs are not viewable (count word sits in the skipped slot). Unlocked I-LANTERN, I-CANDLES, LIGHT-INT; the batch (d) countdown goldens now run end-to-end (lamp dims through all three messages, burns out at the 0 terminator, table never written). 309→312 routines, catalog 52→50, unresolved 34/292 (88%, flat — the three are reached by call/QUEUE name, not by a world-doc ref); 135 tests
 - **v0.5.11 — batch (g) expr-position cond + abs/mod/min**: IR schema 0.8.0 — expr `cond` (COND inside AND/OR or as an argument, yielding the taken clause's last value), plus `mod` (sign of dividend), `min` (n-ary → left fold), `abs` (−32768 wraps to itself). RANDOM and the bit ops stay denied. Unlocked CANARY-OBJECT, SHAKE-LOOP, SAILOR-FCN (only MOD in the corpus), CYCLOPS-FCN (only MIN); I-CYCLOPS → `<NTH>`, I-THIEF → `,ROOMS`, GRATE-FUNCTION → String-in-statement-position. `abs` is lowerable but unexercised by the corpus. 305→309 routines, catalog 56→52, unresolved 37→34 (88%); 124 tests
   - **Note**: this batch was interrupted mid-flight by a usage limit. The source work (interpreter/behavior/extract/validate) was already complete and typechecking; what was missing was the `irVersion` bump in the sample + artifact fixtures (3 failing tests), a stale `I-CYCLOPS`-fails-on-ABS assertion in `behavior-35d.test.ts`, and the batch (g) test file. All resolved — no source logic was changed on resume.
@@ -41,11 +42,13 @@ Historical sources imported:
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M3 continues (Group B batches per ADR 0001 triage):**
-1. **Batch (i)**: apply (TROLL-FCN, AWAKEN, DESCRIBE-OBJECT, V-BOARD); **(j)** RFATAL
-2. World-doc meta entities (ROOMS/GLOBAL-OBJECTS/LOCAL-GLOBALS — unblocks I-THIEF), nested VILLAINS tables
-3. Newly surfaced by batch (g), not yet assigned to a batch: `<NTH …>` (I-CYCLOPS) and String-in-statement-position (GRATE-FUNCTION)
-4. Stage 5.1 (Comic Chat) = filler
+**M3: Group B complete. Next unit — world-document gaps, to be done before M4:**
+1. **Meta entities** ROOMS/GLOBAL-OBJECTS/LOCAL-GLOBALS as first-class entities — 13 catalogued routines, the largest remaining group; unblocks I-THIEF
+2. **Table-valued globals** (batch h finding): `<GLOBAL LAMP-TABLE <TABLE …>>` must emit both a global binding and a table, or an engine cannot bind the pointer at load time
+3. **Nested VILLAINS table elements** (`<TABLE …>` inside a table — HERO-BLOW); P-PRSO's `<ITABLE …>` initializer
+- Rationale: M4 (engine core) is the first consumer that loads the document and boots a world, which is exactly what these gaps break
+4. One-off tail, unassigned: `<NEXTP …>` (I-SWORD, OTHER-SIDE), `<NTH …>` (I-CYCLOPS), String-in-statement-position (GRATE-FUNCTION), bare `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO)
+5. Stage 5.1 (Comic Chat) = filler
 4. M4 can start against the Group A builtin contract (walk map from IR); engine CLOCKER needs P-WON demon-region gating (stage 4.5)
 
 **M0 complete** (0.1–0.3):

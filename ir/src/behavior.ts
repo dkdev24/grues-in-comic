@@ -115,6 +115,14 @@ export type Expr =
    */
   | { op: "table-rest"; table: Expr; offset: Expr }
   /**
+   * Call a routine named at run time (ZIL `<APPLY <GETP .O ,P?ACTION> …>`) —
+   * `routine` evaluates to a routine-name string, the convention batch (d)
+   * established for QUEUE targets. A false/absent name yields false **without
+   * calling**, matching the Z-machine's `call` to address 0; the corpus relies
+   * on this to probe objects that have no ACTION property.
+   */
+  | { op: "apply"; routine: Expr; args: Expr[] }
+  /**
    * Assignment in expression position, yielding the assigned value (ZIL is
    * expression-oriented: `<SET X …>` / `<SETG X …>` inside a predicate).
    * Same shapes as the statement ops, like `call`.

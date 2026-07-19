@@ -595,6 +595,15 @@ export function validateWorld(input: unknown): ValidationResult {
             checkExprNode(`${ePath}.table`, node.table, loopDepth);
             checkExprNode(`${ePath}.offset`, node.offset, loopDepth);
             break;
+          case "apply":
+            // The target is computed, so it contributes no static call target —
+            // reachability comes from the world document's own `action` refs.
+            checkKeys(ctx, ePath, node, ["op", "routine", "args"]);
+            checkExprNode(`${ePath}.routine`, node.routine, loopDepth);
+            reqArray(ctx, ePath, node, "args").forEach((a, j) =>
+              checkExprNode(`${ePath}.args[${j}]`, a, loopDepth),
+            );
+            break;
           case "call": {
             checkKeys(ctx, ePath, node, ["op", "routine", "args"]);
             const target = reqString(ctx, ePath, node, "routine");

@@ -16,7 +16,7 @@
  */
 
 /** Version of the IR schema itself (not the game data). */
-export const IR_VERSION = "0.9.0";
+export const IR_VERSION = "0.10.0";
 
 import type { BehaviorRoutine } from "./behavior.js";
 export type { BehaviorRoutine } from "./behavior.js";

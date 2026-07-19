@@ -435,3 +435,20 @@ Stage 3.5 batch (g) complete. Handler coverage 258/292 (88%). Next per ADR 0001 
 Stage 3.5 batch (h) complete. Handler coverage 258/292 (88%); catalog down to 50. Next per ADR 0001 Group B: (i) apply (TROLL-FCN, AWAKEN, DESCRIBE-OBJECT, V-BOARD), (j) RFATAL, and the world-document meta entities that unblock I-THIEF.
 
 **Surfaced, not fixed:** ZIL declares the countdown tables as `<GLOBAL LAMP-TABLE <TABLE …>>` — both a global binding and a table — but stage 2.1 world extraction emits only the table. `,LAMP-TABLE` therefore has no initial value in the document and an engine cannot bind the pointer at load time; the batch (h) golden seeds it explicitly. The fix belongs to world extraction, not the behavior vocabulary.
+
+## v0.5.13 — Complex Behavior Batches i + j: Computed Application and RFATAL (stage 3.5)
+
+**Date:** 2026-07-19
+
+### Changes
+
+- **Batch (i) — IR schema 0.10.0**: expr `apply`, calling a routine named at run time. `routine` evaluates to a routine-name string (batch (d)'s QUEUE-target convention); the corpus form is always `<APPLY <GETP .O ,P?ACTION> …>`, an object's action handler. A false/absent name yields false **without calling**, matching the Z-machine's `call` to address 0 — the corpus depends on this to probe objects with no ACTION property, so it is semantics, not defensiveness. Unlike `call`, `apply` contributes no static call target to the validator: reachability comes from the world document's `action` refs. Unlocked TROLL-FCN (the blocker batch (f) predicted), AWAKEN, DESCRIBE-OBJECT, V-BOARD
+- **Batch (j) — RFATAL, no new vocabulary**: the macro is `<PROG () <PUSH 2> <RSTACK>>` — return gmain.zil's `M-FATAL` (2) from the routine. The action-handler protocol is already ordinary values (`M-NOT-HANDLED` = false, `M-HANDLED` = 1, `M-FATAL` = 2) and only the M4 parser loop, a Group A builtin, compares against it — so RFATAL lowers to `return` of the constant 2, an extractor-only lowering like the batch (e)/triage ones and with no schema impact of its own. **The RSTACK detail is load-bearing**: JIGS-UP ends `<PROG () … <RFATAL>)>`, so lowering RFATAL like ZIL's `<RETURN>` would have produced a `break` that merely left the PROG and let the routine run on past the player's death. Unlocked CANDLES-FCN, ITAKE, JIGS-UP, PRE-BOARD, V-TELL
+- **Extraction: 312 → 324 routines, catalog 50 → 43, unresolved refs 34 → 29/292 (88% → 90%).** The world document grew to 66 globals and 19 tables (from 64/17) as the widened closure reached FUMBLE-NUMBER/FUMBLE-PROB and the ABOVE-GROUND/INDENTS tables — world extraction emits what the closure references
+- 150 tests pass (9 new in `test/behavior-35i.test.ts`, 6 in `test/behavior-35j.test.ts`): apply dispatch by name and via a property, the call-to-0 rule with a non-call assertion, a non-routine target rejected, the AWAKEN golden both ways (revives an unconscious villain applying F-CONSCIOUS; leaves a conscious one untouched), RFATAL's lowering shape, that JIGS-UP's fatal return really is nested inside a PROG, and that a fatal return inside a loop exits the routine rather than the loop
+
+### Status
+
+**Stage 3.5 Group B is complete** — every named future batch (f)–(j) has landed. Handler coverage 263/292 (90%); catalog down to 43, which is now Group A engine builtins by design (GETPT/GETB, BAND/BOR, RANDOM, READ, DIROUT/DIRIN, SAVE/RESTORE/RESTART/VERIFY/QUIT), the world-document gaps, and a short tail of one-offs: `<NEXTP …>` (I-SWORD, OTHER-SIDE), `<NTH …>` (I-CYCLOPS), a String in statement position (GRATE-FUNCTION), `,ONBIT`/`,ACTORBIT` as bare names (LIT?, V-SAY), a non-atom FSET? flag (GOTO), P-PRSO's `<ITABLE …>` initializer.
+
+Next: the world-document gaps as one unit before M4 — the meta entities ROOMS/GLOBAL-OBJECTS/LOCAL-GLOBALS (13 catalogued routines, the largest single remaining group, and what blocks I-THIEF), nested VILLAINS table elements, and the table-valued globals from batch (h). M4 (engine core) is the first consumer that loads the document and boots a world, which is exactly what those gaps break.

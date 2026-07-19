@@ -42,7 +42,7 @@ const DENIED_OPERATORS = new Set([
   "GETPT", "PTSIZE", "GETB", "PUTB",
   "RANDOM",
   "BAND", "BOR", "BTST", "BCOM",
-  "APPLY", "RFATAL", "ASSIGNED?", "DLESS?", "IGRTR?",
+  "ASSIGNED?", "DLESS?", "IGRTR?",
   "PRINT", "PRINTB", "PRINC", "PRINTD",
 ]);
 
@@ -80,11 +80,17 @@ const CLOCK_BUILTINS = new Set(["QUEUE", "INT", "CLOCKER"]);
 const TRUE: Expr = { op: "const", value: true };
 const FALSE: Expr = { op: "const", value: false };
 
+/**
+ * gmain.zil's action-handler protocol: M-NOT-HANDLED = `<>`, M-HANDLED = 1,
+ * M-FATAL = 2 (what RFATAL returns — the turn is aborted).
+ */
+const M_FATAL = 2;
+
 /** Form heads that map to expressions (legal in statement position via `value`). */
 const EXPR_HEADS = new Set([
   "VERB?", "EQUAL?", "==?", "FSET?", "AND", "OR", "NOT",
   "G?", "L?", "0?", "1?", "IN?", "LOC", "GETP", "GET",
-  "+", "-", "*", "/", "MOD", "MIN", "ABS", "FIRST?", "NEXT?", "REST",
+  "+", "-", "*", "/", "MOD", "MIN", "ABS", "FIRST?", "NEXT?", "REST", "APPLY",
 ]);
 
 export interface CatalogEntry {
@@ -324,6 +330,14 @@ class RoutineTransformer {
         return { op: "return", value: TRUE };
       case "RFALSE":
         return { op: "return", value: FALSE };
+      case "RFATAL":
+        // Batch (j). The RFATAL macro is <PROG () <PUSH 2> <RSTACK>> — it
+        // returns the ZIL-named constant M-FATAL (2) from the *routine*, so
+        // like RTRUE/RFALSE it exits a loop activation rather than breaking
+        // it. No new vocabulary: the handler protocol is already ordinary
+        // values (M-NOT-HANDLED = false, M-HANDLED = 1, M-FATAL = 2), and
+        // only the M4 parser loop — a Group A builtin — compares against it.
+        return { op: "return", value: { op: "const", value: M_FATAL } };
       case "RETURN": {
         // ZIL RETURN exits the nearest PROG/REPEAT activation, or the
         // routine when there is none. RTRUE/RFALSE always exit the routine.
@@ -518,6 +532,14 @@ class RoutineTransformer {
         return { op: "prop", entity: this.expr(rest[0]!), prop: this.propKey("GETP", rest[1]) };
       case "GET":
         return { op: "table-get", table: this.expr(rest[0]!), index: this.expr(rest[1]!) };
+      case "APPLY":
+        // Batch (i): the target is a routine name computed at run time —
+        // almost always <GETP obj ,P?ACTION>, the object's action handler.
+        return {
+          op: "apply",
+          routine: this.expr(rest[0]!),
+          args: rest.slice(1).map((a) => this.expr(a)),
+        };
       case "REST": {
         // ZIL REST advances a table pointer by a byte count; the IR counts
         // elements, so a word table's byte count halves. Only compile-time

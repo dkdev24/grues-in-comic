@@ -33,8 +33,9 @@ describe("stage 3.5 batch (f) extraction — expression-position statement ops",
     }
   });
 
-  it("TROLL-FCN moves to its next real blocker (APPLY — batch i)", () => {
-    expect(catalog.find((e) => e.id === "TROLL-FCN")?.reasons).toEqual(["operator APPLY"]);
+  it("TROLL-FCN moved to APPLY, which batch (i) then lowered — now extracted", () => {
+    expect(catalog.find((e) => e.id === "TROLL-FCN")).toBeUndefined();
+    expect(routineById.has("TROLL-FCN")).toBe(true);
   });
 
   it("RUSTY-KNIFE-FCN carries a tell inside an and", () => {
