@@ -11,6 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.5.18] - 2026-07-20 — Project Scope, Trademark Notices, and the `.avb` Format
+
+Documentation and tooling only. No engine, IR, or artifact changes; Milestone 4 remains the next work.
+
+### Added
+- **ADR 0002 "Scope of Portability: source frontends, not story files"** — the long-term target is an IR-native engine with pluggable *source* frontends (ZIL is the first; the rest of the ZIL family is the cheap expansion, Inform 6 a plausible second). Compiled story files (`.z3`/`.z5`/`.z8`) are explicitly out of scope: executing a memory image re-raises the ADR's existing ZLR/ZVM objection and would be a second engine, not an extension. Binds three rules on Milestone 4, including that the first portability test is importing Zork II *after* M4 works rather than a speculative abstraction built in advance.
+- **Trademark notices** in `README.md` and `NOTICE` — ZORK/INFOCOM attributed to Activision, MICROSOFT/COMIC CHAT to Microsoft, with an explicit non-affiliation statement. Records that the MIT grants convey copyright only and no trademark licence is implied by MIT, Apache-2.0, or any file here, and that trademark names appear nominatively (identifying the historical works; reproducing the `ZORK I` status banner that golden-transcript parity requires).
+- **`art/` module** with `art/poc/avbdec.py` — a reference decoder for the Comic Chat `.avb` avatar format, writing PNGs named by part, emotion, and intensity. Stdlib only. Verified across the corpus: 191/191 files parse, 4656/4656 images decode.
+- **`docs/AVB_FORMAT.md`** — normative `.avb` specification. Records five behaviours a reader written from the historical header alone gets wrong, four of them silently: the 32-bit `AK_OFFSET_ADJUSTMENT` (its comment says "2-bit"), the differing body/face/torso field sets, `MaskedMonoPalette` not being the render palette, intensity being `byte/255` rather than the wire protocol's scaling, and four BI_RLE4-compressed images.
+
+### Changed
+- **`README.md` de-staled.** WebAssembly references removed — Gate B dropped WASM in ADR 0002 and the README still described "a browser-native architecture powered by WebAssembly" and a `WebAssembly Runtime` pipeline stage. The architecture diagram now shows the TypeScript engine emitting the versioned JSON event contract. The repository-structure block was rewritten against the real tree; it had listed `importers/`, `zork/`, `wasm/`, `graph/`, `wiki/`, `tests/`, `scripts/`, `assets/`, and `renderer/`, most of which have never existed.
+
+### Notes
+- Comic Chat asset inventory established: 31 characters (5 single-pose stubs), 18–43 poses each, every pose tagged with an 8-point emotion wheel plus intensity. Against Zork I's five NPCs, characters are abundant; **backdrops are not** — the format defines `AT_BACKDROP` but no instance exists, leaving three 315×315 `.bmp` files against 110 rooms. Recorded as an open M5 design question.
+
+---
+
 ## [v0.5.17] - 2026-07-20 — Licensing, Provenance, and Public-Repo Preparation
 
 Documentation and repository hygiene only. No engine, IR, or artifact changes.

@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.5.17**
+**0.5.18**
 
 ---
 
@@ -28,7 +28,59 @@ Historical sources imported:
 
 ---
 
-## Last Session (v0.5.17) — licensing, provenance, public-repo prep
+## Last Session (v0.5.18) — project scope, trademark notices, `.avb` format cracked
+
+**No engine, IR, or artifact changes. M4 is still the next actual work.** Two doc threads
+and one real technical result.
+
+**Scope — ADR 0002 gained "Scope of Portability: source frontends, not story files".**
+Triggered by asking whether the project should eventually run any Z-machine-compatible IF.
+Answer: widen the ambition to an **IR-native engine with pluggable source frontends**
+(ZIL is frontend #1; the ZIL family — Zork II/III, Enchanter, Planetfall — is the cheap
+expansion; Inform 6 is a plausible frontend #2), and keep **compiled story files
+explicitly out of scope** — that re-raises the ADR's existing ZLR/ZVM objection and is a
+second engine, not an extension. Three M4 rules follow: builtins implement the Standard
+rather than Zork I's call sites; no `zork1` identifier in `engine/`; **the first
+portability test is importing Zork II after M4 works, not a speculative refactor**. That
+last rule is load-bearing — do not build a frontend abstraction during M4.
+
+**Trademark notices added** to `README.md` and `NOTICE`. The MIT grants cover copyright
+only and convey no trademark rights; the storyline and prose are *safe* to reuse (they
+live in the MIT-licensed ZIL source), and the exposure was always branding, not content.
+Renaming away from "Comic-Zork" handled the main risk. Nominative use (identifying the
+historical work, reproducing the `ZORK I` status banner for transcript parity) is
+recorded as such. "Grue" confirmed clear by the user — it predates Zork (Vance).
+
+**README de-staled**: WebAssembly references removed (Gate B dropped WASM in ADR 0002 and
+the README never caught up), architecture diagram now shows the TS engine + JSON event
+contract. The repository-structure block was also rewritten — it listed `importers/`,
+`zork/`, `wasm/`, `graph/`, `wiki/`, `tests/`, `scripts/`, `assets/`, `renderer/`, most of
+which never existed.
+
+**`.avb` avatar format solved — `art/` module created (stage 5.1 POC).**
+`art/poc/avbdec.py` decodes Comic Chat avatars to PNG. Verified: **191/191 files parse,
+4656/4656 images decode.** Format spec is `docs/AVB_FORMAT.md`, which exists mainly to
+record five behaviours a header-only reader gets wrong — four of them **silently**:
+1. `AK_OFFSET_ADJUSTMENT` is a **32-bit** read ("2-bit" in the comment is a typo),
+   accumulates, applies only to non-zero offsets. Tiki carries 77.
+2. **body/face/torso have different field sets** — torso has no `x`/`y`. Misalignment
+   yields plausible records with garbage format bytes rather than an exception.
+3. `MaskedMonoPalette` is **not** the render palette — it is the DIB table for the
+   Win32 three-DIB split. Real semantics (`avbfile.h:98`): `00=blank 01=aura 10=black
+   11=white`. Using the array gives a correctly-shaped but dark-red/navy figure.
+4. Intensity is **`byte/255`** (`avatario.cpp:158`); the `/10` + `IndexToByte` path in the
+   same file is the wire protocol. Emotion, by contrast, is a raw index.
+5. Four images are **BI_RLE4** BMPs (Bolo/Cro/Denise/Lynnea torsos × 4 version dirs = 16).
+
+Assets inventory: 31 characters (5 are single-pose stubs), 18–43 poses each, every pose
+tagged with an 8-point emotion wheel + intensity. `AT_COMPLEX` avatars composite face and
+torso separately. **Zero `AT_BACKDROP` files exist** — the only backdrops are three
+315×315 `.bmp`s, against Zork I's 110 rooms. That gap is an M5 design question, not a
+decoding one. `AK_USAGE_FLAGS` unset everywhere; nothing complicates the MIT position.
+
+---
+
+## Prior Session (v0.5.17) — licensing, provenance, public-repo prep
 
 **Documentation and repo hygiene only. No engine, IR, or artifact changes; M4 is still the next actual work.**
 
@@ -46,7 +98,7 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 
 ---
 
-## Prior Session (v0.5.14 → v0.5.16)
+## Earlier Sessions (v0.5.14 → v0.5.16)
 - **v0.5.16 — world-doc gap 3: nested table elements + ITABLE**: IR schema 0.13.0 — a `TableElement` may be a `{table, offset}` pointer, **no new behavior ops**. VILLAINS is an LTABLE of three anonymous `<TABLE …>` rows; ZIL stores an *address* in the slot, which batch (h)'s `TableRef` already models, so `<GET ,VILLAINS .CNT>` hands HERO-BLOW a pointer it indexes straight through. Nested tables get a derived `parent#index` id and **no pointer variable** — ZIL never named them, so v0.5.15's flat-id exception does not widen. Three element forms had to be learned, two of them only visible once nesting worked: bare `<>` (the cyclops has no weapon), an atom naming a table-valued global, and a numeric `CONSTANT` — the last two are the melee message tables, deeply nested `(PURE)` LTABLEs whose leaves interleave strings with the `F-WEP`/`F-DEF` markers. Declaring the atom pulled the whole tree in: **tables 19→132**, globals 86→103. `<ITABLE NONE n>` now extracts as zero-filled `itable` storage (P-PRSO/P-PRSI); it addresses like `table`, so only `RuntimeTable`'s kind union changed. gparser.zil's `(LEXV)`/`(BYTE LENGTH)` ITABLEs stay **denied by design** — READ's parser buffers (Group A), not world state. Unlocked NOT-HERE-OBJECT-F; **HERO-BLOW advanced past the document to `operator RANDOM`**, a Group A builtin, so it is no longer a world-doc blocker. 345→346 routines, catalog flat at 32 (NOT-HERE-PRINT/`PRINTB` entered as the closure widened), unresolved steady 39/292; 184 tests
 - **v0.5.15 — world-doc gap 2: table-valued globals**: IR schema 0.12.0 — `GlobalVariable.value` accepts a `{table, offset}` pointer; **no new behavior ops**. `<GLOBAL X <TABLE …>>` declares storage *and* a variable pointing at it; extraction emitted only the table, so `,X` read a global the document never had. **Wider than batch (h) reported**: 29 unbound reads across all 19 table-valued globals, not just LAMP-TABLE. Globals 66→86. **The pointer must stay a variable** — I-LANTERN/I-CANDLES advance by `<SETG LAMP-TABLE <REST .TBL 4>>`, so a `{op:"table"}` constant expr would have been unwritable and wrong; keeping it a global meant zero vocabulary change. Table and pointer share the one ZIL name (sole flat-id exception, narrowly enforced in `claimId`; the runtime already separates variable and table namespaces). **Validator tightened**: `global` ref kind was `global-or-table`, which is what let those 29 reads validate for five batches — now strict, and the artifact still passes. Golden boots the lamp daemon from document state alone (batch h's golden with its hand-seeding removed). Routine counts unchanged — this gap corrupted extracted routines rather than blocking them; 175 tests
 - **v0.5.14 — world-doc gap 1: meta entities**: IR schema 0.11.0 — new `metaEntities` section, **no new behavior ops**. The 13 routines stuck on `unknown name ,ROOMS` / `,GLOBAL-OBJECTS` were blocked by the *document*, not the vocabulary: stage 3.2 dropped ZIL's three scaffolding objects, so `resolveName` had no entity to resolve to. They are now `{id, role, location?}` anchors (roles `rooms` / `global-objects` / `local-globals`) in the flat entity namespace, so `,ROOMS` lowers to a plain `{op:"entity"}` and `in?`/`first`/`next`/`equal?` work unchanged. **Not** entities-with-properties — GLOBAL-OBJECTS' FLAGS list and LOCAL-GLOBALS' DESCFCN/FDESC are ZIL property-slot allocation, not game state. **Membership stays derived** (rooms list + `global`/`local-globals` location kinds); only the anchors' own nesting is stored, because LOCAL-GLOBALS sits inside GLOBAL-OBJECTS and gparser.zil's scope walk climbs that edge. Validator enforces one anchor per role, meta-only parents, no cycles. Unlocked DESCRIBE-ROOM, FIRSTER, HACK-HACK, I-THIEF, PRE-TURN, ROPE-FUNCTION, TREE-ROOM, V-DISEMBARK, V-EAT, V-EXIT, V-FIND; RANDOMIZE-OBJECTS/V-CLIMB-UP advanced to RANDOM/GETPT. 324→345 routines, catalog 43→32, unresolved 29→39/292 (90%→87% — the widened closure reached more Group A builtin refs; nothing regressed); 165 tests. Also backfilled `docs/IR_SCHEMA.md`, which had drifted at schema 0.6.0 since batch b
@@ -70,6 +122,8 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 - The world-document unit is **complete**: the document loads and boots a world with nothing seeded by hand, which was the precondition for M4
 4. One-off tail, unassigned: `<NEXTP …>` (I-SWORD, OTHER-SIDE), `<NTH …>` (I-CYCLOPS), String-in-statement-position (GRATE-FUNCTION), bare `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with a non-literal byte count (PICK-ONE — Group A regardless)
 5. Stage 5.1 (Comic Chat analysis) = filler, independent of every gate. Read `reference/comic-chat-paper.md` (the authors' SIGGRAPH '96 paper — balloon layout, character placement, gesture selection, camera zoom) alongside `original-projects/comic-chat/`; it explains the intent behind that source. Gitignored, so it may be absent from a fresh checkout — see the reference note in `docs/DEVELOPMENT_PLAN.md` M5
+   - **Partly started (v0.5.18)**: `.avb` decoding is solved — `art/`, `docs/AVB_FORMAT.md`. Remaining 5.1 work: **face/torso compositing** (`cx`/`cy`/`cxDelta`/`cyDelta`; selection in `GetHeadAndBodyFromEmotion`, `v2.1b/cchat/avatar.cpp`), mask/aura planes for DIB-format poses, and the TS port of the decoder
+   - **Panel grammar is an open design question, not a decoding one.** Comic Chat assumes dialogue between peers; Zork is second-person narration with 5 NPCs (`GHOSTS`, `BAT`, `CYCLOPS`, `THIEF`, `TROLL`). Most turns emit `narration` with no speaker, so caption boxes must be first-class, not just balloons — and "who is on screen when nobody speaks" needs an answer (the player is deliberately undescribed in Zork)
 4. M4 can start against the Group A builtin contract (walk map from IR); engine CLOCKER needs P-WON demon-region gating (stage 4.5)
 
 **M0 complete** (0.1–0.3):
@@ -82,6 +136,10 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 ## Open Issues
 - Neutral branding for commercial assets (engine/IR/importer)
 - Kitchen object order (sack/bottle swapped) — decide for engine parity (stage 4.4)
+- Repo is prepared for public release but not yet public (carried from v0.5.17; nothing blocks it)
+- **Backdrop scarcity**: 3 shipped Comic Chat backdrops vs. 110 Zork rooms, and no `AT_BACKDROP` assets exist. Options sketched but undecided — panel compositions that avoid backdrops, deriving variants from the three originals, or new art in the Woodring hatch idiom for the ~10 rooms that carry the game. M5 decision
+- `art/` has **no test harness**; the 4656-image corpus sweep was ad hoc. Needs a regression test once the module gains a toolchain
+- `README.md:27` still says the engine is "inspired by the original gameplay" — understates the commitment to behavioral compatibility verified by golden transcripts. Minor wording
 
 ---
 
@@ -90,6 +148,8 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 |---|---|
 | `importer/` | ZIL parser, tests, AST artifacts |
 | `ir/` | IR schema, validator, extraction → `artifacts/zork1.world.json` |
+| `art/` | Comic Chat art tooling. `poc/avbdec.py` decodes `.avb` → PNG (stage 5.1 POC; Python by exception — port to TS per ADR 0002) |
+| `docs/AVB_FORMAT.md` | **Normative** `.avb` format spec + the five silent-failure gotchas. Read before touching `art/` |
 | `original-projects/zork1/` | ZIL source reference |
 | `original-projects/comic-chat/` | Comic Chat source reference |
 | `reference/` | Third-party reference material. **Gitignored** in full (third-party, some copyleft, some unlicensed); local-only, may be absent from a fresh checkout. See `reference/README.md` |
