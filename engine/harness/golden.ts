@@ -15,7 +15,7 @@
  */
 
 /** A dfrotz status line: room name, then Score/Moves, redrawn every turn. */
-const STATUS_LINE = /^\s*>?\s*.*\bScore:\s*-?\d+\s+Moves:\s*\d+\s*$/;
+const STATUS_LINE = /^\s*.*\bScore:\s*-?\d+\s+Moves:\s*\d+\s*$/;
 
 /** dfrotz's own chatter, before the story begins. */
 const INTERPRETER_NOISE = /^(Using .* formatting\.|Loading .*\.)$/;
@@ -30,8 +30,18 @@ export interface GoldenTranscript {
 /**
  * Split a dfrotz capture into the opening text plus one block per turn.
  *
- * Turn boundaries are the status lines: dfrotz redraws one immediately after
- * each prompt, so a status line marks "a command was just accepted".
+ * The turn boundary is the **`>` prompt**, not the status line. Those look
+ * interchangeable in a simple transcript and are not: dfrotz redraws the status
+ * line only when the move counter advances, and ZIL's meta-verbs (SCORE,
+ * DIAGNOSE, VERBOSE) deliberately do not consume a move. Splitting on status
+ * lines therefore merges each such command into its neighbour and shifts every
+ * later turn by one — which reads as a cascade of unrelated content diffs
+ * rather than as an off-by-one, and is why walkthroughs 01–03 parsed correctly
+ * while 06 did not: only 06 uses SCORE mid-sequence.
+ *
+ * So: a line beginning with `>` opens a new turn. Whatever follows on that line
+ * is either the status line (decoration, discarded) or the first line of the
+ * turn's own output.
  */
 export function parseGolden(raw: string): GoldenTranscript {
   const blocks: string[] = [];
@@ -39,19 +49,23 @@ export function parseGolden(raw: string): GoldenTranscript {
 
   for (const line of raw.split("\n")) {
     if (INTERPRETER_NOISE.test(line.trim())) continue;
-    if (STATUS_LINE.test(line)) {
+    // The very first status line precedes any prompt.
+    if (blocks.length === 0 && current.length === 0 && STATUS_LINE.test(line)) continue;
+
+    if (line.startsWith(">")) {
       blocks.push(current.join("\n"));
-      current = [];
+      const remainder = line.slice(1);
+      current = STATUS_LINE.test(remainder) ? [] : [remainder];
       continue;
     }
     current.push(line);
   }
   blocks.push(current.join("\n"));
 
-  // The first block is empty (the capture opens with a status line) and the
-  // second is the banner plus the opening room description.
-  const [, banner = "", ...turns] = blocks;
-  return { opening: stripBanner(banner), turns: turns.map((t) => t) };
+  // The first block is the banner plus the opening room description; the status
+  // line dfrotz draws before it carries no `>` and so opens no block.
+  const [banner = "", ...turns] = blocks;
+  return { opening: stripBanner(banner), turns };
 }
 
 /**
@@ -95,26 +109,58 @@ export function normalize(text: string): string {
 /**
  * Drop the interpreter's end-of-session dialogue.
  *
- * `quit` produces no status line, so its output lands inside the *previous*
- * turn's block — meaning the last real turn appears to have printed the score
- * summary and the "Do you wish to leave the game?" prompt. That is the
- * interpreter talking, not the game, and leaving it in would fail the final
- * turn of every walkthrough for a reason that has nothing to do with the
- * engine.
+ * Only the *quit* dialogue, identified by its confirmation prompt. An earlier
+ * version cut at the score summary itself, which looks equivalent and is not:
+ * `SCORE` prints a byte-identical summary, so a mid-walkthrough SCORE had its
+ * entire output deleted and then "matched" an engine that printed nothing. That
+ * is the failure mode this whole module warns about — a normalizer discarding
+ * so much that the comparison passes by construction.
  */
 export function stripSessionEnd(text: string): string {
-  // The line is prefixed by the `>` prompt, which dfrotz emits without a
-  // newline after it, so the summary shares a line with the prompt.
+  if (!/Do you wish to leave the game\?/.test(text)) return text;
   const cut = text.search(/^>?\s*Your score is .* \(total of \d+ points\)/m);
   return cut === -1 ? text : text.slice(0, cut);
 }
 
-/** Read a `.cmd` walkthrough into its commands, dropping blanks and comments. */
-export function parseWalkthrough(raw: string): string[] {
-  return raw
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith("#"));
+/**
+ * A walkthrough's parity expectation, declared in a `# parity:` directive.
+ *
+ * `informational` marks a walkthrough that *cannot* reach turn-for-turn parity
+ * for a stated reason — an unextracted routine, or output chosen by a random
+ * draw the engine's generator cannot reproduce. Such a walkthrough is still run
+ * and still reported; it simply does not fail the suite.
+ *
+ * This exists so that "cannot verify" and "fails to verify" stay distinguishable.
+ * Deleting the walkthrough would hide the limitation; leaving it failing would
+ * train everyone to ignore a red harness.
+ */
+export type ParityMode = "strict" | "informational";
+
+export interface Walkthrough {
+  commands: string[];
+  parity: ParityMode;
+  /** Why parity is informational, taken from the directive's `# reason:` lines. */
+  reason: string;
+}
+
+/** Read a `.cmd` walkthrough: its commands, plus any parity directive. */
+export function parseWalkthrough(raw: string): Walkthrough {
+  const lines = raw.split("\n").map((line) => line.trim());
+  const commands = lines.filter((line) => line.length > 0 && !line.startsWith("#"));
+
+  const parity: ParityMode = lines.some((line) => /^#\s*parity:\s*informational/.test(line))
+    ? "informational"
+    : "strict";
+
+  const reason = lines
+    .filter((line) => line.startsWith("#"))
+    .join(" ")
+    .replace(/^.*?#\s*reason:\s*/, "")
+    .replace(/#/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return { commands, parity, reason: parity === "informational" ? reason : "" };
 }
 
 export interface TurnDiff {

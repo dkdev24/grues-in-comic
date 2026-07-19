@@ -174,6 +174,15 @@ export function createBuiltins(): Map<string, Builtin> {
     if (firstVisit && entered.score !== undefined) addScore(ctx, entered.score);
 
     /*
+     * Entering an unlit room is announced before anything else — GOTO prints
+     * this ahead of the M-ENTER call, so the player learns they have stepped
+     * into the dark before the room's own arrival effects speak.
+     */
+    if (!truthy(ctx.state.globals["LIT"]) && truthy(ctx.state.globals["WINNER"] === PLAYER_ID)) {
+      tell(ctx, "You have moved into a dark place.\n");
+    }
+
+    /*
      * The room's own action routine runs on entry with M-ENTER, and it runs
      * **before** the description. This is where Zork puts the consequences of
      * arriving — the trap door slamming shut behind the player in the Cellar is
@@ -288,6 +297,23 @@ export function createBuiltins(): Map<string, Builtin> {
       if (tick <= 1) {
         const rtn = record.elements[C_RTN];
         if (typeof rtn !== "string") throw new Error(`CLOCKER: bad routine ${String(rtn)}`);
+
+        /*
+         * A daemon whose routine the document never defined disables itself
+         * after being reported once, instead of throwing.
+         *
+         * Not leniency for its own sake: the alternative is that a single
+         * unextracted routine destroys *every subsequent turn*, so a harness
+         * run reports dozens of failures that are all one cause, and the turn
+         * where the real divergence begins is buried. The routine name is
+         * recorded on `ctx.missingRoutines` so it is reported once, loudly,
+         * rather than swallowed — silence here would be worse than the crash.
+         */
+        if (!ctx.routines.has(rtn) && !ctx.builtins.has(rtn)) {
+          ctx.missingRoutines.add(rtn);
+          record.elements[C_ENABLED] = 0;
+          continue;
+        }
         if (truthy(callRoutine(rtn, [], ctx))) fired = true;
       }
     }

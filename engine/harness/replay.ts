@@ -21,7 +21,13 @@ import { fileURLToPath } from "node:url";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { createEngine } from "../src/engine.js";
 import { transcriptText } from "../src/events.js";
-import { diffTurns, parseGolden, parseWalkthrough, type TurnDiff } from "./golden.js";
+import {
+  diffTurns,
+  parseGolden,
+  parseWalkthrough,
+  type ParityMode,
+  type TurnDiff,
+} from "./golden.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const WALKTHROUGHS = join(ROOT, "verification", "walkthroughs");
@@ -43,10 +49,16 @@ export interface WalkthroughResult {
   /** Turns that matched, out of the total compared. */
   matched: number;
   total: number;
+  /** Routines a daemon needed but the document never defined. */
+  missingRoutines: string[];
+  /** Whether a diff here fails the suite. */
+  parity: ParityMode;
+  /** Why, when it does not. */
+  reason: string;
 }
 
 export function replay(name: string, doc: WorldDocument): WalkthroughResult {
-  const commands = parseWalkthrough(
+  const { commands, parity, reason } = parseWalkthrough(
     readFileSync(join(WALKTHROUGHS, `${name}.cmd`), "utf8"),
   );
   const golden = parseGolden(readFileSync(join(GOLDEN, `${name}.txt`), "utf8"));
@@ -73,7 +85,16 @@ export function replay(name: string, doc: WorldDocument): WalkthroughResult {
     actual.slice(0, compared),
   );
 
-  return { name, commands, diffs, matched: compared - diffs.length, total: compared };
+  return {
+    name,
+    commands,
+    diffs,
+    matched: compared - diffs.length,
+    total: compared,
+    missingRoutines: engine.missingRoutines(),
+    parity,
+    reason,
+  };
 }
 
 function trailingQuitLength(commands: readonly string[]): number {
@@ -106,15 +127,31 @@ function main(): void {
   let failed = 0;
   let matchedTotal = 0;
   let comparedTotal = 0;
+  let strictMatched = 0;
+  let strictTotal = 0;
 
   for (const name of walkthroughNames()) {
     const result = replay(name, doc);
     matchedTotal += result.matched;
     comparedTotal += result.total;
+    if (result.parity === "strict") {
+      strictMatched += result.matched;
+      strictTotal += result.total;
+    }
 
-    const status = result.diffs.length === 0 ? "PASS" : "DIFF";
-    if (result.diffs.length > 0) failed++;
+    const informational = result.parity === "informational";
+    const status =
+      result.diffs.length === 0 ? "PASS" : informational ? "INFO" : "DIFF";
+    if (result.diffs.length > 0 && !informational) failed++;
     console.log(`${status}: ${name} — ${result.matched}/${result.total} turns match`);
+    if (informational && result.reason.length > 0) {
+      console.log(`  informational: ${result.reason}`);
+    }
+    if (result.missingRoutines.length > 0) {
+      // Not a diff but a cause: gameplay is missing because the extractor
+      // catalogued these rather than extracting them.
+      console.log(`  not extracted: ${result.missingRoutines.join(", ")}`);
+    }
 
     if (!quiet) {
       for (const diff of result.diffs) {
@@ -128,6 +165,10 @@ function main(): void {
 
   const pct = comparedTotal === 0 ? 0 : Math.round((matchedTotal / comparedTotal) * 100);
   console.log(`\n${matchedTotal}/${comparedTotal} turns match (${pct}%)`);
+  if (strictTotal > 0) {
+    const strictPct = Math.round((strictMatched / strictTotal) * 100);
+    console.log(`${strictMatched}/${strictTotal} on strict walkthroughs (${strictPct}%)`);
+  }
   process.exit(failed);
 }
 

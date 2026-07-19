@@ -25,7 +25,7 @@ import { createBuiltins, describeRoom, isLit, M_BEG } from "./builtins.js";
 import { CONTRACT_VERSION, type EngineEvent, type TurnResult } from "./events.js";
 import { callRoutine, FatalSignal } from "./interpreter.js";
 import { loadWorld, type LoadOptions } from "./load.js";
-import { resolveExit } from "./movement.js";
+import { exitFor, resolveExit } from "./movement.js";
 import { describeCandidates, parse, type ParseResult } from "./parser.js";
 import { Rng } from "./rng.js";
 import { emit, emitOn, flush, tell, type RuntimeContext } from "./runtime.js";
@@ -61,6 +61,12 @@ export interface Engine {
   command(input: string): TurnResult;
   /** The opening room description, before any command. */
   start(): TurnResult;
+  /**
+   * Routines a daemon needed but the document does not define — i.e. routines
+   * the extractor catalogued rather than extracted. Empty for a complete world;
+   * non-empty means gameplay is silently missing, so a host should surface it.
+   */
+  missingRoutines(): string[];
   snapshot(): SaveState;
   restore(save: SaveState): void;
 }
@@ -74,6 +80,8 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
   );
   const builtins = createBuiltins();
   const rng = new Rng(seed ?? 0);
+  /** Accumulates across turns; see RuntimeContext.missingRoutines. */
+  const missingRoutines = new Set<string>();
 
   /**
    * ZIL V-WALK — travel. The story file never defines it because travel is the
@@ -174,6 +182,7 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
       channel: "prose",
       pendingWalks: [],
       depth: 0,
+      missingRoutines,
     };
   };
 
@@ -195,6 +204,7 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
       return { events: ctx.events, turn: state.turn };
     },
 
+    missingRoutines: () => [...missingRoutines].sort(),
     snapshot: () => snapshot(state, rng),
     restore: (save) => restore(state, rng, save),
   };
@@ -260,7 +270,18 @@ function handleParse(ctx: RuntimeContext, parsed: ParseResult): boolean {
       emitOn(ctx, "system", "That sentence isn't one I recognize.\n");
       return false;
     case "not-here":
-      emitOn(ctx, "system", "You can't see any such thing.\n");
+      /*
+       * ZIL's NOT-HERE-PRINT echoes the player's own words: "You can't see any
+       * trophy case here!". The generic "You can't see any such thing." is what
+       * it prints only when it has no noun to quote.
+       */
+      emitOn(
+        ctx,
+        "system",
+        parsed.words.length > 0
+          ? `You can't see any ${parsed.words.join(" ").toLowerCase()} here!\n`
+          : "You can't see any such thing.\n",
+      );
       return false;
     case "ambiguous": {
       const names = describeCandidates(ctx.world, parsed.candidates);
@@ -379,9 +400,22 @@ function travel(ctx: RuntimeContext, direction: Direction): void {
     case "blocked":
       tell(ctx, `${outcome.message}\n`);
       return;
-    case "refused":
+    case "refused": {
+      /*
+       * A door exit with no authored refusal names the door — ZIL answers "The
+       * trap door is closed.", not the generic direction refusal. The generic
+       * one is still right for a conditional exit whose global is false, where
+       * there is no object to name.
+       */
+      const exit = exitFor(ctx.world, from, direction);
+      if (exit?.kind === "door") {
+        const name = ctx.world.objects.get(exit.door)?.name ?? exit.door;
+        tell(ctx, `The ${name} is closed.\n`);
+        return;
+      }
       tell(ctx, "You can't go that way.\n");
       return;
+    }
     case "none":
       tell(ctx, "You can't go that way.\n");
       return;

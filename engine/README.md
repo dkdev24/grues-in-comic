@@ -42,8 +42,16 @@ Rendering is entirely the UI layer's job (milestone 5). The engine says
 | 4.1 | State & world runtime | ✅ |
 | 4.2 | Command parser | ✅ |
 | 4.3 | Action dispatch & events | ✅ |
-| 4.4 | Transcript replay harness | ✅ (all 3 goldens, 30/30 turns) |
-| 4.5 | Systems completion (⚑ Gate C) | ☐ |
+| 4.4 | Transcript replay harness | ✅ |
+| 4.5 | Systems completion (⚑ Gate C) | ⏳ 64/64 strict turns across 6 walkthroughs |
+
+## Parity
+
+`npm run replay` diffs the engine against dfrotz captures of the shipped Release 119 story
+file. A walkthrough may declare `# parity: informational` with a reason when it *cannot*
+reach turn-for-turn parity — an unextracted routine, or output chosen by a random draw the
+engine's generator cannot reproduce. Those are reported as `INFO` and do not fail the suite,
+because **"cannot verify" and "fails to verify" are different states**.
 
 ## Commands
 

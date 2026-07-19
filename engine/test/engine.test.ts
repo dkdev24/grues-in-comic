@@ -123,7 +123,9 @@ describe("parser failures reach the player", () => {
     engine.start();
     expect(text(say("xyzzyfoo"))).toMatch(/don't know the word/i);
     expect(text(say("take unicorn"))).toMatch(/don't know the word|can't see any such thing/i);
-    expect(text(say("take sword"))).toMatch(/can't see any such thing/i);
+    // ZIL's NOT-HERE-PRINT echoes the player's own noun rather than answering
+    // generically — "You can't see any sword here!"
+    expect(text(say("take sword"))).toMatch(/can't see any sword here/i);
   });
 
   it("does not advance the clock on a parse failure", () => {

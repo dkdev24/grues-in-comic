@@ -682,3 +682,45 @@ Stage 4.4 ✅ — exit criteria exceeded. The criterion was "first golden transc
 79 engine tests (11 new), IR 184/184, typecheck clean.
 
 Next: stage 4.5 — daemons, scoring, save/load, death, and ⚑ **Gate C**. Note that Gate C's own criterion ("all golden transcripts pass") is already met on the current three; the remaining 4.5 work is the systems those three walkthroughs do not exercise, and the honest next step is **more walkthroughs** covering the thief, combat, the lamp countdown, and death — parity on three short transcripts is a real result but a narrow one.
+
+---
+
+## v0.6.4 — Engine Core: Wider Parity Coverage (Milestone 4, stage 4.5 in progress)
+
+**Date:** 2026-07-20
+
+### Why
+
+v0.6.3 met Gate C's stated criterion — all golden transcripts passing — on three short walkthroughs that never touch the lamp, darkness, scoring, the trap door, or combat. Claiming the gate on that basis would have been true and misleading. This session tripled the corpus first.
+
+### Three new walkthroughs, captured from the reference build
+
+`04-lamp-and-darkness`, `05-troll-combat`, `06-scoring-and-treasure`, captured with `run-transcripts.sh capture` against the shipped Release 119 story file. The three existing goldens re-captured **byte-identical**, which is worth stating: the oracle is stable, so new diffs are the engine's, not the capture's.
+
+Parity went 30/30 (3 walkthroughs) → **64/64 on strict walkthroughs, 82 turns total across 6**.
+
+### Defects found
+
+1. **The harness split turns on the wrong thing.** Turn boundaries were taken to be dfrotz's status line; they are the **`>` prompt**. dfrotz redraws the status line only when the move counter advances, and ZIL's meta-verbs (SCORE, DIAGNOSE, VERBOSE) deliberately do not consume a move. Every such command was therefore merged into its neighbour, shifting all later turns by one — which presents as a cascade of unrelated content diffs rather than as an off-by-one. Walkthroughs 01–03 parsed correctly only because none of them uses SCORE mid-sequence.
+2. **`stripSessionEnd` was deleting real output.** It cut at the score summary, and `SCORE` prints a byte-identical summary to the one `quit` prints — so a mid-walkthrough SCORE had its entire output removed and then "matched" an engine that printed nothing. This is exactly the failure the normalizer's own module comment warns about: a comparison passing by construction. It now keys on the quit confirmation prompt, which is the thing that actually distinguishes them.
+3. **A missing daemon routine destroyed every subsequent turn.** `I-SWORD` is catalogued rather than extracted, and CLOCKER threw on it every turn from the moment the sword was picked up — turning one cause into twelve reported failures and burying the turn where real divergence began. CLOCKER now disables such an interrupt after recording it, and the engine exposes `missingRoutines()` so the omission is reported once and loudly. Recovering from this alone took walkthrough 05 from 6/18 to 11/18.
+4. **Door exits gave the generic refusal.** ZIL names the door — "The trap door is closed." — where the engine said "You can't go that way." The generic answer remains correct for a conditional exit, which has no object to name.
+5. **"Not here" did not echo the player's words.** ZIL's NOT-HERE-PRINT answers "You can't see any trophy case here!"; the engine answered generically. The generic form is what ZIL prints only when it has no noun to quote.
+6. **Entering an unlit room was not announced.** GOTO prints "You have moved into a dark place." before the M-ENTER call, so the player learns they have stepped into the dark before the room's arrival effects speak.
+
+### A limit of the method, made explicit
+
+Walkthrough 05 cannot reach turn-for-turn parity, for two reasons that are worth keeping distinct:
+
+- **`I-SWORD` is catalogued, not extracted** (`unknown form <NEXTP …>`). It walks the room's exits as *numbered Z-machine properties* to decide whether a villain is near — precisely the memory layout the IR abstracts away. The extractor cannot translate that mechanically, and expressing its semantics over the IR's structured exits is an **IR** decision, not an engine one. Implementing it in `engine/` would violate ADR 0002's rule that no game-specific identifier appears there.
+- **Combat output is chosen by random draw**, and the engine's seeded generator is not the Z-machine's. Identical seeds produce different sequences, so these turns can never match text-for-text unless the engine reproduces frotz's generator exactly. That is an open architectural question, not a defect.
+
+Rather than delete the walkthrough (hiding the limitation) or leave it failing (training everyone to ignore a red harness), walkthroughs may now declare `# parity: informational` with a reason. Such a walkthrough is still run and still reported — as `INFO`, with its reason printed — but does not fail the suite. The summary reports strict and overall figures separately, and a test asserts the strict set stays the large majority, so parity cannot be "achieved" by marking everything informational.
+
+**"Cannot verify" and "fails to verify" are different states, and the harness now says which is which.**
+
+### Status
+
+83 engine tests (4 new), IR 184/184, typecheck clean. **64/64 strict turns (100%), 75/82 overall (91%).**
+
+Stage 4.5 remains open: daemons beyond the clock, death and resurrection, save/load verbs, and the P-WON demon-region gating. Gate C should not be declared until the RNG question is answered, since combat is a substantial part of Zork I's behavior and is currently unverifiable by this method.

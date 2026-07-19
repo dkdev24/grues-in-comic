@@ -20,8 +20,23 @@ describe("golden transcripts", () => {
   });
 
   for (const name of names) {
+    const result = replay(name, doc);
+
+    if (result.parity === "informational") {
+      /*
+       * Declared unverifiable, with a stated reason — see the `# parity:`
+       * directive in the walkthrough. Asserting it *stays* unverifiable would
+       * be wrong (fixing it is the goal), so the test only checks the
+       * declaration is intact and the reason survives, keeping "cannot verify"
+       * visible instead of quietly deleted.
+       */
+      it(`declares why ${name} cannot be verified`, () => {
+        expect(result.reason.length).toBeGreaterThan(0);
+      });
+      continue;
+    }
+
     it(`replays ${name} with no diff`, () => {
-      const result = replay(name, doc);
       // Report the diffs themselves on failure — a bare count says nothing
       // about which turn broke or how.
       expect(
@@ -31,11 +46,19 @@ describe("golden transcripts", () => {
     });
   }
 
+  it("verifies strictly on most walkthroughs", () => {
+    // Guards against parity being "achieved" by marking everything
+    // informational: the strict set must stay the large majority.
+    const results = names.map((name) => replay(name, doc));
+    const strict = results.filter((r) => r.parity === "strict");
+    expect(strict.length).toBeGreaterThanOrEqual(results.length - 1);
+  });
+
   it("compares a meaningful number of turns", () => {
     // Guards against the harness passing by comparing nothing — a normalizer
     // bug that empties both sides would otherwise look like perfect parity.
     const total = names.reduce((sum, name) => sum + replay(name, doc).total, 0);
-    expect(total).toBeGreaterThanOrEqual(30);
+    expect(total).toBeGreaterThanOrEqual(80);
   });
 });
 

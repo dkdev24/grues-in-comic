@@ -56,6 +56,12 @@ export interface RuntimeContext {
   finished?: { outcome: "victory" | "death" | "quit"; text: string };
   /** Depth guard: behavior is data, and data can recurse forever. */
   depth: number;
+  /**
+   * Routines a daemon named but the document never defined — routines the
+   * extractor catalogued rather than extracted. Shared across turns so the
+   * host can report each one once, and never silently.
+   */
+  missingRoutines: Set<string>;
 }
 
 export type Builtin = (ctx: RuntimeContext, args: BehaviorValue[]) => BehaviorValue;

@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.6.3**
+**0.6.4**
 
 ---
 
@@ -24,11 +24,61 @@ Historical sources imported:
   - 3.5 ✅ (Group B complete): 346 routines extracted, 32 catalogued (all triaged, ADR 0001 builtin list), 39/292 refs unresolved (87% coverage); IR schema 0.13.0
   - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL); world-doc gaps 1 (meta entities) + 2 (table-valued globals) + 3 (nested tables/ITABLE)
   - Remaining catalog = Group A engine builtins by design + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag)
-- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ interpreter, Group A builtins, dispatch chain, save/restore; 4.4 ✅ transcript harness — **all 3 goldens replay with zero diff (30/30 turns)**. 4.5 remaining
+- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ interpreter, Group A builtins, dispatch chain, save/restore; 4.4 ✅ transcript harness; 4.5 ⏳ — corpus tripled to 6 walkthroughs, **64/64 strict turns (100%), 75/82 overall**. Gate C not yet claimed
 
 ---
 
-## Last Session (v0.6.3) — M4 stage 4.4: transcript replay harness
+## Last Session (v0.6.4) — M4 stage 4.5 (partial): wider parity coverage
+
+**Why:** v0.6.3 met Gate C's stated criterion on three short walkthroughs that never touch
+the lamp, darkness, scoring, the trap door, or combat. Claiming the gate on that basis
+would have been true and misleading. The corpus was tripled first.
+
+Three new walkthroughs captured from the reference build — `04-lamp-and-darkness`,
+`05-troll-combat`, `06-scoring-and-treasure`. **The three existing goldens re-captured
+byte-identical**, so the oracle is stable and new diffs are the engine's.
+
+**83 engine tests, IR 184/184. 64/64 strict turns (100%), 75/82 overall (91%).**
+
+**Six defects, three of them in the harness itself:**
+
+1. **Turn boundaries were the status line; they are the `>` prompt.** dfrotz redraws the
+   status line only when MOVES advances, and ZIL's meta-verbs (SCORE, DIAGNOSE, VERBOSE)
+   deliberately don't consume a move — so each one merged into its neighbour and shifted
+   every later turn, presenting as a cascade of content diffs rather than an off-by-one.
+   01–03 parsed correctly only because none uses SCORE mid-sequence
+2. **`stripSessionEnd` was deleting real output** — it cut at the score summary, and
+   `SCORE` prints a byte-identical summary to `quit`'s. A mid-walkthrough SCORE had its
+   output removed and then "matched" an engine printing nothing: the pass-by-construction
+   failure the module's own comment warns about. Now keys on the quit confirmation prompt
+3. **A missing daemon destroyed every later turn** — CLOCKER threw on `I-SWORD` every turn
+   after the sword was taken, turning one cause into twelve failures and burying where real
+   divergence began. CLOCKER now disables such an interrupt after recording it;
+   `engine.missingRoutines()` reports it once and loudly. This alone took 05 from 6/18 → 11/18
+4. **Door exits gave the generic refusal** — ZIL names the door ("The trap door is closed.")
+5. **"Not here" didn't echo the player's words** — ZIL: "You can't see any trophy case here!"
+6. **Entering an unlit room wasn't announced** — "You have moved into a dark place.", before
+   the M-ENTER call
+
+**A limit of the method, now explicit.** Walkthrough 05 cannot reach turn-for-turn parity:
+
+- **`I-SWORD` is catalogued, not extracted** (`<NEXTP …>`). It walks exits as *numbered
+  Z-machine properties* — the layout the IR abstracts away — so the extractor can't
+  translate it mechanically. Expressing its semantics over the IR's structured exits is an
+  **IR** decision; implementing it in `engine/` would violate ADR 0002's no-game-identifiers rule
+- **Combat output is chosen by random draw** and our seeded generator is not the
+  Z-machine's, so those turns can never match text-for-text unless the engine reproduces
+  frotz's generator
+
+Walkthroughs may now declare `# parity: informational` with a reason: still run, still
+reported as `INFO` with the reason printed, but not failing the suite. Strict and overall
+figures are reported separately and a test asserts the strict set stays the large majority,
+so parity can't be "achieved" by marking everything informational. **"Cannot verify" and
+"fails to verify" are different states, and the harness now says which.**
+
+---
+
+## Prior Session (v0.6.3) — M4 stage 4.4: transcript replay harness
 
 **All three golden transcripts replay with zero diff — 30/30 turns, 100%.** The goldens are
 dfrotz captures of the shipped Release 119 story file, so this is a diff against real
@@ -286,9 +336,19 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M4 in progress. 4.1–4.4 ✅ — next is 4.5, systems completion (⚑ Gate C).**
+**M4 in progress. 4.1–4.4 ✅, 4.5 partial — next is the RNG decision, then the remaining systems.**
 
-1. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
+1. **⚑ The RNG question — decide before claiming Gate C.** Combat, PICK-ONE and the thief
+   all draw randomly, and the engine's mulberry32 is not frotz's generator, so those turns
+   cannot match a golden text-for-text. Three options, none yet chosen:
+   (a) **reproduce frotz's PRNG** in `Rng` — makes combat verifiable and costs a small,
+   well-specified piece of engine code, but pins the engine to one interpreter's choice;
+   (b) **verify randomized turns differently** — assert the output is *one of* the valid
+   message set rather than a specific one, which keeps the engine's generator free;
+   (c) **accept combat as unverifiable** and rely on the deterministic corpus. Currently
+   (c) by default, which is the weakest of the three. This is the main thing standing
+   between the project and an honest Gate C
+3. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
    Engine `CLOCKER` needs P-WON demon-region gating; the POC's `builtins.CLOCKER` in
    `ir/poc/world.ts` is the starting point but does not implement that gating
    - **Gate C's own criterion is already met on the current three transcripts.** The honest
@@ -323,6 +383,7 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 - `art/` has **no test harness**; the 4656-image corpus sweep was ad hoc. Needs a regression test once the module gains a toolchain
 - **`room-title` channel is unused in practice.** The engine delegates room description to Zork's own `DESCRIBE-ROOM`, which prints the name with `<TELL D ,HERE>`, so the title cannot be split onto its own channel without parsing prose — which the ADR 0002 contract forbids. A UI wanting the title should read `player-moved`.to and look the name up in the world document. Decide in 4.4/5.2 whether the channel stays in the contract
 - **ZIL property defaults live in the engine, not the IR.** `PROPDEF SIZE 5` etc. are encoded in `engine/src/interpreter.ts`. The document is the correct home; adding a `propdefs` section is an IR schema change deferred rather than rejected
+- **`I-SWORD` needs an IR answer, not an engine one.** It walks exits as numbered Z-machine properties (`<NEXTP …>`); the IR models exits structurally, so the extractor cannot translate it mechanically and the engine must not hard-code it (ADR 0002). Likely needs a small IR behavior op for "rooms adjacent to here" — an IR schema decision, so deliberately not taken autonomously. Same shape of problem as `I-CYCLOPS` (`<NTH …>`)
 - **Stubbed builtins**: `RANDOMIZE-OBJECTS`, `HERO-BLOW`, `V-CLIMB-UP` return no-ops so call sites reach a defined value instead of crashing a turn. They belong to the thief/combat systems in 4.5
 - `README.md:27` still says the engine is "inspired by the original gameplay" — understates the commitment to behavioral compatibility verified by golden transcripts. Minor wording
 
