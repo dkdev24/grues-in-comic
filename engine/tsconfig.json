@@ -13,5 +13,5 @@
       "@grues-in-comic/ir": ["../ir/src/index.ts"]
     }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "harness"]
 }

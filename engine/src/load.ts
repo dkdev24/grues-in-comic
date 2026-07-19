@@ -142,13 +142,23 @@ export function loadWorld(doc: WorldDocument, options: LoadOptions = {}): Loaded
 }
 
 /**
- * Append a child during load. Unlike the runtime {@link move}, this preserves
- * document order — the order objects are listed in a room is the order the ZIL
- * source declared them, and object-listing output depends on it.
+ * Attach a child during load, at the **front** of the parent's child list.
+ *
+ * The Z-machine builds its object tree with `insert_obj`, which prepends, so a
+ * container's children end up in *reverse* declaration order. Loading in
+ * document order instead is a plausible-looking mistake that produces plausible
+ * -looking output: every object is present and in a stable order, just not the
+ * original's. Stage 4.4's transcript diff is what settled it — the Kitchen
+ * lists the bottle before the sack and the Living Room the sword before the
+ * lantern, both the reverse of how `1dungeon.zil` declares them.
+ *
+ * This is the same rule as the runtime {@link move}, which is the point: there
+ * is one insertion order in the object tree, not one for loading and another
+ * for play.
  */
 function link(state: GameState, entity: string, parent: string): void {
   state.locations[entity] = parent;
-  (state.children[parent] ??= []).push(entity);
+  (state.children[parent] ??= []).unshift(entity);
 }
 
 function containerFor(

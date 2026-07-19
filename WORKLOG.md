@@ -645,3 +645,40 @@ Delegating to the game's `DESCRIBE-ROOM` costs the **`room-title` channel**: Zor
 Stage 4.3 ✅ — exit criteria met: LOOK/TAKE/DROP/inventory all produce correct events.
 
 Next: stage 4.4, the transcript replay harness — diff engine output against the dfrotz goldens in `verification/`.
+
+---
+
+## v0.6.3 — Engine Core: Transcript Replay Harness (Milestone 4, stage 4.4)
+
+**Date:** 2026-07-20
+
+### Result
+
+**All three golden transcripts replay with zero diff — 30/30 turns, 100%.** The goldens are dfrotz captures of the shipped Release 119 story file, so this is a diff against real Zork I, not against our own earlier output.
+
+### The harness
+
+- **`engine/harness/golden.ts`** — parses a dfrotz capture into per-turn blocks and normalizes them. Turn boundaries are the status lines, which dfrotz redraws after each prompt. Normalization removes what is *presentation* on both sides: the interpreter banner, the status line, the `>` prompt, the end-of-session dialogue, and hard word wrapping — dfrotz wraps at the terminal width and the engine emits unwrapped text, so a literal comparison would fail on every sentence over 76 characters while saying nothing about behavior. Paragraph breaks are **kept**, because Zork uses blank lines deliberately and a missing one is a real diff.
+- **`engine/harness/replay.ts`** — `npm run replay`, exit code = number of failing walkthroughs, so it drops into CI unchanged. A crashed turn is reported as a diff rather than aborting the run, so one bad command does not hide the state of the rest.
+- **`engine/test/transcript.test.ts`** — the same comparison wired into the suite so parity cannot regress silently between sessions.
+
+**The normalizer has tests of its own**, and they matter more than they look: it decides what "the same output" means, so one that discarded too much would make every transcript pass and the harness worthless. There is also a guard asserting a minimum number of compared turns, because a normalizer bug that emptied both sides would otherwise read as perfect parity.
+
+This deliberately does not go through `verification/run-transcripts.sh`: that script drives a Z-machine story file and the engine is not one. Both sides compare against the same goldens, which is the only thing that has to be shared.
+
+### Four defects the harness caught immediately
+
+The first run reported 70%, with diffs legible enough to diagnose on sight.
+
+1. **Object-tree insertion order was backwards — and this closes a long-standing open issue.** HANDOFF has carried "Kitchen object order (sack/bottle swapped) — decide for engine parity" since stage 0.2, framed as a question about which behavior to prefer. It was not a judgement call: the Z-machine builds its object tree with `insert_obj`, which **prepends**, so a container's children end up in reverse declaration order. The Kitchen lists the bottle before the sack and the Living Room the sword before the lantern, both the reverse of `1dungeon.zil`. Loading in document order produced plausible output — every object present, stable order, simply not the original's. `load.ts` now prepends, the same rule the runtime `move` already used; there is one insertion order in the object tree, not one for loading and another for play.
+2. **Room action routines were never called with `M-ENTER`.** This is where Zork puts the consequences of arriving. Without it the Cellar is entered in silence — the trap door never slams shut, and the game becomes winnable in a way it should not be. It also runs **before** the description, not after: running it later still prints every word, in an order that reads as though the door closed on the way out.
+3. **A spurious engine fallback message.** Dispatch printed "You can't do that." whenever the verb default returned false, but a `V-*` routine that returns false has usually already printed its own refusal — so the engine appended a second, contradictory sentence. It surfaced as a stray line after a perfectly good LOOK.
+4. **A harness bug, not an engine bug.** `quit` produces no status line, so its output lands inside the previous turn's block, making the last real turn of every walkthrough appear to print the score summary. Worth recording because the fix belonged in the normalizer: had it been "fixed" in the engine, the engine would have grown code to emit interpreter dialogue it has no business emitting.
+
+### Status
+
+Stage 4.4 ✅ — exit criteria exceeded. The criterion was "first golden transcript replays with acceptable diff"; all three replay with **no** diff.
+
+79 engine tests (11 new), IR 184/184, typecheck clean.
+
+Next: stage 4.5 — daemons, scoring, save/load, death, and ⚑ **Gate C**. Note that Gate C's own criterion ("all golden transcripts pass") is already met on the current three; the remaining 4.5 work is the systems those three walkthroughs do not exercise, and the honest next step is **more walkthroughs** covering the thief, combat, the lamp countdown, and death — parity on three short transcripts is a real result but a narrow one.

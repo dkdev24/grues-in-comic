@@ -173,6 +173,17 @@ export function createBuiltins(): Map<string, Builtin> {
     const entered = ctx.world.rooms.get(to)!;
     if (firstVisit && entered.score !== undefined) addScore(ctx, entered.score);
 
+    /*
+     * The room's own action routine runs on entry with M-ENTER, and it runs
+     * **before** the description. This is where Zork puts the consequences of
+     * arriving — the trap door slamming shut behind the player in the Cellar is
+     * an M-ENTER effect, and the transcript shows it announced before the room
+     * is described, not after. Running it later still prints every word, in an
+     * order that reads as though the door closed on the way out.
+     */
+    const action = ctx.state.properties[to]?.["action"];
+    if (typeof action === "string") callRoutine(action, [M_ENTER], ctx);
+
     if (describe !== false) describeRoom(ctx, to, firstVisit);
     return true;
   });

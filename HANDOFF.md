@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.6.2**
+**0.6.3**
 
 ---
 
@@ -24,11 +24,49 @@ Historical sources imported:
   - 3.5 ✅ (Group B complete): 346 routines extracted, 32 catalogued (all triaged, ADR 0001 builtin list), 39/292 refs unresolved (87% coverage); IR schema 0.13.0
   - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL); world-doc gaps 1 (meta entities) + 2 (table-valued globals) + 3 (nested tables/ITABLE)
   - Remaining catalog = Group A engine builtins by design + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag)
-- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ behavior interpreter, Group A builtins, dispatch chain, save/restore — **the engine plays Zork I**. 4.4–4.5 remaining
+- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ interpreter, Group A builtins, dispatch chain, save/restore; 4.4 ✅ transcript harness — **all 3 goldens replay with zero diff (30/30 turns)**. 4.5 remaining
 
 ---
 
-## Last Session (v0.6.2) — M4 stage 4.3: action dispatch & events
+## Last Session (v0.6.3) — M4 stage 4.4: transcript replay harness
+
+**All three golden transcripts replay with zero diff — 30/30 turns, 100%.** The goldens are
+dfrotz captures of the shipped Release 119 story file, so this is a diff against real
+Zork I, not against our own earlier output. 79 engine tests (11 new), IR 184/184.
+
+- **`harness/golden.ts`** — parses dfrotz captures into per-turn blocks (status lines are
+  the boundaries) and normalizes away presentation on both sides: banner, status line, `>`
+  prompt, end-of-session dialogue, and hard wrapping (dfrotz wraps at terminal width, the
+  engine doesn't — a literal compare would fail on every sentence over 76 chars while
+  saying nothing about behavior). **Paragraph breaks are kept** — Zork uses blank lines
+  deliberately and a missing one is a real diff
+- **`harness/replay.ts`** — `npm run replay`, exit code = failing walkthroughs, CI-ready.
+  A crashed turn is a diff, not an abort, so one bad command doesn't hide the rest
+- **`test/transcript.test.ts`** — same comparison in the suite, so parity can't regress
+  silently. **The normalizer has its own tests** plus a minimum-compared-turns guard: it
+  defines what "same output" means, so one discarding too much would make everything pass
+
+**Four defects, caught on the first run (which reported 70%):**
+
+1. **Object-tree insertion order was backwards — this closes the long-standing open issue.**
+   "Kitchen object order (sack/bottle swapped)" has been carried since stage 0.2 as a
+   question of which behavior to prefer. It was never a judgement call: the Z-machine's
+   `insert_obj` **prepends**, so children end up in reverse declaration order. Document
+   order gave plausible output — all objects present, stable order, just not the original's.
+   `load.ts` now prepends, matching the runtime `move`
+2. **Room actions were never called with `M-ENTER`** — where Zork puts the consequences of
+   arriving. The Cellar was entered in silence, the trap door never slammed, and the game
+   became winnable in a way it should not be. It runs **before** the description
+3. **A spurious engine fallback** — dispatch printed "You can't do that." whenever a verb
+   default returned false, but those routines usually already printed their own refusal
+4. **A harness bug, not an engine bug** — `quit` emits no status line, so its output lands
+   in the previous turn's block. Recorded because the fix belonged in the *normalizer*: had
+   it been "fixed" in the engine, the engine would have grown code to emit interpreter
+   dialogue it has no business emitting
+
+---
+
+## Prior Session (v0.6.2) — M4 stage 4.3: action dispatch & events
 
 **The engine plays Zork I.** A walkthrough from West of House into the Living Room
 reproduces the original's prose. 68 engine tests (22 new), IR 184/184, typecheck clean.
@@ -248,14 +286,18 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M4 in progress. 4.1 ✅ 4.2 ✅ 4.3 ✅ — next is 4.4, the transcript harness.**
+**M4 in progress. 4.1–4.4 ✅ — next is 4.5, systems completion (⚑ Gate C).**
 
-1. **Stage 4.4 — transcript replay harness** against `verification/` goldens. Parity is
-   measured on `transcriptText()`; the sanctioned diffs are the banner and Kitchen object
-   order (see Open Issues)
-2. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
+1. **Stage 4.5 — systems completion** (⚑ Gate C): daemons, scoring, save/load, death.
    Engine `CLOCKER` needs P-WON demon-region gating; the POC's `builtins.CLOCKER` in
    `ir/poc/world.ts` is the starting point but does not implement that gating
+   - **Gate C's own criterion is already met on the current three transcripts.** The honest
+     next step is therefore **more walkthroughs** — the thief, combat, the lamp countdown,
+     death and resurrection — before claiming the gate. Parity on three short transcripts
+     is a real result but a narrow one, and the systems 4.5 adds are precisely the ones
+     those three never exercise
+   - Replace the three stubbed builtins (`RANDOMIZE-OBJECTS`, `HERO-BLOW`, `V-CLIMB-UP`)
+     with real implementations as the thief/combat systems land
 
 **Done in M3** (kept for reference):
 1. ✅ **Meta entities** — done in v0.5.14 (`metaEntities`, IR 0.11.0); I-THIEF unblocked
@@ -276,7 +318,6 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 
 ## Open Issues
 - Neutral branding for commercial assets (engine/IR/importer)
-- Kitchen object order (sack/bottle swapped) — decide for engine parity (stage 4.4)
 - Repo is prepared for public release but not yet public (carried from v0.5.17; nothing blocks it)
 - **Backdrop scarcity**: 3 shipped Comic Chat backdrops vs. 110 Zork rooms, and no `AT_BACKDROP` assets exist. Options sketched but undecided — panel compositions that avoid backdrops, deriving variants from the three originals, or new art in the Woodring hatch idiom for the ~10 rooms that carry the game. M5 decision
 - `art/` has **no test harness**; the 4656-image corpus sweep was ad hoc. Needs a regression test once the module gains a toolchain

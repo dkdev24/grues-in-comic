@@ -293,10 +293,14 @@ function dispatch(ctx: RuntimeContext, preAction: string | undefined): void {
     const room = ctx.world.rooms.get(here(ctx.state));
     if (room?.action !== undefined && handled(ctx, room.action, [M_BEG])) return;
 
-    // Nobody claimed it: the verb's own default runs.
-    if (!handled(ctx, ctx.action)) {
-      tell(ctx, "You can't do that.\n");
-    }
+    /*
+     * Nobody claimed it: the verb's own default runs, and whatever it does is
+     * the answer. There is no engine fallback message here — a V-* routine that
+     * returns false has usually already printed its own refusal, so adding
+     * "You can't do that." appends a second, contradictory sentence. It showed
+     * up in the stage 4.4 diff as a stray line after a perfectly good LOOK.
+     */
+    handled(ctx, ctx.action);
   } catch (signal) {
     // RFATAL aborts the turn without aborting the game.
     if (!(signal instanceof FatalSignal)) throw signal;

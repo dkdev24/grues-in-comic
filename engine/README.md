@@ -42,14 +42,15 @@ Rendering is entirely the UI layer's job (milestone 5). The engine says
 | 4.1 | State & world runtime | ✅ |
 | 4.2 | Command parser | ✅ |
 | 4.3 | Action dispatch & events | ✅ |
-| 4.4 | Transcript replay harness | ☐ |
+| 4.4 | Transcript replay harness | ✅ (all 3 goldens, 30/30 turns) |
 | 4.5 | Systems completion (⚑ Gate C) | ☐ |
 
 ## Commands
 
 ```sh
-npm test        # vitest
+npm test          # vitest, including golden-transcript parity
 npm run typecheck
+npm run replay    # parity report; exit code = failing walkthroughs
 ```
 
 Tests run against the real extracted Zork I world (`ir/artifacts/zork1.world.json`),

@@ -26,12 +26,23 @@ describe("loadWorld (Zork I)", () => {
     expect(state.turn).toBe(0);
   });
 
-  it("parents every room under the ROOMS meta entity, in document order", () => {
+  it("parents every room under the ROOMS meta entity, in reverse document order", () => {
     const { state } = loadWorld(doc);
     const rooms = childrenOf(state, "ROOMS");
     expect(rooms.length).toBe(110);
-    expect(rooms[0]).toBe("WEST-OF-HOUSE");
-    expect(rooms).toEqual(doc.rooms.map((r) => r.id));
+    // Reversed, because the Z-machine builds the object tree by prepending
+    // (`insert_obj`). Stage 4.4's transcript diff is what established this:
+    // the Kitchen lists the bottle before the sack, the reverse of how
+    // 1dungeon.zil declares them. See `link` in src/load.ts.
+    expect(rooms).toEqual([...doc.rooms.map((r) => r.id)].reverse());
+    expect(rooms[rooms.length - 1]).toBe("WEST-OF-HOUSE");
+  });
+
+  it("orders a container's children as the Z-machine object tree does", () => {
+    const { state } = loadWorld(doc);
+    // 1dungeon.zil declares SANDWICH-BAG then BOTTLE; the game lists the
+    // bottle first, and the golden transcript agrees.
+    expect(childrenOf(state, "KITCHEN-TABLE")).toEqual(["BOTTLE", "SANDWICH-BAG"]);
   });
 
   it("nests LOCAL-GLOBALS inside GLOBAL-OBJECTS, as the scope walk requires", () => {
