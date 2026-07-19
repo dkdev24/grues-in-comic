@@ -51,7 +51,7 @@ Historical sources imported:
 3. ✅ **Nested table elements + ITABLE** — done in v0.5.16 (`{table, offset}` table elements, IR 0.13.0); HERO-BLOW now blocks only on Group A `RANDOM`
 - The world-document unit is **complete**: the document loads and boots a world with nothing seeded by hand, which was the precondition for M4
 4. One-off tail, unassigned: `<NEXTP …>` (I-SWORD, OTHER-SIDE), `<NTH …>` (I-CYCLOPS), String-in-statement-position (GRATE-FUNCTION), bare `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with a non-literal byte count (PICK-ONE — Group A regardless)
-5. Stage 5.1 (Comic Chat) = filler
+5. Stage 5.1 (Comic Chat analysis) = filler, independent of every gate. Read `docs/comic-chat-paper.md` (the authors' SIGGRAPH '96 paper — balloon layout, character placement, gesture selection, camera zoom) alongside `original-projects/comic-chat/`; it explains the intent behind that source. Gitignored, so it may be absent from a fresh checkout — see the reference note in `docs/DEVELOPMENT_PLAN.md` M5
 4. M4 can start against the Group A builtin contract (walk map from IR); engine CLOCKER needs P-WON demon-region gating (stage 4.5)
 
 **M0 complete** (0.1–0.3):
@@ -74,6 +74,7 @@ Historical sources imported:
 | `ir/` | IR schema, validator, extraction → `artifacts/zork1.world.json` |
 | `original-projects/zork1/` | ZIL source reference |
 | `original-projects/comic-chat/` | Comic Chat source reference |
+| `docs/comic-chat-paper.md` | Kurlander/Skelly/Salesin SIGGRAPH '96 Comic Chat paper — presentation-algorithm reference for stage 5.1/5.3. **Gitignored** (third-party); local-only, may be absent |
 | `docs/` | Project documentation |
 | `wiki/` | Semantic notes (hand-authored) |
 | `<module>/graphify-out/` | Graphify graphs (config: `.graphifyignore`) |

@@ -88,13 +88,17 @@ Goal: browser shell consuming engine events; Comic Chat–inspired presentation.
 
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|
-| 5.1 | **Comic Chat analysis** — study `original-projects/comic-chat/` presentation concepts: panel layout, bubble placement, character/emotion selection; document in `wiki/` | Written analysis of the algorithms worth preserving | ☐ |
+| 5.1 | **Comic Chat analysis** — study `original-projects/comic-chat/` presentation concepts: panel layout, bubble placement, character/emotion selection; document in `wiki/` (read the paper below alongside the source) | Written analysis of the algorithms worth preserving | ☐ |
 | 5.2 | **Minimal browser shell** — text-mode UI over the event stream (prove the contract end-to-end) | Playable text version in browser | ☐ |
 | 5.3 | **Comic renderer POC** — one scene as panels + speech bubbles | POC demonstrates event→panel mapping ⚑ **Gate D** | ☐ |
 | 5.4 | **Presentation buildout** — panel sequencing, character portraits, narration styling, persistence | Opening area playable in comic form | ☐ |
 | 5.5 | **Full-game pass** — art/layout coverage for the complete game | Game completable in the browser | ☐ |
 
 **⚑ Gate D:** comic-presentation POC decides art pipeline and asset strategy — plan 5.4–5.5 in detail only after it.
+
+**Reference paper for 5.1/5.3:** Kurlander, Skelly & Salesin, *Comic Chat* (SIGGRAPH '96) — the authors' own account of the algorithms this milestone borrows: balloon construction and layout, character placement and orientation, default gesture/expression selection, semantic panel elements, and virtual-camera zoom. It describes the *intent* behind the code in `original-projects/comic-chat/`, so it is the faster way in for anyone starting 5.1 or designing the event→panel mapping at 5.3.
+
+The text sits at `docs/comic-chat-paper.md` but is **gitignored** — it is a third-party copyrighted ACM publication, kept locally rather than redistributed. If it is not in your checkout, retrieve it from the ACM Digital Library or the authors' pages; nothing in the build depends on it.
 
 ---
 
