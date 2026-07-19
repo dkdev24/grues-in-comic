@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-07-18
 - **Amended:** 2026-07-19 — added "Alternatives Considered: existing Z-machine interpreters" (no change to the decision)
+- **Amended:** 2026-07-20 — added "Scope of Portability: source frontends, not story files" (no change to the decision)
 - **Stage:** 2.3 (⚑ **Gate B resolution**; see `docs/DEVELOPMENT_PLAN.md`)
 - **Related:** ADR 0001 (behavior representation), `docs/gemini-analysis-on-plan-and-strategy.md` (interface-first recommendation)
 
@@ -95,6 +96,27 @@ Restated as the project's core principle (`AGENTS.md`): reusing an interpreter i
 - **ZLR is a last-resort reference, not a dependency and not the primary source.** Milestone 4 re-expresses semantics that ZLR also implements, so reading it and then implementing against it is where a derivation argument would live. Two facts sharpen this: ZLR **ships no license for its own code** (verified 2026-07-19 — see `THIRD_PARTY.md`; default copyright therefore applies, which is more restrictive than GPL), and the Standards Document answers the same questions normatively. Consult ZLR only where the standard is genuinely ambiguous, prefer describing the observed *behavior* over reading the implementation, and record any such consultation here. No ZLR code is used, adapted, or distributed.
 - **Reference material stays out of version control.** ZILF/ZLR sources, the Z-Machine Standard, and the Comic Chat paper live in a gitignored `reference/` directory. They are never placed in `original-projects/`, which is version-controlled by design — ZILF is GPL-3.0, ZLR is unlicensed, and vendoring either would contradict `NOTICE` and this repository's Apache-2.0 licensing.
 - If the objective ever narrowed to "play Zork I in a browser," this ADR should be revisited: ZVM would win outright.
+
+## Scope of Portability: source frontends, not story files
+
+*(Added 2026-07-20. The project began as "comic-rendered Zork I." Zork I is one work in the interactive-fiction domain, and the natural follow-up question is whether the engine should eventually run **any Z-machine-compatible** game. This section records the answer and the boundary it draws, so the ambition is widened deliberately rather than drifting.)*
+
+**The long-term target is an IR-native adventure engine with pluggable source frontends. Compiled story files (`.z3`/`.z5`/`.z8`) are explicitly out of scope as an engine input.**
+
+The two readings of "support more interactive fiction" are architecturally opposite:
+
+- **Consume more *source* languages.** ZIL is frontend #1 (`importer/`). Each frontend lowers a source language into the IR; the engine is unchanged. This is the direction this ADR endorses.
+- **Consume compiled *story files*.** This means executing a memory image, and it re-raises — identically — the objection answered in "Alternatives Considered" above. A story file cannot supply `speech.speaker` or `player-moved` room ids, so the comic renderer (stage 5.3) would have to recover them by heuristic text-scraping, which is the fragility the IR exists to remove. It is also not an extension of the engine but a second engine: the IR engine evaluates semantic structures (entities, properties, behavior AST), a Z-machine decodes opcodes over a byte array, and they would share nothing but the event contract. Adopting it would trade the project's distinguishing capability for coverage that ZVM already provides better (see the final bullet of the previous section, which stands).
+
+**What the widened scope buys.** The ZIL family is the cheap and high-value expansion: Zork II/III, Enchanter, Planetfall and their siblings are the same language, and reach them through the existing importer, the same builtin set (ADR 0001), and mostly corpus work rather than new architecture. Inform 6 source is a plausible frontend #2 — its object tree and property model map onto the IR with a translation layer, not an engine change. Both remain speculative; neither is scheduled.
+
+**What this requires of Milestone 4 — the only actionable part today.** The engine does not exist yet, so nothing here changes the plan. The standing risk is baking Zork-I-specific assumptions into engine core, and the insurance is three rules already consistent with current practice:
+
+1. **Builtins implement Z-Machine Standard semantics, not "whatever Zork I needs."** The Standards Document 1.1 is already the normative source for Group A (previous section); this generalizes the reason — a builtin written to the standard is portable across the ZIL corpus by construction, one written to a single game's call sites is not.
+2. **Game-specific data stays in artifacts, never in engine source.** Vocabulary, parser rules, the routines catalogued as builtins-by-design, and later the comic art bindings are inputs to the engine, not constants inside it. `createEngine(world, options)` already expresses this; the rule is that no `zork1` identifier appears in `engine/`.
+3. **The first portability test is an import, not a refactor.** Once M4 plays Zork I against the golden transcripts, attempt Zork II through the existing pipeline. Whatever breaks is the honest inventory of Zork-I-specific assumptions in the IR and the engine, obtained for the cost of a session rather than a rewrite. Do not generalize speculatively before that evidence exists.
+
+**Revisit if:** a source frontend turns out to need engine-visible concepts the IR cannot express (in which case the IR, not the engine, is the thing to amend), or the objective narrows back to a single game (in which case the previous section's ZVM bullet applies).
 
 ## Consequences
 
