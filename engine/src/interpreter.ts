@@ -25,7 +25,7 @@ import {
   truthy,
   type RuntimeTable,
 } from "./state.js";
-import { emit, tell, type Builtin, type RuntimeContext } from "./runtime.js";
+import { emit, flush, tell, type Builtin, type RuntimeContext } from "./runtime.js";
 
 /** ZIL RETURN/RTRUE/RFALSE — unwind out of the current routine with a value. */
 class ReturnSignal {
@@ -294,8 +294,27 @@ function execTellPart(part: TellPart, ctx: RuntimeContext, locals: Locals): void
   else if ("newline" in part) tell(ctx, "\n");
   else if ("name" in part) {
     const entity = entityId(evalExpr(part.name, ctx, locals), "tell D");
+    // The room name printed by DESCRIBE-ROOM opens the title line — see
+    // `RuntimeContext.titleRoom`. Close whatever prose precedes it first, so the
+    // title starts its own event rather than joining the previous run.
+    if (entity === ctx.titleRoom && ctx.channel !== "room-title") {
+      flush(ctx);
+      ctx.channel = "room-title";
+    }
     tell(ctx, displayName(ctx, entity));
   } else tell(ctx, String(evalExpr(part.expr, ctx, locals)));
+
+  /*
+   * The title line ends where ZIL ends it — at the CRLF after the optional
+   * ", in the <vehicle>" — not at the name. Emitting on the newline keeps the
+   * text byte-identical to the single prose event it replaces, which is what
+   * makes this parity-neutral: golden transcripts compare the concatenated text
+   * of a turn (`transcriptText`), not the event boundaries.
+   */
+  if (ctx.channel === "room-title" && ctx.buffer.endsWith("\n")) {
+    flush(ctx);
+    ctx.channel = "prose";
+  }
 }
 
 /** ZIL `D` prints an entity's DESC — its display name, never its id. */
@@ -359,6 +378,18 @@ export function runRoutine(
     ctx.depth--;
     throw new Error(`behavior recursion exceeded ${MAX_DEPTH} frames at ${routine.id}`);
   }
+  /*
+   * Scope the room-title hint to the description routine itself, not to the
+   * engine's `describeRoom` call site: the game reaches DESCRIBE-ROOM two ways —
+   * through `describeRoom` on a move, and straight from its own V-LOOK — and
+   * hinting at one call site left LOOK untitled. Keying on the routine covers
+   * both, and confines it to the one routine whose `TELL D ,HERE` is a title.
+   */
+  const previousTitleRoom = ctx.titleRoom;
+  if (routine.id === "DESCRIBE-ROOM") {
+    const here = ctx.state.globals["HERE"];
+    ctx.titleRoom = typeof here === "string" ? here : undefined;
+  }
   try {
     const locals: Locals = {};
     for (const name of routine.locals ?? []) locals[name] = false;
@@ -380,6 +411,7 @@ export function runRoutine(
     }
   } finally {
     ctx.depth--;
+    ctx.titleRoom = previousTitleRoom;
   }
 }
 

@@ -6,9 +6,15 @@
  * `<section>`, not the page — so 5.3 adds a sibling rather than a rewrite.
  *
  * The pane renders by **channel, never by parsing text** (ADR 0002): `prose`
- * is the game's voice, `system` is the interpreter's, `question` is the parser
- * asking. That is the entire styling contract, and it is why the shell has no
- * regex over narration anywhere.
+ * is the game's voice, `room-title` the name of the room the player is looking
+ * at, `system` the interpreter's, `question` the parser asking. That is the
+ * entire styling contract, and it is why the shell has no regex over narration
+ * anywhere.
+ *
+ * `room-title` was declared but never emitted until v1.5.1 — Zork's own
+ * `DESCRIBE-ROOM` printed the name as plain prose — so `.line.room-title` was
+ * dead CSS. The fix was on the engine side, where it belonged; this pane needed
+ * no change, which is the channel design working.
  */
 
 import type { EngineEvent } from "../../engine/src/events.js";

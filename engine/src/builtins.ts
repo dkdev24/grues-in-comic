@@ -424,6 +424,10 @@ export function describeRoom(
   if (ctx.routines.has("DESCRIBE-ROOM")) {
     // The argument is LOOK? — "did the player ask to look" — not firstVisit.
     // DESCRIBE-ROOM derives the first-visit case itself, from TOUCHBIT.
+    //
+    // The room name it prints reaches the UI on the `room-title` channel; the
+    // interpreter scopes that to the routine itself (`RuntimeContext.titleRoom`),
+    // because V-LOOK calls DESCRIBE-ROOM without coming through here.
     if (truthy(callRoutine("DESCRIBE-ROOM", [explicitLook], ctx))) {
       if (ctx.routines.has("DESCRIBE-OBJECTS")) {
         callRoutine("DESCRIBE-OBJECTS", [explicitLook], ctx);

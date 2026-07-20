@@ -53,9 +53,10 @@ describe("status tracker", () => {
   });
 
   it("names rooms from the world document, never from narration text", () => {
-    // Finding 1: `room-title` never arrives — the name is inside a `prose`
-    // line, and ADR 0002 forbids parsing prose. An unknown id shows as the id,
-    // which is a visible bug report rather than a blank status line.
+    // Finding 1: room ids arrive on every path, `room-title` events only when a
+    // room is described — and `restore()` describes nothing, so the status line
+    // stays on the id table even now that the channel is live. An unknown id
+    // shows as the id, which is a visible bug report rather than a blank line.
     const tracker = createStatusTracker(names);
     const status = tracker.observe(
       [{ type: "player-moved", from: "NORTH-OF-HOUSE", to: "FOREST-1" }],

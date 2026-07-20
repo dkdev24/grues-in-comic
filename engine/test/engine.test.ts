@@ -30,15 +30,60 @@ const say = (input: string): EngineEvent[] => engine.command(input).events;
 describe("opening", () => {
   it("describes the start room", () => {
     const events = engine.start().events;
-    // The room name arrives as ordinary prose, not on the `room-title` channel:
-    // Zork's own DESCRIBE-ROOM prints it with <TELL D ,HERE>, and the engine
-    // delegates to the game's routine rather than second-guessing it. Splitting
-    // the title back out would mean parsing prose, which the contract forbids.
-    // A UI wanting the title reads `player-moved`.to and looks up the room name.
-    // Recorded as an open issue for 4.4/5.2.
     expect(text(events)).toMatch(/West of House/);
     expect(text(events)).toMatch(/open field west of a white house/);
     expect(text(events)).toMatch(/mailbox/i);
+  });
+
+  /*
+   * The room name is printed by Zork's own DESCRIBE-ROOM as <TELL D ,HERE>, so
+   * for four stages it arrived as ordinary prose and `room-title` was a channel
+   * nothing ever used. `RuntimeContext.titleRoom` is how the engine names that
+   * one TELL without any UI parsing narration text.
+   *
+   * Asserting the *channel of the title* rather than "some room-title event
+   * exists": a stub that titled every line would satisfy the weaker form, and
+   * this codebase has shipped exactly that bug twice (v1.4.1, v1.5.0).
+   */
+  it("puts the room name on room-title and the description on prose", () => {
+    const narration = engine
+      .start()
+      .events.filter((e) => e.type === "narration") as Extract<
+      EngineEvent,
+      { type: "narration" }
+    >[];
+
+    const titles = narration.filter((e) => e.channel === "room-title");
+    expect(titles.map((e) => e.text)).toEqual(["West of House\n"]);
+
+    // The description must not have been swept onto the title channel with it.
+    const prose = narration.filter((e) => e.channel === "prose");
+    expect(prose.map((e) => e.text).join("")).toMatch(/open field west of a white house/);
+    expect(titles.map((e) => e.text).join("")).not.toMatch(/open field/);
+  });
+
+  /*
+   * The first draft of this hinted the title at the engine's `describeRoom`
+   * call site, which titled a room you *walked into* and left LOOK untitled —
+   * the game's V-LOOK calls DESCRIBE-ROOM directly. Both entry points, then,
+   * and a room that is not the starting one, so a hardcoded answer fails.
+   */
+  it("titles the room on LOOK and on arrival alike", () => {
+    engine.start();
+    const titles = (events: EngineEvent[]): string[] =>
+      events
+        .filter((e) => e.type === "narration" && e.channel === "room-title")
+        .map((e) => (e as Extract<EngineEvent, { type: "narration" }>).text);
+
+    expect(titles(say("north"))).toEqual(["North of House\n"]);
+    expect(titles(say("look"))).toEqual(["North of House\n"]);
+  });
+
+  it("keeps the title line byte-identical to the prose it replaced", () => {
+    // Parity is measured on concatenated turn text, so splitting the event is
+    // only safe if no character moves. The newline belongs to the title.
+    const events = engine.start().events;
+    expect(text(events)).toMatch(/West of House\nYou are standing in an open field/);
   });
 });
 

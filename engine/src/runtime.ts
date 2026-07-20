@@ -50,6 +50,20 @@ export interface RuntimeContext {
   channel: NarrationChannel;
   /** Pronoun referent (ZIL P-IT-OBJECT), set by THIS-IS-IT. */
   itObject?: string;
+  /**
+   * The room whose name, if the world document's `DESCRIBE-ROOM` prints it with
+   * `D`, opens the room-title line.
+   *
+   * Zork's own `DESCRIBE-ROOM` prints the room name as ordinary `TELL D ,HERE`,
+   * so `room-title` never reached a UI and `.line.room-title` was dead CSS.
+   * Styling by matching narration text is what ADR 0002's channels exist to
+   * prevent, so the engine says which `TELL` it was instead: {@link describeRoom}
+   * sets this for the duration of that one call, and {@link execTellPart} routes
+   * the matching `D` — and the rest of that line, `, in the boat` included — onto
+   * `room-title`. Anything else printing `D ,HERE` is untouched, because the
+   * field is only set across the description call.
+   */
+  titleRoom?: string | undefined;
   /** Directions queued by DO-WALK, drained by the turn loop. */
   pendingWalks: string[];
   /** Set by FINISH — the game is over and the turn must stop. */

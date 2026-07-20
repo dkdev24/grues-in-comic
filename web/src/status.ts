@@ -7,13 +7,15 @@
  * `snapshot()`, and without parsing narration prose. Two contract findings are
  * encoded here rather than worked around silently:
  *
- * 1. **`room-title` never arrives.** The engine delegates room description to
- *    Zork's own `DESCRIBE-ROOM`, which prints the name inside a `prose` line
- *    (HANDOFF open issue). The name comes from the world document instead,
- *    looked up by room id — which is why {@link createStatusTracker} takes a
- *    name table rather than listening for a title event. ADR 0004 §4 keeps the
- *    channel in the contract for exactly this consumer; this is what "the
- *    `player-moved` workaround remains available" looks like in code.
+ * 1. **The room name comes from the world document, not from narration.** The
+ *    engine does now emit the name on `room-title` (v1.5.1 — it did not when
+ *    this module was written), but the status line still looks it up by room id,
+ *    deliberately: a title event only arrives when the game *describes* a room,
+ *    and `restore()` describes nothing, so a status line folded from titles
+ *    would go blank on restore. Ids arrive on every path. ADR 0004 §4 calls this
+ *    the `player-moved` workaround remaining available; it is the better source
+ *    here, not the fallback. The transcript pane, which styles the line the
+ *    player sees, is the channel's consumer.
  *
  * 2. **`start()` emits no `player-moved`.** The opening turn reports the
  *    player's placement as an `object-moved` of {@link PLAYER_ID} whose `from`
