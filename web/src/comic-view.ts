@@ -17,6 +17,7 @@ import type { Turn } from "./session.js";
 import { createMapper, type Mapper, type Panel } from "./comic/mapper.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
 import { renderPanel } from "./comic/render.js";
+import { backdropFor } from "./comic/backdrop.js";
 
 /** Native panel size: the art is ~400×400, so this is the 1:1 point (§4a). */
 const PANEL = { width: 400, height: 340 };
@@ -26,21 +27,6 @@ export interface ComicView {
   appendTurn(turn: Turn): void;
   /** Report a failure in the pane rather than only in the console. */
   fail(message: string): void;
-}
-
-/**
- * Room → backdrop. Three backdrops ship and Zork I has 110 rooms, so this is a
- * **stub against a known open question**, not a mapping: closing the backdrop
- * gap is an M5 design decision (`HANDOFF.md`), and 5.3's job was only to prove
- * the renderer can place one. Outdoor rooms get the pastoral field; everything
- * else gets the interior, which is wrong for caves and right for houses.
- */
-function backdropFor(room: string): string {
-  if (/FOREST|CLEARING|PATH|HOUSE|CANYON|RIVER|MOUNTAIN|GRATING-CLEARING/.test(room)) {
-    return "pastoral";
-  }
-  if (/^(WEST|NORTH|SOUTH|EAST)-OF-HOUSE$/.test(room)) return "field";
-  return "room";
 }
 
 /**
