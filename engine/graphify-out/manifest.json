@@ -90,18 +90,18 @@
     "semantic_hash": ""
   },
   "harness/golden.ts": {
-    "mtime": 1784482409.1149108,
-    "ast_hash": "55ef53128e6533459bd586502cc37451",
+    "mtime": 1784506198.2111757,
+    "ast_hash": "f8b923ef22279acb6a3c72441d2b823f",
     "semantic_hash": ""
   },
   "harness/replay.ts": {
-    "mtime": 1784482409.1154912,
-    "ast_hash": "574f82fb027a2a6303f644de5752cf05",
+    "mtime": 1784506056.6203012,
+    "ast_hash": "6cae80e68f2f2b4299ec283c46723e22",
     "semantic_hash": ""
   },
   "test/transcript.test.ts": {
-    "mtime": 1784482436.6874807,
-    "ast_hash": "86ef03c810d59a63a628147cc7bbbfee",
+    "mtime": 1784506277.398272,
+    "ast_hash": "6bfd43eb5970ffac17399a83520df083",
     "semantic_hash": ""
   }
 }
