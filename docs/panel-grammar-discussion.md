@@ -176,6 +176,10 @@ back into its two halves.
 - A **comic pane** beside it, refreshed as play progresses — the relationship an LLM artifact has
   to the conversation that produced it.
 
+**Superseded in the same session by §7.1**: the modern-chat framing was the route to the two-pane
+split, not the final skin. The panes are now period reconstructions. The split itself, the
+comic-primary inversion and the pull-quote amendment all survive unchanged.
+
 ### Why this is the right shell
 
 It dissolves a problem no earlier option solved. Zork's room descriptions run 40–80 words; a
@@ -199,7 +203,9 @@ shell would demote Comic Chat's identity while appearing to preserve it — the 
 So the split is deliberately inverted against its ChatGPT reference: the **comic gets the space**;
 the console is narrower, quieter, closer to a terminal than to a chat app. Agreed in session.
 
-### Do not read as an LLM app
+### Do not read as an LLM app — resolved by §7.1
+
+*(Retained for the reasoning; the concern itself is closed.)*
 
 The achievement here is that the whole system is **deterministic** — a 1977 parser rendered
 through a 1996 engine, no inference anywhere. A ChatGPT-shaped UI invites the assumption that a
@@ -210,7 +216,73 @@ that is **made legible** ("no model was consulted — this is a 48-year-old pars
 outcome is landing in between, where it merely looks like an LLM app. Agreed in session; which of
 the two is unresolved.
 
+## 7.1 Both panes are period reconstructions (settled — supersedes the modern-chat skin)
+
+Daniel's revision, and the version to build:
+
+- The **comic pane** is a **Comic Chat window on IRC** — not a paper comic book.
+- The **console pane** is the **terminal Zork was actually played on**.
+
+### Why this is stronger than a stylistic choice
+
+**Comic Chat genuinely was an IRC client.** Microsoft Chat connected to real IRC servers; the
+comic view *was* the channel view. So this is not a retro skin applied over a modern app — it is
+the historical artifact reconstructed. The same holds for the console: a terminal is not a
+nostalgic frame around Zork, it is how Zork was played.
+
+That yields two authentic artifacts, 1977 and 1996, side by side, running for real. It is a
+materially better story than a generic split-pane, and it is the most direct possible expression
+of §4's "Comic Chat can play Zork."
+
+**It also closes the LLM-app concern outright.** The open question in §7 — lean away from the
+ChatGPT resemblance or lean into it as a joke — is moot: nothing mistakes a VT100-style console for
+a chat app. Struck from the open questions.
+
+### What it disturbs, and how each resolves
+
+**The PDF book (§7) survives, and the earlier reconciliation is why.** On screen there are no
+longer accreting pages; there is a Comic Chat window. But the stream is canonical and a page is a
+*layout policy*, so:
+
+- on-screen policy → Comic Chat window
+- export policy → pages
+
+The export is simply **no longer WYSIWYG**, which is arguably better: the PDF becomes a bonus
+artifact generated *from* a playthrough rather than the thing already on screen.
+**Worth noting for the ADR — the panel-stream abstraction absorbed a direction change one turn
+after it was written, with no rework. That is the evidence it is the right seam,** and the reason
+decision #6 should be held firmly.
+
+**Two input affordances — needs deciding.** Comic Chat shipped its own text input at the bottom of
+its window, and a terminal obviously has a prompt. Both present is ambiguous. Proposal: the
+**terminal owns input**; Comic Chat's input strip is rendered decoratively (present, inert) or
+omitted. Unresolved.
+
+**Retro fidelity vs. responsive — the real tension, decide before 5.3.** A faithful Comic Chat
+window is fixed-size 90s chrome at low resolution; §3.5 of the Gemini doc wants responsive down to
+phone portrait. These genuinely conflict. Pick deliberately rather than discovering it mid-build:
+
+- **authentic-but-fixed** — pixel-faithful window chrome, letterboxed on mobile
+- **retro-styled-but-fluid** — period visual language, modern responsive layout
+
+Unresolved. Note this interacts with decision #6: the phone-portrait stream policy assumed fluid.
+
+### A bonus: the status line gives `room-title` a consumer
+
+An authentic Infocom console wants the **status line — room name, score, moves**. That is real
+Zork chrome, not decoration.
+
+It also settles a standing Open Issue in `HANDOFF.md`, which asks whether the `room-title` channel
+stays in the ADR 0002 contract given it is "unused in practice." **This is its consumer: keep the
+channel.** The workaround recorded there (read `player-moved`.to and look the name up in the world
+document) remains available, but a status line refreshing every turn is a real reason for the
+channel to exist.
+
+---
+
 ### The comic pane is a book, and it exports
+
+*(§7's book direction, as revised by §7.1: export-only, no longer the on-screen presentation.)*
 
 Daniel's direction: the comic pane should read as a **paper comic book, with new pages added
 during play**, and the player should be able to **download the finished book as a PDF**, generated
@@ -306,11 +378,16 @@ break, periodic establishing shots). **Read the code, not the paper.**
 3. The Guide's identity — name, appearance, personality. Deferred to a separate document, but the
    ADR should note the slot exists. Agreed: **do not call them "Narrator" in the UI.**
 4. Which Comic Chat cast member (or new asset) plays the Guide, given the `art/` corpus.
-5. Whether the console pane leans *away* from the ChatGPT resemblance or *into* it as a legible
-   joke (§7) — both acceptable, landing between them is not.
-6. Page composition rules, and how pull-quote selection picks the line that lands.
-7. Measured PDF export size, and whether a full-history export is viable at all.
-8. Scroll relationship between the two panes.
+5. **Retro fidelity vs. responsive (§7.1)** — authentic-but-fixed chrome, or retro-styled-but-
+   fluid? Genuinely conflicting; decide before 5.3. Interacts with decision #6.
+6. Where the player types — terminal only, with Comic Chat's input strip inert or absent (§7.1).
+7. How faithful the IRC framing goes: channel name, nick list, `/`-commands? A nick list of two
+   may be more odd than charming.
+8. Page composition rules, and how pull-quote selection picks the line that lands.
+9. Measured PDF export size, and whether a full-history export is viable at all.
+10. Scroll relationship between the two panes.
+
+*Closed: whether the shell leans away from or into the ChatGPT resemblance — §7.1 makes it moot.*
 
 ### Decisions to lock in ADR 0004
 
@@ -320,10 +397,16 @@ break, periodic establishing shots). **Read the code, not the paper.**
 3. Narration accompanied, never replaced. Full verbatim text in the console pane; the comic's
    caption is a verbatim **pull-quote** from it (amended by §7 — was "caption = full narration")
 4. Hero balloon = the player's typed command
-5. **Two-pane shell**, comic primary and console subordinate — deliberately *not* text-primary
+5. **Two-pane shell**, comic primary and console subordinate — deliberately *not* text-primary.
+   Both panes are **period reconstructions** (§7.1): the comic pane is a Comic Chat window on
+   IRC, the console is the terminal Zork was played on. Not skins — Comic Chat *was* an IRC
+   client, so this is the artifact rebuilt.
 6. **Panel stream stays canonical; a page is a Layout Manager policy, not a data structure** —
-   with PDF export as that same policy applied offline over the whole history. This is the
-   reconciliation with §8 of the Gemini doc and the item most likely to be got wrong later.
+   on-screen policy is the Comic Chat window, export policy is pages, so **PDF export is
+   deliberately not WYSIWYG**. This is the reconciliation with §8 of the Gemini doc and the item
+   most likely to be got wrong later; it already survived one direction change unchanged.
+6a. **Keep the `room-title` channel** in the ADR 0002 contract — the console status line
+   (room, score, moves) is its consumer. Settles a standing Open Issue in `HANDOFF.md`.
 7. Panel budget + Guide speech budget per turn
 8. Trigger priority, cooldowns, no-repeat pools
 9. Three-tier authoring, Tier 0 first

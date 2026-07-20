@@ -65,18 +65,27 @@ Action #5, panel grammar. What was settled:
 - **Two-pane shell**: a subordinate console pane carrying the full verbatim narration and player
   input, beside a **primary** comic pane. Long prose lives where it is native, so the comic's
   caption drops to a verbatim **pull-quote** — which removes the 80-words-in-a-15-word-balloon
-  problem instead of compromising on it. Comic leads; the shell must not read as an LLM app.
-- **The comic pane is a book** — pages accrete during play, exportable to PDF client-side.
-  **Reconciled with §8 of the Gemini doc ("panels not pages"), not a reversal of it: the panel
-  stream stays canonical and a page is a Layout Manager *policy*.** Page-view on desktop, stream
-  on phone portrait, and PDF export is that same policy applied offline over the whole history.
+  problem instead of compromising on it. Comic leads; not text-primary.
+- **Both panes are period reconstructions**: the comic pane is a **Comic Chat window on IRC**, the
+  console is **the terminal Zork was played on**. Not skins — Comic Chat *was* an IRC client, so
+  this rebuilds the artifact rather than dressing up a modern app. Closes the "must not read as an
+  LLM app" concern outright.
+- **The book survives as export only, not as the on-screen view** — and the earlier reconciliation
+  is why. **The panel stream stays canonical and a page is a Layout Manager *policy*** (§8 of the
+  Gemini doc reconciled, not reversed): on-screen policy is the Comic Chat window, export policy
+  is pages, so client-side PDF export is deliberately **not WYSIWYG**. That abstraction absorbed a
+  full direction change one turn after being written, with no rework — hold it firmly.
+- **Keep the `room-title` channel** — the console status line (room, score, moves) is the consumer
+  the Open Issue below was asking for.
 - **RNG vs determinism resolved**: randomness is wanted for replayability; determinism means
   *given seed*, so the seed must be explicit in save state.
 
 Still open: how much composition logic is recoverable from `original-projects/comic-chat/`; the
 panel-budget formula; Guide trigger/cooldown design; the Guide's identity; page composition and
 pull-quote selection rules; measured PDF export size (200–500 raster panels may be prohibitive);
-and the scroll relationship between the panes.
+and the scroll relationship between the panes. **New and load-bearing: retro fidelity vs.
+responsive** — pixel-faithful 90s chrome and fluid phone-portrait layout genuinely conflict; pick
+deliberately before 5.3 rather than discovering it mid-build.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
@@ -165,8 +174,10 @@ and the scroll relationship between the panes.
 - **`room-title` channel is unused in practice.** The engine delegates room description to Zork's
   own `DESCRIBE-ROOM`, which prints the name with `<TELL D ,HERE>`, so the title cannot be split
   onto its own channel without parsing prose — which the ADR 0002 contract forbids. A UI wanting
-  the title should read `player-moved`.to and look the name up in the world document. Decide
-  whether the channel stays in the contract.
+  the title should read `player-moved`.to and look the name up in the world document. ~~Decide
+  whether the channel stays in the contract.~~ **Decided: the channel stays.** The retro console's
+  Infocom status line (room name, score, moves) refreshes every turn and is its consumer — see
+  `docs/panel-grammar-discussion.md` §7.1. The `player-moved` workaround remains available.
 - **Stubbed builtins**: `V-CLIMB-UP` alone now (GETPT), returning a no-op so call sites reach a
   defined value instead of crashing a turn. `RANDOMIZE-OBJECTS` and `HERO-BLOW` are real
   extracted routines as of v0.7.0.
