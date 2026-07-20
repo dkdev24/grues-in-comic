@@ -57,6 +57,32 @@ export interface GameState {
    * [C-ENABLED?, C-TICK, C-RTN] = [0|1, tick, routine name].
    */
   clock: string[];
+  /** What the parser remembers between turns — see {@link ParserMemory}. */
+  parser: ParserMemory;
+}
+
+/**
+ * Parser state that outlives a single turn.
+ *
+ * Both fields exist because ZIL's parser can end a turn *without* having
+ * produced a command: it may have asked a question instead, and the next input
+ * is read as the answer. That makes the parser stateful across turns, which the
+ * rest of the engine is deliberately not.
+ *
+ * This is not part of the ADR 0002 save contract — it is mid-sentence
+ * scratch, not world state — so {@link restore} clears it rather than
+ * reinstating it. Restoring into a half-asked question would be worse than
+ * losing it.
+ */
+export interface ParserMemory {
+  /** ZIL P-IT-OBJECT — the object "it" currently refers to. */
+  it?: string;
+  /**
+   * The words of a sentence the parser could not finish, already canonical and
+   * ending with the preposition of the slot it is waiting on (if any). The next
+   * input is appended to these unless it starts a sentence of its own.
+   */
+  orphan?: string[];
 }
 
 /** Read-only view of the IR document, indexed for O(1) lookup during play. */

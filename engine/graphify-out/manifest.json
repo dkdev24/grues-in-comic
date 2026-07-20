@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "src/load.ts": {
-    "mtime": 1784481733.727153,
-    "ast_hash": "7d085de4beb529318719fee480966da2",
+    "mtime": 1784505072.6357765,
+    "ast_hash": "cd324660f2e959ac728c8f750b3e6f17",
     "semantic_hash": ""
   },
   "src/movement.ts": {
@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "src/state.ts": {
-    "mtime": 1784480690.2531085,
-    "ast_hash": "c5b929ade56d87b489bfc5c0430bb24c",
+    "mtime": 1784505069.9423563,
+    "ast_hash": "eb93350d1f8f0ce9857f2ac569022cb4",
     "semantic_hash": ""
   },
   "test/load.test.ts": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "src/parser.ts": {
-    "mtime": 1784482967.9116657,
-    "ast_hash": "c0c5004fdea77a2c60b49b75ccf229a4",
+    "mtime": 1784505282.5070403,
+    "ast_hash": "94f8217a0d452374c8b1e9904900472d",
     "semantic_hash": ""
   },
   "src/scope.ts": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "test/parser.test.ts": {
-    "mtime": 1784480280.7825918,
-    "ast_hash": "400faa78626923920d4fb03288981f51",
+    "mtime": 1784505627.6617303,
+    "ast_hash": "85cf99b02d03e501aa1ad75163c70c38",
     "semantic_hash": ""
   },
   "src/builtins.ts": {
@@ -70,13 +70,13 @@
     "semantic_hash": ""
   },
   "src/engine.ts": {
-    "mtime": 1784482848.4852433,
-    "ast_hash": "fc259158351fb1767bcbc95871cd917e",
+    "mtime": 1784505540.130275,
+    "ast_hash": "d11f296230aedb52d1085e096e89f73d",
     "semantic_hash": ""
   },
   "src/interpreter.ts": {
-    "mtime": 1784481123.8937182,
-    "ast_hash": "65273d783a20b1c1ecce2d1676d7ba71",
+    "mtime": 1784505483.1465392,
+    "ast_hash": "416f051d18a7cdc66c7cd58a7cfd50d6",
     "semantic_hash": ""
   },
   "src/runtime.ts": {

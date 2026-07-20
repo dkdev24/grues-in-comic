@@ -398,7 +398,27 @@ const PROPERTY_DEFAULTS: Record<string, number> = {
   capacity: 0,
   value: 0,
   treasureValue: 0,
+  strength: 0,
 };
+
+/*
+ * Why not simply default *every* unknown property to 0, as GETP does?
+ *
+ * Because this engine's `truthy` counts 0 as true (Z-machine 0 is false, but
+ * the IR distinguishes "absent" from "zero" and the behavior corpus relies on
+ * it). Returning 0 for absent properties was tried: it breaks ten of the eleven
+ * golden walkthroughs, starting with the opening room description. The `false`
+ * sentinel is load-bearing, so a property that must read as a *number* has to
+ * be listed above.
+ *
+ * `strength` earns its place from the reference build rather than from the
+ * source: bare "WAKE" supplies the player ("(you)") and V-ALARM compares its
+ * STRENGTH against 0, which for an object that declares none must answer 0 —
+ * dfrotz prints "He's wide awake, or haven't you noticed..." where we threw.
+ * It is a Zork property rather than a library one, which is the ADR 0002 seam
+ * this table already sits on; the real fix is a `propdefs` section in the IR,
+ * recorded as an open issue.
+ */
 
 function propertyDefault(prop: string): BehaviorValue {
   return PROPERTY_DEFAULTS[prop] ?? false;

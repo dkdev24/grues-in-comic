@@ -65,6 +65,7 @@ export function loadWorld(doc: WorldDocument, options: LoadOptions = {}): Loaded
     turn: 0,
     visited: new Set(),
     clock: [],
+    parser: {},
   };
 
   for (const g of doc.globals) state.globals[g.id] = g.value;

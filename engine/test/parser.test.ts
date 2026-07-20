@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { loadWorld } from "../src/load.js";
 import { buildLexicon, type Lexicon } from "../src/vocabulary.js";
-import { parse, type ParseResult } from "../src/parser.js";
+import { parse, splitSentences, type ParseResult } from "../src/parser.js";
 import { goTo } from "../src/movement.js";
 import { move, setFlag, PLAYER_ID, type GameState } from "../src/state.js";
 import type { WorldIndex } from "../src/state.js";
@@ -232,5 +232,85 @@ describe("the golden-transcript command set", () => {
       if (!lexicon.verbs.has(rule.verb)) orphans.push(rule.verb);
     }
     expect(orphans).toEqual([]);
+  });
+});
+
+/**
+ * Stage 4.6 — the sentence shapes walkthrough 11 pins down. Every expectation
+ * here was taken from the reference build, not from the ZIL source: the ZIL
+ * reads plausibly several ways on all four, and dfrotz settles it.
+ */
+describe("incomplete and compound sentences", () => {
+  it("splits a line into sentences only where a verb follows the AND", () => {
+    // "TAKE THE LEAFLET AND READ IT" costs two moves in the reference build;
+    // "TAKE LEAFLET AND MAILBOX" costs one, because MAILBOX is not a verb.
+    expect(splitSentences(lexicon, "take the leaflet and read it")).toEqual([
+      "TAKE THE LEAFLET",
+      "READ IT",
+    ]);
+    expect(splitSentences(lexicon, "take leaflet and mailbox")).toEqual([
+      "TAKE LEAFLET AND MAILBOX",
+    ]);
+    expect(splitSentences(lexicon, "open mailbox. take leaflet")).toEqual([
+      "OPEN MAILBOX",
+      "TAKE LEAFLET",
+    ]);
+  });
+
+  it("asks for a missing object rather than refusing the verb", () => {
+    // PUT's slot carries no find flag, so nothing can be assumed.
+    const result = run("put");
+    expect(result.kind).toBe("orphan");
+    expect((result as { question: string }).question).toBe("What do you want to put?");
+  });
+
+  it("carries the question into the next input, prepositions and all", () => {
+    state.parser.orphan = ["PUT"];
+    const result = run("mailbox");
+    expect(result.kind).toBe("orphan");
+    // The player's own word, truncated to the Z-machine's six characters.
+    expect((result as { question: string }).question).toBe(
+      "What do you want to put the mailbo in?",
+    );
+  });
+
+  it("abandons the question when the next input starts its own sentence", () => {
+    state.parser.orphan = ["PUT"];
+    expect(run("open mailbox").kind).toBe("command");
+  });
+
+  it("supplies the only candidate the find flag admits, ignoring its location", () => {
+    // TAKE searches ON-GROUND/IN-ROOM, but bare TAKE still answers for the
+    // leaflet once it is *held* — the find flag decides, the action complains.
+    move(state, "ADVERTISEMENT", PLAYER_ID);
+    const result = run("take");
+    expect(result.kind).toBe("command");
+    expect((result as { directObject?: string }).directObject).toBe("ADVERTISEMENT");
+    expect((result as { suppliedNoun?: string }).suppliedNoun).toBe("leaflet");
+  });
+
+  it("never invents more than the last missing object", () => {
+    // WAKE's second rule takes a particle; nothing here may fill two slots.
+    const result = run("wake");
+    expect(result.kind).toBe("command");
+    expect((result as { indirectObject?: string }).indirectObject).toBeUndefined();
+  });
+
+  it("reports a HAVE slot's own requirement, not the surroundings", () => {
+    // The sword is in the Living Room; OPEN … WITH marks its slot HAVE.
+    const result = run("open mailbox with sword");
+    expect(result.kind).toBe("not-held");
+  });
+
+  it("resolves a pronoun to the last object referred to", () => {
+    move(state, "ADVERTISEMENT", PLAYER_ID);
+    state.parser.it = "ADVERTISEMENT";
+    const result = run("read it");
+    expect(result.kind).toBe("command");
+    expect((result as { directObject?: string }).directObject).toBe("ADVERTISEMENT");
+  });
+
+  it("refuses a pronoun with nothing behind it", () => {
+    expect(run("read it").kind).toBe("no-antecedent");
   });
 });

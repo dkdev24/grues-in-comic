@@ -26,7 +26,7 @@ import { CONTRACT_VERSION, type EngineEvent, type TurnResult } from "./events.js
 import { callRoutine, FatalSignal } from "./interpreter.js";
 import { loadWorld, type LoadOptions } from "./load.js";
 import { exitFor, resolveExit } from "./movement.js";
-import { describeCandidates, parse, type ParseResult } from "./parser.js";
+import { describeCandidates, parse, splitSentences, type ParseResult } from "./parser.js";
 import { Rng } from "./rng.js";
 import { emit, emitOn, flush, tell, type RuntimeContext } from "./runtime.js";
 import { here, truthy, type GameState, type WorldIndex } from "./state.js";
@@ -199,7 +199,16 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
 
     command(input: string): TurnResult {
       const ctx = context();
-      runTurn(ctx, world, state, lexicon, input);
+      // One line may hold several commands ("TAKE THE LEAFLET AND READ IT").
+      // Each is a turn of its own and advances the clock separately.
+      const sentences = splitSentences(lexicon, input);
+      for (const [i, sentence] of sentences.entries()) {
+        // Each command's output is its own paragraph, as it would be had the
+        // player typed them on separate lines.
+        if (i > 0) tell(ctx, "\n");
+        runTurn(ctx, world, state, lexicon, sentence);
+        if (ctx.finished !== undefined) break;
+      }
       flush(ctx);
       return { events: ctx.events, turn: state.turn };
     },
@@ -220,6 +229,10 @@ function runTurn(
   input: string,
 ): void {
   const parsed = parse(world, state, lexicon, input);
+
+  // Any parse outcome but an unanswered question clears the pending one — the
+  // parser has either used it or moved on.
+  if (parsed.kind !== "orphan") delete state.parser.orphan;
 
   // A turn the parser rejected still costs the player nothing — ZIL does not
   // advance the clock on a parse failure, which is why "XYZZY" never lets the
@@ -272,6 +285,10 @@ function handleParse(ctx: RuntimeContext, parsed: ParseResult): boolean {
 
       if (parsed.directObject !== undefined) ctx.directObject = parsed.directObject;
       if (parsed.indirectObject !== undefined) ctx.indirectObject = parsed.indirectObject;
+      // The parenthetical goes out before the action speaks, on its own line.
+      if (parsed.suppliedNoun !== undefined) tell(ctx, `(${parsed.suppliedNoun})\n`);
+      // What "it" will mean next turn.
+      if (parsed.directObject !== undefined) ctx.state.parser.it = parsed.directObject;
       dispatch(ctx, parsed.preAction);
       return true;
     }
@@ -301,6 +318,28 @@ function handleParse(ctx: RuntimeContext, parsed: ParseResult): boolean {
           ? `You can't see any ${parsed.words.join(" ").toLowerCase()} here!\n`
           : "You can't see any such thing.\n",
       );
+      return false;
+    case "not-held":
+      emitOn(ctx, "system", "You don't have that!\n");
+      return false;
+    case "no-antecedent":
+      /*
+       * The reference build's wording, confirmed by asking it: "EXAMINE IT" in
+       * the Living Room with no referent set answers this, not "I don't know
+       * the word".
+       *
+       * ⚑ One divergence stands. In West of House, where the mailbox is the
+       * room's only object, "READ IT" resolves *to the mailbox* rather than
+       * refusing. Whether that is a one-candidate fallback or something else is
+       * unverified, so it is left unimplemented rather than guessed at — we
+       * refuse in both rooms, which matches the many-object case only.
+       */
+      emitOn(ctx, "system", "I don't see what you are referring to.\n");
+      return false;
+    case "orphan":
+      // Remember the half-sentence so the next input can complete it, and ask.
+      ctx.state.parser.orphan = parsed.pending;
+      emit(ctx, { type: "question", text: `${parsed.question}\n` });
       return false;
     case "ambiguous": {
       const names = describeCandidates(ctx.world, parsed.candidates);
@@ -516,6 +555,9 @@ function restore(state: GameState, rng: Rng, save: SaveState): void {
   }
   state.turn = save.turn;
   rng.state = save.rngState;
+  // Mid-sentence parser scratch is not saved; restoring into a half-asked
+  // question would be worse than starting the next sentence clean.
+  state.parser = {};
   state.globals = { ...save.globals } as GameState["globals"];
   state.flags = Object.fromEntries(
     Object.entries(save.flags).map(([id, list]) => [id, new Set(list)]),
