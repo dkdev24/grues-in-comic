@@ -23,6 +23,9 @@ export interface ConsoleView {
   setStatus(status: Status): void;
 }
 
+/** Sub-pixel slack when deciding whether the reader is still at the end. */
+const PIN_SLACK = 8;
+
 export function createConsoleView(root: HTMLElement): ConsoleView {
   const transcript = required(root, ".transcript");
   const statusRoom = required(root, ".status-room");
@@ -40,6 +43,23 @@ export function createConsoleView(root: HTMLElement): ConsoleView {
   function scrollToEnd(): void {
     transcript.scrollTop = transcript.scrollHeight;
   }
+
+  // The transcript follows the last line, but only while the reader is already
+  // there: someone scrolled back into history must not be yanked forward.
+  let pinned = true;
+  transcript.addEventListener("scroll", () => {
+    const remaining = transcript.scrollHeight - transcript.scrollTop - transcript.clientHeight;
+    pinned = remaining <= PIN_SLACK;
+  });
+
+  // A resize re-flows the transcript, changing scrollHeight without an append.
+  // Without this the newest line scrolls out of view and stays there until the
+  // next command — narrow viewports reflow the most, so the pane that needs the
+  // last line visible is the one that loses it.
+  const observer = new ResizeObserver(() => {
+    if (pinned) scrollToEnd();
+  });
+  observer.observe(transcript);
 
   return {
     appendTurn(turn) {

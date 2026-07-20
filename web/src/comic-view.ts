@@ -64,6 +64,9 @@ const GUIDE_SCRIPT = new Map([
   ["CELLAR", "It gets dark down here. Darker than you want."],
 ]);
 
+/** Sub-pixel slack when deciding whether the reader is still at the newest panel. */
+const PIN_SLACK = 8;
+
 export async function createComicView(root: HTMLElement, assetBase: string): Promise<ComicView> {
   const strip = requireChild(root, ".comic-strip");
   const mapper: Mapper = createMapper({ guideScript: GUIDE_SCRIPT, guideCooldown: 3 });
@@ -84,7 +87,20 @@ export async function createComicView(root: HTMLElement, assetBase: string): Pro
   // rather than once (§4a). A resize therefore re-renders rather than rescaling
   // a bitmap: balloon line breaks are a function of width, and stretching a
   // canvas would leave them wrapped for a width the reader no longer has.
-  const observer = new ResizeObserver(() => redrawAll());
+  // The strip follows the newest panel, but only while the reader is already
+  // there: someone scrolled back through the strip must not be yanked forward.
+  let pinned = true;
+  strip.addEventListener("scroll", () => {
+    pinned = strip.scrollHeight - strip.scrollTop - strip.clientHeight <= PIN_SLACK;
+  });
+
+  const observer = new ResizeObserver(() => {
+    redrawAll();
+    // A redraw re-heights every panel, so the scroll position the strip held
+    // before the resize no longer points at the newest panel. Re-pin without
+    // animating: the resize itself is the motion the reader is watching.
+    if (pinned) strip.scrollTop = strip.scrollHeight;
+  });
   observer.observe(strip);
 
   return {
@@ -98,8 +114,12 @@ export async function createComicView(root: HTMLElement, assetBase: string): Pro
       drawn.push({ canvas, panel });
       draw(canvas, panel);
       // The newest panel is the one the player just caused, so the strip
-      // follows it the way the transcript follows the last line.
-      canvas.scrollIntoView({ block: "end", behavior: "smooth" });
+      // follows it the way the transcript follows the last line. Scroll the
+      // strip rather than the panel: `scrollIntoView({ block: "end" })` aligns
+      // the panel's edge with the container's *content* edge, which stops short
+      // of the strip's own bottom padding and leaves the newest panel flush
+      // against the pane while every earlier panel keeps its gap.
+      strip.scrollTo({ top: strip.scrollHeight, behavior: "smooth" });
     },
     fail,
   };
