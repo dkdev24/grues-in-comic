@@ -80,3 +80,7 @@ original-projects/comic-chat/**/*.sym
 original-projects/comic-chat/artifacts/jchat/jdk114/lib/classes.zip
 /.playwright-cli
 /graphify-out
+
+# Playwright CLI session artifacts (snapshots, console logs) — driving the page
+# is part of the workflow; its scratch output is not.
+.playwright-cli/

@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.5.1**
+**1.6.0**
 
 ---
 
@@ -41,33 +41,45 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   **5.2 ✅ (v1.3.0)** — `web/`, the browser shell · **5.3 ✅ (v1.4.0)** — the comic renderer;
   every turn draws a Comic Chat panel beside the transcript, 50 web tests ·
   **masked-mono polarity fixed (v1.4.1)** — every figure had shipped inverted ·
-  **5.4 in progress (v1.5.1)** — room→backdrop assignment, session persistence, and narration
-  styling (`room-title` now emitted); 67 web tests, 123 engine tests.
+  **5.4 ✅ (v1.6.0)** — room→backdrop assignment, session persistence, narration styling
+  (`room-title`), **panel sequencing** (`comic/layout.ts`, a port of `CUnitPanelPage`'s uniform
+  grid) and **character portraits** (`comic/portrait.ts` + the cast bar). Opening area playable
+  in comic form — the exit criterion. **89 web tests, 468 across all packages, parity 143/143.**
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
 
 ---
 
-## Last Session — narration styling (v1.5.1)
+## Last Session — stage 5.4 closed (v1.6.0)
 
-**`room-title` is emitted and the room name is styled**, closing the contract question that
-blocked 5.4's narration-styling item. Full narrative in `WORKLOG.md` v1.5.1; v1.5.0's is there.
+**Panel sequencing and character portraits**, the last two 5.4 items. Full narrative in
+`WORKLOG.md` v1.6.0.
 
 Carried forward:
 
-- **The fix is `RuntimeContext.titleRoom`, scoped in `runRoutine`, not at a call site.** The first
-  draft set the hint in `builtins.ts` around the `DESCRIBE-ROOM` call and it titled rooms you
-  *walked into* while leaving `LOOK` untitled — **the game's own `V-LOOK` calls `DESCRIBE-ROOM`
-  directly, bypassing the engine's `describeRoom` entirely.** Any future "the engine knows
-  something about this ZIL routine" hint has the same two entry points; key it to the routine.
-- **Parity survived because the split is byte-neutral.** `transcriptText` concatenates narration
-  across channels, so splitting one event into two changes nothing the harness compares — the
-  title run closes on the CRLF, *after* the optional `, in the boat`, not after the name. **If a
-  future channel split moves or drops a character, 143/143 will fall.** Check that first.
-- **`system` is not unemitted** — the previous session's note said it was and it is wrong;
-  `engine.ts` emits it at ten call sites for parser errors. No follow-up needed there.
-- **The web side needed no change**: `console-view.ts` already mapped `channel → className`, so
-  live CSS followed from the engine fix. That is the channel design working — keep new styling
-  questions on the engine side of the seam rather than adding pane-side special cases.
+- **Comic Chat's layout is a *uniform* grid — it never varies panel width by shot.** The
+  comic-book instinct (wide establishing, narrow reaction) is exactly what the original does not
+  do, and adopting it would let §7's camera ladder decide layout as well as framing. **Reading
+  `panel.cpp` replaced a design argument with a citation**; that is the move to reach for first on
+  any remaining presentation question. Rungs stay framing (`render.ts`), `layout.ts` only flows.
+- **`panel.cpp:1456` has a real bug and it is deliberately not reproduced** — `m_vInterstice` over
+  `m_hInterstice` where the line above uses one interstice for both. Invisible in Comic Chat
+  because the two hold the same value. If a future port hits a divergence like this, the rule
+  applied here was: **reproduce behaviour, not a typo that never fired**, and document it at the
+  call site.
+- **Portraits are not a port and the file says so.** The member-list icon feature exists
+  (`memblst.cpp:391`) but `m_iconIndex` is only ever assigned `-1` (`avatar.cpp:896`), so there is
+  no source site. When a 5.5 item has no source site either, name that in the file rather than
+  letting a decision read as fidelity.
+- **A portrait is the *neutral* face, never the panel's emotion.** Wiring the bar to the Hero's
+  current mood is a natural-looking edit and it is wrong twice — a roster would flicker per turn,
+  and §9 gives emotion to the panel, which is the thing that has a turn. A test pins angle **and**
+  intensity, because §11 has HAPPY and NEUTRAL sharing angle 0.
+- **The gutter is one constant in script (`STRIP_GUTTER`), and CSS does not set it.** 5.3's scroll
+  bug was a `0.6rem` gap the pinning arithmetic could not see; sequencing needs the same number in
+  the grid's `gap` and in `layoutStrip`. Do not move it back into the stylesheet.
+- **`layout.ts` exports `MAX_PANEL_SCALE`, `render.ts` owns `MAX_SCALE`.** Same number, different
+  things — a panel in the strip vs. a figure in a panel. The names differ so one does not get
+  changed on the other's evidence.
 
 Still live from earlier stages:
 
@@ -127,22 +139,21 @@ Still live from earlier stages:
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared). 5.4 in progress** — **backdrop
-assignment ✅**, **persistence ✅** (v1.5.0) and **narration styling ✅** (v1.5.1). **Panel
-sequencing** and **portraits** are what remain of 5.4, both open and unblocked.
+**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared), 5.4 ✅ (v1.6.0).** Next is **5.5**.
 
-1. **Stage 5.4 — presentation buildout: panel sequencing and portraits.** Exit criterion is the
-   opening area playable in comic form. What is left and what 5.3 leaves it:
-   - **Done:** room→backdrop assignment (`web/src/comic/backdrop.ts`, a table, not a regex) and
-     session persistence (`web/src/persistence.ts`, autosave + resume by replaying `Turn[]`
-     through `play()`) at v1.5.0; narration styling (`room-title`) at v1.5.1.
-   - **Still open:** panel sequencing, character portraits.
-   - **The mapper and the renderer are the seam.** Add framing and sequencing in `render.ts` and
-     `comic-view.ts`; changing what a *shot means* is a `mapper.ts` change and an ADR question.
-   - **Two authoring items 5.3 stubbed are still stubs**, each marked at its call site: the
+1. **Stage 5.5 — per `docs/DEVELOPMENT_PLAN.md`.** Read the plan's row before scoping; what is
+   known going in:
+   - **Backdrop scarcity is 5.5's live constraint**, mis-scoped to 5.4 once already. The exit
+     criterion bounds it: count the rooms the criterion actually needs before sizing the problem.
+     `web/src/comic/backdrop.ts` is a table and extends by adding rows.
+   - **Two authoring stubs remain**, each marked at its call site and neither blocking: the
      **Guide's identity and voice** (`GUIDE_SCRIPT` in `comic-view.ts` is six placeholder lines
      proving the mechanism, plus a cooldown the ADR deliberately does not set) and **`SHOTS`** in
-     `render.ts`. The third, **room → backdrop**, is resolved (v1.5.0).
+     `render.ts` (framing numbers, the obvious thing to tune once the comic is *looked at*).
+   - **`layout.ts` is where a page policy would go.** §5 makes a page a layout policy over the
+     panel stream, and the on-screen policy now exists as a real one — a print/PDF policy is a
+     second function beside it, not a change to the strip. `cellFor` is already the row-major
+     rule both would share.
    - **Page composition and PDF export are §5**, and deliberately not WYSIWYG: once panel width is
      a function of the viewport, a WYSIWYG export would have to pick one reader's window to be
      canonical. Expect that to read as a bug to someone; it is the decision.

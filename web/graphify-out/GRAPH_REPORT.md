@@ -1,16 +1,16 @@
 # Graph Report - web  (2026-07-21)
 
 ## Corpus Check
-- 22 files · ~20,819 words
+- 26 files · ~26,703 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 197 nodes · 339 edges · 9 communities
+- 217 nodes · 374 edges · 11 communities
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.7)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6cc30e22`
+- Built from commit: `762a2853`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,13 +24,15 @@
 - console-view.ts
 - MixTracker
 - backdrop.ts
+- Turn
+- layout.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `Turn` - 16 edges
 2. `main()` - 10 edges
 3. `createSession()` - 10 edges
-4. `renderPanel()` - 8 edges
-5. `createComicView()` - 7 edges
+4. `createComicView()` - 8 edges
+5. `renderPanel()` - 8 edges
 6. `Session` - 7 edges
 7. `drawBalloon()` - 6 edges
 8. `figureFor()` - 6 edges
@@ -52,62 +54,70 @@
 ## Import Cycles
 - None detected.
 
-## Communities (9 total, 0 thin omitted)
+## Communities (11 total, 0 thin omitted)
 
 ### Community 0 - "inspector-view.ts"
-Cohesion: 0.07
-Nodes (26): ALL_EVENT_KINDS, createMixTracker(), describeEvent(), EventKind, EventMix, MixTracker, summarize(), ADR-0002 (+18 more)
+Cohesion: 0.13
+Nodes (14): ALL_EVENT_KINDS, describeEvent(), EventKind, EventMix, MixTracker, summarize(), ADR-0002, ADR-0004 (+6 more)
 
 ### Community 1 - "status.ts"
-Cohesion: 0.18
-Nodes (8): createStatusTracker(), roomNameTable(), StatusTracker, ADR-0002, ADR-0004, names, ADR-0002, ADR-0004
+Cohesion: 0.12
+Nodes (12): SessionOptions, ADR-0004, createStatusTracker(), roomNameTable(), StatusTracker, ADR-0002, ADR-0004, ADR-0004 (+4 more)
 
 ### Community 2 - "session.ts"
 Cohesion: 0.08
 Nodes (27): Affect, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, sentences(), ADR-0002 (+19 more)
 
 ### Community 3 - "main.ts"
-Cohesion: 0.10
-Nodes (18): ConsoleView, createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, fetchWorld() (+10 more)
+Cohesion: 0.09
+Nodes (17): createMixTracker(), fetchWorld(), main(), message(), requireEl(), ADR-0002, createSessionStore(), PersistedSession (+9 more)
 
 ### Community 4 - "Turn"
 Cohesion: 0.11
-Nodes (25): AFFECT_MARKERS, BalloonBox, Cast, drawFigure(), Figure, figureFor(), loadCast(), loadImage() (+17 more)
+Nodes (26): AFFECT_MARKERS, BalloonBox, Cast, drawFigure(), Figure, figureFor(), loadCast(), loadImage() (+18 more)
 
 ### Community 5 - "serve.ts"
 Cohesion: 0.22
 Nodes (7): CONTENT_TYPES, PORT, REPO_ROOT, server, ADR-0002, WEB_ROOT, WORLD_ROOT
 
 ### Community 6 - "console-view.ts"
-Cohesion: 0.16
-Nodes (9): createMapper(), Mapper, ComicView, createComicView(), frozen, GUIDE_SCRIPT, PANEL, requireChild() (+1 more)
+Cohesion: 0.13
+Nodes (15): createMapper(), drawPortrait(), Portrait, portraitCrop(), ADR-0004, ComicView, createComicView(), drawCastBar() (+7 more)
 
 ### Community 7 - "MixTracker"
-Cohesion: 0.26
-Nodes (12): bubbleTrail(), clampReach(), cloud(), drawBalloon(), greedyWrap(), measureBalloon(), roundedSpeech(), TailTarget (+4 more)
+Cohesion: 0.29
+Nodes (11): bubbleTrail(), clampReach(), cloud(), drawBalloon(), greedyWrap(), measureBalloon(), roundedSpeech(), TailTarget (+3 more)
 
 ### Community 8 - "backdrop.ts"
 Cohesion: 0.24
 Nodes (8): backdropFor(), BackdropId, OUTDOOR_BACKDROPS, OUTDOORS, ADR-0004, here, roomIds, world
 
+### Community 9 - "Turn"
+Cohesion: 0.18
+Nodes (10): Mapper, ConsoleView, createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004 (+2 more)
+
+### Community 10 - "layout.ts"
+Cohesion: 0.36
+Nodes (7): cellFor(), columnsFor(), LayoutOptions, layoutStrip(), StripLayout, ADR-0004, UNIT
+
 ## Knowledge Gaps
-- **64 isolated node(s):** `PANEL`, `GUIDE_SCRIPT`, `frozen`, `ADR-0004`, `AffectInput` (+59 more)
+- **70 isolated node(s):** `GUIDE_SCRIPT`, `frozen`, `ADR-0004`, `AffectInput`, `Affect` (+65 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Turn` connect `inspector-view.ts` to `session.ts`, `main.ts`, `console-view.ts`?**
-  _High betweenness centrality (0.129) - this node is a cross-community bridge._
-- **Why does `Session` connect `main.ts` to `inspector-view.ts`?**
-  _High betweenness centrality (0.031) - this node is a cross-community bridge._
+- **Why does `Turn` connect `Turn` to `inspector-view.ts`, `status.ts`, `session.ts`, `main.ts`, `console-view.ts`?**
+  _High betweenness centrality (0.121) - this node is a cross-community bridge._
+- **Why does `Session` connect `main.ts` to `status.ts`, `Turn`?**
+  _High betweenness centrality (0.029) - this node is a cross-community bridge._
 - **Why does `backdropFor()` connect `backdrop.ts` to `console-view.ts`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **What connects `PANEL`, `GUIDE_SCRIPT`, `frozen` to the rest of the system?**
-  _64 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+- **What connects `GUIDE_SCRIPT`, `frozen`, `ADR-0004` to the rest of the system?**
+  _70 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `inspector-view.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06976744186046512 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13157894736842105 - nodes in this community are weakly interconnected._
+- **Should `status.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.11904761904761904 - nodes in this community are weakly interconnected._
 - **Should `session.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07899159663865546 - nodes in this community are weakly interconnected._
-- **Should `main.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.10098522167487685 - nodes in this community are weakly interconnected._

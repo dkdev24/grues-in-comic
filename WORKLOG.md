@@ -1956,3 +1956,105 @@ title events would blank on restore.
 
 **Stage 5.4 in progress.** Backdrop assignment, persistence and narration styling done; panel
 sequencing and portraits remain.
+
+---
+
+## v1.6.0 — Stage 5.4 complete: panel sequencing and character portraits
+
+**Date:** 2026-07-21
+
+Closes the two items 5.4 had left. `web/src/comic/layout.ts` sequences the panel stream into a
+grid; `web/src/comic/portrait.ts` and a cast bar in the comic pane put the strip's two characters
+on screen. Both are pure and canvas-free above the draw call, so both are tested in Node.
+
+### Sequencing is a port, and the surprise is what it does not do
+
+`CUnitPanelPage` (`original-projects/comic-chat/v2.5-beta-1/panel.cpp`) lays panels out as a
+**uniform grid**. Every panel is exactly `m_unitWidth` wide (`:669`, `:1023`); the cell is
+`index % panelsPerRow` across and `index / panelsPerRow` down (`:1016`); the column count is
+derived from available space rather than stored (`:1456`).
+
+**Comic Chat never varies panel width by shot.** The comic-book instinct — a wide establishing
+panel, a narrow reaction beat — is exactly what the original does not do, and adopting it would
+have let ADR 0004 §7's camera ladder decide layout as well as framing. The rungs stay a framing
+decision in `render.ts`; `layout.ts` only flows. That is the whole reason the item was cheap:
+reading the source replaced a design argument with a citation.
+
+Leftover width has two behaviours and both are principled. Below the cap panels **stretch** to
+fill the row — §4a's "the constant becomes a parameter", already what 5.3 did per panel. At the
+cap (1.6× native) they stop growing and the row is **centred**, which is what `PreparePrintDC`
+does with its own leftover (`:1471`). So the wide viewport lands back on the original's behaviour
+rather than away from it. Columns are capped at Comic Chat's own `m_panelsPerRow = 2` (`:56`),
+kept as a ceiling and not as the answer: the original laid out a finished transcript, where more
+columns is just more comic, while this strip is live and a wide grid trades the newest panel —
+the thing the reader is looking for — against panels already read.
+
+**A real bug in the source, not reproduced.** `:1456` computes `panelsWide` with `m_vInterstice`
+in the numerator against `m_hInterstice` in the denominator, where the `panelsHigh` line directly
+above it uses `m_hInterstice` for both. It never fires in Comic Chat because both interstices
+hold the same value. Reproducing a typo that never fired would be transcription, not porting;
+`columnsFor` takes one gutter and the divergence is documented at the call site.
+
+The gutter moved from CSS into script (`STRIP_GUTTER`). 5.3's scroll bug was a `0.6rem` gap the
+pinning arithmetic could not see, and sequencing now needs the same number in the grid's `gap`
+and in `layoutStrip`'s column arithmetic — one constant, and the stylesheet does not set it.
+
+### Portraits are not a port, and that is recorded rather than glossed
+
+Comic Chat has the feature: the member list draws avatar icons when `m_bIconMembers` is set
+(`memblst.cpp:391`), keyed by `CAvatar::m_iconIndex`. In the shipped v2.5 source that field is
+assigned exactly once — to `-1`, in the constructor (`avatar.cpp:896`) — and nothing populates it
+or the image list behind it. There is no source site, so the crop rule is ours and is documented
+as a decision.
+
+The rule: **a portrait is the avatar's neutral face, alone.** Face rather than figure, because a
+portrait answers "who is this" and a whole figure at nick-list size is a 20-pixel person — and
+the face is already a separately packed sub-rect, so the crop is free. Neutral rather than the
+panel's emotion, because the tempting version is wrong twice: a roster would flicker once per
+turn, and ADR 0004 §9 gives the emotion to the *panel*, which is the thing that has a turn. Both
+paths resolve through `pose.ts`'s own `firstNeutral`, so the bar shows the same drawing a NEUTRAL
+panel would — which is what makes it read as *this character* rather than as second art of them.
+
+The bar is labelled by role, not by avatar name: the manifest knows the Hero is dan and the Guide
+is tiki (§11) and neither is a character name — they are the names of drawings, cast for pose
+inventory. The Guide's identity is still open and the ADR's one standing instruction is not to
+call them "Narrator", so the bar says what each one is and leaves naming to whoever settles it.
+The avatar sits in a `title` attribute, reachable when a portrait looks wrong and noise otherwise.
+
+### Tests
+
+22 new web tests; 89 web, 468 across all five packages, parity unchanged.
+
+Nothing asserts that a layout came back. The standing failure mode here is a **total function
+with a wrong answer** — 5.3's backdrop stub always returned *a* backdrop — so every assertion
+names its number: the column count at 809px and at 810px (the boundary is the whole content of
+the ported expression), the panel width that follows, the cell an index lands in.
+
+**Verified by mutation, per the standing rule.** Dropping the `Math.max(1, …)` column clamp fails
+the narrow-pane test; turning the portrait's letterbox `min` into `max` fails both orientation
+tests. The third assertion — "the drawn aspect is the source aspect" — did **not** catch that
+second mutation, because a cover-crop preserves aspect while overflowing the box. It catches an
+independent-axis stretch only, and its comment now says so rather than claiming the credit.
+
+The NEUTRAL assertion checks angle **and** intensity, spelled out rather than borrowed from
+`pose.ts`'s private `isNeutral`: §11 records that HAPPY and NEUTRAL share angle 0 and separate
+only by intensity, so an angle check alone would accept a smiling portrait — and a test that
+reuses the implementation's own predicate asserts only that the code agrees with itself.
+
+### Driven, not inferred
+
+Playwright over the running page, which is where everything real in this milestone has been
+found. Six turns played: two columns at 1600px (453.4px tracks, 10px gutter, no overflow), one
+column at 390px (344.8px, no horizontal overflow on the strip or the body), the cap holding at
+640px on the stacked mid-width layout, the strip still pinned to the newest panel across all
+three, and a reload replaying seven panels back into the grid with the cast bar intact and zero
+console errors. Portrait pixels were read back off the canvas and carry both dark ink and light
+fill — though note the polarity argument here is that portraits crop the *same sheet* the figures
+draw from and so make no new colour decision; an ink-ratio assertion would be exactly the "art
+statistics are not invariants" mistake `art/test/polarity.test.ts` already caught once.
+
+### Status
+
+**Stage 5.4 ✅.** The opening area is playable in comic form — its exit criterion. Panel
+sequencing, portraits, backdrop assignment, persistence and narration styling all done. 5.5 next,
+where backdrop scarcity is the live constraint.

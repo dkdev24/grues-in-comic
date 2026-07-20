@@ -18,9 +18,8 @@ import { createMapper, type Mapper, type Panel } from "./comic/mapper.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
 import { renderPanel } from "./comic/render.js";
 import { backdropFor } from "./comic/backdrop.js";
-
-/** Native panel size: the art is ~400×400, so this is the 1:1 point (§4a). */
-const PANEL = { width: 400, height: 340 };
+import { layoutStrip } from "./comic/layout.js";
+import { drawPortrait, portraitCrop, PORTRAIT } from "./comic/portrait.js";
 
 export interface ComicView {
   /** Draw the panel this turn produced. */
@@ -53,8 +52,18 @@ const GUIDE_SCRIPT = new Map([
 /** Sub-pixel slack when deciding whether the reader is still at the newest panel. */
 const PIN_SLACK = 8;
 
+/**
+ * The gutter, in script rather than in CSS, and the reason is a scar: 5.3's
+ * scroll bug was a `0.6rem` gap that the pinning arithmetic did not know about
+ * and could not see. Sequencing now needs the same number in two places — the
+ * grid's `gap` and `layoutStrip`'s column arithmetic — so it is one constant
+ * here and the stylesheet does not set it.
+ */
+const STRIP_GUTTER = 10;
+
 export async function createComicView(root: HTMLElement, assetBase: string): Promise<ComicView> {
   const strip = requireChild(root, ".comic-strip");
+  const castBar = root.querySelector<HTMLElement>(".comic-cast");
   const mapper: Mapper = createMapper({ guideScript: GUIDE_SCRIPT, guideCooldown: 3 });
   // Cycles live with the *view*, not with a panel: a panel re-drawn on resize
   // must not advance the round-robin, or the whole strip would change bodies
@@ -68,6 +77,7 @@ export async function createComicView(root: HTMLElement, assetBase: string): Pro
   } catch (err) {
     fail(`could not load the cast: ${err instanceof Error ? err.message : String(err)}`);
   }
+  if (cast && castBar) drawCastBar(castBar, cast);
 
   // The panel width is an input to every layout decision, evaluated per render
   // rather than once (§4a). A resize therefore re-renders rather than rescaling
@@ -98,7 +108,7 @@ export async function createComicView(root: HTMLElement, assetBase: string): Pro
       canvas.setAttribute("aria-label", describe(panel));
       strip.append(canvas);
       drawn.push({ canvas, panel });
-      draw(canvas, panel);
+      draw(canvas, panel, measure());
       // The newest panel is the one the player just caused, so the strip
       // follows it the way the transcript follows the last line. Scroll the
       // strip rather than the panel: `scrollIntoView({ block: "end" })` aligns
@@ -110,11 +120,26 @@ export async function createComicView(root: HTMLElement, assetBase: string): Pro
     fail,
   };
 
-  function draw(canvas: HTMLCanvasElement, panel: Panel): void {
+  /**
+   * Apply the sequencing policy to the strip itself: how many panels per row,
+   * and how wide each one is. Read the container's *content* width — the
+   * padding is not a column.
+   */
+  function measure(): { width: number; height: number } {
+    const style = getComputedStyle(strip);
+    const inner = strip.clientWidth
+      - parseFloat(style.paddingLeft || "0")
+      - parseFloat(style.paddingRight || "0");
+    const layout = layoutStrip(inner, { gutter: STRIP_GUTTER });
+    strip.style.gap = `${STRIP_GUTTER}px`;
+    strip.style.gridTemplateColumns = `repeat(${layout.columns}, ${layout.panelWidth}px)`;
+    return { width: layout.panelWidth, height: layout.panelHeight };
+  }
+
+  function draw(canvas: HTMLCanvasElement, panel: Panel, size: { width: number; height: number }): void {
     if (!cast) return;
     const ratio = window.devicePixelRatio || 1;
-    const width = Math.min(strip.clientWidth - 16, PANEL.width * 1.6) || PANEL.width;
-    const height = Math.round((width / PANEL.width) * PANEL.height);
+    const { width, height } = size;
 
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
@@ -131,7 +156,11 @@ export async function createComicView(root: HTMLElement, assetBase: string): Pro
   }
 
   function redrawAll(): void {
-    for (const item of drawn) draw(item.canvas, item.panel);
+    // Measure once for the whole strip, not once per panel: the grid is uniform
+    // (`layout.ts`), and re-measuring inside the loop would re-read a layout the
+    // loop is itself mutating.
+    const size = measure();
+    for (const item of drawn) draw(item.canvas, item.panel, size);
   }
 
   function fail(text: string): void {
@@ -160,6 +189,50 @@ function cycleSnapshot(live: Map<string, PoseCycle>, panel: Panel): Map<string, 
   const before = new Map([...live].map(([k, v]) => [k, { ...v }]));
   frozen.set(panel, before);
   return live;
+}
+
+/**
+ * The cast bar: Comic Chat's member list, with this strip's two members in it.
+ *
+ * **Labelled by role, not by avatar name.** The manifest knows the Hero is dan
+ * and the Guide is tiki (§11), and neither is the character's name — they are
+ * the names of the *drawings*, chosen for pose inventory. The Guide's identity
+ * is still open and the ADR's one standing instruction about it is not to call
+ * them "Narrator", so the bar says what each one is and leaves naming to
+ * whoever settles it.
+ */
+function drawCastBar(bar: HTMLElement, cast: Cast): void {
+  bar.replaceChildren();
+  for (const [role, avatar] of Object.entries(cast.manifest.cast)) {
+    const portrait = portraitCrop(avatar);
+    const sheet = cast.sheets.get(role);
+    if (!portrait || !sheet) continue;
+
+    const item = document.createElement("figure");
+    item.className = "cast-member";
+
+    const ratio = window.devicePixelRatio || 1;
+    const canvas = document.createElement("canvas");
+    canvas.className = "cast-portrait";
+    canvas.width = Math.round(PORTRAIT * ratio);
+    canvas.height = Math.round(PORTRAIT * ratio);
+    canvas.style.width = `${PORTRAIT}px`;
+    canvas.style.height = `${PORTRAIT}px`;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      drawPortrait(ctx, sheet, portrait, 0, 0, PORTRAIT);
+    }
+
+    const label = document.createElement("figcaption");
+    label.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    // The avatar behind the role stays reachable without being on the page:
+    // it is the fact you want when a portrait looks wrong, and noise otherwise.
+    item.title = `${label.textContent} — ${avatar.name}`;
+
+    item.append(canvas, label);
+    bar.append(item);
+  }
 }
 
 /** Alt text: the comic must be describable, not only viewable. */

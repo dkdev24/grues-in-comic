@@ -87,15 +87,41 @@ section {
   color: #c3cef0;
 }
 
+/* The member list, with this strip's two members in it (5.4). */
+.comic-cast {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--comic-chrome);
+  border-bottom: 1px solid var(--comic-edge);
+}
+
+.cast-member {
+  margin: 0;
+  text-align: center;
+  color: #202020;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+}
+
+.cast-portrait {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--comic-edge);
+}
+
 .comic-strip {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
+  /* Panel sequencing (5.4): a uniform grid, ported from `CUnitPanelPage`. The
+     column count and track width are set in script — they are a function of the
+     measured container (§4a) — and so is `gap`, because `layout.ts` does column
+     arithmetic with the same number and the two must not drift. */
+  display: grid;
+  justify-content: center;
+  align-content: start;
   padding: 0.6rem;
   background: var(--comic-paper);
 }
