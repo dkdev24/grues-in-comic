@@ -40,29 +40,33 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session (v1.1.0)
+## Last Session — panel grammar discussion (no version change)
 
-**Stage 5.1 ✅ complete.** The remaining `.avb` work landed and the presentation analysis is
-written. `art/` is now a real module (TypeScript, per ADR 0002) rather than a Python POC.
+**Design discussion only; no code, no milestone.** Cut short by a session limit and **unfinished**
+— the full record is `docs/panel-grammar-discussion.md`. Resume there, not from this summary.
 
-- **`art/src/`** — decoder ported from `art/poc/avbdec.py`, plus the two pieces that were
-  open: **face/torso compositing** (`torso.c + face.cDelta - face.c`, union bounding box,
-  `TORSOFIRST` draw order) and **mask/aura planes** for DIB poses. **13 tests, exact corpus
-  counts**: 191 files, 4656 images, 2066 masks, 2908 auras, 2348 composites.
-- **The port is verified against the POC, not just against itself** — 194/194 directly
-  comparable poses hash byte-identical. That is the only reason the decode claims mean anything.
-- **Three new format gotchas, all silent** (now in `docs/AVB_FORMAT.md`, which is up to eight):
-  plane polarity is **not constant** (73 aura planes ship an inverted colour table — read
-  polarity from the palette, never assume index 0); `AIP_DUALMASK` planes are 2bpp masked-mono,
-  not 1bpp; and one asset (Xeno LAUGH) has planes smaller than its drawing, relying on the
-  original blits having been `StretchBlt`.
-- **A compositing bug the paper caught, not the code**: both halos must be drawn before either
-  figure, or the second part's halo eats a bite out of the first at the neck. Found by reading
-  §4.4 after implementing it wrong. There is now a test that proves the rule is load-bearing.
-- **`wiki/` created** with `comic-chat-presentation.md` — the five algorithms, and **five places
-  the paper describes a system the shipped code does not have** (semantic elements are `#if 0`'d
-  and keyed on a deliberately-unmatchable `"OXio"`; the shout balloon; character heights; the 15%
-  panel break; periodic establishing shots). Read the code, not the paper, before building 5.3.
+Reviewed `docs/gemini-new-overall-architecure.md` (externally drafted) and used it to attack Next
+Action #5, panel grammar. What was settled:
+
+- **The gap restated usefully**: not "Zork lacks dialogue" but *Comic Chat's composition algorithm
+  is parameterized on a social graph Zork never populates*. Placement, turn order, zoom and tail
+  routing are all functions of who speaks to whom.
+- **Comic Chat leads on identity** (Daniel's call) — "Comic Chat can play Zork" over "Zork can
+  become comic". **The consequence is easy to get backwards**: this argues *for* verbatim Zork
+  narration, because the hook is a collision needing both halves recognizable, and Zork's
+  recognizability is its prose — including the grue line this project is named after.
+- **A Guide character**, presentation-layer only (no world position, not parser-referenceable,
+  never affects a state delta), speaking *to* the Hero — which is what fills Comic Chat's empty
+  addressee slot.
+- **Three-channel panel**: Hero balloon = the player's typed command verbatim; caption = engine
+  narration verbatim; Guide balloon = the only authored content, budgeted and usually absent.
+  This answers the player-representation decision in `wiki/comic-chat-presentation.md` at zero
+  authoring cost.
+- **RNG vs determinism resolved**: randomness is wanted for replayability; determinism means
+  *given seed*, so the seed must be explicit in save state.
+
+Still open: how much composition logic is recoverable from `original-projects/comic-chat/`; the
+panel-budget formula; Guide trigger/cooldown design; and the Guide's identity.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
@@ -101,14 +105,19 @@ written. `art/` is now a real module (TypeScript, per ADR 0002) rather than a Py
 
 5. **Panel grammar — decide before 5.3, not during it.** The one question 5.1 could not answer
    from the historical code, because Comic Chat has no equivalent. Analysis and options are in
-   `wiki/comic-chat-presentation.md`; the two open decisions are:
-   - **The player's on-screen representation.** Zork deliberately never describes the player, so
-     "show the speaker" yields an empty panel. Pick one: captions-only first-person camera, a
-     chosen player avatar, or panels composed around the room and its objects.
-   - **Caption cadence.** Comic Chat *does* ship a caption box (`CBWoodringBox`) that correctly
-     opts out of outline, tail and routing channel — inherit that geometry. But it arrives via
-     `SM_ACTION` and forces a panel break, treating captions as rare interruptions. In Zork they
-     are every turn. Invert the cadence, keep the geometry.
+   `wiki/comic-chat-presentation.md`.
+   **A design discussion is in progress and unfinished: `docs/panel-grammar-discussion.md`.**
+   It settles the identity question (Comic Chat leads), the Guide character, and a three-channel
+   panel that answers **the player's on-screen representation** (Hero balloon = the player's typed
+   command) and takes a position on **caption cadence** (every turn — invert Comic Chat's
+   rare-interruption cadence, inherit `CBWoodringBox` geometry). Read that document before
+   resuming; it also lists the eight decisions ADR 0004 must lock.
+   - **Immediate next step, and where the discussion stopped:** read
+     `original-projects/comic-chat/` to determine how much of the composition algorithm is
+     actually recoverable — that gates the panel budget and whether Comic Chat's algorithm can
+     genuinely drive composition. Per 5.1, **read the code, not the paper**.
+   - Then draft **`docs/adr/0004-presentation-mapping.md`**, building on the ADR 0002 event
+     contract rather than inventing a parallel event shape.
 
 ---
 
