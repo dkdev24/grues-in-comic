@@ -1892,3 +1892,67 @@ throws on boot would make the game unstartable with no in-game way to recover.
 
 **Stage 5.4 in progress.** Backdrop assignment and persistence done; panel sequencing, portraits
 and narration styling remain. Narration styling is blocked on a contract question — see HANDOFF.
+
+---
+
+## v1.5.1 — 2026-07-21 — Stage 5.4 (part 2): narration styling, and the title that was never sent
+
+The transcript rendered a room's name and its description as one undifferentiated block. The
+`room-title` channel had existed in the contract since ADR 0002 and `.line.room-title` had
+existed in `style.css` since 5.2, and nothing had ever produced an event on it — dead CSS behind
+a dead channel, in exactly the shape this project keeps producing.
+
+### The premise that was wrong
+
+The issue had been recorded twice, both times as unfixable-without-violating-ADR-0002: Zork's own
+`DESCRIBE-ROOM` prints the room name with `<TELL D ,HERE>`, so the name arrives inside a prose
+run, and separating it back out would mean matching narration text — which is precisely what
+channels exist to avoid.
+
+That conflates two different things. The *shell* cannot tell which line is a title without
+parsing. The *engine* does not have to: it is executing the `TELL` and knows what is in it. The
+fix names the title structurally, at the point of printing, and no consumer parses anything.
+
+`RuntimeContext.titleRoom` holds the room whose name, if `DESCRIBE-ROOM` prints it with `D`,
+opens the title line. `execTellPart` sees a `name` part resolving to that room, closes any prose
+run, and switches the channel; the run closes again on the CRLF — *after* the optional
+`", in the <vehicle>"`, because that is where ZIL ends the line, not after the name.
+
+### Scoped to the routine, not to the call site
+
+The first draft set the hint in `builtins.ts`, around the engine's `DESCRIBE-ROOM` call. It
+titled rooms the player walked into and left `LOOK` untitled: the game's own `V-LOOK` calls
+`DESCRIBE-ROOM` directly and never passes through the engine's `describeRoom` at all. The hint
+moved into `runRoutine`, keyed to the routine's id and restored in `finally` alongside the depth
+counter, which covers both entry points and confines it to the one routine whose `TELL D ,HERE`
+is a title. The regression test drives both paths, in a room that is not the starting one.
+
+### Why parity did not move
+
+Golden-transcript parity is measured on `transcriptText`, the concatenated player-visible text of
+a turn, across channels. Splitting one narration event into two therefore changes nothing the
+harness compares — provided no character moves, which is why the title run closes on the newline
+rather than on the name. 143/143 strict turns unchanged, 22 transcript tests green. A test pins
+the byte-level join (`West of House\nYou are standing…`) so a future channel split cannot quietly
+drop the separator.
+
+### The web side needed no change
+
+`console-view.ts` already mapped `channel → className`. The engine fix made the existing CSS
+live with no shell edit at all — the seam working as designed. Confirmed on the running page with
+Playwright, not inferred from the suite: the room name renders as its own `line room-title`
+element, white and bold, on arrival, on `LOOK`, and after a reload replays the session.
+
+Two stale claims were corrected while here: `system` is *not* unemitted (`engine.ts` emits it at
+ten call sites for parser errors), and `web/src/status.ts` keeps resolving room names by id on
+purpose rather than as a workaround — `restore()` describes no room, so a status line folded from
+title events would blank on restore.
+
+### Tests
+
+123 engine tests (was 120; +3 for the title), 67 web tests, parity unchanged at 143/143 strict.
+
+### Status
+
+**Stage 5.4 in progress.** Backdrop assignment, persistence and narration styling done; panel
+sequencing and portraits remain.

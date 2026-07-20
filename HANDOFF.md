@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.5.0**
+**1.5.1**
 
 ---
 
@@ -41,18 +41,35 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   **5.2 ✅ (v1.3.0)** — `web/`, the browser shell · **5.3 ✅ (v1.4.0)** — the comic renderer;
   every turn draws a Comic Chat panel beside the transcript, 50 web tests ·
   **masked-mono polarity fixed (v1.4.1)** — every figure had shipped inverted ·
-  **5.4 in progress (v1.5.0)** — room→backdrop assignment and session persistence; 67 web tests.
+  **5.4 in progress (v1.5.1)** — room→backdrop assignment, session persistence, and narration
+  styling (`room-title` now emitted); 67 web tests, 123 engine tests.
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
 
 ---
 
-## Last Session — stage 5.4 part 1 (v1.5.0)
+## Last Session — narration styling (v1.5.1)
 
-**Backdrop assignment and session persistence**, plus three scroll defects found by driving the
-site with Playwright. Full narrative in `WORKLOG.md` v1.5.0; the v1.4.1 narrative it replaces is
-already there.
+**`room-title` is emitted and the room name is styled**, closing the contract question that
+blocked 5.4's narration-styling item. Full narrative in `WORKLOG.md` v1.5.1; v1.5.0's is there.
 
-Carried forward as the things most likely to be got wrong next:
+Carried forward:
+
+- **The fix is `RuntimeContext.titleRoom`, scoped in `runRoutine`, not at a call site.** The first
+  draft set the hint in `builtins.ts` around the `DESCRIBE-ROOM` call and it titled rooms you
+  *walked into* while leaving `LOOK` untitled — **the game's own `V-LOOK` calls `DESCRIBE-ROOM`
+  directly, bypassing the engine's `describeRoom` entirely.** Any future "the engine knows
+  something about this ZIL routine" hint has the same two entry points; key it to the routine.
+- **Parity survived because the split is byte-neutral.** `transcriptText` concatenates narration
+  across channels, so splitting one event into two changes nothing the harness compares — the
+  title run closes on the CRLF, *after* the optional `, in the boat`, not after the name. **If a
+  future channel split moves or drops a character, 143/143 will fall.** Check that first.
+- **`system` is not unemitted** — the previous session's note said it was and it is wrong;
+  `engine.ts` emits it at ten call sites for parser errors. No follow-up needed there.
+- **The web side needed no change**: `console-view.ts` already mapped `channel → className`, so
+  live CSS followed from the engine fix. That is the channel design working — keep new styling
+  questions on the engine side of the seam rather than adding pane-side special cases.
+
+Still live from earlier stages:
 
 - **`Turn` is not JSON-safe, and looked like it was.** `EventMix.counts` is a `Map`, and
   `JSON.stringify` writes a `Map` as `{}` — no error, no warning, nothing failing until a resumed
@@ -73,8 +90,6 @@ Carried forward as the things most likely to be got wrong next:
 - **Resume replays turns, it does not re-execute them.** `SaveState` stays the only source of
   world truth; the replayed turns are rendering. If a future change makes `play()` mutate engine
   state, resume silently double-applies it.
-
-Carried forward as the things most likely to be got wrong next:
 
 - **`art/`'s corpus sweep asserts shape, not colour** — non-empty, inside the canvas — and an
   inversion satisfies both *perfectly*. That is how this reached a released build. The general
@@ -110,38 +125,18 @@ Carried forward as the things most likely to be got wrong next:
   12.7 / 5.8 / 2.6). Treat that as evidence the tables describe the event stream — and still
   assert orderings, never percentages.
 
-Also fixed: `web/tools/serve.ts` printed a raw unhandled `'error'` stack on `EADDRINUSE`,
-*after* a successful build — it read as a broken shell rather than a port held by a previous
-`dev`. It now names the port and offers `PORT=`.
-
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
 **M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared). 5.4 in progress** — **backdrop
-assignment ✅** and **persistence ✅** (v1.5.0). **Panel sequencing** and **portraits** are open and
-unblocked; **narration styling is blocked on a contract question**, below.
+assignment ✅**, **persistence ✅** (v1.5.0) and **narration styling ✅** (v1.5.1). **Panel
+sequencing** and **portraits** are what remain of 5.4, both open and unblocked.
 
-0. **Narration styling needs a decision before it needs code.** The transcript renders room name
-   and room description as one undifferentiated `prose` block, because **`room-title` never
-   arrives**: `NarrationChannel` declares `room-title | prose | system`, `builtins.ts:440` emits
-   the title on its own channel, but that engine-side `describeRoom` is not what runs — Zork's own
-   `DESCRIBE-ROOM` from the world document does, and it prints the name inside a `prose` line.
-   **`.line.room-title` in `style.css` is therefore dead CSS**, exactly as the `field` backdrop was
-   dead code, and `web/src/status.ts` already documents the workaround it forced.
-   The shell cannot fix this alone: styling by parsing narration is what ADR 0002 exists to
-   prevent, and there is no regex over narration anywhere in the pane today. **So it is an engine
-   change** — make the ZIL `DESCRIBE-ROOM` path emit `room-title` — **and the risk is parity**:
-   splitting one narration event into two changes the event stream that 143/143 strict turns are
-   measured against. Check whether the harness compares events or concatenated text before
-   estimating this. **Recommendation: do it, and do it before more panes depend on the workaround**
-   — `system` is unemitted for the same reason and will need the same fix.
-
-1. **Stage 5.4 — presentation buildout: panel sequencing, portraits, narration styling,
-   persistence.** Exit criterion is the opening area playable in comic form. What is left and what
-   5.3 leaves it:
-   - **Done at v1.5.0:** room→backdrop assignment (`web/src/comic/backdrop.ts`, a table, not a
-     regex) and session persistence (`web/src/persistence.ts`, autosave + resume by replaying
-     `Turn[]` through `play()`).
-   - **Still open:** panel sequencing, character portraits, narration styling (item 0).
+1. **Stage 5.4 — presentation buildout: panel sequencing and portraits.** Exit criterion is the
+   opening area playable in comic form. What is left and what 5.3 leaves it:
+   - **Done:** room→backdrop assignment (`web/src/comic/backdrop.ts`, a table, not a regex) and
+     session persistence (`web/src/persistence.ts`, autosave + resume by replaying `Turn[]`
+     through `play()`) at v1.5.0; narration styling (`room-title`) at v1.5.1.
+   - **Still open:** panel sequencing, character portraits.
    - **The mapper and the renderer are the seam.** Add framing and sequencing in `render.ts` and
      `comic-view.ts`; changing what a *shot means* is a `mapper.ts` change and an ADR question.
    - **Two authoring items 5.3 stubbed are still stubs**, each marked at its call site: the
@@ -230,12 +225,13 @@ sat unread for two sessions before it settled the balloon class.
 - **Multi-object lists are unimplemented** beyond `ALL`. "TAKE LEAFLET AND MAILBOX" is correctly
   kept as *one* turn by the sentence splitter, but the second noun is dropped; the reference
   prints a prefixed answer per object, as `TAKE ALL` already does.
-- **`room-title` channel is unused in practice — resolved at 5.2, no contract change.** The engine
-  delegates room description to Zork's own `DESCRIBE-ROOM`, which prints the name with
-  `<TELL D ,HERE>`, so the title cannot be split onto its own channel without parsing prose —
-  which ADR 0002 forbids. **The channel stays** (the console status line is its consumer,
-  `docs/panel-grammar-discussion.md` §7.1), and the documented workaround is now implemented and
-  tested: `web/src/status.ts` resolves the room name from the world document by id, taking it from
+- **`room-title` channel was unused in practice — CLOSED at v1.5.1.** The premise ("the title
+  cannot be split out without parsing prose") was wrong: the engine does not have to *recognize*
+  the title in text, it can *know* which `TELL` prints it. `RuntimeContext.titleRoom`, scoped to
+  the `DESCRIBE-ROOM` frame in `runRoutine`, routes that one `D` — and the rest of its line — onto
+  `room-title`, byte-identically, so parity is untouched. **The status line keeps the id lookup
+  anyway**, deliberately: `restore()` describes no room and so emits no title.
+  `web/src/status.ts` resolves the room name from the world document by id, taking it from
   `player-moved`.to and — for the opening turn, which emits none — from the player's own
   `object-moved`. An unknown id renders as the id, so a gap is visible rather than blank.
   **Two adjacent findings from the same stage**, both consumer-side, both tested, neither needing a
