@@ -5,7 +5,7 @@ Cross-session context. Update at session end.
 ---
 
 ## Current Version
-**0.6.5**
+**0.6.7**
 
 ---
 
@@ -24,44 +24,66 @@ Historical sources imported:
   - 3.5 ✅ (Group B complete): 346 routines extracted, 32 catalogued (all triaged, ADR 0001 builtin list), 39/292 refs unresolved (87% coverage); IR schema 0.13.0
   - Batches done: a (prop/table), c (defaults/SET), arithmetic, b (loops), e (macro resolution), d (daemons/timers), builtin triage, f (expr-position tell/set-flag/PRINTN), g (expr-cond + abs/mod/min), h (table views), i (apply), j (RFATAL); world-doc gaps 1 (meta entities) + 2 (table-valued globals) + 3 (nested tables/ITABLE)
   - Remaining catalog = Group A engine builtins by design + a one-off tail (NEXTP, NTH, String-in-stmt, bare `,ONBIT`/`,ACTORBIT`, non-atom FSET? flag)
-- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ interpreter, Group A builtins, dispatch chain, save/restore; 4.4 ✅ transcript harness; 4.5 ⏳ — 9 walkthroughs, **104/104 strict turns (100%), 115/122 overall**; `TAKE ALL` implemented. Gate C not yet claimed
+- M4 ⏳: Engine core (v0.6.x) — 4.1 ✅ world runtime, object tree, exit resolution, seeded RNG, ADR 0002 contract as code; 4.2 ✅ lexicon, scope, command parser; 4.3 ✅ interpreter, Group A builtins, dispatch chain, save/restore; 4.4 ✅ transcript harness; 4.5 ✅ `TAKE ALL`, wider corpus; 4.6 ✅ orphan questions, pronouns, compound sentences, per-turn parity directives — 11 walkthroughs, **117/117 strict turns (100%), 138/163 overall**. Gate C not yet claimed
 
 ---
 
-## Last Session (v0.6.5) — M4 stage 4.5 continued: multiple objects, wider corpus
+## Last Session (v0.6.7) — M4 stage 4.6: the parser's stateful edges
 
-**104/104 strict turns across 8 walkthroughs (100%)**, 115/122 overall. 89 engine tests,
-IR 184/184. Three more walkthroughs: `07-forest-and-tree`, `08-containers`,
-`09-take-all-surface`.
+**117/117 strict turns (100%), 138/163 overall. 103 engine tests, IR 184/184.**
+Walkthrough `11-parser-edges` replays with zero diff; `10-dam-and-reservoir` re-captured.
 
-**`TAKE ALL` (ZIL's MANY option)**, deferred in 4.3. Nearly every detail was settled by
-**asking the reference build rather than reasoning**:
+**Started by auditing an interrupted session.** The tree held no modified files — only two
+uncaptured walkthrough/golden pairs. 10 turned out to be a **bad capture**: it never reached
+the dam, dying to the troll at turn 19, so every diff in it was combat noise. 11 was a clean
+spec for four real parser gaps, all four now fixed:
 
-- `ALL` is a BUZZ word, so it must be recognised *before* buzzword filtering, or "TAKE ALL"
-  reduces to a bare "TAKE" and is rejected as ungrammatical
-- "All" covers the room's loose objects, things on a **surface** in the room, and what is
-  held. The surface case isn't obvious — "TAKE ALL" in the Kitchen takes the bottle and
-  sack, both *on the table* — but it does **not** take the water inside the (transparent,
-  in-scope) bottle. A surface is furniture; a container's contents come along inside it
-- **`TRYTAKEBIT` widens the slot's find flag.** In the Living Room "all" also answers for
-  the rug and trophy case ("The rug is extremely heavy...") because ZIL includes
-  "try-to-take-me" objects and lets their actions refuse. The wooden door, with neither
-  flag, is silently absent. Filtering them out would replace six answers with four
+- **Compound sentences.** One line may hold several commands, each its own turn — "TAKE THE
+  LEAFLET AND READ IT" costs two moves, "TAKE LEAFLET AND MAILBOX" costs one. The only
+  discriminator is whether a **verb follows the AND**
+- **Orphan questions.** ZIL asks for a missing object instead of refusing the verb, and the
+  next input answers it. This makes the parser stateful across turns — new `ParserMemory` on
+  `GameState`, which nothing else in the engine needed
+- **Implicit objects.** A slot with a `find` flag and one candidate is filled and echoed,
+  "(leaflet)"
+- **HAVE slots** report their own requirement ("You don't have that!"), not the surroundings
 
-**Two defects in existing code:** `flush` trimmed trailing spaces, wrong for a *mid-sentence*
-flush (`brown sack:Taken.`); and `run-transcripts.sh` fed the new `# parity:` directive
-lines to dfrotz as commands, silently corrupting 05's golden (0/18 until noticed).
+**Every detail came from asking the reference build; the ZIL reads plausibly several ways on
+all four.** Two first attempts were wrong and dfrotz caught both:
 
-**⚑ A source/transcript conflict, resolved for the transcript.** HANDOFF has listed **P-WON
-demon-region gating** as 4.5 work since 3.5, and the source is unambiguous: meta-verbs cost
-no time, so SCORE shouldn't advance MOVES. **Implementing it broke walkthrough 06** — the
-golden has SCORE advancing 11→12. The trap: dfrotz redraws the status line only when it
-*changes*, so a SCORE turn shows none, which reads as "no move consumed" but means "the
-counter hadn't changed yet at that prompt". The second SCORE printing "in 13 moves" settles
-it. Per stage 0.2 the shipped Release 119 file is ground truth, not the ZILF-reconstructed
-source — **so the gating is deliberately NOT implemented**, and the reasoning sits in a
-comment at the call site, because the source reads the other way and the next reader will
-otherwise "fix" it back.
+- **Auto-supply must ignore the slot's *location* options.** TAKE searches ON-GROUND/IN-ROOM
+  yet bare TAKE answers for a leaflet *in your hand*. Re-parsing the completed sentence had
+  it rejected by the very rule that produced it; the command is now built directly
+- **The orphan must not pick the most-specific rule**, though the main loop must. Bare PUT
+  would land on `PUT DOWN …` and ask "What do you want to put down?" A slot introduced by a
+  preposition cannot be what the player left out
+- A third: the no-antecedent message I invented was wrong — it is **"I don't see what you
+  are referring to."**
+
+**Two process failures worth remembering.** A new test *passed for the wrong reason*:
+`setFlag(state, "LEAFLET", …)` silently invents a phantom entity, and the leaflet's id is
+`ADVERTISEMENT`. Only a sibling test failing exposed it; the whole file was then swept and
+every other id is real. And **the property-default fix I reached for first was wrong**:
+defaulting every absent property to 0, as `GETP` does, breaks ten of eleven walkthroughs,
+because `truthy()` counts 0 as true here and the `false` sentinel is load-bearing.
+
+**⚑ Walkthrough 10 is informational, and for a reason that expires.** The dam sits behind the
+Troll Room, which the IR's exit graph shows is a **cut vertex**; giving, throwing and talking
+were all tried against the reference and none gets past. The engine cannot resolve combat
+*outcomes*, so the troll never dies and every turn from 13 on cascades. That is **"fails to
+verify", not "cannot verify"** — unlike 05, it is a missing subsystem, not a limit of the
+method. The capture is correct and complete (bubble → yellow button → bolt → sluice gates):
+**delete one `# parity:` line when villain combat lands and it verifies the dam strictly.**
+
+**Per-turn parity directives** were added for it — `# informational: <reason>` scopes to the
+commands after it until `# strict:`. Even with combat implemented, the four fight turns are a
+random draw and can never match text-for-text, while everything around them can; whole-file
+informational would have thrown away the dam to accommodate them.
+
+**The strict-majority guard was rewritten rather than relaxed.** It allowed one informational
+file out of however many, and a second one tripped it. Bumping the number would have been the
+exact drift it guards against, so it now counts **turns** (≥ 2/3 strict, no bumping when a
+walkthrough is added) and additionally requires every opt-out to **carry a written reason**.
 
 ---
 
@@ -373,7 +395,15 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 ---
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
-**M4 in progress. 4.1–4.4 ✅, 4.5 partial — next is the RNG decision, then the remaining systems.**
+**M4 in progress. 4.1–4.6 ✅ — next is the RNG decision, then the remaining systems.**
+
+0. **Villain combat is now the top blocker, and it has a waiting test.** Walkthrough 10
+   captures the whole dam sequence correctly but is informational because the troll never
+   dies, and the Troll Room is a cut vertex on the way to the dam. Implementing combat
+   outcomes turns 18 cascading turns green at once: **delete the `# parity:` line in
+   `verification/walkthroughs/10-dam-and-reservoir.cmd` and it verifies strictly**, with the
+   four fight turns already quarantined by per-turn directive. This is gated on the RNG
+   decision below only for the fight *text*, not for the outcome
 
 1. **⚑ The RNG question — decide before claiming Gate C.** Combat, PICK-ONE and the thief
    all draw randomly, and the engine's mulberry32 is not frotz's generator, so those turns
@@ -420,7 +450,10 @@ Triggered by a question about whether ZILF/ZLR make this project redundant. They
 - **Backdrop scarcity**: 3 shipped Comic Chat backdrops vs. 110 Zork rooms, and no `AT_BACKDROP` assets exist. Options sketched but undecided — panel compositions that avoid backdrops, deriving variants from the three originals, or new art in the Woodring hatch idiom for the ~10 rooms that carry the game. M5 decision
 - `art/` has **no test harness**; the 4656-image corpus sweep was ad hoc. Needs a regression test once the module gains a toolchain
 - **`room-title` channel is unused in practice.** The engine delegates room description to Zork's own `DESCRIBE-ROOM`, which prints the name with `<TELL D ,HERE>`, so the title cannot be split onto its own channel without parsing prose — which the ADR 0002 contract forbids. A UI wanting the title should read `player-moved`.to and look the name up in the world document. Decide in 4.4/5.2 whether the channel stays in the contract
-- **ZIL property defaults live in the engine, not the IR.** `PROPDEF SIZE 5` etc. are encoded in `engine/src/interpreter.ts`. The document is the correct home; adding a `propdefs` section is an IR schema change deferred rather than rejected
+- **ZIL property defaults live in the engine, not the IR.** `PROPDEF SIZE 5` etc. are encoded in `engine/src/interpreter.ts`. The document is the correct home; adding a `propdefs` section is an IR schema change deferred rather than rejected. **Do not "simplify" this to a blanket 0 default** — it was tried in v0.6.7 and breaks ten of eleven walkthroughs, because `truthy()` counts 0 as true and the `false` sentinel distinguishes absent from zero. The table now also carries `strength`, which is a Zork property rather than a library one — the ADR 0002 seam this table already sits on
+- **`state.parser` is deliberately outside the save contract.** Orphan questions and the "it" referent are mid-sentence scratch, not world state; `restore` clears them rather than reinstating a half-asked question
+- **Pronoun with no referent diverges in one case.** In West of House, where the mailbox is the room's only object, the reference build resolves "READ IT" *to the mailbox* rather than refusing. Whether that is a one-candidate fallback is unverified, so we refuse in both rooms — matching the many-object case only. Recorded at the call site in `engine/src/engine.ts`
+- **Multi-object lists are still unimplemented** beyond `ALL`. "TAKE LEAFLET AND MAILBOX" is correctly kept as *one* turn by the sentence splitter, but the second noun is dropped; the reference prints a prefixed answer per object, as `TAKE ALL` already does
 - **`I-SWORD` needs an IR answer, not an engine one.** It walks exits as numbered Z-machine properties (`<NEXTP …>`); the IR models exits structurally, so the extractor cannot translate it mechanically and the engine must not hard-code it (ADR 0002). Likely needs a small IR behavior op for "rooms adjacent to here" — an IR schema decision, so deliberately not taken autonomously. Same shape of problem as `I-CYCLOPS` (`<NTH …>`)
 - **Stubbed builtins**: `RANDOMIZE-OBJECTS`, `HERO-BLOW`, `V-CLIMB-UP` return no-ops so call sites reach a defined value instead of crashing a turn. They belong to the thief/combat systems in 4.5
 - `README.md:27` still says the engine is "inspired by the original gameplay" — understates the commitment to behavioral compatibility verified by golden transcripts. Minor wording

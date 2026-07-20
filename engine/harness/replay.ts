@@ -55,10 +55,19 @@ export interface WalkthroughResult {
   parity: ParityMode;
   /** Why, when it does not. */
   reason: string;
+  /**
+   * Diffs on turns the walkthrough declared unverifiable. Reported, never
+   * failing — and kept apart from `diffs` so the two can't be confused.
+   */
+  informationalDiffs: TurnDiff[];
+  /** Reasons given for those turns, deduplicated. */
+  informationalReasons: string[];
+  /** How many turns were declared unverifiable. */
+  informationalTurnCount: number;
 }
 
 export function replay(name: string, doc: WorldDocument): WalkthroughResult {
-  const { commands, parity, reason } = parseWalkthrough(
+  const { commands, parity, reason, informationalTurns } = parseWalkthrough(
     readFileSync(join(WALKTHROUGHS, `${name}.cmd`), "utf8"),
   );
   const golden = parseGolden(readFileSync(join(GOLDEN, `${name}.txt`), "utf8"));
@@ -79,21 +88,31 @@ export function replay(name: string, doc: WorldDocument): WalkthroughResult {
   // The walkthroughs end with `quit` + `y`; the confirmation is interpreter
   // dialogue, not gameplay, so the comparison stops at the last real command.
   const compared = commands.length - trailingQuitLength(commands);
-  const diffs = diffTurns(
+  const all = diffTurns(
     commands.slice(0, compared),
     golden.turns.slice(0, compared),
     actual.slice(0, compared),
   );
 
+  // Split the diffs by whether the walkthrough claimed the turn was verifiable.
+  // The strict figures below count only strict turns in both numerator and
+  // denominator, so quarantining a passage can't inflate the percentage.
+  const diffs = all.filter((d) => !informationalTurns.has(d.index));
+  const informationalDiffs = all.filter((d) => informationalTurns.has(d.index));
+  const strictTotal = compared - informationalTurns.size;
+
   return {
     name,
     commands,
     diffs,
-    matched: compared - diffs.length,
-    total: compared,
+    matched: strictTotal - diffs.length,
+    total: strictTotal,
     missingRoutines: engine.missingRoutines(),
     parity,
     reason,
+    informationalDiffs,
+    informationalReasons: [...new Set(informationalTurns.values())],
+    informationalTurnCount: informationalTurns.size,
   };
 }
 
@@ -146,6 +165,10 @@ function main(): void {
     console.log(`${status}: ${name} — ${result.matched}/${result.total} turns match`);
     if (informational && result.reason.length > 0) {
       console.log(`  informational: ${result.reason}`);
+    }
+    for (const why of result.informationalReasons) {
+      const n = result.informationalDiffs.length;
+      console.log(`  ${result.informationalTurnCount} turns not verifiable (${n} diverged): ${why}`);
     }
     if (result.missingRoutines.length > 0) {
       // Not a diff but a cause: gameplay is missing because the extractor

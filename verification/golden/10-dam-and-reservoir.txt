@@ -1,0 +1,228 @@
+Using normal formatting.
+Loading original-projects/zork1/COMPILED/zork1.z3.
+ West of House                                    Score: 0        Moves: 0
+
+ZORK I: The Great Underground Empire
+Infocom interactive fiction - a fantasy story
+Copyright (c) 1981, 1982, 1983, 1984, 1985, 1986 Infocom, Inc. All rights
+reserved.
+ZORK is a registered trademark of Infocom, Inc.
+Release 119 / Serial number 880429
+
+West of House
+You are standing in an open field west of a white house, with a boarded front
+door.
+There is a small mailbox here.
+
+> North of House                                   Score: 0        Moves: 1
+
+North of House
+You are facing the north side of a white house. There is no door here, and all
+the windows are boarded up. To the north a narrow path winds through the trees.
+
+> Behind House                                     Score: 0        Moves: 2
+
+Behind House
+You are behind the white house. A path leads into the forest to the east. In one
+corner of the house there is a small window which is slightly ajar.
+
+> Behind House                                     Score: 0        Moves: 3
+
+With great effort, you open the window far enough to allow entry.
+
+> Kitchen                                          Score: 10       Moves: 4
+
+Kitchen
+You are in the kitchen of the white house. A table seems to have been used
+recently for the preparation of food. A passage leads to the west and a dark
+staircase can be seen leading upward. A dark chimney leads down and to the east
+is a small window which is open.
+A bottle is sitting on the table.
+The glass bottle contains:
+  A quantity of water
+On the table is an elongated brown sack, smelling of hot peppers.
+
+> Living Room                                      Score: 10       Moves: 5
+
+Living Room
+You are in the living room. There is a doorway to the east, a wooden door with
+strange gothic lettering to the west, which appears to be nailed shut, a trophy
+case, and a large oriental rug in the center of the room.
+Above the trophy case hangs an elvish sword of great antiquity.
+A battery-powered brass lantern is on the trophy case.
+
+> Living Room                                      Score: 10       Moves: 6
+
+Taken.
+
+> Living Room                                      Score: 10       Moves: 7
+
+Taken.
+
+> Living Room                                      Score: 10       Moves: 8
+
+With a great effort, the rug is moved to one side of the room, revealing the
+dusty cover of a closed trap door.
+
+> Living Room                                      Score: 10       Moves: 9
+
+The door reluctantly opens to reveal a rickety staircase descending into
+darkness.
+
+> Living Room                                      Score: 10       Moves: 10
+
+The brass lantern is now on.
+
+> Cellar                                           Score: 35       Moves: 11
+
+The trap door crashes shut, and you hear someone barring it.
+
+Cellar
+You are in a dark and damp cellar with a narrow passageway leading north, and a
+crawlway to the south. On the west is the bottom of a steep metal ramp which is
+unclimbable.
+Your sword is glowing with a faint blue glow.
+
+> The Troll Room                                   Score: 35       Moves: 12
+
+The Troll Room
+This is a small room with passages to the east and south and a forbidding hole
+leading west. Bloodstains and deep scratches (perhaps made by an axe) mar the
+walls.
+A nasty-looking troll, brandishing a bloody axe, blocks all passages out of the
+room.
+Your sword has begun to glow very brightly.
+
+> The Troll Room                                   Score: 35       Moves: 13
+
+You charge, but the troll jumps nimbly aside.
+The axe sweeps past as you jump aside.
+
+> The Troll Room                                   Score: 35       Moves: 14
+
+You charge, but the troll jumps nimbly aside.
+The troll's mighty blow drops you to your knees.
+
+> The Troll Room                                   Score: 35       Moves: 15
+
+You are still recovering from that last blow, so your attack is ineffective.
+The axe crashes against the rock, throwing sparks!
+
+> The Troll Room                                   Score: 35       Moves: 16
+
+Your sword crashes down, knocking the troll into dreamland.
+
+> East-West Passage                                Score: 40       Moves: 17
+
+East-West Passage
+This is a narrow east-west passageway. There is a narrow stairway leading down
+at the north end of the room.
+Your sword is glowing with a faint blue glow.
+
+> Chasm                                            Score: 40       Moves: 18
+
+Chasm
+A chasm runs southwest to northeast and the path follows it. You are on the
+south side of the chasm, where a crack opens into a passage.
+Your sword is no longer glowing.
+
+> Reservoir South                                  Score: 40       Moves: 19
+
+Reservoir South
+You are in a long room on the south shore of a large lake, far too deep and wide
+for crossing.
+There is a path along the stream to the east or west, a steep pathway climbing
+southwest along the edge of a chasm, and a path leading into a canyon to the
+southeast.
+
+> Dam                                              Score: 40       Moves: 20
+
+Dam
+You are standing on the top of the Flood Control Dam #3, which was quite a
+tourist attraction in times far distant. There are paths to the north, south,
+and west, and a scramble down.
+The sluice gates on the dam are closed. Behind the dam, there can be seen a wide
+reservoir. Water is pouring over the top of the now abandoned dam.
+There is a control panel here, on which a large metal bolt is mounted. Directly
+above the bolt is a small green plastic bubble.
+
+> Dam                                              Score: 40       Moves: 21
+
+There's nothing special about the green bubble.
+
+> Dam                                              Score: 40       Moves: 22
+
+There's nothing special about the bolt.
+
+> Dam                                              Score: 40       Moves: 23
+
+You can't see any wrench here!
+
+> Dam Lobby                                        Score: 40       Moves: 24
+
+Dam Lobby
+This room appears to have been the waiting room for groups touring the dam.
+There are open doorways here to the north and east marked "Private", and there
+is a path leading south over the top of the dam.
+Some guidebooks entitled "Flood Control Dam #3" are on the reception desk.
+There is a matchbook whose cover says "Visit Beautiful FCD#3" here.
+
+> Maintenance Room                                 Score: 40       Moves: 25
+
+Maintenance Room
+This is what appears to have been the maintenance room for Flood Control Dam #3.
+Apparently, this room has been ransacked recently, for most of the valuable
+equipment is gone. On the wall in front of you is a group of buttons colored
+blue, yellow, brown, and red. There are doorways to the west and south.
+There is a wrench here.
+There is an object which looks like a tube of toothpaste here.
+There is a screwdriver here.
+There is a group of tool chests here.
+
+> Maintenance Room                                 Score: 40       Moves: 26
+
+Taken.
+
+> Maintenance Room                                 Score: 40       Moves: 27
+
+Click.
+
+> Dam Lobby                                        Score: 40       Moves: 28
+
+Dam Lobby
+Some guidebooks entitled "Flood Control Dam #3" are on the reception desk.
+There is a matchbook whose cover says "Visit Beautiful FCD#3" here.
+
+> Dam                                              Score: 40       Moves: 29
+
+Dam
+You are standing on the top of the Flood Control Dam #3, which was quite a
+tourist attraction in times far distant. There are paths to the north, south,
+and west, and a scramble down.
+The sluice gates on the dam are closed. Behind the dam, there can be seen a wide
+reservoir. Water is pouring over the top of the now abandoned dam.
+There is a control panel here, on which a large metal bolt is mounted. Directly
+above the bolt is a small green plastic bubble which is glowing serenely.
+
+> Dam                                              Score: 40       Moves: 30
+
+The sluice gates open and water pours through the dam.
+
+> Dam                                              Score: 40       Moves: 31
+
+There's nothing special about the green bubble.
+
+> Dam                                              Score: 40       Moves: 32
+
+Dam
+You are standing on the top of the Flood Control Dam #3, which was quite a
+tourist attraction in times far distant. There are paths to the north, south,
+and west, and a scramble down.
+The sluice gates are open, and water rushes through the dam. The water level
+behind the dam is still high.
+There is a control panel here, on which a large metal bolt is mounted. Directly
+above the bolt is a small green plastic bubble which is glowing serenely.
+
+>Your score is 40 (total of 350 points), in 32 moves.
+This gives you the rank of Amateur Adventurer.
+Do you wish to leave the game? (Y is affirmative): >

@@ -141,26 +141,78 @@ export interface Walkthrough {
   parity: ParityMode;
   /** Why parity is informational, taken from the directive's `# reason:` lines. */
   reason: string;
+  /**
+   * Indices of individual commands that cannot be verified, with the reason.
+   *
+   * Whole-file `informational` is too blunt for a walkthrough that has to *pass
+   * through* something unverifiable to reach what it is actually testing. The
+   * dam is behind the Troll Room, the Troll Room is a cut vertex, and the fight
+   * is decided by a random draw our generator cannot reproduce — so reaching
+   * the dam costs a handful of unmatched turns no matter how the walkthrough is
+   * written. Marking the whole file informational to accommodate them would
+   * stop verifying the dam, which is the entire point of the walkthrough.
+   */
+  informationalTurns: Map<number, string>;
 }
 
-/** Read a `.cmd` walkthrough: its commands, plus any parity directive. */
+/**
+ * Read a `.cmd` walkthrough: its commands and its parity directives.
+ *
+ * `# informational: <reason>` applies to every command after it until the next
+ * `# strict:`, so a walkthrough can quarantine a passage without surrendering
+ * the turns on either side.
+ */
 export function parseWalkthrough(raw: string): Walkthrough {
   const lines = raw.split("\n").map((line) => line.trim());
-  const commands = lines.filter((line) => line.length > 0 && !line.startsWith("#"));
+  const commands: string[] = [];
+  const informationalTurns = new Map<number, string>();
+  let scoped: string | undefined;
+
+  for (const line of lines) {
+    if (line.length === 0) continue;
+    if (line.startsWith("#")) {
+      const opened = /^#\s*informational:\s*(.*)$/.exec(line);
+      if (opened !== null) scoped = opened[1]!.trim();
+      else if (/^#\s*strict:/.test(line)) scoped = undefined;
+      continue;
+    }
+    if (scoped !== undefined) informationalTurns.set(commands.length, scoped);
+    commands.push(line);
+  }
 
   const parity: ParityMode = lines.some((line) => /^#\s*parity:\s*informational/.test(line))
     ? "informational"
     : "strict";
 
-  const reason = lines
-    .filter((line) => line.startsWith("#"))
-    .join(" ")
-    .replace(/^.*?#\s*reason:\s*/, "")
-    .replace(/#/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  /*
+   * `# reason:` runs until the next directive, not to the end of the file — the
+   * per-turn `# informational:` / `# strict:` markers below it are directives in
+   * their own right, and swallowing them turned the whole-file reason into an
+   * unreadable run-on that repeated them.
+   */
+  const reasonLines: string[] = [];
+  let collecting = false;
+  for (const line of lines) {
+    if (!line.startsWith("#")) continue;
+    if (/^#\s*reason:/.test(line)) {
+      collecting = true;
+      reasonLines.push(line.replace(/^#\s*reason:\s*/, ""));
+      continue;
+    }
+    if (/^#\s*(parity|informational|strict):/.test(line)) {
+      collecting = false;
+      continue;
+    }
+    if (collecting) reasonLines.push(line.replace(/^#\s*/, ""));
+  }
+  const reason = reasonLines.join(" ").replace(/\s+/g, " ").trim();
 
-  return { commands, parity, reason: parity === "informational" ? reason : "" };
+  return {
+    commands,
+    parity,
+    reason: parity === "informational" ? reason : "",
+    informationalTurns,
+  };
 }
 
 export interface TurnDiff {

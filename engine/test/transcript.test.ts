@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 import { loadDocument, replay, walkthroughNames } from "../harness/replay.js";
-import { normalize, parseGolden, stripSessionEnd } from "../harness/golden.js";
+import { normalize, parseGolden, parseWalkthrough, stripSessionEnd } from "../harness/golden.js";
 
 const doc = loadDocument();
 const names = walkthroughNames();
@@ -46,12 +46,33 @@ describe("golden transcripts", () => {
     });
   }
 
-  it("verifies strictly on most walkthroughs", () => {
-    // Guards against parity being "achieved" by marking everything
-    // informational: the strict set must stay the large majority.
+  it("verifies strictly on most turns, and never silently", () => {
+    /*
+     * Guards against parity being "achieved" by marking things informational.
+     *
+     * This counts *turns* rather than walkthroughs. The old form allowed one
+     * informational file out of however many, which had to be relaxed every
+     * time a second one appeared — and relaxing the guard you just tripped is
+     * exactly the drift it exists to catch. A turn ratio does not need bumping
+     * when a walkthrough is added, and it makes a long quarantined passage cost
+     * more than a short one, which a file count did not.
+     *
+     * The second assertion is the one that actually bites: a walkthrough may
+     * only opt out of verification by saying why, in writing, where the next
+     * reader will see it.
+     */
     const results = names.map((name) => replay(name, doc));
-    const strict = results.filter((r) => r.parity === "strict");
-    expect(strict.length).toBeGreaterThanOrEqual(results.length - 1);
+
+    const compared = results.reduce((n, r) => n + r.total + r.informationalTurnCount, 0);
+    const strictTurns = results
+      .filter((r) => r.parity === "strict")
+      .reduce((n, r) => n + r.total, 0);
+    expect(strictTurns / compared).toBeGreaterThanOrEqual(2 / 3);
+
+    for (const result of results) {
+      if (result.parity === "informational") expect(result.reason.length).toBeGreaterThan(40);
+      for (const why of result.informationalReasons) expect(why.length).toBeGreaterThan(20);
+    }
   });
 
   it("compares a meaningful number of turns", () => {
@@ -116,5 +137,41 @@ describe("the normalizer keeps what parity is measured on", () => {
       "Do you wish to leave the game? (Y is affirmative): >",
     ].join("\n");
     expect(normalize(stripSessionEnd(last))).toBe("West of House");
+  });
+});
+
+/**
+ * Per-turn parity directives (stage 4.6). Walkthrough 10 needs these: even once
+ * villain combat lands, the four fight turns are a random draw and can never
+ * match text-for-text, while everything around them can.
+ */
+describe("scoped parity directives", () => {
+  it("scopes informational to the turns between the directives", () => {
+    const w = parseWalkthrough(
+      ["north", "# informational: rng", "fight", "fight", "# strict:", "south"].join("\n"),
+    );
+    expect(w.commands).toEqual(["north", "fight", "fight", "south"]);
+    expect([...w.informationalTurns.keys()]).toEqual([1, 2]);
+    expect(w.informationalTurns.get(1)).toBe("rng");
+  });
+
+  it("keeps a whole-file reason clear of the per-turn directives below it", () => {
+    // These were being concatenated into one run-on reason string.
+    const w = parseWalkthrough(
+      [
+        "# parity: informational",
+        "# reason: combat is not implemented",
+        "# informational: rng",
+        "fight",
+      ].join("\n"),
+    );
+    expect(w.reason).toBe("combat is not implemented");
+  });
+
+  it("excludes quarantined turns from the strict count entirely", () => {
+    // Both numerator and denominator, so quarantining can't inflate the ratio.
+    const result = replay("10-dam-and-reservoir", doc);
+    expect(result.total).toBe(result.commands.length - 2 - result.informationalTurnCount);
+    expect(result.diffs.every((d) => !d.command.startsWith("kill"))).toBe(true);
   });
 });
