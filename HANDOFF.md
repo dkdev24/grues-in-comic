@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.1.0**
+**1.2.0**
 
 ---
 
@@ -36,56 +36,53 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   **11 walkthroughs, 143/143 strict turns (100%), 155/161 overall. 120 engine tests, IR 193.**
   ⚑ **Gate C CLAIMED (v1.0.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`, see below
 - **M5** Comic Chat presentation — **5.1 ✅** art pipeline (`art/`: decode, pose selection,
-  compositing; 13 tests, whole-corpus sweep) and the presentation analysis in `wiki/`
+  compositing; 13 tests, whole-corpus sweep) and the presentation analysis in `wiki/` ·
+  **panel grammar ✅ (v1.2.0)** — `docs/adr/0004-presentation-mapping.md` Accepted, so 5.3 is
+  unblocked on design
 
 ---
 
-## Last Session — panel grammar discussion (no version change)
+## Last Session — ADR 0004 written and accepted (v1.2.0)
 
-**Design discussion only; no code, no milestone.** Cut short by a session limit and **unfinished**
-— the full record is `docs/panel-grammar-discussion.md`. Resume there, not from this summary.
+**Design only; no code. The decision of record is now `docs/adr/0004-presentation-mapping.md`** —
+read that first. `docs/panel-grammar-discussion.md` (§1–§16, 949 lines) is the reasoning behind it;
+the full narrative is `WORKLOG.md` v1.2.0. Measurement used throwaway scripts under
+`engine/harness/` and `art/tools/`, all removed.
 
-Reviewed `docs/chatgpt-new-overall-architecture.md` (externally drafted) and used it to attack Next
-Action #5, panel grammar. What was settled:
+**ADR 0004 — Accepted.** Eleven decisions, three same-day amendments. It consumes the ADR 0002
+event contract and deliberately does **not** extend it.
 
-- **The gap restated usefully**: not "Zork lacks dialogue" but *Comic Chat's composition algorithm
-  is parameterized on a social graph Zork never populates*. Placement, turn order, zoom and tail
-  routing are all functions of who speaks to whom.
-- **Comic Chat leads on identity** (Daniel's call) — "Comic Chat can play Zork" over "Zork can
-  become comic". **The consequence is easy to get backwards**: this argues *for* verbatim Zork
-  narration, because the hook is a collision needing both halves recognizable, and Zork's
-  recognizability is its prose — including the grue line this project is named after.
-- **A Guide character**, presentation-layer only (no world position, not parser-referenceable,
-  never affects a state delta), speaking *to* the Hero — which is what fills Comic Chat's empty
-  addressee slot.
-- **Three-channel panel**: Hero balloon = the player's typed command verbatim; caption = engine
-  narration verbatim; Guide balloon = the only authored content, budgeted and usually absent.
-  This answers the player-representation decision in `wiki/comic-chat-presentation.md` at zero
-  authoring cost.
-- **Two-pane shell**: a subordinate console pane carrying the full verbatim narration and player
-  input, beside a **primary** comic pane. Long prose lives where it is native, so the comic's
-  caption drops to a verbatim **pull-quote** — which removes the 80-words-in-a-15-word-balloon
-  problem instead of compromising on it. Comic leads; not text-primary.
-- **Both panes are period reconstructions**: the comic pane is a **Comic Chat window on IRC**, the
-  console is **the terminal Zork was played on**. Not skins — Comic Chat *was* an IRC client, so
-  this rebuilds the artifact rather than dressing up a modern app. Closes the "must not read as an
-  LLM app" concern outright.
-- **The book survives as export only, not as the on-screen view** — and the earlier reconciliation
-  is why. **The panel stream stays canonical and a page is a Layout Manager *policy*** (§8 of the
-  Gemini doc reconciled, not reversed): on-screen policy is the Comic Chat window, export policy
-  is pages, so client-side PDF export is deliberately **not WYSIWYG**. That abstraction absorbed a
-  full direction change one turn after being written, with no rework — hold it firmly.
-- **Keep the `room-title` channel** — the console status line (room, score, moves) is the consumer
-  the Open Issue below was asking for.
-- **RNG vs determinism resolved**: randomness is wanted for replayability; determinism means
-  *given seed*, so the seed must be explicit in save state.
+Carried forward as the things most likely to be got wrong later:
 
-Still open: how much composition logic is recoverable from `original-projects/comic-chat/`; the
-panel-budget formula; Guide trigger/cooldown design; the Guide's identity; page composition and
-pull-quote selection rules; measured PDF export size (200–500 raster panels may be prohibitive);
-and the scroll relationship between the panes. **New and load-bearing: retro fidelity vs.
-responsive** — pixel-faithful 90s chrome and fluid phone-portrait layout genuinely conflict; pick
-deliberately before 5.3 rather than discovering it mid-build.
+- **The Hero thinks; only the Guide speaks (§2a).** Hero channel is `CBWoodringThink`, caption is
+  `CBWoodringBox`, Guide is `CBWoodringNormal`. A speech balloon reading `open the door` makes the
+  Hero appear to order the Guide, and asserts speech on every panel when the engine emits **0
+  `speech` events**. Fixing content without fixing balloon *class* is what caused this.
+- **The salience filter is a precondition, not a detail (§7).** 31 of 187 `object-moved` (16.6%)
+  are player-salient. Without it the most common shot in the comic is a close-up on an unseen thief.
+- **51% of turns are deliberately affectless (§10).** Intent, not a coverage gap. "Improving" it
+  flattens the comic.
+- **Lock the marker *ordering*, not the percentages (§10).** All 11 walkthroughs replay the same
+  opening, so every frequency is opening-shaped.
+- **Emotion derives from narration, never from the Hero's channel (§9)** — inverts Comic Chat's
+  data flow and is the constraint most likely to be implemented backwards.
+- **Panel width is a Layout Manager parameter now (§4a)** — the one place the 5.1 port stops being
+  a transcription. Review it as a design change, not as a diff against the C++.
+
+**Method note: five plausible proposals died on measurement across the two sessions** — the naive
+`object-moved` close-up, the `score-changed` beat rung (0% — fully shadowed), the thin-corpus jitter
+premise, the mobile drawer, and the Hero speech balloon. Measure against the replay and the `art/`
+corpus before committing a rule.
+
+**Settled this session:** retro vs. responsive → **responsive wins** (§4a). Mobile keeps both panes
+visible. Optional dictation sanctioned, must never auto-submit. **cmx.js assessed and not adopted**
+(authoring tool, no composition logic; figure models do not bridge) — see discussion §14.
+**Assisted input** (SCUMM-style picker) designed and **deferred to after the MVP** — discussion §15.
+
+**Still open, and delegated:** the user has asked for a *recommendation* at the point each is
+needed, not a survey — the Guide's identity, final Hero/Guide casting (shortlists intersect only at
+susan, so cast both together), Guide trigger/cooldown, page composition and pull-quote selection,
+§4a breakpoints, PDF byte size, pane scroll coupling.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
@@ -98,7 +95,8 @@ deliberately before 5.3 rather than discovering it mid-build.
    theoretical.
    - **5.1 sharpened what 5.2 is a rehearsal for.** Measured over all 11 walkthroughs (189
      turns): **192 `narration`, 0 `speech`.** Not "few" — none. Every player-visible line is
-     narration, and the 189 `object-moved` events are one per turn, the thief's wander daemon.
+     narration, and the **187** `object-moved` events are ~one per turn, the thief's wander daemon
+     (count corrected from 189 by the §10 census; only 31 of them are player-salient).
      A text UI can ignore that; the 5.3 comic layer cannot, so a 5.2 that surfaces the event
      *mix* rather than just concatenating text is worth more.
 
@@ -122,21 +120,27 @@ deliberately before 5.3 rather than discovering it mid-build.
    that failed but never what its failure cost, which is exactly why combat stayed hidden for
    two milestones.
 
-5. **Panel grammar — decide before 5.3, not during it.** The one question 5.1 could not answer
-   from the historical code, because Comic Chat has no equivalent. Analysis and options are in
-   `wiki/comic-chat-presentation.md`.
-   **A design discussion is in progress and unfinished: `docs/panel-grammar-discussion.md`.**
-   It settles the identity question (Comic Chat leads), the Guide character, and a three-channel
-   panel that answers **the player's on-screen representation** (Hero balloon = the player's typed
-   command) and takes a position on **caption cadence** (every turn — invert Comic Chat's
-   rare-interruption cadence, inherit `CBWoodringBox` geometry). Read that document before
-   resuming; it also lists the eight decisions ADR 0004 must lock.
-   - **Immediate next step, and where the discussion stopped:** read
-     `original-projects/comic-chat/` to determine how much of the composition algorithm is
-     actually recoverable — that gates the panel budget and whether Comic Chat's algorithm can
-     genuinely drive composition. Per 5.1, **read the code, not the paper**.
-   - Then draft **`docs/adr/0004-presentation-mapping.md`**, building on the ADR 0002 event
-     contract rather than inventing a parallel event shape.
+5. **Panel grammar ✅ — `docs/adr/0004-presentation-mapping.md` is Accepted.** No longer a
+   blocker on 5.3. The ADR is the decision of record; **amend the ADR, not the discussion doc.**
+   What is left is authoring judgement, not design, and the user has asked for a **recommendation
+   at the point each is needed — lead with a pick, not a survey**: the Guide's identity, final
+   Hero/Guide casting (cast both together — the shortlists intersect only at susan), Guide
+   trigger/cooldown, page composition and pull-quote selection, §4a breakpoints, PDF byte size,
+   pane scroll coupling.
+
+6. **Assisted input — designed, deferred to after the MVP.** A SCUMM-style command picker; see
+   discussion §15. Not to be started before the MVP ships, but two constraints should be
+   remembered whenever it comes up: **Zork's 135-verb list is a spoiler table** (`ECHO`,
+   `ODYSSEUS`, `PRAY` *are* puzzle solutions, unlike Monkey Island's mundane nine), so it needs a
+   fixed core verb set with puzzle verbs typed-only; and it **structurally removes `parser-miss`**,
+   the largest affect marker at 12.7%, so it flattens the comic unless something replaces it. It
+   requires an **ADR 0002 amendment** — a read-only query API (`objectsInScope()`), pull not push,
+   leaving the event stream at 1.0.0. `engine/src/scope.ts` already computes the answer.
+
+**Standing method note: measure before proposing rules.** Five plausible proposals died that way
+across the panel-grammar sessions. The harness replay and the `art/` corpus both answer questions
+cheaply, and a measurement taken for one question often answers another — the 0-`speech` census
+sat unread for two sessions before it settled the balloon class.
 
 ---
 
@@ -178,6 +182,11 @@ deliberately before 5.3 rather than discovering it mid-build.
   whether the channel stays in the contract.~~ **Decided: the channel stays.** The retro console's
   Infocom status line (room name, score, moves) refreshes every turn and is its consumer — see
   `docs/panel-grammar-discussion.md` §7.1. The `player-moved` workaround remains available.
+- **`game-over` may double-emit — unverified.** The §10 event census counts **22 `game-over`
+  events across 11 walkthroughs**, two per walkthrough within the same turn. Possibly legitimate
+  (a death followed by a quit), possibly a double-emit. Harmless to per-turn logic and to the
+  parity harness, which compares text; it would matter to a UI that reacts to the event. Noticed
+  incidentally, not investigated.
 - **Stubbed builtins**: `V-CLIMB-UP` alone now (GETPT), returning a no-op so call sites reach a
   defined value instead of crashing a turn. `RANDOMIZE-OBJECTS` and `HERO-BLOW` are real
   extracted routines as of v0.7.0.

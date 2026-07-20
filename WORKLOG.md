@@ -1428,3 +1428,119 @@ empty panel), and backdrops — 3 shipped against 110 rooms, which no algorithm 
 ### Status
 
 **M5 stage 5.1 ✅.** Stage 5.2 (minimal browser shell) is next by the plan.
+
+---
+
+## v1.2.0 — 2026-07-20 — Panel grammar settled: ADR 0004 accepted
+
+Design only. No engine, IR or art code changed; the deliverable is a decision record that unblocks
+stage 5.3. Two working sessions, both measurement-led: `docs/panel-grammar-discussion.md` grew from
+413 to 949 lines and produced `docs/adr/0004-presentation-mapping.md` (195 lines, Accepted, three
+same-day amendments).
+
+### The question 5.1 could not answer
+
+Stage 5.1 ported Comic Chat's asset and layout algorithms and found they solve only half the
+problem. Comic Chat rendered a chat: several humans typing, emotion parsed from each speaker's own
+words, composition parameterized on who addresses whom. Zork is one player and a narrator, and the
+player types imperatives at a parser. The historical code says how to lay out balloons; it never
+says who is in the panel, what they feel, or where the camera is.
+
+### Answered by measurement, not reasoning
+
+- **The composition algorithm is recoverable but degenerate at cast size 2.** `EvalPair` placement
+  collapses to a constant — Hero left, Guide right, permanently — and `LayoutAvatars` zoom never
+  leaves 1.0. Those are precisely the parts parameterized on the social graph Zork never populates.
+  Ported faithfully they produce no variation at all. `AddLine` still works.
+- **Panel budget is derived, not chosen: ~1 panel/turn**, ~189 per playthrough, from `AddLine`'s
+  one-balloon-per-character rule against the three-channel panel. This also bounded the PDF export
+  question that had been carried as an open worry.
+- **A six-rung camera ladder over a salience filter.** The filter is load-bearing: only **31 of 187
+  `object-moved` (16.6%)** involve the player, their inventory or their room. Unfiltered, the most
+  common shot in the finished comic would be a close-up on a thief the player cannot see.
+  Measured distribution — medium 52.4%, establishing 26.5%, close-up 12.7%, reaction 5.8%, wide 2.6%.
+- **A ten-marker affect table**, emitted as a weighted `CEmotionOpts` set so a marker outranked on
+  the face can still claim the torso.
+
+### Three findings that changed the design
+
+**The Hero's most common emotion is exasperation at the parser** — `parser-miss` is the largest
+single marker at 12.7%, and nothing outranks it in practice. Adopted deliberately rather than tuned
+away: arguing with the parser is the 1977 experience.
+
+**HAPPY and NEUTRAL share angle 0** on the emotion wheel, separated only by intensity. HAPPY *faces*
+exist at graded intensities, but no avatar on the casting shortlist owns a HAPPY torso. Joy is a
+face-only emotion in this corpus and no table tuning changes that.
+
+**Only 5 of 18 complex avatars own a SHRUG torso** (dan, lance, mike, susan, tongtyed). Since
+`parser-miss` is the largest marker and SHRUG is its natural gesture, pose inventory now constrains
+casting. The Guide shortlist and the SHRUG list intersect only at susan, so both roles must be cast
+together.
+
+### Method: proposals that died on measurement
+
+Five, across the two sessions, recorded in the discussion so they are not re-proposed:
+
+- A naive `object-moved` close-up rule (fixed by the salience filter above).
+- A `score-changed` "story beat" camera rung — all 14 scoring turns are also first-visits, so the
+  establishing rung shadows it completely and it fires **0%** of the time. Survives only as an
+  "emphatic" modifier.
+- The premise that the art corpus was too thin for jitter — complex avatars carry **240–306**
+  composited figures, so the default shot is oversupplied. Monotony was relocated to the *selector*
+  (`nearestByAngle` is a deterministic argmax) and fixed by porting Comic Chat's tie-cycling.
+- A drawer-based mobile console, reversed by the mockups (below).
+- A speech balloon for the Hero, reversed on contract evidence (below).
+
+The lesson is recorded in `HANDOFF.md`: measure against the replay and the corpus before committing
+a rule. **Correction to the v1.1.0 entry above**, which is left unedited per the append-only rule:
+the `object-moved` count is **187**, not 189 — the §10 event census is the accurate figure.
+
+### Amendments the same day, both from outside review
+
+**Responsiveness outranks retro fidelity (§4a).** Retro-*styled* but fluid. Panel width becomes a
+Layout Manager parameter rather than a constant — the one place the 5.1 port stops being a
+transcription. Measured mitigation: avatar parts run 236×296–385×355 and backdrops are 315×315, so
+scaling is mostly *downward* and the cost is far lower than the discussion had assumed. Mobile keeps
+both panes visible, reversing this ADR's own drawer proposal after AI-generated mockups made the
+case that a visible transcript honours "narration accompanied, never replaced" better than a
+gesture-hidden one. Optional dictation input is sanctioned to reclaim keyboard space, with the
+constraint that it must never auto-submit — Zork's vocabulary defeats general recognizers, and a
+misrecognition writes a wrong panel into a canonical stream.
+
+**The Hero thinks; only the Guide speaks (§2a).** The ADR had fixed the Hero balloon's *content*
+without fixing its *class*, and the natural reading — a speech balloon — was wrong three ways. A
+speech balloon reading `open the door` makes the Hero appear to order the Guide, promoting the Guide
+to an agent in the world and contradicting §3 at the layer a reader actually perceives. It also
+asserts speech on every panel when the engine emits **0 `speech` events**; that figure had been
+sitting in the §10 census, taken for camera rules and never read for balloon classes. `CBWoodringThink`
+is shipped Comic Chat (`balloon.h`), so the fix is a port, not an invention.
+
+### Assessed and not adopted
+
+**cmx.js** (MIT, in `reference/`). Licensing is not the obstacle. Its figure model is procedural
+vector stick figures posed by a 14-joint skeleton; ours composites pre-drawn bitmap faces onto
+bitmap torsos from `.avb`, and there is no bridge. More decisively, it is an *authoring* tool that
+renders a comic a human wrote by hand, and contains no composition logic at all — no camera, no
+emotion, no layout decisions, which is the entire half of the problem this milestone exists to
+solve. Comic Chat's C++ remains the better source because it *decides*.
+
+**Assisted input** — a SCUMM-style command picker — is designed but deferred to after the MVP. The
+data supports it cheaply (267 syntax rules, 137 objects with synonyms, `engine/src/scope.ts` already
+computes scope), but two findings shape it: **Zork's 135-verb list is a spoiler table** (`ECHO`,
+`ODYSSEUS`, `PRAY` *are* puzzle solutions, unlike Monkey Island's mundane nine), so it needs a fixed
+core verb set with puzzle verbs typed-only; and it structurally removes `parser-miss`, the largest
+affect marker, so it flattens the comic unless something replaces it. It also requires an ADR 0002
+amendment — a read-only query API, pull rather than push, leaving the event stream at 1.0.0.
+
+### State at the milestone
+
+- `docs/adr/0004-presentation-mapping.md` — **Accepted**, 11 decisions, 3 amendments. Consumes the
+  ADR 0002 contract without extending it.
+- `docs/panel-grammar-discussion.md` — 949 lines, §1–§16. Now the reasoning record; the ADR is the
+  decision of record.
+- Engine, IR and art untouched: 11 walkthroughs, 143/143 strict, 120 engine tests, IR 193, art 13.
+
+### Status
+
+**Panel grammar ✅.** Stage 5.2 (minimal browser shell) is next by the plan, and 5.3 is now
+unblocked on design.
