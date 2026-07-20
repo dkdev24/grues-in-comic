@@ -9,10 +9,11 @@
  */
 
 import type { WorldDocument } from "@grues-in-comic/ir";
-import { createSession, type Session } from "./session.js";
+import { createSession, type Session, type Turn } from "./session.js";
 import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
 import { createComicView, type ComicView } from "./comic-view.js";
+import { createSessionStore, StorageFullError } from "./persistence.js";
 
 /** Where `tools/serve.ts` mounts `ir/artifacts/`. ~1.8 MB, fetched once. */
 const WORLD_URL = "./world/zork1.world.json";
@@ -52,16 +53,50 @@ async function main(): Promise<void> {
     consoleView.appendSystem(`[comic pane unavailable: ${message(err)}]`);
   }
 
-  const play = (turn: ReturnType<Session["command"]>): void => {
+  // The replay log behind autosave. Every turn `play()` renders is a turn a
+  // resumed session has to render again, so it is appended here and nowhere
+  // else — one list, written on the single path both panes go through.
+  const history: Turn[] = [];
+  const store = createSessionStore(SAVE_KEY, localStorage);
+  // Autosave stops at the first refusal rather than throwing once per turn for
+  // the rest of the game; the player is told once, and explicit `save` still
+  // reports its own failures.
+  let autosaveEnabled = true;
+
+  const play = (turn: Turn): void => {
     // One session, one event stream, both panes. The comic never gets its own
     // engine handle — that is what makes §2's "accompanied, never replaced" a
     // property of the wiring rather than something to keep in sync.
     consoleView.appendTurn(turn);
     comic?.appendTurn(turn);
     inspector.update(turn);
+    history.push(turn);
   };
 
-  play(session.start());
+  /** Render a turn without recording it: replay is already in the history. */
+  const replay = (turn: Turn): void => {
+    consoleView.appendTurn(turn);
+    comic?.appendTurn(turn);
+    inspector.update(turn);
+  };
+
+  function autosave(): void {
+    if (!autosaveEnabled) return;
+    try {
+      store.write(session.save(), history);
+    } catch (err) {
+      autosaveEnabled = false;
+      const why = err instanceof StorageFullError ? "browser storage is full" : message(err);
+      consoleView.appendSystem(`[autosave off: ${why}]`);
+    }
+  }
+
+  // Resume before the opening turn, not after: `session.start()` places the
+  // player and would be a second opening on top of a restored one.
+  if (!resume()) {
+    play(session.start());
+    autosave();
+  }
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -75,6 +110,7 @@ async function main(): Promise<void> {
 
     try {
       play(session.command(command));
+      autosave();
     } catch (err) {
       // A crashed turn must not take the page with it — the transcript so far
       // is the bug report.
@@ -82,30 +118,57 @@ async function main(): Promise<void> {
     }
   });
 
+  /**
+   * Rebuild a saved session into both panes.
+   *
+   * Returns false for every "there is nothing to resume" case, including the
+   * damaged ones: a save this build cannot load is reported and discarded, so a
+   * reload starts a new game instead of failing the same way forever.
+   */
+  function resume(): boolean {
+    const saved = store.read();
+    if (saved === null) return false;
+
+    try {
+      // State first: a rejected save (wrong contract version) must not leave
+      // half a transcript on screen from turns the engine never accepted.
+      session.load(saved.save);
+    } catch (err) {
+      store.clear();
+      consoleView.appendSystem(`[saved game discarded: ${message(err)}]`);
+      return false;
+    }
+
+    for (const turn of saved.turns) replay(turn);
+    history.push(...saved.turns);
+    // `load` derives status from the save because `restore` emits no events;
+    // the replayed turns above are rendering, not engine execution.
+    consoleView.setStatus(session.status);
+    consoleView.appendSystem(`[resumed — ${saved.turns.length} turns restored]`);
+    return true;
+  }
+
   function handleShellCommand(command: string): boolean {
     const word = command.toLowerCase();
     if (word === "save") {
       try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(session.save()));
+        store.write(session.save(), history);
+        autosaveEnabled = true;
         consoleView.appendSystem("Ok.");
       } catch (err) {
-        consoleView.appendSystem(`Save failed: ${message(err)}`);
+        const why = err instanceof StorageFullError ? "browser storage is full" : message(err);
+        consoleView.appendSystem(`Save failed: ${why}`);
       }
       return true;
     }
     if (word === "restore") {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if (raw === null) {
-        consoleView.appendSystem("No saved game.");
-        return true;
-      }
-      try {
-        session.load(JSON.parse(raw));
-        consoleView.appendSystem("Ok.");
-        consoleView.setStatus(session.status);
-      } catch (err) {
-        consoleView.appendSystem(`Restore failed: ${message(err)}`);
-      }
+      // Restoring into a page that already has a strip would append a second
+      // game to the first. A reload replays cleanly through `resume()`, so this
+      // reports what to do rather than rendering something incoherent.
+      const saved = store.read();
+      consoleView.appendSystem(
+        saved === null ? "No saved game." : "Reload the page to resume the saved game.",
+      );
       return true;
     }
     return false;
