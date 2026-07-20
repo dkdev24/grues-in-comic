@@ -76,9 +76,38 @@ Goal: a platform-independent engine that executes the IR and emits structured ga
 | 4.2 | **Command parser** — tokenization, vocabulary lookup, syntax matching, disambiguation | Parses the command set used by golden transcripts | ✅ |
 | 4.3 | **Action dispatch & events** — execute IR behavior, emit narration/state events per the Gate B contract | LOOK/TAKE/DROP/inventory flows produce correct events | ✅ |
 | 4.4 | **Transcript replay harness** — feed golden-transcript commands to the engine, diff output | First golden transcript replays with acceptable diff; harness in CI-style script | ✅ |
-| 4.5 | **Systems completion** — daemons, scoring, save/load, death; iterate until transcripts pass | All golden transcripts pass ⚑ **Gate C** | ☐ |
+| 4.5 | **Systems completion** — daemons, scoring, save/load, death; iterate until transcripts pass | All golden transcripts pass ⚑ **Gate C** | ✅ |
 
-**⚑ Gate C:** behavioral parity on captured transcripts = engine-complete milestone (major version bump).
+**⚑ Gate C — CLAIMED v1.0.0 (2026-07-20):** behavioral parity on captured transcripts = engine-complete milestone (major version bump).
+
+**Amendment (2026-07-20), on what "all golden transcripts pass" means.** As originally written the
+criterion was unsatisfiable, and not for want of engine work. Combat and the thief choose their
+output with `<RANDOM …>`, and ADR 0002 declined to reproduce the Z-machine's PRNG — that would
+pin the engine's determinism contract to one interpreter's implementation choice. A randomized
+turn therefore has no single correct text to diff against, and `05-troll-combat.cmd` is
+whole-file `# parity: informational` by method, not by defect.
+
+The criterion is met as follows, and this is the standard a future gate should be read against:
+
+1. **Deterministic turns verify strictly, by text.** 143/143 strict turns across 11 walkthroughs,
+   every opt-out carrying a written reason, both enforced by test. This is unchanged and remains
+   the primary evidence.
+2. **Randomized turns verify by membership**, which is *evidence of the same weight only because
+   it carries two further checks* (v0.8.3). Membership alone is one-sided — a narrower legal set
+   never makes a passing line fail — so each membership suite must also assert:
+   - **world state**, not only text: a narrated death charges the score and moves the player, a
+     narrated kill removes the villain, a narrated robbery moves the object; and
+   - **a positive control of real reference output**, captured from `dfrotz` against the shipped
+     story file, so a silently narrowing derivation is visible.
+
+   `engine/test/combat.test.ts` and `engine/test/thief.test.ts` both meet this; the shared
+   derivation is `engine/test/membership.ts`.
+
+**Known limitation at the gate:** `V-CLIMB-UP` remains a stub — it stalls on `GETPT`, the one
+exit-property idiom ADR 0003's rewrite does not cover. It returns "You can't go that way.", which
+is the correct answer in every room that does not define a climbable exit, and rooms that do
+(the tree, the Cyclops stairs) route through their own exits and never reach it. No walkthrough
+diverges on it. Recorded rather than waived: it is the last known gap in Group A coverage.
 
 ---
 

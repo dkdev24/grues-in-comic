@@ -28,19 +28,18 @@
  * whose names depend on what the player is carrying.
  */
 
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import type { WorldDocument } from "@grues-in-comic/ir";
 import { createEngine } from "../src/engine.js";
 import { transcriptText } from "../src/events.js";
 import { normalize } from "../harness/golden.js";
-
-const doc = JSON.parse(
-  readFileSync(new URL("../../ir/artifacts/zork1.world.json", import.meta.url), "utf8"),
-) as WorldDocument;
-
-const tables = new Map(doc.tables?.map((t) => [t.id, t]) ?? []);
-const objects = new Map(doc.objects?.map((o) => [o.id, o]) ?? []);
+import {
+  doc,
+  legalTurnMatcher,
+  messageRows,
+  objects,
+  tables,
+  tellPatterns,
+} from "./membership.js";
 
 /**
  * The villains, read out of the `VILLAINS` table rather than named here.
@@ -93,136 +92,8 @@ const COMBAT_ROUTINES = [
     .filter((r): r is string => r !== undefined),
 ];
 
-/**
- * A name standing in for F-WEP / F-DEF, or for a TELL `D`/`N` part.
- *
- * Must *begin with a letter*: an unanchored wildcard also matches a bare `0`,
- * which would make the check accept a marker printed as its raw number — the
- * exact rendering bug it is here to catch (see the negative control below).
- */
-const NAME = "[A-Za-z][^.!?]*?";
-
-function escape(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/**
- * Collect every leaf message row reachable from a melee table.
- *
- * The tables nest: HERO-MELEE is indexed by blow result, each entry is an
- * ltable of interchangeable phrasings, and each of those is the message itself
- * — string chunks with `0`/`1` (F-WEP/F-DEF) where a name is printed.
- */
-function messageRows(id: string, seen = new Set<string>()): (string | number)[][] {
-  if (seen.has(id)) return [];
-  seen.add(id);
-  const table = tables.get(id);
-  if (table === undefined) return [];
-
-  const rows: (string | number)[][] = [];
-  const nested = table.elements.filter(
-    (el): el is { table: string; offset: number } =>
-      typeof el === "object" && el !== null && "table" in el,
-  );
-  // A row of chunks is a leaf: it holds strings, not further table pointers.
-  if (nested.length === 0) {
-    const chunks = table.elements.filter(
-      (el): el is string | number => typeof el === "string" || typeof el === "number",
-    );
-    if (chunks.some((c) => typeof c === "string")) rows.push(chunks);
-    return rows;
-  }
-  for (const child of nested) rows.push(...messageRows(child.table, seen));
-  return rows;
-}
-
-/** Render a message row as a pattern, markers becoming name wildcards. */
-function rowPattern(row: (string | number)[]): string {
-  return row.map((chunk) => (typeof chunk === "string" ? escape(chunk) : NAME)).join("");
-}
-
-/**
- * Literal characters a message contributes, ignoring name wildcards.
- *
- * Patterns below {@link MIN_LITERAL} of these are dropped from the legal set,
- * for two reasons that turned out to be the same reason. A message that is
- * mostly wildcard — `<TELL D .OBJ "." CR>` and friends, which the villain
- * action routines are full of — discriminates nothing: it will happily accept
- * "You are likely to be eaten by a grue.", and the negative control catches it
- * doing so. It is also what makes the combined alternation backtrack
- * catastrophically, because each near-empty branch can match anywhere.
- *
- * Dropping them costs nothing real: a message with no fixed words of its own
- * could never have proved which message it was.
- */
-const MIN_LITERAL = 12;
-
-function literalLength(pattern: string): number {
-  return pattern.split(NAME).join("").replace(/\\(.)/g, "$1").length;
-}
-
-function discriminating(pattern: string): boolean {
-  /*
-   * Only *wildcard-bearing* patterns need to earn their place. A pattern with
-   * no wildcard is fixed text and discriminates perfectly however short it is
-   * — and short ones are load-bearing, because ZIL assembles a sentence from
-   * several TELLs: HERO-BLOW prints "The ", then "unconscious" or "unarmed",
-   * then " ... cannot defend himself: He dies." Judging those by length alone
-   * dropped the fragments and made the finished line unmatchable.
-   */
-  if (!pattern.includes(NAME)) return true;
-  return literalLength(pattern) >= MIN_LITERAL;
-}
-
-/**
- * Literal TELL text in a routine body, as patterns.
- *
- * Walks the routine's IR generically rather than matching statement shapes: a
- * `tell` can sit in statement or expression position, nested arbitrarily deep
- * inside COND clauses, and every one of those is text a fight turn can print.
- */
-function tellPatterns(routineId: string): string[] {
-  const routine = doc.routines?.find((r) => r.id === routineId);
-  if (routine === undefined) return [];
-
-  const patterns: string[] = [];
-  const visit = (node: unknown): void => {
-    if (Array.isArray(node)) {
-      for (const child of node) visit(child);
-      return;
-    }
-    if (typeof node !== "object" || node === null) return;
-    const record = node as Record<string, unknown>;
-    if (record["op"] === "tell" && Array.isArray(record["parts"])) {
-      // A TELL's parts form one message; CR splits it into printed lines.
-      const pieces = record["parts"] as Record<string, unknown>[];
-      let current = "";
-      for (const part of pieces) {
-        if ("text" in part) current += escape(part["text"] as string);
-        else if ("newline" in part) {
-          if (current.trim().length > 0) patterns.push(current);
-          current = "";
-        } else current += NAME;
-      }
-      if (current.trim().length > 0) patterns.push(current);
-    }
-    for (const value of Object.values(record)) visit(value);
-  };
-  visit(routine.body);
-  return patterns;
-}
-
-const legalPatterns = [
-  ...MELEE_TABLES.flatMap((id) => messageRows(id).map(rowPattern)),
-  ...COMBAT_ROUTINES.flatMap(tellPatterns),
-].filter(discriminating);
-
-/**
- * One turn's output is legal when it is a concatenation of legal messages —
- * the engine prints several per turn (your blow, then the villain's). Built as
- * a single alternation so the regex engine does the backtracking.
- */
-const legalTurn = new RegExp(`^(?:\\s*(?:${legalPatterns.join("|")}))+\\s*$`);
+/** The legal-turn matcher for melee text: message tables plus combat prose. */
+const legalTurn = legalTurnMatcher(MELEE_TABLES, COMBAT_ROUTINES);
 
 /** Seeds sampled per assertion — enough that both outcomes appear reliably. */
 const SEEDS = 40;
@@ -234,7 +105,16 @@ const APPROACH = [
   "turn on lamp", "down", "north",
 ];
 
-/** How a fight ended, and the pure-combat turns along the way. */
+/**
+ * How a fight ended, and the pure-combat turns along the way.
+ *
+ * The `died`/`killed`/`struck` fields are read out of the *text*; the fields
+ * below them are read out of the *world*. Keeping both is the point: membership
+ * proves the engine printed a line the game owns, and nothing more. A fight that
+ * narrates a death without removing the troll, or announces a blow that costs no
+ * strength, satisfies every text check in this file — so the two have to be
+ * captured separately and then asserted to agree.
+ */
 interface Fight {
   /** Turns of melee text only — the death turn is excluded (see below). */
   turns: string[];
@@ -244,11 +124,56 @@ interface Fight {
   killed: boolean;
   /** The villain landed at least one blow of its own. */
   struck: boolean;
+
+  /** The troll is gone from the world — `locations.TROLL` no longer resolves. */
+  trollRemoved: boolean;
+  /** Lowest `ADVENTURER.strength` seen: negative means the player took wounds. */
+  playerStrength: number;
+  /** Lowest `TROLL.strength` seen: negative is the unconscious state. */
+  trollStrength: number;
+  /** `DEATHS`, `HERE` and `SCORE` once the fight is over. */
+  deaths: number;
+  here: string;
+  score: number;
+  /**
+   * `SCORE` as of the *previous* turn, so the death penalty can be checked
+   * wherever the death happened — including on the way in, where the troll's
+   * free swing kills some seeds before a blow is ever struck.
+   */
+  scorePrev: number;
 }
 
 function fight(seed: number): Fight {
   const engine = createEngine(doc, { seed });
-  const result: Fight = { turns: [], died: false, killed: false, struck: false };
+  const result: Fight = {
+    turns: [],
+    died: false,
+    killed: false,
+    struck: false,
+    trollRemoved: false,
+    playerStrength: 0,
+    trollStrength: 0,
+    deaths: 0,
+    here: "",
+    score: 0,
+    scorePrev: 0,
+  };
+
+  /** Fold the current world into the result: strengths are watched for minima. */
+  const observe = (): void => {
+    const state = engine.snapshot();
+    const player = state.properties["ADVENTURER"]?.["strength"];
+    const troll = state.properties["TROLL"]?.["strength"];
+    if (typeof player === "number") result.playerStrength = Math.min(result.playerStrength, player);
+    if (typeof troll === "number") result.trollStrength = Math.min(result.trollStrength, troll);
+    result.trollRemoved = state.locations["TROLL"] === undefined;
+    result.deaths = Number(state.globals["DEATHS"] ?? 0);
+    result.here = String(state.globals["HERE"] ?? "");
+    // Carry the old reading forward before overwriting it: the death penalty is
+    // a *delta*, and the turn that charges it is the turn that prints the death.
+    result.scorePrev = result.score;
+    result.score = Number(state.globals["SCORE"] ?? 0);
+  };
 
   /*
    * The approach is itself dangerous: `I-FIGHT` gives the troll a free swing
@@ -257,7 +182,17 @@ function fight(seed: number): Fight {
    * cannot simply assume it arrives.
    */
   for (const command of APPROACH) {
-    if (/You have died/.test(transcriptText(engine.command(command).events))) {
+    const text = normalize(transcriptText(engine.command(command).events));
+    observe();
+    /*
+     * The villain's blows and the running score are read here too, not only in
+     * the fight loop below. A death on the way in is still a death the world
+     * has to account for, and a free swing that wounds the player is still a
+     * blow — reading them only after the first "kill troll" made the world and
+     * the text disagree on exactly the seeds decided during the approach.
+     */
+    if (VILLAIN_BLOW.test(text)) result.struck = true;
+    if (/You have died/.test(text)) {
       result.died = true;
       return result;
     }
@@ -283,6 +218,7 @@ function fight(seed: number): Fight {
        * death lands in a turn nobody inspected and the fight looks undecided.
        */
       const recovery = normalize(transcriptText(engine.command("take sword").events));
+      observe();
       if (VILLAIN_BLOW.test(recovery)) result.struck = true;
       if (/You have died/.test(recovery)) {
         result.died = true;
@@ -290,6 +226,7 @@ function fight(seed: number): Fight {
       }
       continue;
     }
+    observe();
     if (VILLAIN_BLOW.test(text)) result.struck = true;
     /*
      * The death turn is not pure melee — `JIGS-UP` prints its banner and
@@ -306,6 +243,11 @@ function fight(seed: number): Fight {
       break;
     }
   }
+  /*
+   * No observation here: every path above already observed the turn it acted
+   * on, and a second reading with no command in between would overwrite
+   * `scorePrev` with the post-death score and destroy the delta.
+   */
   return result;
 }
 
@@ -352,6 +294,135 @@ describe("combat — randomized turns verified by membership", () => {
     expect(legalTurn.test("A good slash, but it misses the troll by a")).toBe(false);
     // ...and the same message intact, so the control cuts both ways.
     expect(legalTurn.test("A good slash, but it misses the troll by a mile.")).toBe(true);
+  });
+
+  it("accepts the lines the reference build actually printed", () => {
+    /*
+     * The positive control, and the only hand-written text in this file. Every
+     * line was captured from `dfrotz -w 200 -s <seed>` fighting the troll in
+     * `verification/build/zork1.z3` — the shipped story file, which is ground
+     * truth where it and the ZIL disagree (stage 0.2).
+     *
+     * It is here because membership is *one-sided*. A narrower legal set never
+     * makes a passing line fail: if the derivation quietly stopped resolving
+     * TROLL-MELEE, or a wildcard tightened, every assertion below would still
+     * pass while covering less of the game. Only real reference output makes
+     * that kind of narrowing visible.
+     *
+     * The set deliberately spans all three sources — HERO-MELEE rows, the
+     * villain's TROLL-MELEE rows, and routine TELL text (including I-SWORD's
+     * glow, which prints on the turn the last villain dies) — so a regression
+     * in any one of them fails here.
+     */
+    const reference = [
+      // HERO-MELEE: the player's side of the exchange.
+      "Your sword misses the troll by an inch.",
+      "The fatal blow strikes the troll square in the heart: He dies.",
+      "The force of your blow knocks the troll back, stunned.",
+      "The haft of your sword knocks out the troll.",
+      "The troll is disarmed by a subtle feint past his guard.",
+      "A furious exchange, and the troll is knocked out!",
+      // TROLL-MELEE: the villain's side.
+      "The axe sweeps past as you jump aside.",
+      "The troll's axe barely misses your ear.",
+      "The troll's mighty blow drops you to your knees.",
+      "The troll's swing almost knocks you over as you barely parry in time.",
+      "The troll swings his axe, but it misses.",
+      "You charge, but the troll jumps nimbly aside.",
+      "You stagger back under a hail of axe strokes.",
+      // Routine TELL text: the fixed lines around the draws.
+      "You are still recovering from that last blow, so your attack is ineffective.",
+      "The unarmed troll cannot defend himself: He dies.",
+      "The unconscious troll cannot defend himself: He dies.",
+      "The troll slowly regains his feet.",
+      "The troll stirs, quickly resuming a fighting stance.",
+      "The troll, angered and humiliated, recovers his weapon. He appears to have an axe to grind with you.",
+      "The troll, disarmed, cowers in terror, pleading for his life in the guttural tongue of the trolls.",
+      "Almost as soon as the troll breathes his last breath, a cloud of sinister black fog envelops him, and when the fog lifts, the carcass has disappeared.",
+      // I-SWORD, which speaks on combat turns.
+      "Your sword has begun to glow very brightly.",
+      "Your sword is glowing with a faint blue glow.",
+      "Your sword is no longer glowing.",
+    ];
+    for (const line of reference) {
+      expect(legalTurn.test(line), `the reference printed this, we reject it: ${line}`).toBe(true);
+    }
+  });
+
+  it("changes the world to match what the text claimed", () => {
+    /*
+     * The assertion membership cannot make. Every check above reads printed
+     * text, and text is cheap: a fight that narrates the troll's death without
+     * removing him from the world, or announces the axe landing without costing
+     * the player any strength, passes all of them. `thief.test.ts` learned this
+     * the same way — a thief who wanders and never steals prints legal lines
+     * forever.
+     *
+     * So the two records are gathered separately in `fight()` and reconciled
+     * here. Text and world have to tell the same story.
+     */
+    for (let seed = 1; seed <= SEEDS; seed++) {
+      const f = fight(seed);
+
+      if (f.killed) {
+        // "the carcass has disappeared" is literal: TROLL leaves the world.
+        expect(f.trollRemoved, `seed ${seed} narrated a kill but the troll is still here`).toBe(
+          true,
+        );
+      }
+
+      if (f.died) {
+        /*
+         * `JIGS-UP` resurrects to the forest and charges 10 points. The score
+         * check is what distinguishes a real death from a banner printed by a
+         * routine that forgot to run the rest of the pass.
+         */
+        expect(f.deaths, `seed ${seed} narrated a death that was not recorded`).toBe(1);
+        expect(f.here, `seed ${seed} died without being resurrected above ground`).toBe("FOREST-1");
+        expect(f.score, `seed ${seed} died without paying the penalty`).toBe(f.scorePrev - 10);
+      }
+
+      // Nobody is both dead and victorious.
+      expect(f.died && f.killed, `seed ${seed} both died and won`).toBe(false);
+    }
+  });
+
+  it("tracks combat in the world, not only in the prose", () => {
+    /*
+     * The strengths are the fight's actual state machine — `ADVENTURER.strength`
+     * counts the player's wounds, `TROLL.strength` goes negative when he is
+     * knocked unconscious and the description swaps to the sprawled variant.
+     * A fight that never moved either number is not a fight, however good the
+     * text looked, and that is precisely the v0.7.0 failure this suite exists
+     * to prevent recurring: the villain's half of combat was unextracted and
+     * the player could not be hurt at all.
+     */
+    const fights = Array.from({ length: SEEDS }, (_, i) => fight(i + 1));
+
+    expect(
+      fights.filter((f) => f.playerStrength < 0).length,
+      "the player was never wounded in any fight",
+    ).toBeGreaterThan(0);
+    expect(
+      fights.filter((f) => f.trollStrength < 0).length,
+      "the troll was never knocked unconscious in any fight",
+    ).toBeGreaterThan(0);
+    expect(
+      fights.filter((f) => f.trollRemoved).length,
+      "the troll was never removed from the world",
+    ).toBeGreaterThan(0);
+
+    /*
+     * Text and world agree on the villain's blows. `struck` is a regex over
+     * TROLL-MELEE phrasings and `playerStrength` is the wound counter; a seed
+     * that lost strength without a single villain line, or printed villain
+     * lines that cost nothing, means one of the two is lying.
+     */
+    for (const [i, f] of fights.entries()) {
+      if (f.playerStrength < 0) {
+        expect(f.struck, `seed ${i + 1} wounded the player with no villain blow printed`).toBe(true);
+      }
+    }
   });
 
   it("only ever prints messages the game could have produced", () => {

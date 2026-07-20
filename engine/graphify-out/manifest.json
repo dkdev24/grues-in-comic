@@ -105,8 +105,18 @@
     "semantic_hash": ""
   },
   "test/combat.test.ts": {
-    "mtime": 1784512075.4406261,
-    "ast_hash": "a40d2a14277efc893dcb4010b98f89f9",
+    "mtime": 1784524533.0018458,
+    "ast_hash": "84bae59389ef3a4730901a8b40102818",
+    "semantic_hash": ""
+  },
+  "test/membership.ts": {
+    "mtime": 1784523261.3173997,
+    "ast_hash": "ae6b9e1f0a2367e64aa943565d27f9a0",
+    "semantic_hash": ""
+  },
+  "test/thief.test.ts": {
+    "mtime": 1784523371.9447746,
+    "ast_hash": "5e1247c349c8faafe820f70da591abe7",
     "semantic_hash": ""
   }
 }

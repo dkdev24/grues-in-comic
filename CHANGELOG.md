@@ -11,6 +11,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v1.0.0] - 2026-07-20 — ⚑ Gate C: Engine Complete
+
+Zork I runs end to end on the IR, in TypeScript, with no browser code and no dependencies.
+
+### Gate C claimed
+- **Stage 4.5 complete.** 11 walkthroughs, **143/143 strict turns**, 155/161 overall. 120 engine tests, 193 IR tests.
+- **The exit criterion was amended, not reinterpreted.** "All golden transcripts pass" was unsatisfiable as written: combat and the thief draw their output with `<RANDOM …>`, and ADR 0002 declined to reproduce the Z-machine PRNG, so `05-troll-combat.cmd` is informational **by method, not by defect**. The amendment in `docs/DEVELOPMENT_PLAN.md` states what parity means for randomized turns — deterministic turns strict by text; randomized turns by membership **plus** world-state assertions **plus** a positive control of real `dfrotz` output, because membership alone is one-sided.
+
+### Known limitations
+- **`V-CLIMB-UP` remains a stub**, stalling on `GETPT` — the one exit-property idiom ADR 0003's rewrite does not cover. It answers "You can't go that way.", correct in every room without a climbable exit; rooms that have one route through their own exits and never reach it. No walkthrough diverges on it.
+
+---
+
+## [v0.8.3] - 2026-07-20 — Membership Hardened
+
+v0.8.2 verified the thief and exposed that `combat.test.ts` was verified more weakly than the suite it inspired. If Gate C is claimed, membership **is** the parity evidence for walkthrough 05's randomized turns, so it had to be as good as the thing it stands in for. **No engine or IR source changed.**
+
+### Added
+- **A reference positive control in `combat.test.ts`** — 24 lines captured from `dfrotz -w 200` against `verification/build/zork1.z3`, spanning `HERO-MELEE` rows, `TROLL-MELEE` rows and routine TELL text. Membership is **one-sided**: a narrower legal set never makes a passing line fail, so a derivation that silently stopped resolving `TROLL-MELEE` would stay green while covering a fraction of the game. Verified to bite — simulating that failure drops all three villain reference lines.
+- **World-state assertions** — a narrated kill must remove `TROLL` from the world; a narrated death must set `DEATHS`, resurrect to `FOREST-1` and charge exactly 10 points; `ADVENTURER.strength` and `TROLL.strength` must both move across the sample. Both mutations tested and caught.
+
+### Fixed
+- **The fight helper ignored the approach.** Seed 5 dies from the troll's free `I-FIGHT` swing on entry, before a single "kill troll" — the helper read villain blows and score only inside the fight loop, so those seeds had a wounded player with no blow recorded and no score baseline.
+- **A trailing `observe()` double-counted**, overwriting `scorePrev` with the post-death score and destroying the delta the penalty check depends on.
+
+### Changed
+- Engine tests **117 → 120**. IR 193 and parity (143/143 strict, 155/161) unchanged.
+
+### Notes
+- **The remaining Gate C question is definitional, not technical.** The criterion reads "all golden transcripts pass"; walkthrough 05 cannot, by construction, because combat is randomized and ADR 0002 declined to reproduce the Z-machine PRNG.
+
+---
+
+## [v0.8.2] - 2026-07-20 — The Thief Verified
+
+The thief had been queued and running since v0.8.0 with nothing exercising him — no walkthrough stays underground long enough to be robbed. That is the shape of the v0.7.0 combat failure, so it was worth closing. He turned out to work: **no engine or IR source changed in this release.**
+
+### Added
+- **`engine/test/thief.test.ts`** — robbery, wander, visibility and melee, verified by membership. Behaviour is asserted on the **world**, not the text: membership alone passes on a thief who wanders and never steals, so the test requires the painting to end up in his possession.
+- **A positive control from the reference build** — four lines captured from `dfrotz -w 80 -s 1234` against `verification/build/zork1.z3`, running the same scenario. Membership is one-sided: a *narrower* legal set never makes a passing line fail, so a broken derivation looks green. Real reference output is what makes that narrowing visible.
+- **`stringLiterals()`** in the shared membership module, for tables that are interleaved data rather than message rows (`LAMP-TABLE` is `[100, "…dimmer.", 70, …]`).
+
+### Changed
+- **The membership machinery moved to `engine/test/membership.ts`**, shared by `combat.test.ts` and `thief.test.ts`. `combat.test.ts` now imports it and is otherwise unchanged.
+- Engine tests **110 → 117**. IR 193 and parity (143/143 strict, 155/161) unchanged.
+
+### Notes
+- **The thief's wander is deterministic, and correctly so** — `NEXT` through the ROOMS tree rather than a draw, so it is identical across seeds. The randomness is in `ZPROB`: whether he robs, and whether he shows himself.
+
+---
+
 ## [v0.8.1] - 2026-07-20 — ADR 0003: Derived Adjacency
 
 `I-SWORD` extracts, and walkthrough 10 verifies strictly. It was the last M4 item ADR 0001 deferred without an answer.

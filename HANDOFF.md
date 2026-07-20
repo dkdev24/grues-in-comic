@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.8.1**
+**1.0.0**
 
 ---
 
@@ -26,61 +26,55 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 - **M3 ✅** Semantic extraction ZIL→IR — world-document unit complete. 110 rooms/exits,
   137 objects, 267 parser rules, 360 routines (28 catalogued, all triaged), 87% ref coverage.
   IR schema 0.14.0
-- **M4 ⏳** Engine core — 4.1 ✅ world runtime · 4.2 ✅ parser · 4.3 ✅ dispatch, save/restore ·
+- **M4 ✅** Engine core — 4.1 ✅ world runtime · 4.2 ✅ parser · 4.3 ✅ dispatch, save/restore ·
   4.4 ✅ transcript harness · 4.5 ✅ `TAKE ALL`, wider corpus · 4.6 ✅ orphan questions,
   pronouns, compound sentences, per-turn parity directives · **4.7 ✅ villain combat**
   (IR `random` op, membership verification, `GO` as entry ref — both sides of the fight,
-  death and resurrection) · **ADR 0003 ✅ derived adjacency** (`I-SWORD`).
-  **11 walkthroughs, 143/143 strict turns (100%), 155/161 overall. 110 engine tests, IR 193.**
-  ⚑ **Gate C not yet claimed**
+  death and resurrection) · **ADR 0003 ✅ derived adjacency** (`I-SWORD`) · **thief ✅ verified**
+  (robbery, wander, melee — membership + a dfrotz positive control) · **membership hardened**
+  (combat gains world-state assertions and its own reference control).
+  **11 walkthroughs, 143/143 strict turns (100%), 155/161 overall. 120 engine tests, IR 193.**
+  ⚑ **Gate C CLAIMED (v1.0.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`, see below
 - **M5** Comic Chat presentation — `.avb` decoding solved (v0.5.18); the rest is open
 
 ---
 
-## Last Session (v0.8.1)
+## Last Session (v1.0.0)
 
-**ADR 0003 — `I-SWORD` extracts, and walkthrough 10 verifies strictly.** The daemon walked
-exits as numbered Z-machine properties (`NEXTP`/`GETPT`/`PTSIZE`/`GETB`) and the IR models exits
-structurally, so there was nothing to translate mechanically. Resolved as an IR decision, per
-the open issue this replaces.
+**⚑ Gate C claimed. The engine is complete** — Zork I runs end to end on the IR, in TypeScript,
+zero dependencies, no browser code.
 
-- **`Room.adjacent` is derived at extraction time** — the ids a room declares a static exit to.
-  `deriveAdjacent()` in `ir/src/schema.ts` is the single definition: `extract-world` emits it and
-  `validate` **re-derives and compares**, so a stale list is an error, not a silent divergence.
-- **Declared, not reachable.** `to`/`conditional`/`door` in, `blocked`/`routine` out — a shut
-  door and a false condition still count, because the ZIL tests the exit's *shape*, not its
-  state. **Do not use this field for pathfinding or a map view.**
-- **The engine materializes it, never computes it**: a `pure` `ltable` per room reached through
-  an ordinary property (`adjacentRooms`), so ADR 0002's line holds.
-- **The extractor rewrites the idiom** (`RoutineTransformer.exitScan`) onto that list. This is
-  the one place in the extractor where output is not a mechanical image of its input, so it is
-  **fail-closed**: any clause that does not match falls back to the ordinary path and catalogs
-  on `NEXTP`/`GETPT`. `ir/test/exit-scan.test.ts` proves that by perturbing single atoms.
-- **No new IR ops** — `prop`/`table-get`/`gt?`/`add`/`loop`/`break` only, so ADR 0001's growth
-  log needs no entry.
+- **The criterion was amended in place, not quietly reinterpreted.** Stage 4.5's "all golden
+  transcripts pass" was **unsatisfiable as written**: combat and the thief draw with
+  `<RANDOM …>`, ADR 0002 declined to reproduce the Z-machine PRNG, so `05-troll-combat.cmd` is
+  informational *by method, not by defect*. The amendment lives at
+  `docs/DEVELOPMENT_PLAN.md` under Gate C and is the standard the next gate should be read
+  against.
+- **What parity now means, in two tiers**: deterministic turns strict by text (143/143, every
+  opt-out with a written reason, enforced by test); randomized turns by **membership + world-state
+  assertions + a `dfrotz` positive control** — all three, because membership alone is one-sided.
+- **`V-CLIMB-UP` is a known limitation at the gate, recorded rather than waived.** It stalls on
+  `GETPT` and answers "You can't go that way.", which is correct in every room without a
+  climbable exit; the tree and the Cyclops stairs route through their own exits and never reach
+  it. No walkthrough diverges on it. Last known gap in Group A coverage.
 
-**Two turns of walkthrough 10 stay quarantined, for a different reason than before**: the glow
-reports the randomized fight's *outcome* (the reference stuns the troll and it stays next door;
-our seed kills it). The glow itself is verified directly in `engine/test/engine.test.ts` — all
-three levels and the transitions, since the ZIL prints only on a change.
-
-Parity **155/161, 143/143 strict** (was 117/117 — walkthrough 10 is no longer file-level
-informational). Engine 110 tests, IR 193. 360 routines extracted, 28 catalogued.
+**11 walkthroughs, 143/143 strict, 155/161 overall. 120 engine tests, IR 193.**
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
 **M4: 4.1–4.7 ✅. Combat, the RNG question and `GO` are settled.**
 
-1. **The thief is live and unverified.** `I-THIEF` is queued and running as of v0.8.0, but no
-   walkthrough exercises a robbery and `ROB`/the thief's pass have never been checked against
-   the reference. Verify by membership, as combat is. Longer walkthroughs are where an
-   unverified thief will show up first.
+**M5 is unblocked** — the session protocol's bar on starting a later milestone no longer applies.
 
-2. **Systems completion** (⚑ Gate C): **death and resurrection now work** (v0.8.0 — `JIGS-UP`
-   via `WINNER-RESULT`), so what remains here is the thief's robbery pass, which is item 1.
-   **P-WON gating is settled: do not implement it** — the transcripts contradict the source
-   (v0.6.5; reasoning is at the call site, because the source reads the other way and the next
-   reader will otherwise "fix" it back). `V-CLIMB-UP` is the last stub.
+1. **Stage 5.2 — minimal browser shell** over the event stream. The natural next step now that
+   Gate C is claimed, and the **first real test of whether the ADR 0002 event contract is usable
+   from outside the engine**: everything to date has consumed it from the harness, which was
+   written alongside it and shares its assumptions. Expect the `room-title` channel question
+   (open issues) to become concrete here rather than theoretical.
+
+2. **`V-CLIMB-UP`, the last stub** — stalls on `GETPT`. Recorded as a known limitation at Gate C
+   because no walkthrough diverges on it, but it is the last known gap in Group A coverage and
+   the natural companion to the `OTHER-SIDE` item below, which needs the same idiom.
 
 3. **Unassigned one-off tail** in the routine catalog: `<NEXTP …>` (OTHER-SIDE — ADR 0003
    rewrote `I-SWORD`'s scan but does **not** cover OTHER-SIDE, which needs the direction number
@@ -161,8 +155,13 @@ informational). Engine 110 tests, IR 193. 360 routines extracted, 28 catalogued.
   replays the events construction produced.
 - **Randomized turns are verified by membership, not text parity** — the settled answer to the
   RNG question. `engine/test/combat.test.ts` derives the legal message set from the IR; it must
-  stay derived, since a hand-listed set drifts and starts passing by construction. Death,
-  resurrection and the thief should follow the same pattern.
+  stay derived, since a hand-listed set drifts and starts passing by construction. The thief
+  follows the same pattern as of v0.8.2, through the shared `engine/test/membership.ts`.
+  **Membership is one-sided and cannot be the whole check**: a *narrower* legal set never makes a
+  passing line fail, so a broken derivation looks green. **Both suites now carry the two things
+  that close this** (v0.8.3) — world-state assertions for the behaviour, and a positive control
+  of real reference output. Any *new* membership suite needs both from the start; membership
+  alone is not evidence of anything but legality.
 
 **Project / M5**
 - Neutral branding for commercial assets (engine/IR/importer).
@@ -181,6 +180,9 @@ informational). Engine 110 tests, IR 193. 360 routines extracted, 28 catalogued.
 
 Hard-won rules that outlive any one session.
 
+- **P-WON gating is settled: do not implement it.** The transcripts contradict the source
+  (v0.6.5); the reasoning is at the call site, because the source reads the other way and the
+  next reader will otherwise "fix" it back.
 - **The shipped Release 119 story file is ground truth**, not the ZILF-reconstructed source in
   `original-projects/` (settled in stage 0.2). Where the two disagree, the transcript wins.
 - **Ask the reference build rather than reasoning about the ZIL.** Nearly every parser and
