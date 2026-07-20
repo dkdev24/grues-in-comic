@@ -79,50 +79,51 @@ const PROPERTY_MAP = new Map<string, string>([
 const CLOCK_BUILTINS = new Set(["QUEUE", "INT", "CLOCKER"]);
 
 /**
- * Melee result-table corrections — a defect in the ZILF *reconstruction*, not
- * in the shipped game.
+ * Engine-owned routines that never return, and the boundary they mark.
  *
- * 1actions.zil declares the three tables with literal zeros in every slot that
- * should hold a table view, and parks the real value in a comment beside it:
+ * `MAIN-LOOP` is gmain.zil's turn loop: it calls `PARSER` and dispatches, for
+ * ever. ADR 0002 gives the turn loop to the engine — the host decides when a
+ * turn happens — so it is a builtin, never extracted, and `MAIN-LOOP-1` with
+ * it.
  *
- *     <GLOBAL DEF1-RES <TABLE DEF1 0 ;<REST ,DEF1 2> 0 ;<REST ,DEF1 4>>>
+ * That makes it the cut between *game initialization* and *the turn loop*, and
+ * `GO` is the routine the cut runs through: it queues the five daemons, patches
+ * the melee tables and places the player, then ends `<V-LOOK> <MAIN-LOOP>
+ * <AGAIN>`. Since `MAIN-LOOP` never returns, the trailing `<AGAIN>` is dead
+ * code — unreachable on the Z-machine too, not merely unmodelled — so
+ * statements after the call are dropped rather than denied. Without this, `GO`
+ * catalogues on "AGAIN outside a REPEAT/PROG" and takes the whole daemon chain
+ * down with it.
  *
- * HERO-BLOW indexes these by attack strength (`<GET ,DEF1-RES <- .ATT 1>>`) and
- * then draws from the row it gets (`<GET .TBL <- <RANDOM 9> 1>>`), so the views
- * are what make a stronger blow skip the leading MISSED entries. Taken
- * literally the zeros make that second GET read address 0 — garbage on the
- * Z-machine, and an outright error here.
- *
- * The shipped Release 119 story file is the ground truth (AGENTS.md, stage
- * 0.2), and it plainly does not read garbage: fought under
- * `dfrotz -s 1234 original-projects/zork1/COMPILED/zork1.z3`, the troll takes a
- * knockout ("knocking the troll into dreamland") and then a kill. So the real
- * tables hold the views the comments describe, and these entries restore them.
- * REST's byte offsets are halved, matching `table-rest`'s element indexing.
- *
- * Written as data rather than by parsing the comments: recovering values from
- * commented-out source would be far more fragile than stating the three rows.
+ * Narrow by construction: only names listed here truncate a body, and each is
+ * a routine the engine implements in full.
  */
-const TABLE_CORRECTIONS = new Map<string, TableElement[]>([
-  ["DEF1-RES", [
-    { table: "DEF1", offset: 0 },
-    { table: "DEF1", offset: 1 },
-    { table: "DEF1", offset: 2 },
-  ]],
-  ["DEF2-RES", [
-    { table: "DEF2A", offset: 0 },
-    { table: "DEF2B", offset: 0 },
-    { table: "DEF2B", offset: 1 },
-    { table: "DEF2B", offset: 2 },
-  ]],
-  ["DEF3-RES", [
-    { table: "DEF3A", offset: 0 },
-    { table: "DEF3A", offset: 1 },
-    { table: "DEF3B", offset: 0 },
-    { table: "DEF3B", offset: 1 },
-    { table: "DEF3C", offset: 0 },
-  ]],
-]);
+const NON_RETURNING_BUILTINS = new Set(["MAIN-LOOP", "MAIN-LOOP-1"]);
+
+/**
+ * Routines whose *implementation* is the engine's, not the IR's.
+ *
+ * `LIT?` walks the parser's scope list (`DO-SL` in gparser.zil) to decide
+ * whether the player can see. ADR 0002 gives scope and the parser to the
+ * engine, which computes lighting from its own scope walk — so extracting
+ * `LIT?` does not add behavior, it *shadows* the engine's version with one
+ * that calls into parser internals the IR deliberately does not model.
+ *
+ * That shadowing is silent and total: routines take precedence over builtins,
+ * so an extracted `LIT?` simply replaces the working implementation. It cost
+ * every dark-room turn in the corpus the moment `LIT?` became extractable.
+ */
+const ENGINE_IMPLEMENTED = new Set(["LIT?"]);
+
+/**
+ * Routines the engine implements rather than the IR carrying. They lower to a
+ * `call` like any other name, but are never queued for extraction.
+ */
+function engineOwned(id: string): boolean {
+  return (
+    CLOCK_BUILTINS.has(id) || NON_RETURNING_BUILTINS.has(id) || ENGINE_IMPLEMENTED.has(id)
+  );
+}
 
 const TRUE: Expr = { op: "const", value: true };
 const FALSE: Expr = { op: "const", value: false };
@@ -171,6 +172,17 @@ export interface BehaviorSources {
   /** Every GLOBAL form in the (COND-expanded) corpus. */
   globalForms: Map<string, AstNode>;
   roomAndObjectIds: Set<string>;
+  /**
+   * Every flag name declared by a room or object `(FLAGS …)` list.
+   *
+   * Needed because ZIL also uses a flag as a plain *value*: `GO` stores one in
+   * a property (`<PUTP ,INFLATED-BOAT ,P?VTYPE ,NONLANDBIT>`), and the parser
+   * passes them around (`,ONBIT` in LIT?, `,ACTORBIT` in V-SAY). The flag is a
+   * bit constant on the Z-machine; the IR carries the *name*, which is how the
+   * world document already stores this exact property (`vehicleType:
+   * "NONLANDBIT"`).
+   */
+  flagNames: Set<string>;
   /** Numeric CONSTANT bindings. */
   constants: Map<string, number>;
   directionWords: Map<string, Direction>;
@@ -196,7 +208,7 @@ export function extractBehavior(entryRefs: string[], sources: BehaviorSources): 
 
   while (queue.length > 0) {
     const id = queue.shift()!;
-    if (CLOCK_BUILTINS.has(id)) continue;
+    if (engineOwned(id)) continue;
     const def = sources.routineForms.get(id);
     if (def === undefined) {
       catalog.push({
@@ -260,7 +272,7 @@ class RoutineTransformer {
     const paramList = elements[2];
     if (paramList?.type !== "List") throw new Unsupported("malformed parameter list");
     const prelude = this.parseParams(paramList);
-    const body = prelude.concat(elements.slice(3).map((n) => this.stmt(n)));
+    const body = prelude.concat(this.stmtsUntilNonReturning(elements.slice(3)));
     const routine: BehaviorRoutine = { id, body };
     if (this.params.length > 0) routine.params = this.params;
     if (this.defaults.size > 0) {
@@ -270,6 +282,23 @@ class RoutineTransformer {
     }
     if (this.locals.length > 0) routine.locals = this.locals;
     return routine;
+  }
+
+  /**
+   * Transform a routine's top-level statements, stopping after a call to a
+   * non-returning engine builtin ({@link NON_RETURNING_BUILTINS}).
+   *
+   * The call itself is kept — the engine still has to enter its turn loop —
+   * and only what follows is dropped, because control never reaches it.
+   */
+  private stmtsUntilNonReturning(nodes: AstNode[]): Stmt[] {
+    const out: Stmt[] = [];
+    for (const node of nodes) {
+      out.push(this.stmt(node));
+      const head = node.type === "Form" ? atomName(meaningful(node.elements ?? [])[0]) : undefined;
+      if (head !== undefined && NON_RETURNING_BUILTINS.has(head)) break;
+    }
+    return out;
   }
 
   /** Parse `(P1 P2 "OPT" O1 "AUX" L1 (L2 <init>))`; returns AUX-init prelude. */
@@ -454,8 +483,27 @@ class RoutineTransformer {
 
   private callForm(head: string, rest: AstNode[]): Stmt & { op: "call" } {
     if (DENIED_OPERATORS.has(head)) this.deny(`operator ${head}`);
+    /*
+     * PROB is a DEFMAC, and its two forms are not the same call:
+     *
+     *   <DEFMAC PROB ('BASE? "OPTIONAL" 'LOSER?)
+     *       <COND (<ASSIGNED? LOSER?> <FORM ZPROB .BASE?>)
+     *             (ELSE <FORM G? .BASE? '<RANDOM 100>>)>>
+     *
+     * With a second argument it expands to `<ZPROB base>` — which consults
+     * `,LUCKY` and rolls against 100 or 300 — and **discards that argument
+     * unevaluated**. Expanding it here rather than passing both operands to a
+     * builtin is what the compiler does, and it is load-bearing: VILLAIN-BLOW
+     * writes `<PROB 25 <COND (.HERO? 10)(T 50)>>` where `.HERO?` is never
+     * declared. That is legal precisely because the macro drops it; extracting
+     * it catalogued VILLAIN-BLOW on an undeclared local and took the villain's
+     * counterattack with it.
+     */
+    if (head === "PROB" && rest.length >= 2) {
+      return this.callForm("ZPROB", rest.slice(0, 1));
+    }
     if (!this.sources.callableNames.has(head)) this.deny(`unknown form <${head} …>`);
-    if (this.sources.routineForms.has(head) && !CLOCK_BUILTINS.has(head)) {
+    if (this.sources.routineForms.has(head) && !engineOwned(head)) {
       this.callTargets.add(head);
     }
     return { op: "call", routine: head, args: rest.map((a) => this.expr(a)) };
@@ -479,7 +527,7 @@ class RoutineTransformer {
         // The named routine is reachable at run time (CLOCKER applies it),
         // so it joins the extraction closure like a direct call target.
         if (this.sources.callableNames.has(node.name!)) {
-          if (this.sources.routineForms.has(node.name!) && !CLOCK_BUILTINS.has(node.name!)) {
+          if (this.sources.routineForms.has(node.name!) && !engineOwned(node.name!)) {
             this.callTargets.add(node.name!);
           }
           return { op: "const", value: node.name! };
@@ -749,6 +797,12 @@ class RoutineTransformer {
     if (name.startsWith("V?")) return { op: "const", value: name.slice(2) };
     const constant = this.sources.constants.get(name);
     if (constant !== undefined) return { op: "const", value: constant };
+    // A flag used as a value rather than in an FSET/FCLEAR/FSET? position.
+    // Carried by name, matching how the world document stores `vehicleType`.
+    if (this.sources.flagNames.has(name)) {
+      this.flags.add(name);
+      return { op: "const", value: name };
+    }
     if (this.sources.globalForms.has(name)) {
       this.needGlobal(name);
       return { op: "global", id: name };
@@ -758,7 +812,7 @@ class RoutineTransformer {
     // reachable, and BELL-F's routine-vs-room compare (an original-game
     // quirk) stays always-false, as the Z-machine address compare was.
     if (this.sources.callableNames.has(name)) {
-      if (this.sources.routineForms.has(name) && !CLOCK_BUILTINS.has(name)) {
+      if (this.sources.routineForms.has(name) && !engineOwned(name)) {
         this.callTargets.add(name);
       }
       return { op: "const", value: name };
@@ -869,16 +923,6 @@ class RoutineTransformer {
         this.deny(`table ${id} has an unsupported element (${el.type === "Atom" ? el.name : el.type})`);
       }
     }
-    const correction = TABLE_CORRECTIONS.get(id);
-    if (correction !== undefined) {
-      // The corrected rows name tables by global; declaring each one pulls it
-      // into the extraction closure, exactly as an inline atom element would.
-      for (const el of correction) {
-        if (typeof el === "object" && el !== null && "table" in el) this.needGlobal(el.table);
-      }
-      return { id, kind: "table", elements: [...correction], ...(pure ? { pure } : {}) };
-    }
-
     const table: Table = { id, kind: head === "TABLE" ? "table" : "ltable", elements: out };
     if (pure) table.pure = true;
     return table;

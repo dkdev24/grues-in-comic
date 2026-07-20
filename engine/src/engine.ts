@@ -29,7 +29,7 @@ import { exitFor, resolveExit } from "./movement.js";
 import { describeCandidates, parse, splitSentences, type ParseResult } from "./parser.js";
 import { Rng } from "./rng.js";
 import { emit, emitOn, flush, tell, type RuntimeContext } from "./runtime.js";
-import { here, truthy, type GameState, type WorldIndex } from "./state.js";
+import { here, move, PLAYER_ID, truthy, type GameState, type WorldIndex } from "./state.js";
 import { buildLexicon, type Lexicon } from "./vocabulary.js";
 
 export interface EngineOptions extends LoadOptions {
@@ -188,14 +188,60 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
 
   state.globals["LIT"] = true; // recomputed on the first describe, below
 
+  /**
+   * Run the game's own initialization, and keep what it printed for `start()`.
+   *
+   * ZIL's `GO` (1dungeon.zil) is the real entry point: it queues the five
+   * daemons, patches the melee result tables, places the player, and ends
+   * `<V-LOOK> <MAIN-LOOP>`. Only the trailing turn loop is ours under ADR 0002
+   * — the extractor drops everything after it (see NON_RETURNING_BUILTINS), so
+   * calling `GO` runs exactly the initialization and stops.
+   *
+   * This replaces an engine-side `describeRoom` plus the hardcoded globals in
+   * `load.ts`, which reimplemented a *fragment* of `GO` and silently omitted
+   * the rest — which is why no daemon ever ran: villains never fought back,
+   * the sword never glowed, and the thief never moved.
+   *
+   * Run **at construction, not in `start()`**, so it cannot be skipped. A host
+   * that goes straight to `command()` would otherwise get a game with no
+   * daemons and unpatched melee tables — silently broken rather than merely
+   * missing its opening text. `start()` replays the events this produced.
+   *
+   * `GO`'s `<V-LOOK>` yields the opening description through the same
+   * `DESCRIBE-ROOM` path every later LOOK uses, so the opening stops being a
+   * special case. A document without `GO` keeps the old behavior: partial
+   * worlds (the samples, and any future frontend) need not define one.
+   */
+  const opening = ((): TurnResult => {
+    if (routines.has("GO")) {
+      const goCtx = context();
+      callRoutine("GO", [], goCtx);
+      /*
+       * `GO` ends by placing the player at the game's own opening room
+       * (`<SETG HERE ,WEST-OF-HOUSE>`). An explicit `start` option is the host
+       * deliberately overriding that — tests begin in the Kitchen, and a future
+       * frontend may resume elsewhere — so it has to win, while still getting
+       * everything else `GO` set up. Re-place and describe the room the host
+       * actually asked for, discarding `GO`'s own opening look.
+       */
+      const override = loadOptions.start;
+      if (override === undefined || here(state) === override) {
+        flush(goCtx);
+        return { events: goCtx.events, turn: state.turn };
+      }
+      state.globals["HERE"] = override;
+      move(state, PLAYER_ID, override);
+      state.visited.add(override);
+    }
+    const ctx = context();
+    state.globals["LIT"] = isLit(ctx, here(state));
+    describeRoom(ctx, here(state), true);
+    flush(ctx);
+    return { events: ctx.events, turn: state.turn };
+  })();
+
   return {
-    start(): TurnResult {
-      const ctx = context();
-      state.globals["LIT"] = isLit(ctx, here(state));
-      describeRoom(ctx, here(state), true);
-      flush(ctx);
-      return { events: ctx.events, turn: state.turn };
-    },
+    start: () => opening,
 
     command(input: string): TurnResult {
       const ctx = context();

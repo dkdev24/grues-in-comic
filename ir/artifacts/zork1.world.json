@@ -467,10 +467,6 @@
       "value": false
     },
     {
-      "id": "P-GWIMBIT",
-      "value": 0
-    },
-    {
       "id": "P-IT-OBJECT",
       "value": false
     },
@@ -1062,14 +1058,8 @@
           "table": "DEF1",
           "offset": 0
         },
-        {
-          "table": "DEF1",
-          "offset": 1
-        },
-        {
-          "table": "DEF1",
-          "offset": 2
-        }
+        0,
+        0
       ]
     },
     {
@@ -1084,14 +1074,8 @@
           "table": "DEF2B",
           "offset": 0
         },
-        {
-          "table": "DEF2B",
-          "offset": 1
-        },
-        {
-          "table": "DEF2B",
-          "offset": 2
-        }
+        0,
+        0
       ]
     },
     {
@@ -1138,18 +1122,12 @@
           "table": "DEF3A",
           "offset": 0
         },
-        {
-          "table": "DEF3A",
-          "offset": 1
-        },
+        0,
         {
           "table": "DEF3B",
           "offset": 0
         },
-        {
-          "table": "DEF3B",
-          "offset": 1
-        },
+        0,
         {
           "table": "DEF3C",
           "offset": 0
@@ -16827,15 +16805,11 @@
                           },
                           {
                             "op": "call",
-                            "routine": "PROB",
+                            "routine": "ZPROB",
                             "args": [
                               {
                                 "op": "const",
                                 "value": 50
-                              },
-                              {
-                                "op": "const",
-                                "value": 80
                               }
                             ]
                           },
@@ -21637,6 +21611,350 @@
       }
     },
     {
+      "id": "DO-FIGHT",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "OUT",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "set-local",
+              "id": "CNT",
+              "value": {
+                "op": "const",
+                "value": 0
+              }
+            },
+            {
+              "op": "loop",
+              "body": [
+                {
+                  "op": "set-local",
+                  "id": "CNT",
+                  "value": {
+                    "op": "add",
+                    "a": {
+                      "op": "local",
+                      "id": "CNT"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 1
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "CNT"
+                          },
+                          {
+                            "op": "local",
+                            "id": "LEN"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "RES",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        },
+                        {
+                          "op": "break",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "set-local",
+                  "id": "OO",
+                  "value": {
+                    "op": "table-get",
+                    "table": {
+                      "op": "global",
+                      "id": "VILLAINS"
+                    },
+                    "index": {
+                      "op": "local",
+                      "id": "CNT"
+                    }
+                  }
+                },
+                {
+                  "op": "set-local",
+                  "id": "O",
+                  "value": {
+                    "op": "table-get",
+                    "table": {
+                      "op": "local",
+                      "id": "OO"
+                    },
+                    "index": {
+                      "op": "const",
+                      "value": 0
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "flag?",
+                          "entity": {
+                            "op": "local",
+                            "id": "O"
+                          },
+                          "flag": "FIGHTBIT"
+                        }
+                      },
+                      "do": []
+                    },
+                    {
+                      "when": {
+                        "op": "apply",
+                        "routine": {
+                          "op": "prop",
+                          "entity": {
+                            "op": "local",
+                            "id": "O"
+                          },
+                          "prop": "action"
+                        },
+                        "args": [
+                          {
+                            "op": "const",
+                            "value": 1
+                          }
+                        ]
+                      },
+                      "do": []
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "arg": {
+                          "op": "set-local",
+                          "id": "RES",
+                          "value": {
+                            "op": "call",
+                            "routine": "VILLAIN-BLOW",
+                            "args": [
+                              {
+                                "op": "local",
+                                "id": "OO"
+                              },
+                              {
+                                "op": "local",
+                                "id": "OUT"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "RES",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        },
+                        {
+                          "op": "break",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "RES"
+                          },
+                          {
+                            "op": "const",
+                            "value": 2
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "OUT",
+                          "value": {
+                            "op": "add",
+                            "a": {
+                              "op": "const",
+                              "value": 1
+                            },
+                            "b": {
+                              "op": "random",
+                              "bound": {
+                                "op": "const",
+                                "value": 3
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  "do": [
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "not",
+                            "arg": {
+                              "op": "local",
+                              "id": "OUT"
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "break",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "when": {
+                            "op": "const",
+                            "value": true
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "OUT",
+                              "value": {
+                                "op": "sub",
+                                "a": {
+                                  "op": "local",
+                                  "id": "OUT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              }
+                            },
+                            {
+                              "op": "cond",
+                              "clauses": [
+                                {
+                                  "when": {
+                                    "op": "equal?",
+                                    "args": [
+                                      {
+                                        "op": "local",
+                                        "id": "OUT"
+                                      },
+                                      {
+                                        "op": "const",
+                                        "value": 0
+                                      }
+                                    ]
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "break",
+                                      "value": {
+                                        "op": "const",
+                                        "value": true
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "const",
+                    "value": true
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "LEN"
+      ],
+      "locals": [
+        "CNT",
+        "RES",
+        "O",
+        "OO",
+        "OUT"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3331
+      }
+    },
+    {
       "id": "DO-WALK",
       "body": [
         {
@@ -22022,15 +22340,11 @@
                       },
                       {
                         "op": "call",
-                        "routine": "PROB",
+                        "routine": "ZPROB",
                         "args": [
                           {
                             "op": "const",
                             "value": 30
-                          },
-                          {
-                            "op": "const",
-                            "value": true
                           }
                         ]
                       }
@@ -24149,6 +24463,337 @@
       "source": {
         "file": "1actions.zil",
         "line": 264
+      }
+    },
+    {
+      "id": "GO",
+      "body": [
+        {
+          "op": "call",
+          "routine": "ENABLE",
+          "args": [
+            {
+              "op": "call",
+              "routine": "QUEUE",
+              "args": [
+                {
+                  "op": "const",
+                  "value": "I-FIGHT"
+                },
+                {
+                  "op": "const",
+                  "value": -1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "QUEUE",
+          "args": [
+            {
+              "op": "const",
+              "value": "I-SWORD"
+            },
+            {
+              "op": "const",
+              "value": -1
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "ENABLE",
+          "args": [
+            {
+              "op": "call",
+              "routine": "QUEUE",
+              "args": [
+                {
+                  "op": "const",
+                  "value": "I-THIEF"
+                },
+                {
+                  "op": "const",
+                  "value": -1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "QUEUE",
+          "args": [
+            {
+              "op": "const",
+              "value": "I-CANDLES"
+            },
+            {
+              "op": "const",
+              "value": 40
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "QUEUE",
+          "args": [
+            {
+              "op": "const",
+              "value": "I-LANTERN"
+            },
+            {
+              "op": "const",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "op": "set-prop",
+          "entity": {
+            "op": "entity",
+            "id": "INFLATED-BOAT"
+          },
+          "prop": "vehicleType",
+          "value": {
+            "op": "const",
+            "value": "NONLANDBIT"
+          }
+        },
+        {
+          "op": "table-set",
+          "table": {
+            "op": "global",
+            "id": "DEF1-RES"
+          },
+          "index": {
+            "op": "const",
+            "value": 1
+          },
+          "value": {
+            "op": "table-rest",
+            "table": {
+              "op": "global",
+              "id": "DEF1"
+            },
+            "offset": {
+              "op": "const",
+              "value": 1
+            }
+          }
+        },
+        {
+          "op": "table-set",
+          "table": {
+            "op": "global",
+            "id": "DEF1-RES"
+          },
+          "index": {
+            "op": "const",
+            "value": 2
+          },
+          "value": {
+            "op": "table-rest",
+            "table": {
+              "op": "global",
+              "id": "DEF1"
+            },
+            "offset": {
+              "op": "const",
+              "value": 2
+            }
+          }
+        },
+        {
+          "op": "table-set",
+          "table": {
+            "op": "global",
+            "id": "DEF2-RES"
+          },
+          "index": {
+            "op": "const",
+            "value": 2
+          },
+          "value": {
+            "op": "table-rest",
+            "table": {
+              "op": "global",
+              "id": "DEF2B"
+            },
+            "offset": {
+              "op": "const",
+              "value": 1
+            }
+          }
+        },
+        {
+          "op": "table-set",
+          "table": {
+            "op": "global",
+            "id": "DEF2-RES"
+          },
+          "index": {
+            "op": "const",
+            "value": 3
+          },
+          "value": {
+            "op": "table-rest",
+            "table": {
+              "op": "global",
+              "id": "DEF2B"
+            },
+            "offset": {
+              "op": "const",
+              "value": 2
+            }
+          }
+        },
+        {
+          "op": "table-set",
+          "table": {
+            "op": "global",
+            "id": "DEF3-RES"
+          },
+          "index": {
+            "op": "const",
+            "value": 1
+          },
+          "value": {
+            "op": "table-rest",
+            "table": {
+              "op": "global",
+              "id": "DEF3A"
+            },
+            "offset": {
+              "op": "const",
+              "value": 1
+            }
+          }
+        },
+        {
+          "op": "table-set",
+          "table": {
+            "op": "global",
+            "id": "DEF3-RES"
+          },
+          "index": {
+            "op": "const",
+            "value": 3
+          },
+          "value": {
+            "op": "table-rest",
+            "table": {
+              "op": "global",
+              "id": "DEF3B"
+            },
+            "offset": {
+              "op": "const",
+              "value": 1
+            }
+          }
+        },
+        {
+          "op": "set-global",
+          "id": "HERE",
+          "value": {
+            "op": "entity",
+            "id": "WEST-OF-HOUSE"
+          }
+        },
+        {
+          "op": "call",
+          "routine": "THIS-IS-IT",
+          "args": [
+            {
+              "op": "entity",
+              "id": "MAILBOX"
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "flag?",
+                  "entity": {
+                    "op": "global",
+                    "id": "HERE"
+                  },
+                  "flag": "TOUCHBIT"
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "V-VERSION",
+                  "args": []
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-global",
+          "id": "LIT",
+          "value": {
+            "op": "const",
+            "value": true
+          }
+        },
+        {
+          "op": "set-global",
+          "id": "WINNER",
+          "value": {
+            "op": "entity",
+            "id": "ADVENTURER"
+          }
+        },
+        {
+          "op": "set-global",
+          "id": "PLAYER",
+          "value": {
+            "op": "global",
+            "id": "WINNER"
+          }
+        },
+        {
+          "op": "move",
+          "entity": {
+            "op": "global",
+            "id": "WINNER"
+          },
+          "to": {
+            "op": "global",
+            "id": "HERE"
+          }
+        },
+        {
+          "op": "call",
+          "routine": "V-LOOK",
+          "args": []
+        },
+        {
+          "op": "call",
+          "routine": "MAIN-LOOP",
+          "args": []
+        }
+      ],
+      "source": {
+        "file": "1dungeon.zil",
+        "line": 2637
       }
     },
     {
@@ -26924,6 +27569,537 @@
       "source": {
         "file": "1actions.zil",
         "line": 3593
+      }
+    },
+    {
+      "id": "I-FIGHT",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "FIGHT?",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "LEN",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "global",
+              "id": "VILLAINS"
+            },
+            "index": {
+              "op": "const",
+              "value": 0
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "global",
+                "id": "DEAD"
+              },
+              "do": [
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-local",
+          "id": "CNT",
+          "value": {
+            "op": "const",
+            "value": 0
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "set-local",
+              "id": "CNT",
+              "value": {
+                "op": "add",
+                "a": {
+                  "op": "local",
+                  "id": "CNT"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 1
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "CNT"
+                      },
+                      {
+                        "op": "local",
+                        "id": "LEN"
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "OO",
+              "value": {
+                "op": "table-get",
+                "table": {
+                  "op": "global",
+                  "id": "VILLAINS"
+                },
+                "index": {
+                  "op": "local",
+                  "id": "CNT"
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "and",
+                    "args": [
+                      {
+                        "op": "in?",
+                        "entity": {
+                          "op": "set-local",
+                          "id": "O",
+                          "value": {
+                            "op": "table-get",
+                            "table": {
+                              "op": "local",
+                              "id": "OO"
+                            },
+                            "index": {
+                              "op": "const",
+                              "value": 0
+                            }
+                          }
+                        },
+                        "container": {
+                          "op": "global",
+                          "id": "HERE"
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "flag?",
+                          "entity": {
+                            "op": "local",
+                            "id": "O"
+                          },
+                          "flag": "INVISIBLE"
+                        }
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "and",
+                            "args": [
+                              {
+                                "op": "equal?",
+                                "args": [
+                                  {
+                                    "op": "local",
+                                    "id": "O"
+                                  },
+                                  {
+                                    "op": "entity",
+                                    "id": "THIEF"
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "global",
+                                "id": "THIEF-ENGROSSED"
+                              }
+                            ]
+                          },
+                          "do": [
+                            {
+                              "op": "set-global",
+                              "id": "THIEF-ENGROSSED",
+                              "value": {
+                                "op": "const",
+                                "value": false
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "when": {
+                            "op": "lt?",
+                            "a": {
+                              "op": "prop",
+                              "entity": {
+                                "op": "local",
+                                "id": "O"
+                              },
+                              "prop": "strength"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 0
+                            }
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "P",
+                              "value": {
+                                "op": "table-get",
+                                "table": {
+                                  "op": "local",
+                                  "id": "OO"
+                                },
+                                "index": {
+                                  "op": "const",
+                                  "value": 3
+                                }
+                              }
+                            },
+                            {
+                              "op": "cond",
+                              "clauses": [
+                                {
+                                  "when": {
+                                    "op": "and",
+                                    "args": [
+                                      {
+                                        "op": "not",
+                                        "arg": {
+                                          "op": "equal?",
+                                          "args": [
+                                            {
+                                              "op": "local",
+                                              "id": "P"
+                                            },
+                                            {
+                                              "op": "const",
+                                              "value": 0
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      {
+                                        "op": "call",
+                                        "routine": "PROB",
+                                        "args": [
+                                          {
+                                            "op": "local",
+                                            "id": "P"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "table-set",
+                                      "table": {
+                                        "op": "local",
+                                        "id": "OO"
+                                      },
+                                      "index": {
+                                        "op": "const",
+                                        "value": 3
+                                      },
+                                      "value": {
+                                        "op": "const",
+                                        "value": 0
+                                      }
+                                    },
+                                    {
+                                      "op": "call",
+                                      "routine": "AWAKEN",
+                                      "args": [
+                                        {
+                                          "op": "local",
+                                          "id": "O"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "when": {
+                                    "op": "const",
+                                    "value": true
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "table-set",
+                                      "table": {
+                                        "op": "local",
+                                        "id": "OO"
+                                      },
+                                      "index": {
+                                        "op": "const",
+                                        "value": 3
+                                      },
+                                      "value": {
+                                        "op": "add",
+                                        "a": {
+                                          "op": "local",
+                                          "id": "P"
+                                        },
+                                        "b": {
+                                          "op": "const",
+                                          "value": 25
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "when": {
+                            "op": "or",
+                            "args": [
+                              {
+                                "op": "flag?",
+                                "entity": {
+                                  "op": "local",
+                                  "id": "O"
+                                },
+                                "flag": "FIGHTBIT"
+                              },
+                              {
+                                "op": "apply",
+                                "routine": {
+                                  "op": "prop",
+                                  "entity": {
+                                    "op": "local",
+                                    "id": "O"
+                                  },
+                                  "prop": "action"
+                                },
+                                "args": [
+                                  {
+                                    "op": "const",
+                                    "value": 5
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "do": [
+                            {
+                              "op": "set-local",
+                              "id": "FIGHT?",
+                              "value": {
+                                "op": "const",
+                                "value": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "const",
+                    "value": true
+                  },
+                  "do": [
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "flag?",
+                            "entity": {
+                              "op": "local",
+                              "id": "O"
+                            },
+                            "flag": "FIGHTBIT"
+                          },
+                          "do": [
+                            {
+                              "op": "value",
+                              "expr": {
+                                "op": "apply",
+                                "routine": {
+                                  "op": "prop",
+                                  "entity": {
+                                    "op": "local",
+                                    "id": "O"
+                                  },
+                                  "prop": "action"
+                                },
+                                "args": [
+                                  {
+                                    "op": "const",
+                                    "value": 1
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "cond",
+                      "clauses": [
+                        {
+                          "when": {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "local",
+                                "id": "O"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "THIEF"
+                              }
+                            ]
+                          },
+                          "do": [
+                            {
+                              "op": "set-global",
+                              "id": "THIEF-ENGROSSED",
+                              "value": {
+                                "op": "const",
+                                "value": false
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "clear-flag",
+                      "entity": {
+                        "op": "global",
+                        "id": "WINNER"
+                      },
+                      "flag": "STAGGERED"
+                    },
+                    {
+                      "op": "clear-flag",
+                      "entity": {
+                        "op": "local",
+                        "id": "O"
+                      },
+                      "flag": "STAGGERED"
+                    },
+                    {
+                      "op": "clear-flag",
+                      "entity": {
+                        "op": "local",
+                        "id": "O"
+                      },
+                      "flag": "FIGHTBIT"
+                    },
+                    {
+                      "op": "call",
+                      "routine": "AWAKEN",
+                      "args": [
+                        {
+                          "op": "local",
+                          "id": "O"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "local",
+                  "id": "FIGHT?"
+                }
+              },
+              "do": [
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "DO-FIGHT",
+          "args": [
+            {
+              "op": "local",
+              "id": "LEN"
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "FIGHT?",
+        "LEN",
+        "CNT",
+        "OO",
+        "O",
+        "P"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3810
       }
     },
     {
@@ -41605,15 +42781,11 @@
                         {
                           "when": {
                             "op": "call",
-                            "routine": "PROB",
+                            "routine": "ZPROB",
                             "args": [
                               {
                                 "op": "const",
                                 "value": 60
-                              },
-                              {
-                                "op": "const",
-                                "value": 80
                               }
                             ]
                           },
@@ -41835,15 +43007,11 @@
                             {
                               "when": {
                                 "op": "call",
-                                "routine": "PROB",
+                                "routine": "ZPROB",
                                 "args": [
                                   {
                                     "op": "const",
                                     "value": 10
-                                  },
-                                  {
-                                    "op": "const",
-                                    "value": 0
                                   }
                                 ]
                               },
@@ -45809,15 +46977,11 @@
                           },
                           {
                             "op": "call",
-                            "routine": "PROB",
+                            "routine": "ZPROB",
                             "args": [
                               {
                                 "op": "const",
                                 "value": 10
-                              },
-                              {
-                                "op": "const",
-                                "value": true
                               }
                             ]
                           }
@@ -49172,15 +50336,11 @@
                           },
                           {
                             "op": "call",
-                            "routine": "PROB",
+                            "routine": "ZPROB",
                             "args": [
                               {
                                 "op": "const",
                                 "value": 75
-                              },
-                              {
-                                "op": "const",
-                                "value": 90
                               }
                             ]
                           }
@@ -61101,6 +62261,1044 @@
       }
     },
     {
+      "id": "VILLAIN-BLOW",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "VILLAIN",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "local",
+              "id": "OO"
+            },
+            "index": {
+              "op": "const",
+              "value": 0
+            }
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "REMARKS",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "local",
+              "id": "OO"
+            },
+            "index": {
+              "op": "const",
+              "value": 4
+            }
+          }
+        },
+        {
+          "op": "clear-flag",
+          "entity": {
+            "op": "global",
+            "id": "WINNER"
+          },
+          "flag": "STAGGERED"
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "flag?",
+                "entity": {
+                  "op": "local",
+                  "id": "VILLAIN"
+                },
+                "flag": "STAGGERED"
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The "
+                    },
+                    {
+                      "name": {
+                        "op": "local",
+                        "id": "VILLAIN"
+                      }
+                    },
+                    {
+                      "text": " slowly regains his feet."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "local",
+                    "id": "VILLAIN"
+                  },
+                  "flag": "STAGGERED"
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-local",
+          "id": "OA",
+          "value": {
+            "op": "set-local",
+            "id": "ATT",
+            "value": {
+              "op": "call",
+              "routine": "VILLAIN-STRENGTH",
+              "args": [
+                {
+                  "op": "local",
+                  "id": "OO"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "gt?",
+                  "a": {
+                    "op": "set-local",
+                    "id": "DEF",
+                    "value": {
+                      "op": "call",
+                      "routine": "FIGHT-STRENGTH",
+                      "args": []
+                    }
+                  },
+                  "b": {
+                    "op": "const",
+                    "value": 0
+                  }
+                }
+              },
+              "do": [
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-local",
+          "id": "OD",
+          "value": {
+            "op": "call",
+            "routine": "FIGHT-STRENGTH",
+            "args": [
+              {
+                "op": "const",
+                "value": false
+              }
+            ]
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "DWEAPON",
+          "value": {
+            "op": "call",
+            "routine": "FIND-WEAPON",
+            "args": [
+              {
+                "op": "global",
+                "id": "WINNER"
+              }
+            ]
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "lt?",
+                "a": {
+                  "op": "local",
+                  "id": "DEF"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 0
+                }
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "RES",
+                  "value": {
+                    "op": "const",
+                    "value": 3
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "DEF"
+                          },
+                          {
+                            "op": "const",
+                            "value": 1
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "gt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 2
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 3
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-local",
+                          "id": "TBL",
+                          "value": {
+                            "op": "table-get",
+                            "table": {
+                              "op": "global",
+                              "id": "DEF1-RES"
+                            },
+                            "index": {
+                              "op": "sub",
+                              "a": {
+                                "op": "local",
+                                "id": "ATT"
+                              },
+                              "b": {
+                                "op": "const",
+                                "value": 1
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "DEF"
+                          },
+                          {
+                            "op": "const",
+                            "value": 2
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "gt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 3
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 4
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-local",
+                          "id": "TBL",
+                          "value": {
+                            "op": "table-get",
+                            "table": {
+                              "op": "global",
+                              "id": "DEF2-RES"
+                            },
+                            "index": {
+                              "op": "sub",
+                              "a": {
+                                "op": "local",
+                                "id": "ATT"
+                              },
+                              "b": {
+                                "op": "const",
+                                "value": 1
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "local",
+                          "id": "DEF"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 2
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "ATT",
+                          "value": {
+                            "op": "sub",
+                            "a": {
+                              "op": "local",
+                              "id": "ATT"
+                            },
+                            "b": {
+                              "op": "local",
+                              "id": "DEF"
+                            }
+                          }
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "lt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": -1
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": -2
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "gt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 2
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-local",
+                          "id": "TBL",
+                          "value": {
+                            "op": "table-get",
+                            "table": {
+                              "op": "global",
+                              "id": "DEF3-RES"
+                            },
+                            "index": {
+                              "op": "add",
+                              "a": {
+                                "op": "local",
+                                "id": "ATT"
+                              },
+                              "b": {
+                                "op": "const",
+                                "value": 2
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "set-local",
+                  "id": "RES",
+                  "value": {
+                    "op": "table-get",
+                    "table": {
+                      "op": "local",
+                      "id": "TBL"
+                    },
+                    "index": {
+                      "op": "sub",
+                      "a": {
+                        "op": "random",
+                        "bound": {
+                          "op": "const",
+                          "value": 9
+                        }
+                      },
+                      "b": {
+                        "op": "const",
+                        "value": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "local",
+                        "id": "OUT?"
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "equal?",
+                                "args": [
+                                  {
+                                    "op": "local",
+                                    "id": "RES"
+                                  },
+                                  {
+                                    "op": "const",
+                                    "value": 6
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "RES",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 8
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "RES",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 9
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "local",
+                                "id": "RES"
+                              },
+                              {
+                                "op": "const",
+                                "value": 6
+                              }
+                            ]
+                          },
+                          {
+                            "op": "local",
+                            "id": "DWEAPON"
+                          },
+                          {
+                            "op": "call",
+                            "routine": "ZPROB",
+                            "args": [
+                              {
+                                "op": "const",
+                                "value": 25
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "RES",
+                          "value": {
+                            "op": "const",
+                            "value": 7
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "REMARK",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "RANDOM-ELEMENT",
+                      "args": [
+                        {
+                          "op": "table-get",
+                          "table": {
+                            "op": "local",
+                            "id": "REMARKS"
+                          },
+                          "index": {
+                            "op": "sub",
+                            "a": {
+                              "op": "local",
+                              "id": "RES"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 1
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "global",
+                      "id": "WINNER"
+                    },
+                    {
+                      "op": "local",
+                      "id": "DWEAPON"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 8
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": []
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 2
+                  }
+                ]
+              },
+              "do": []
+            },
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 3
+                      }
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 9
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "DEF",
+                  "value": {
+                    "op": "const",
+                    "value": 0
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 4
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "DEF",
+                  "value": {
+                    "op": "sub",
+                    "a": {
+                      "op": "local",
+                      "id": "DEF"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 1
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "lt?",
+                        "a": {
+                          "op": "local",
+                          "id": "DEF"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "DEF",
+                          "value": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "global",
+                          "id": "LOAD-ALLOWED"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 50
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "LOAD-ALLOWED",
+                          "value": {
+                            "op": "sub",
+                            "a": {
+                              "op": "global",
+                              "id": "LOAD-ALLOWED"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 10
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 5
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "DEF",
+                  "value": {
+                    "op": "sub",
+                    "a": {
+                      "op": "local",
+                      "id": "DEF"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 2
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "lt?",
+                        "a": {
+                          "op": "local",
+                          "id": "DEF"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "DEF",
+                          "value": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "global",
+                          "id": "LOAD-ALLOWED"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 50
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "LOAD-ALLOWED",
+                          "value": {
+                            "op": "sub",
+                            "a": {
+                              "op": "global",
+                              "id": "LOAD-ALLOWED"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 20
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 6
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-flag",
+                  "entity": {
+                    "op": "global",
+                    "id": "WINNER"
+                  },
+                  "flag": "STAGGERED"
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "move",
+                  "entity": {
+                    "op": "local",
+                    "id": "DWEAPON"
+                  },
+                  "to": {
+                    "op": "global",
+                    "id": "HERE"
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "set-local",
+                        "id": "NWEAPON",
+                        "value": {
+                          "op": "call",
+                          "routine": "FIND-WEAPON",
+                          "args": [
+                            {
+                              "op": "global",
+                              "id": "WINNER"
+                            }
+                          ]
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Fortunately, you still have a "
+                            },
+                            {
+                              "name": {
+                                "op": "local",
+                                "id": "NWEAPON"
+                              }
+                            },
+                            {
+                              "text": "."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "WINNER-RESULT",
+          "args": [
+            {
+              "op": "local",
+              "id": "DEF"
+            },
+            {
+              "op": "local",
+              "id": "RES"
+            },
+            {
+              "op": "local",
+              "id": "OD"
+            }
+          ]
+        }
+      ],
+      "params": [
+        "OO",
+        "OUT?"
+      ],
+      "locals": [
+        "VILLAIN",
+        "REMARKS",
+        "DWEAPON",
+        "ATT",
+        "DEF",
+        "OA",
+        "OD",
+        "TBL",
+        "RES",
+        "NWEAPON"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3413
+      }
+    },
+    {
       "id": "VILLAIN-RESULT",
       "body": [
         {
@@ -63416,6 +65614,214 @@
       }
     },
     {
+      "id": "WINNER-RESULT",
+      "body": [
+        {
+          "op": "set-prop",
+          "entity": {
+            "op": "global",
+            "id": "WINNER"
+          },
+          "prop": "strength",
+          "value": {
+            "op": "cond",
+            "clauses": [
+              {
+                "when": {
+                  "op": "equal?",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "DEF"
+                    },
+                    {
+                      "op": "const",
+                      "value": 0
+                    }
+                  ]
+                },
+                "do": [
+                  {
+                    "op": "value",
+                    "expr": {
+                      "op": "const",
+                      "value": -10000
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "op": "const",
+                  "value": true
+                },
+                "do": [
+                  {
+                    "op": "value",
+                    "expr": {
+                      "op": "sub",
+                      "a": {
+                        "op": "local",
+                        "id": "DEF"
+                      },
+                      "b": {
+                        "op": "local",
+                        "id": "OD"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "lt?",
+                "a": {
+                  "op": "sub",
+                  "a": {
+                    "op": "local",
+                    "id": "DEF"
+                  },
+                  "b": {
+                    "op": "local",
+                    "id": "OD"
+                  }
+                },
+                "b": {
+                  "op": "const",
+                  "value": 0
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "ENABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "QUEUE",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-CURE"
+                        },
+                        {
+                          "op": "const",
+                          "value": 30
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "gt?",
+                  "a": {
+                    "op": "call",
+                    "routine": "FIGHT-STRENGTH",
+                    "args": []
+                  },
+                  "b": {
+                    "op": "const",
+                    "value": 0
+                  }
+                }
+              },
+              "do": [
+                {
+                  "op": "set-prop",
+                  "entity": {
+                    "op": "global",
+                    "id": "WINNER"
+                  },
+                  "prop": "strength",
+                  "value": {
+                    "op": "add",
+                    "a": {
+                      "op": "const",
+                      "value": 1
+                    },
+                    "b": {
+                      "op": "sub",
+                      "a": {
+                        "op": "const",
+                        "value": 0
+                      },
+                      "b": {
+                        "op": "call",
+                        "routine": "FIGHT-STRENGTH",
+                        "args": [
+                          {
+                            "op": "const",
+                            "value": false
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "op": "call",
+                  "routine": "JIGS-UP",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "It appears that that last blow was too much for you. I'm afraid you are dead."
+                    }
+                  ]
+                },
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "local",
+                    "id": "RES"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "DEF",
+        "RES",
+        "OD"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3552
+      }
+    },
+    {
       "id": "WINNING?",
       "body": [
         {
@@ -63670,6 +66076,73 @@
       "source": {
         "file": "gglobals.zil",
         "line": 296
+      }
+    },
+    {
+      "id": "ZPROB",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "global",
+                "id": "LUCKY"
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "gt?",
+                    "a": {
+                      "op": "local",
+                      "id": "BASE"
+                    },
+                    "b": {
+                      "op": "random",
+                      "bound": {
+                        "op": "const",
+                        "value": 100
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "gt?",
+                    "a": {
+                      "op": "local",
+                      "id": "BASE"
+                    },
+                    "b": {
+                      "op": "random",
+                      "bound": {
+                        "op": "const",
+                        "value": 300
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "BASE"
+      ],
+      "source": {
+        "file": "gmacros.zil",
+        "line": 119
       }
     }
   ]

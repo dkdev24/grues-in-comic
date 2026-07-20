@@ -670,14 +670,23 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
         ]),
         ...objects.flatMap((o) => [o.action, o.descriptionRoutine]),
         ...vocabulary.syntax.flatMap((s) => [s.action, s.preAction]),
+        "GO",
       ].filter((r): r is string => r !== undefined),
     ),
   ].sort();
+  // Flags as declared by rooms and objects. Collected here rather than from
+  // `behavior.flags` (line ~700) because behavior extraction needs them as
+  // input: ZIL passes a flag as a value, not only to FSET/FCLEAR/FSET?.
+  const declaredFlags = new Set<string>();
+  for (const room of rooms) for (const flag of room.flags) declaredFlags.add(flag);
+  for (const object of objects) for (const flag of object.flags) declaredFlags.add(flag);
+
   const behavior = extractBehavior(entryRefs, {
     routineForms,
     callableNames,
     globalForms,
     roomAndObjectIds: entityIds,
+    flagNames: declaredFlags,
     constants,
     directionWords: new Map(Object.entries(DIRECTION_MAP)),
     decodeString: decodeZilString,

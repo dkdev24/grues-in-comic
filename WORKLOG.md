@@ -1006,3 +1006,65 @@ tail (`BREATHE`, `UNTIE-FROM`, `INFESTED?`, `YES?`, `NO-GO-TELL`, `FIND-IN`, `ZP
 
 No code change. `TABLE_CORRECTIONS` stays in place only because deleting it before `GO` is
 extracted breaks the melee draw outright. Extracting `GO` is the next task and supersedes it.
+
+---
+
+## v0.8.0 — `GO` as an Entry Ref: Combat Whole, Daemons Running
+
+**Date:** 2026-07-20
+
+### Changes
+
+The fix v0.7.1 called for. `GO` (`1dungeon.zil:2637`) is the game's initialization routine and
+was reachable from nothing, so none of what it does happened: five daemons never queued, three
+melee result tables never patched.
+
+- **`GO` added to `entryRefs`.** `I-FIGHT`, `DO-FIGHT`, `VILLAIN-BLOW` and `WINNER-RESULT`
+  extract with it, and `INT-I-FIGHT`/`I-SWORD`/`I-THIEF`/`I-CANDLES`/`I-LANTERN` are all queued
+  at startup. Villains strike back, disarm the player, knock them out and kill them; `JIGS-UP`
+  and resurrection work. The troll takes its free swing on entry, so some seeds are decided
+  before the player swings.
+- **`TABLE_CORRECTIONS` deleted.** `GO` writes `DEF*-RES` at runtime, which is what the source
+  always meant; the extractor no longer hardcodes it. The v0.7.0 premise is gone with it.
+
+Four extractor gaps surfaced on the way, each documented at its site:
+
+- **Flags used as values.** `<PUTP … ,P?VTYPE ,NONLANDBIT>` carries a flag as data, not to
+  FSET/FCLEAR/FSET?. Resolved by name, matching how the world document already stores
+  `vehicleType: "NONLANDBIT"`. Also cleared `LIT?` — see the shadowing note below.
+- **`PROB`'s two-argument form.** The DEFMAC expands it to `<ZPROB base>` and **discards the
+  second operand unevaluated**. VILLAIN-BLOW writes `<PROB 25 <COND (.HERO? 10)(T 50)>>` where
+  `.HERO?` is never declared — legal precisely because the macro drops it. Extracting that
+  operand catalogued VILLAIN-BLOW on an undeclared local and took the counterattack with it.
+- **`NON_RETURNING_BUILTINS`.** `MAIN-LOOP` is the turn loop and never returns, so `GO`'s
+  trailing `<AGAIN>` is dead code on the Z-machine too. Statements after such a call are dropped
+  rather than denied; without this `GO` catalogued on "AGAIN outside a REPEAT/PROG".
+- **`ENGINE_IMPLEMENTED`.** Once `LIT?` became extractable it *shadowed* the engine's lighting —
+  routines take precedence over builtins — and called into `DO-SL`, parser scope machinery the
+  IR does not model. Every dark-room turn in the corpus broke. Now never queued.
+
+**Engine**: initialization moved to construction rather than `start()`, so a host going straight
+to `command()` cannot get a daemon-less game; `start()` replays what construction produced. An
+explicit `start:` option still overrides `GO`'s placement. `V-VERSION` (the copyright banner, a
+sanctioned diff since 0.2) and `MAIN-LOOP` added as builtins.
+
+**Tests**: the combat suite gained the damage assertion v0.7.0 lacked — villains land blows, the
+player dies, fights are decided either way — and derives its villains and melee tables from the
+`VILLAINS` table instead of a hand-written list. The negative control twice caught the check
+going soft: once accepting a marker printed as a raw number, once accepting anything at all
+after wildcard-dominant patterns entered the set (which also made the alternation backtrack
+catastrophically). Wildcard-bearing patterns now have to carry real literal text; pure-literal
+ones are kept at any length, because ZIL assembles a sentence from several TELLs.
+
+### Results
+
+- 439 ROUTINE forms: **358 extracted** (was 352), **29 catalogued** (was 30), **52 invisible**
+  (was 57). 45 of the 52 are excluded by design (parser, clock, turn loop).
+- Parity unchanged at **151/163, 117/117 strict** — combat text is a random draw either way, and
+  walkthrough 10's four diffs remain `I-SWORD`.
+- Engine **108** tests, IR **185**.
+
+### Status
+
+M4 4.1–4.7 complete. `I-SWORD` is the last blocker on walkthrough 10 and needs an IR answer.
+The thief daemon is live but unverified — no walkthrough exercises a robbery.

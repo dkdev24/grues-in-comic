@@ -60,16 +60,6 @@
     ]
   },
   {
-    "id": "LIT?",
-    "source": {
-      "file": "gparser.zil",
-      "line": 1333
-    },
-    "reasons": [
-      "unknown name ,ONBIT"
-    ]
-  },
-  {
     "id": "LOUD-ROOM-FCN",
     "source": {
       "file": "1actions.zil",
@@ -236,7 +226,7 @@
       "line": 1167
     },
     "reasons": [
-      "unknown name ,ACTORBIT"
+      "table P-LEXV has an unsupported ITABLE spec (Number)"
     ]
   },
   {

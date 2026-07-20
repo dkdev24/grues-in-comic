@@ -11,6 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.8.0] - 2026-07-20 — `GO` as an Entry Ref
+
+Villain combat is whole, and the game's five daemons run for the first time.
+
+### Fixed
+- **`GO` is now an entry ref.** The game's initialization routine was reachable from nothing, so the daemons it queues and the melee tables it patches were never touched. Adding it extracts `I-FIGHT`, `DO-FIGHT`, `VILLAIN-BLOW` and `WINNER-RESULT`: villains strike back, disarm, knock out and kill, and death and resurrection work.
+- **`TABLE_CORRECTIONS` deleted** — `GO` patches `DEF*-RES` at runtime, as the source intended, so the extractor no longer hardcodes it.
+- **Flags used as values** (`,NONLANDBIT`, `,ONBIT`) resolve by name, matching the world document's `vehicleType`.
+- **`PROB`'s two-argument form** expands to `<ZPROB base>` and discards its second operand, as the DEFMAC does — `VILLAIN-BLOW` passes an undeclared local there, which is legal only because the macro drops it.
+- **Extracted routines can shadow engine builtins.** `LIT?` did, replacing the engine's lighting with a call into unmodelled parser scope machinery and breaking every dark-room turn. Engine-implemented routines are now excluded outright.
+
+### Changed
+- Initialization runs at **engine construction**, not in `start()`, so a host cannot skip it. An explicit `start:` option still overrides `GO`'s placement.
+- `MAIN-LOOP` (the turn loop, the engine's under ADR 0002) and `V-VERSION` (the banner, a sanctioned diff) are builtins; statements after a non-returning builtin are dropped rather than denied.
+- Combat tests gained a damage assertion, and derive villains and melee tables from the `VILLAINS` table rather than a hand-written list.
+
+### Results
+- **358 routines extracted** (was 352), 29 catalogued, 52 invisible (was 57) — 45 of those by design.
+- Parity unchanged at **151/163, 117/117 strict**; engine **108** tests, IR **185**.
+
+---
+
 ## [v0.7.1] - 2026-07-20 — Correction to v0.7.0
 
 Documentation only. No code change.

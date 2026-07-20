@@ -334,6 +334,37 @@ export function createBuiltins(): Map<string, Builtin> {
    * take precedence over builtins, so leaving the stubs would only have been
    * dead code shadowed at every call. V-CLIMB-UP still stalls on GETPT.
    */
+  /*
+   * The copyright banner ("ZORK I: The Great Underground Empire / Infocom
+   * interactive fiction ... All rights reserved.", plus the release and serial
+   * line the interpreter adds).
+   *
+   * A no-op, not an omission by accident: the banner is a fixed preamble rather
+   * than gameplay, `harness/golden.ts` strips it from every golden, and HANDOFF
+   * has recorded it as a sanctioned diff since stage 0.2. The engine has never
+   * emitted it; this only makes that explicit now that `GO` reaches the call —
+   * it fires once at startup, when HERE has no TOUCHBIT.
+   *
+   * (V-VERSION is also catalogued on `operator BAND`, so there is no extracted
+   * body to fall back on.)
+   */
+  b.set("V-VERSION", () => true);
+
+  /*
+   * gmain.zil's turn loop, which `GO` tail-calls and which never returns.
+   *
+   * ADR 0002 gives the loop to the engine: the *host* decides when a turn
+   * happens (a browser event, a harness replaying a walkthrough), so there is
+   * nothing to enter here. `start()` returning is precisely the handover —
+   * initialization is done, and `command()` drives each turn from now on.
+   *
+   * The extractor keeps the call and drops everything after it (GO's trailing
+   * `<AGAIN>` is unreachable on the Z-machine too, since MAIN-LOOP never
+   * returns), so the IR still says what the game does and the engine decides
+   * what that means here.
+   */
+  b.set("MAIN-LOOP", () => true);
+
   b.set("V-CLIMB-UP", (ctx) => {
     tell(ctx, "You can't go that way.");
     return true;

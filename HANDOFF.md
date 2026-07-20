@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.7.1**
+**0.8.0**
 
 ---
 
@@ -24,77 +24,69 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 - **M2 ✅** `ir/` — IR schema/validator; ADR 0001 (behavior AST + builtins), ADR 0002 (TS engine,
   JSON event contract, ⚑ Gate B); Graphify adopted per-module (⚑ Gate A); OpenWiki not adopted
 - **M3 ✅** Semantic extraction ZIL→IR — world-document unit complete. 110 rooms/exits,
-  137 objects, 267 parser rules, 352 routines (30 catalogued, all triaged), 87% ref coverage.
+  137 objects, 267 parser rules, 358 routines (29 catalogued, all triaged), 87% ref coverage.
   IR schema 0.14.0
 - **M4 ⏳** Engine core — 4.1 ✅ world runtime · 4.2 ✅ parser · 4.3 ✅ dispatch, save/restore ·
   4.4 ✅ transcript harness · 4.5 ✅ `TAKE ALL`, wider corpus · 4.6 ✅ orphan questions,
-  pronouns, compound sentences, per-turn parity directives · **4.7 ⏳ villain combat —
-  the player's blow only** (IR `random` op, membership verification); the villain's
-  counterattack is missing, so the player is currently invulnerable in a fight.
+  pronouns, compound sentences, per-turn parity directives · **4.7 ✅ villain combat**
+  (IR `random` op, membership verification, `GO` as entry ref — both sides of the fight,
+  death and resurrection).
   **11 walkthroughs, 117/117 strict turns (100%), 151/163 overall. 108 engine tests, IR 184/184.**
   ⚑ **Gate C not yet claimed**
 - **M5** Comic Chat presentation — `.avb` decoding solved (v0.5.18); the rest is open
 
 ---
 
-## Last Session (v0.7.1)
+## Last Session (v0.8.0)
 
-**v0.7.0 landed the player's half of combat and two claims about it were wrong. Both are
-corrected here; the code fix is the next session's first task (Next Actions 1).**
+**`GO` is now an entry ref, which fixed all three things v0.7.1 flagged.** The game's own
+initialization routine was unreachable, so nothing it did happened: the five daemons were never
+queued and the melee tables never patched.
 
-What is true: `HERO-BLOW` was catalogued on `operator RANDOM`, and because extraction is
-reachability-driven that one denial suppressed everything below it. Supporting `RANDOM` (IR
-schema **0.14.0**) plus `PRINT`/`PRINTD` pulled in `HERO-BLOW`, `VILLAIN-STRENGTH`,
-`VILLAIN-RESULT`, `REMARK`, `RANDOM-ELEMENT`, `RANDOMIZE-OBJECTS`. Walkthrough 10 went from
-stuck-at-turn-13 to 24/28; parity 138/163 → **151/163**. The RNG question is decided —
-option (b), membership — realized in `engine/test/combat.test.ts`.
+- **Combat is whole.** `I-FIGHT` → `DO-FIGHT` → `VILLAIN-BLOW` → `WINNER-RESULT` all extract.
+  Villains strike back, disarm the player, knock them out and kill them; `JIGS-UP` and
+  **resurrection** work. The troll also gets its free swing on entry, so some seeds end before
+  the player swings at all.
+- **`TABLE_CORRECTIONS` is deleted.** `GO` patches `DEF*-RES` at runtime, as the source always
+  meant it to. The extractor no longer hardcodes what the game does itself.
+- **Four extractor gaps fell out of reaching `GO`**, each documented at its site: flags used as
+  *values* (`,NONLANDBIT`, `,ONBIT` — also fixed `LIT?`); `PROB`'s two-argument form, which
+  expands to `<ZPROB base>` and **discards its second operand** (VILLAIN-BLOW passes an
+  undeclared `.HERO?` there, which is legal precisely because the macro drops it);
+  `NON_RETURNING_BUILTINS`, so `GO`'s trailing `<MAIN-LOOP> <AGAIN>` stops catalogueing it; and
+  `ENGINE_IMPLEMENTED`, after extracting `LIT?` silently **shadowed** the engine's own lighting
+  and cost every dark-room turn in the corpus.
+- **Initialization runs at construction, not in `start()`**, so a host that goes straight to
+  `command()` cannot get a daemon-less game. An explicit `start:` option still overrides `GO`'s
+  placement.
+- **The combat test grew the damage assertion it was missing**, and its legal-message set is now
+  derived from the `VILLAINS` table rather than hand-listed. The negative control twice caught
+  the check going soft — first accepting a marker printed as a raw number, then accepting
+  anything at all once wildcard-dominant patterns entered the set.
 
-**Correction 1 — combat is half-landed, not landed.** `VILLAIN-BLOW` and `WINNER-RESULT` are
-*not* extracted, and neither is the `I-FIGHT` daemon that drives them. The player's blow
-resolves and the troll dies; **the villain never strikes back, so the player cannot be hurt or
-killed in a fight.** The v0.7.0 tests do not catch this: they assert the troll dies and that the
-printed messages are legal, and an invulnerable player satisfies both.
-
-**Correction 2 — the `DEF*-RES` zeros are not a reconstruction defect.** `GO`
-(`1dungeon.zil:2637`) patches all three tables at runtime — `<PUT ,DEF1-RES 1 <REST ,DEF1 2>>`
-and five more — so the zeros are placeholders the game overwrites and the `;<REST …>` comments
-annotate what it writes. `TABLE_CORRECTIONS` in `ir/src/extract-behavior.ts` therefore holds the
-right values on a wrong premise, and hardcodes into the extractor something the game does
-itself. **It should be deleted, not maintained** — see Next Actions 1.
-
-**Root cause of both: `GO` is not an entry ref.** `entryRefs` (`ir/src/extract-world.ts:663`)
-covers room/object actions and syntax handlers only, so nothing reaches the game's
-initialization routine — which queues all five daemons *and* patches the melee tables.
+Parity unchanged at **151/163, 117/117 strict**: combat's *text* is a random draw either way.
+Engine 108 tests, IR 185.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.6 ✅, 4.7 in progress. The RNG question is settled; combat is half-built.**
+**M4: 4.1–4.7 ✅. Combat, the RNG question and `GO` are settled.**
 
-1. **⚑ Make `GO` an entry ref, and delete `TABLE_CORRECTIONS`.** One change fixes three things:
-   the wrong-premise table patch, the five unqueued daemons, and the villain counterattack that
-   leaves the player invulnerable (`I-FIGHT` → `DO-FIGHT` → `VILLAIN-BLOW` → `WINNER-RESULT`,
-   none extracted). `GO` is the game's initialization routine and nothing currently reaches it.
-   - **Design question to settle first:** `GO` ends `<V-LOOK> <MAIN-LOOP> <AGAIN>`, and the turn
-     loop is the engine's under ADR 0002, so it cannot be extracted wholesale. Either extract it
-     and have the engine call it in place of `load.ts`'s hardcoded seeding, or make `MAIN-LOOP`
-     a builtin no-op so the tail falls away. `engine/src/load.ts:128` currently hand-reimplements
-     a *fragment* of `GO` (`HERE`, `WINNER`, `MOVES`) — game-init semantics in engine code.
-   - **The combat tests need to grow a damage assertion.** They currently pass against an
-     invulnerable player; assert the villain lands blows and that the player can die.
-
-2. **⚑ `I-SWORD` — the single blocker on walkthrough 10, and it needs an *IR* answer.**
-   The four remaining diffs there are all the sword-glow daemon; delete the `# parity:` line in
-   `verification/walkthroughs/10-dam-and-reservoir.cmd` once it lands and the walkthrough
+1. **⚑ `I-SWORD` — the last blocker on walkthrough 10, and it needs an *IR* answer.**
+   `GO` now queues it, so the daemon runs the moment it extracts; the four remaining diffs there
+   are all the sword glow. Delete the `# parity:` line in
+   `verification/walkthroughs/10-dam-and-reservoir.cmd` when it lands and the walkthrough
    verifies strictly. It walks exits as numbered Z-machine properties (`<NEXTP …>`) and the IR
    models exits structurally, so it likely wants a small behavior op for "rooms adjacent to
    here". **A schema decision — deliberately not taken autonomously.** `I-CYCLOPS` (`<NTH …>`)
-   has the same shape and would be answered by the same op. Note `GO` queues `I-SWORD`, so
-   item 1 is a prerequisite for it ever running.
+   has the same shape and would be answered by the same op.
 
-3. **Systems completion** (⚑ Gate C): death and resurrection, and the thief's robbery pass.
-   Both were previously gated on the RNG decision, which is now made — randomized turns are
-   verified by membership (option (b)), the pattern `engine/test/combat.test.ts` establishes and
-   that these two should follow. Death is partly item 1's work: `WINNER-RESULT` calls `JIGS-UP`.
+2. **The thief is live and unverified.** `I-THIEF` is queued and running as of v0.8.0, but no
+   walkthrough exercises a robbery and `ROB`/the thief's pass have never been checked against
+   the reference. Verify by membership, as combat is. Longer walkthroughs are where an
+   unverified thief will show up first.
+
+3. **Systems completion** (⚑ Gate C): **death and resurrection now work** (v0.8.0 — `JIGS-UP`
+   via `WINNER-RESULT`), so what remains here is the thief's robbery pass, which is item 2.
    **P-WON gating is settled: do not implement it** — the transcripts contradict the source
    (v0.6.5; reasoning is at the call site, because the source reads the other way and the next
    reader will otherwise "fix" it back). `V-CLIMB-UP` is the last stub.
@@ -104,13 +96,13 @@ initialization routine — which queues all five daemons *and* patches the melee
    `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with a non-literal
    byte count (PICK-ONE — Group A regardless).
 
-5. **The invisible-routine audit is done; act on its tail.** 439 ROUTINE forms in the corpus,
-   352 extracted, 30 catalogued — **57 invisible as neither**. 44 are correctly excluded by
-   design (39 `gparser`, 3 `gclock`, 2 `gmain`: the engine owns the parser, the clock and the
-   turn loop). Item 1 clears the combat chain and `GO`. That leaves a short tail worth triage:
-   `BREATHE`, `UNTIE-FROM`, `INFESTED?`, `YES?`, `NO-GO-TELL`, `FIND-IN`, `ZPROB`, `MIN`.
+5. **The invisible-routine audit, re-run after `GO`.** 439 ROUTINE forms, **358 extracted, 29
+   catalogued, 52 invisible**. 45 are correctly excluded by design (40 `gparser`, 3 `gclock`,
+   2 `gmain`: the engine owns the parser, the clock and the turn loop). The tail worth triage is
+   now seven: `BREATHE`, `INFESTED?`, `MIN`, `UNTIE-FROM`, `FIND-IN`, `NO-GO-TELL`, `YES?`.
    **Worth making this a standing report rather than a one-off**: the catalog names the routine
-   that failed but never what its failure cost, which is exactly why combat stayed hidden.
+   that failed but never what its failure cost, which is exactly why combat stayed hidden for
+   two milestones.
 
 6. **Stage 5.1 (Comic Chat) = filler, independent of every gate.** Read
    `reference/comic-chat-paper.md` (SIGGRAPH '96 — balloon layout, character placement, gesture
@@ -158,16 +150,14 @@ initialization routine — which queues all five daemons *and* patches the melee
 - **Stubbed builtins**: `V-CLIMB-UP` alone now (GETPT), returning a no-op so call sites reach a
   defined value instead of crashing a turn. `RANDOMIZE-OBJECTS` and `HERO-BLOW` are real
   extracted routines as of v0.7.0.
-- **`TABLE_CORRECTIONS` is wrong and should be deleted** (`ir/src/extract-behavior.ts`). It
-  patches `DEF1-RES`/`DEF2-RES`/`DEF3-RES` on the premise that the source's zeros are a ZILF
-  reconstruction defect. They are not: `GO` writes those slots at runtime
-  (`<PUT ,DEF1-RES 1 <REST ,DEF1 2>>`, `1dungeon.zil:2644`). Right values, wrong premise —
-  extracting `GO` supersedes it. Kept only because removing it before `GO` lands breaks the
-  melee draw outright. See Next Actions 1.
-- **The player is invulnerable in combat.** `I-FIGHT`, `DO-FIGHT`, `VILLAIN-BLOW` and
-  `WINNER-RESULT` are unextracted, so villains never strike back. `engine/test/combat.test.ts`
-  passes against this — it asserts the troll dies and that messages are legal, neither of which
-  a one-sided fight violates.
+- **Extracting a routine can silently *shadow* an engine builtin**, because routines take
+  precedence in `callRoutine`. `LIT?` did exactly that in v0.8.0 and cost every dark-room turn
+  until it was excluded by `ENGINE_IMPLEMENTED`. `DO-WALK` and `THIS-IS-IT` are currently both
+  extracted *and* builtins and happen to agree — **check this whenever the extraction frontier
+  moves**; the failure is total and silent, and the catalog will not mention it.
+- **`GO` runs at engine construction**, not in `start()`, so initialization cannot be skipped.
+  An explicit `start:` option overrides `GO`'s room placement and re-describes; `start()` just
+  replays the events construction produced.
 - **Randomized turns are verified by membership, not text parity** — the settled answer to the
   RNG question. `engine/test/combat.test.ts` derives the legal message set from the IR; it must
   stay derived, since a hand-listed set drifts and starts passing by construction. Death,

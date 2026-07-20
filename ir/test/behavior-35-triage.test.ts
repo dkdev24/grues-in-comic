@@ -23,13 +23,31 @@ const routineById = new Map(world.routines!.map((r) => [r.id, r]));
 const catalogIds = new Set(catalog.map((c) => c.id));
 
 describe("stage 3.5 triage — Group A builtins stay catalogued by design", () => {
-  it("meta verbs, randomness, and parser/scope machinery are catalogued, not extracted", () => {
+  it("meta verbs, randomness, and parser machinery are catalogued, not extracted", () => {
     for (const id of [
       "V-SAVE", "V-RESTORE", "V-RESTART", "V-QUIT", "V-VERIFY",
-      "V-RANDOM", "PICK-ONE", "LIT?", "GOTO", "V-WALK", "GLOBAL-IN?", "OTHER-SIDE",
+      "V-RANDOM", "PICK-ONE", "GOTO", "V-WALK", "GLOBAL-IN?", "OTHER-SIDE",
     ]) {
       expect(routineById.has(id), `${id} should not be extracted`).toBe(false);
       expect(catalogIds.has(id), `${id} should be catalogued (builtin frontier)`).toBe(true);
+    }
+  });
+
+  it("engine-implemented routines are excluded outright, not catalogued", () => {
+    /*
+     * A second, stronger mechanism than the builtin frontier. `LIT?` reached
+     * the frontier by accident — it stalled on `,ONBIT` — and once flags-as-
+     * values became extractable it sailed through and *shadowed* the engine's
+     * own lighting, since routines take precedence over builtins. It is now on
+     * ENGINE_IMPLEMENTED and never queued at all.
+     *
+     * So the assertion is "not extracted", which is the invariant that
+     * matters; being absent from the catalog too is the point — nothing is
+     * pending about it.
+     */
+    for (const id of ["LIT?", "MAIN-LOOP", "PARSER", "CLOCKER", "QUEUE"]) {
+      expect(routineById.has(id), `${id} should not be extracted`).toBe(false);
+      expect(catalogIds.has(id), `${id} is engine-owned, not a catalog entry`).toBe(false);
     }
   });
 });
