@@ -243,16 +243,34 @@ array is the DIB colour table used while splitting a masked-mono image into thre
 DIBs for Win32 `BitBlt` raster ops (`ConvertFromMaskedMono`). It is **not** what the
 pixels mean.
 
-The semantics are at `avbfile.h:98`:
+The semantics are:
 
 ```
-00 = blank    01 = aura    10 = black    11 = white
+00 = blank    01 = aura    10 = paper    11 = ink
 ```
 
-Rendering straight to RGBA, use those: blank → transparent, aura → the white halo drawn
-behind the figure to lift it off a backdrop, black → ink, white → paper. Using the
-palette array instead yields a dark-red and navy figure — recognisably the right *shape*,
-which makes it easy to assume the decode succeeded.
+**The header comment is wrong about the last two, and it is worth being explicit about
+because trusting it inverts every masked-mono figure.** `avbfile.h:93` claims
+`10 = black, 11 = white`. The code that actually runs disagrees:
+`CPose::ConvertMasksCommon` (`avbfile.cpp:1636`) splits the pair into three 1bpp DIBs —
+image, mask, aura —
+
+```
+00 => 0,0,0    01 => 1,0,1    10 => 0,1,1    11 => 1,1,1
+```
+
+and gives each DIB the colour table `[white, black]`. So in the image DIB `10` → 0 →
+white (paper) and `11` → 1 → black (ink), the opposite of the header. The following line,
+`pbDestBits[0] &= pbDestBits[1]`, then forces the aura-only region to white, which is why
+`01` never carries ink.
+
+Rendering straight to RGBA: blank → transparent, aura → the white halo drawn behind the
+figure to lift it off a backdrop, paper → white, ink → black. Using the palette array
+instead yields a dark-red and navy figure — recognisably the right *shape*, which makes it
+easy to assume the decode succeeded. The inversion is the same trap one level down: the
+shapes stay perfectly correct and only the polarity is wrong, so it survives any test that
+checks coverage rather than colour. It shipped in v1.4.0 for exactly that reason;
+`art/test/polarity.test.ts` now pins the mapping corpus-wide.
 
 The three-DIB split is a Win32 implementation detail. A modern renderer with an alpha
 channel does not need it.

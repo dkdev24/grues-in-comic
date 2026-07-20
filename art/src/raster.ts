@@ -31,17 +31,32 @@ export interface Raster {
 }
 
 /**
- * `AIP_MASKEDMONO` 2bpp semantics (`avbfile.h:98`):
- * `00` blank, `01` aura, `10` black, `11` white.
+ * `AIP_MASKEDMONO` 2bpp semantics: `00` blank, `01` aura, `10` paper, `11` ink.
  *
- * These are the pixel *meanings*. `MaskedMonoPalette` is not — that array is
- * the colour table used while splitting into three 1bpp DIBs for BitBlt
- * (gotcha 3). Using it renders the figure dark-red and navy: the right shape,
- * which is what makes the mistake easy to miss.
+ * **The header comment is wrong, and this is the one place it matters.**
+ * `avbfile.h:93` claims `10 = black, 11 = white`. The conversion that actually
+ * runs says otherwise — `CPose::ConvertMasksCommon` (`avbfile.cpp:1636`) splits
+ * the pair into three 1bpp DIBs, image/mask/aura:
+ *
+ *     00 => 0,0,0    01 => 1,0,1    10 => 0,1,1    11 => 1,1,1
+ *
+ * and every one of those DIBs is given the colour table `[white, black]`, so in
+ * the image DIB `10` → 0 → white and `11` → 1 → black: the opposite of the
+ * header. (`pbDestBits[0] &= pbDestBits[1]` then forces the aura-only region to
+ * white, which is why `01` never carries ink.)
+ *
+ * Trusting the header inverts every masked-mono figure — white linework on a
+ * black silhouette. It is easy to miss because the shapes stay perfectly
+ * correct; only the polarity is wrong. `test/polarity.test.ts` pins it.
+ *
+ * Separately, `MaskedMonoPalette` is *not* these meanings — that array is the
+ * colour table used while splitting for BitBlt (gotcha 3). Using it renders the
+ * figure dark-red and navy: again the right shape, wrong colour.
  */
 const MASKEDMONO_BLANK = 0;
 const MASKEDMONO_AURA = 1;
-const MASKEDMONO_INK = 2;
+const MASKEDMONO_PAPER = 2;
+const MASKEDMONO_INK = 3;
 
 function isMaskedMono(paletteType: number): boolean {
   return paletteType === AIP_MASKEDMONO || paletteType === AIP_DUALMASK;
@@ -174,7 +189,7 @@ export function rasterizeLayers(
   } else if (maskedMono) {
     for (let i = 0; i < coverage.length; i++) {
       const v = img.pixels[i]!;
-      coverage[i] = v !== MASKEDMONO_BLANK && v !== MASKEDMONO_AURA ? 1 : 0;
+      coverage[i] = v === MASKEDMONO_PAPER || v === MASKEDMONO_INK ? 1 : 0;
     }
   } else {
     const pal = img.palette ?? [];

@@ -78,6 +78,21 @@ function resolvePath(pathname: string): string | null {
   return file === root || file.startsWith(root.endsWith(sep) ? root : root + sep) ? file : null;
 }
 
+// A bare `listen` failure surfaces as an unhandled 'error' event: a stack trace
+// after a *successful* build, which reads as a broken shell rather than a taken
+// port. The common cause is a previous `dev` still running.
+server.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    process.stderr.write(
+      `port ${PORT} is already in use — another dev server is probably still running.\n` +
+        `Stop it, or pick another port:  PORT=${PORT + 1} npm --prefix web run serve\n`,
+    );
+  } else {
+    process.stderr.write(`dev server failed to start: ${err.message}\n`);
+  }
+  process.exitCode = 1;
+});
+
 server.listen(PORT, () => {
   process.stdout.write(`grues-in-comic shell: http://localhost:${PORT}/\n`);
 });
