@@ -112,7 +112,7 @@ The synthesis the discussion arrived at, and the main thing to carry forward:
 |---|---|---|
 | **Hero balloon** | The player's own typed command, rendered as speech (`take lamp` → "Take the lamp.") | Zero |
 | **Guide balloon** | Authored reaction, budgeted, frequently absent | The only authored content |
-| **Caption** | Engine narration, verbatim | Zero |
+| **Caption** | Engine narration — **pull-quote, not the full paragraph** (see §7) | Zero |
 
 The Hero-balloon mechanism resolved an earlier objection. A silent Hero makes it half a chat,
 which undercuts a Comic-Chat-forward premise; but *authored* Hero dialogue would evict the player
@@ -166,7 +166,96 @@ Coverage is complete from day one; quality concentrates where players remember i
 
 ---
 
-## 7. Review notes on `docs/gemini-new-overall-architecure.md`
+## 7. Presentation shell — two panes, and the comic as a book (settled)
+
+Daniel's proposal, and the piece that makes the rest cohere: the gameplay UI splits **Comic Chat**
+back into its two halves.
+
+- A **console pane** carrying the text adventure: engine narration and the player's typed input,
+  in the familiar shape of a modern chat transcript.
+- A **comic pane** beside it, refreshed as play progresses — the relationship an LLM artifact has
+  to the conversation that produced it.
+
+### Why this is the right shell
+
+It dissolves a problem no earlier option solved. Zork's room descriptions run 40–80 words; a
+Comic Chat balloon holds roughly 15. Every prior option compromised — paraphrase (loses the prose)
+or caption-heavy panels (the slideshow failure mode). With a console pane, **long prose lives
+where long prose is native and the comic stops having to be self-sufficient.**
+
+**Consequent amendment to §5:** the comic's caption becomes a **pull-quote**, not the full
+paragraph. Just the line that lands — *It is pitch black. You are likely to be eaten by a grue.* —
+while the complete text sits in the console. Verbatim either way, so §4's fidelity argument holds
+in full; the balloon-length problem is removed rather than worked around.
+
+### The comic is primary; the console is subordinate
+
+The failure mode is real and severe: if all information is in the console, the comic becomes
+decorative and players read left, glancing right. That would be worse here than in most designs,
+because original Comic Chat's premise was that **the comic *is* the conversation view**, not an
+accompaniment to one. It shipped a plain-text toggle, but the comic was primary. A text-primary
+shell would demote Comic Chat's identity while appearing to preserve it — the opposite of §4.
+
+So the split is deliberately inverted against its ChatGPT reference: the **comic gets the space**;
+the console is narrower, quieter, closer to a terminal than to a chat app. Agreed in session.
+
+### Do not read as an LLM app
+
+The achievement here is that the whole system is **deterministic** — a 1977 parser rendered
+through a 1996 engine, no inference anywhere. A ChatGPT-shaped UI invites the assumption that a
+model is behind it, which reads as "another wrapper" and buries exactly what is impressive.
+
+Two acceptable resolutions: lean away from the resemblance visually, or lean into it as a joke
+that is **made legible** ("no model was consulted — this is a 48-year-old parser"). The bad
+outcome is landing in between, where it merely looks like an LLM app. Agreed in session; which of
+the two is unresolved.
+
+### The comic pane is a book, and it exports
+
+Daniel's direction: the comic pane should read as a **paper comic book, with new pages added
+during play**, and the player should be able to **download the finished book as a PDF**, generated
+client-side.
+
+**This is in tension with §8 of `docs/gemini-new-overall-architecure.md` ("Why Panels Instead of
+Pages"), which justified the panel stream on responsive, mobile, orientation-independence and
+incremental-rendering grounds. Those reasons are still valid. The reconciliation — which must be
+stated in the ADR, because it is the thing a future session will get wrong:**
+
+> **The panel stream remains the canonical model. A page is a *layout*, not a data structure.**
+
+That is not a compromise; it is what the existing architecture already says. The Layout Manager
+"never creates content — it only arranges existing panels." Page-based layout is simply one layout
+policy among the responsive ones §5.6 already lists. Which means:
+
+- **Desktop / tablet** — page-view policy: panels flowed into fixed page geometry, gutters,
+  spreads, page turns. This is the "comic book" reading.
+- **Phone portrait** — stream policy, as §8 intended. A fixed page is unreadable at that size.
+  Same stream, different policy; no separate content model.
+- **PDF export** — re-run the layout at fixed page geometry over the *entire* stream. Export is
+  therefore not a special feature; it is the page-view policy applied offline to the whole
+  history. This is the strongest argument that the reconciliation is correct rather than
+  convenient.
+
+The export also aligns with §3.4 (client-side only, works offline): PDF generation is
+library-level work in the browser, no backend involved.
+
+### Open problems with the book direction
+
+- **Export size.** A full playthrough is ~189 turns; at 1–3 panels per turn that is 200–500
+  panels of raster art decoded from `.avb`. The resulting PDF may be very large. Needs a measured
+  answer, and possibly downsampling or a chapter-scoped export.
+- **"At the ending" is the wrong trigger.** Zork playthroughs frequently do not end — players
+  quit, die, or stop. Export should be available at any point, over whatever history exists.
+- **Page breaks are a pacing decision the stream does not carry.** Comic Chat's shipped code has
+  no equivalent (5.1 found its 15% panel-break rule described in the paper but absent from the
+  code). Page composition rules are new work.
+- **Scroll relationship between the panes** is unspecified. If the comic appends rather than
+  replaces, scroll-syncing — scroll the console, the book follows to that moment — is a strong
+  affordance and worth designing deliberately rather than inheriting by accident.
+
+---
+
+## 8. Review notes on `docs/gemini-new-overall-architecure.md`
 
 The document's layering is sound — the boundaries it draws (engine knows nothing about comics,
 Layout Manager never creates content, Renderer decides nothing) are correct and crisply stated.
@@ -198,7 +287,7 @@ Its weaknesses:
 
 ---
 
-## 8. Where the discussion stopped
+## 9. Where the discussion stopped
 
 The immediate next step was blocked on research, not on decisions: **read
 `original-projects/comic-chat/` to determine how much of the composition algorithm is actually
@@ -217,15 +306,25 @@ break, periodic establishing shots). **Read the code, not the paper.**
 3. The Guide's identity — name, appearance, personality. Deferred to a separate document, but the
    ADR should note the slot exists. Agreed: **do not call them "Narrator" in the UI.**
 4. Which Comic Chat cast member (or new asset) plays the Guide, given the `art/` corpus.
+5. Whether the console pane leans *away* from the ChatGPT resemblance or *into* it as a legible
+   joke (§7) — both acceptable, landing between them is not.
+6. Page composition rules, and how pull-quote selection picks the line that lands.
+7. Measured PDF export size, and whether a full-history export is viable at all.
+8. Scroll relationship between the two panes.
 
 ### Decisions to lock in ADR 0004
 
 1. Comic Chat leads on identity — with §4's consequence spelled out, so a future session does not
    quietly re-litigate it into paraphrase
 2. Guide is presentation-only — stated as testable constraints
-3. Narration accompanied, never replaced; caption channel is verbatim engine text
+3. Narration accompanied, never replaced. Full verbatim text in the console pane; the comic's
+   caption is a verbatim **pull-quote** from it (amended by §7 — was "caption = full narration")
 4. Hero balloon = the player's typed command
-5. Panel budget + Guide speech budget per turn
-6. Trigger priority, cooldowns, no-repeat pools
-7. Three-tier authoring, Tier 0 first
-8. Camera preset selection rules tied to the ADR 0002 event contract
+5. **Two-pane shell**, comic primary and console subordinate — deliberately *not* text-primary
+6. **Panel stream stays canonical; a page is a Layout Manager policy, not a data structure** —
+   with PDF export as that same policy applied offline over the whole history. This is the
+   reconciliation with §8 of the Gemini doc and the item most likely to be got wrong later.
+7. Panel budget + Guide speech budget per turn
+8. Trigger priority, cooldowns, no-repeat pools
+9. Three-tier authoring, Tier 0 first
+10. Camera preset selection rules tied to the ADR 0002 event contract

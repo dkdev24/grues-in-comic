@@ -62,11 +62,21 @@ Action #5, panel grammar. What was settled:
   narration verbatim; Guide balloon = the only authored content, budgeted and usually absent.
   This answers the player-representation decision in `wiki/comic-chat-presentation.md` at zero
   authoring cost.
+- **Two-pane shell**: a subordinate console pane carrying the full verbatim narration and player
+  input, beside a **primary** comic pane. Long prose lives where it is native, so the comic's
+  caption drops to a verbatim **pull-quote** — which removes the 80-words-in-a-15-word-balloon
+  problem instead of compromising on it. Comic leads; the shell must not read as an LLM app.
+- **The comic pane is a book** — pages accrete during play, exportable to PDF client-side.
+  **Reconciled with §8 of the Gemini doc ("panels not pages"), not a reversal of it: the panel
+  stream stays canonical and a page is a Layout Manager *policy*.** Page-view on desktop, stream
+  on phone portrait, and PDF export is that same policy applied offline over the whole history.
 - **RNG vs determinism resolved**: randomness is wanted for replayability; determinism means
   *given seed*, so the seed must be explicit in save state.
 
 Still open: how much composition logic is recoverable from `original-projects/comic-chat/`; the
-panel-budget formula; Guide trigger/cooldown design; and the Guide's identity.
+panel-budget formula; Guide trigger/cooldown design; the Guide's identity; page composition and
+pull-quote selection rules; measured PDF export size (200–500 raster panels may be prohibitive);
+and the scroll relationship between the panes.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
