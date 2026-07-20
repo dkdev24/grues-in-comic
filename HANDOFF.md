@@ -45,7 +45,7 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 **Design discussion only; no code, no milestone.** Cut short by a session limit and **unfinished**
 — the full record is `docs/panel-grammar-discussion.md`. Resume there, not from this summary.
 
-Reviewed `docs/gemini-new-overall-architecure.md` (externally drafted) and used it to attack Next
+Reviewed `docs/chatgpt-new-overall-architecture.md` (externally drafted) and used it to attack Next
 Action #5, panel grammar. What was settled:
 
 - **The gap restated usefully**: not "Zork lacks dialogue" but *Comic Chat's composition algorithm

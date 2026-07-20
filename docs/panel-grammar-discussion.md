@@ -18,7 +18,7 @@ Comic Chat has no equivalent to inherit: measured over all 11 walkthroughs (189 
 stream carries **192 `narration`, 0 `speech`**. Comic Chat's composition algorithm is
 parameterized on conversation; Zork never produces any.
 
-The discussion began as a review of `docs/gemini-new-overall-architecure.md`, an
+The discussion began as a review of `docs/chatgpt-new-overall-architecture.md`, an
 externally-drafted architecture document, and moved to the specific question that document leaves
 open.
 
@@ -288,7 +288,7 @@ Daniel's direction: the comic pane should read as a **paper comic book, with new
 during play**, and the player should be able to **download the finished book as a PDF**, generated
 client-side.
 
-**This is in tension with §8 of `docs/gemini-new-overall-architecure.md` ("Why Panels Instead of
+**This is in tension with §8 of `docs/chatgpt-new-overall-architecture.md` ("Why Panels Instead of
 Pages"), which justified the panel stream on responsive, mobile, orientation-independence and
 incremental-rendering grounds. Those reasons are still valid. The reconciliation — which must be
 stated in the ADR, because it is the thing a future session will get wrong:**
@@ -327,7 +327,7 @@ library-level work in the browser, no backend involved.
 
 ---
 
-## 8. Review notes on `docs/gemini-new-overall-architecure.md`
+## 8. Review notes on `docs/chatgpt-new-overall-architecture.md`
 
 The document's layering is sound — the boundaries it draws (engine knows nothing about comics,
 Layout Manager never creates content, Renderer decides nothing) are correct and crisply stated.
