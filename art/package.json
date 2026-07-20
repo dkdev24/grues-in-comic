@@ -1,14 +1,15 @@
 {
   "name": "@grues-in-comic/art",
   "version": "0.1.0",
-  "description": "Comic Chat .avb decoding and pose compositing — the build-time art pipeline (milestone 5)",
+  "description": "Comic Chat .avb decoding, pose compositing and the browser cast bundle \u2014 the build-time art pipeline (milestone 5)",
   "type": "module",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "dump": "tsx tools/avbdump.ts"
+    "dump": "tsx tools/avbdump.ts",
+    "pack": "tsx tools/avbpack.ts ../web/assets/comic hero=../original-projects/comic-chat/v2.5-beta-1/comicart/dan.avb guide=../original-projects/comic-chat/v2.5-beta-1/comicart/tiki.avb --backdrop pastoral=../original-projects/comic-chat/v1.0-pre-modern/comicart/backdrop/pastoral.bmp --backdrop field=../original-projects/comic-chat/v1.0-pre-modern/comicart/backdrop/field.bmp --backdrop room=../original-projects/comic-chat/v1.0-pre-modern/comicart/backdrop/room8bs.bmp"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

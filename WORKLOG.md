@@ -1628,3 +1628,106 @@ add one on.
 
 **Stage 5.2 ✅.** Stage 5.3 — the comic renderer POC, ⚑ Gate D — is next, and is unblocked on both
 design (ADR 0004 Accepted) and plumbing (this shell).
+
+---
+
+## v1.4.0 — 2026-07-20 — Stage 5.3: the comic renderer (⚑ Gate D)
+
+**Zork I now draws itself as a comic.** Every turn produces a Comic Chat panel beside the
+transcript: original `.avb` figures composited face-onto-torso, Woodring balloons, the ADR 0004
+§7 camera ladder and §10 affect table, over the three shipped backdrops. Both panes of the §4
+shell exist for the first time, reading one event stream.
+
+### What was built
+
+- **`web/src/comic/mapper.ts` — events → panels.** A pure function of the ADR 0002 stream, holding
+  only per-session memory (visited rooms, the player's room and inventory), all derived from the
+  stream rather than read from the engine. That is what makes it testable by replaying
+  walkthroughs, the parity harness's own oracle.
+- **`web/src/comic/affect.ts`** — §10's marker table, quarantining the one place ADR 0004
+  knowingly accepts prose matching.
+- **`web/src/comic/figure.ts`, `balloon.ts`, `render.ts`** — pose selection and the join against a
+  sprite sheet; the three Woodring classes with `AddLine`'s balanced wrap; camera presets as
+  framing evaluated at the current panel width.
+- **`art/src/pack.ts` + `tools/avbpack.ts`** — the cast bundle. `art/src/bmp.ts` brings the three
+  shipped backdrops in; `art/src/cast-manifest.ts` is the types-only leaf that keeps the browser
+  clean.
+- The inspector moved inside the console pane as a collapsed `<details>`; the comic took the
+  primary slot. Verified in a real browser at 390×844: both panes visible, no horizontal scroll.
+
+### The asset decision (⚑ Gate D)
+
+**The browser runs the selector, never the decoder.** `art/` decodes at build time and emits one
+sprite sheet per avatar plus a manifest; the shell imports `format.ts` and `pose.ts` as source —
+the emotion wheel, pure arithmetic — and loads PNGs for everything else. The whole cast plus three
+backdrops is **five requests, ~330 KiB**.
+
+- **Parts are packed, not figures**: dan's 187 figures are 28 drawings, so the join happens in the
+  browser. Baking figures would multiply the payload by an order of magnitude for identical pixels
+  *and* freeze the join that §8's round-robin exists to keep re-pairing.
+- **A figure and its aura are separate sub-rects** — correctness, not size: both halos precede
+  either figure, so a flattened part has the second blit biting a halo-shaped hole in the first.
+- **No bundler was needed.** 5.2 recorded that 5.3 would be the evidence test for adding one. It
+  was, and the answer was no: canvas plus static assets has nothing to bundle.
+- `pose.ts`'s selectors became generic over `{ angle, intensity }` so the shell can run the real
+  wheel over manifest entries instead of forking it. No behaviour change; `art`'s 13 tests pass.
+
+### Two ADR amendments, both from building it rather than reading it
+
+- **§10: `parser-miss` fires on the `narration:system` channel.** Every refusal the *engine*
+  issues goes out on that channel — which is what ADR 0002 put it there for — and one of them,
+  `I don't know the word "…"`, interpolates the word and matched none of the four listed patterns.
+  The commonest refusal in real play was drawing a *neutral* Hero. Measured over all 11
+  walkthroughs the distribution is unchanged, so this is robustness at no cost to the numbers.
+- **§11: the Hero needs a BORED face, not only a SHRUG torso.** `parser-miss` emits both, and the
+  inventories are nearly disjoint: of the five SHRUG owners only dan and lance own a BORED face.
+  It fails silently — the wheel is nearest-neighbour, so susan renders fine but lands on COY, and
+  the comic's most common beat reads as the Hero being coy at the parser rather than exasperated.
+  **Cast settled: Hero = dan, Guide = tiki**, which also dissolves §11's "they intersect only at
+  susan" problem, since dan is not on the Guide shortlist at all.
+
+Also corrected while implementing: `routine-ack` must anchor to the whole turn, not per line —
+applied per line it measurably overtakes `parser-miss` as the largest marker, because any turn
+*containing* a bare "Taken." claims it.
+
+### Independent confirmation of the ADR's own measurements
+
+The mapper replayed over all 11 walkthroughs (200 panels — 189 turns plus each walkthrough's
+opening) reproduces §7's distribution closely: **medium 49.5% · establishing 30.5% · close-up
+12.0% · reaction 5.5% · wide 2.5%**, against the ADR's 52.4 / 26.5 / 12.7 / 5.8 / 2.6. Affectless
+turns land at 46.5% against the predicted 51%. The ADR's tables were derived from a separate
+measurement pass; that an independent implementation lands on the same numbers is the strongest
+evidence available that §7 and §10 describe the event stream rather than a spreadsheet.
+
+### Conventions worth keeping
+
+- **The comic pane has no engine handle.** `main.ts` hands one `Turn` to both panes; §2's
+  "accompanied, never replaced" is a property of the wiring, not something to keep in sync.
+- **The join is implemented twice on purpose** — once against pixels (`art/src/composite.ts`),
+  once against sheet sub-rects (`web/src/comic/figure.ts`) — because merging them would drag
+  `node:zlib` into the browser. `web/test/figure.test.ts` runs both over the real cast and asserts
+  they agree pose for pose. That test is the only thing making the duplication acceptable.
+- **A type-only import is erased at emit but not at type-check.** Importing the manifest types
+  from a module that itself imports the decoder put `node:zlib` in the browser program. Hence a
+  types-only leaf. If `dist/art/src/` grows past `format.js`, `pose.js` and `cast-manifest.js`,
+  the line has been crossed.
+- **Resize re-renders; it never rescales.** Panel width is a Layout Manager input (§4a), so
+  balloon breaks are a function of it — and the pose round-robin is frozen per panel, or scrolling
+  back would show a different comic than the one the player read.
+- **The Guide is on stage exactly when it speaks**, whatever the camera rung. A Guide balloon over
+  an empty stage is a speech balloon with no speaker — the misattribution §2a spent three
+  paragraphs avoiding.
+- **Assert orderings, never the measured percentages** (§10 says so): the corpus is
+  opening-heavy, and every frequency in it would shift under real play.
+
+### State at the milestone
+
+- `web/`: 11 source modules, **50 tests** (was 12). `art/`: 3 new modules, 1 new tool, 13 tests
+  unchanged. New committed artifact `web/assets/comic/` — regenerate with `npm --prefix art run pack`.
+- **Engine and IR untouched.** 120 engine tests, IR 193; parity unchanged at 143/143 strict turns
+  and 155/161 overall. Removing the comic layer entirely leaves engine behaviour bit-identical,
+  which is ADR 0004 §3 stated as a testable constraint.
+
+### Status
+
+**Stage 5.3 ✅ — ⚑ Gate D cleared.** 5.4 and 5.5 can now be planned in detail.

@@ -1,6 +1,6 @@
 /*
- * Stage 5.2 styling: the console pane as the terminal Zork was played on
- * (ADR 0004 §4), and an event inspector beside it.
+ * Stage 5.3 styling: the comic pane as a Comic Chat window (ADR 0004 §4), and
+ * the console pane as the terminal Zork was played on, beside it.
  *
  * §4a governs the layout: responsiveness outranks retro fidelity. Nothing here
  * is sized in fixed pixels except type; the panes are a fluid grid that stacks
@@ -19,6 +19,9 @@
   --panel-bg: #1b1b1f;
   --panel-fg: #c9c9d1;
   --rule: #3a3a42;
+  --comic-chrome: #c0c0c0;
+  --comic-edge: #808080;
+  --comic-paper: #efece2;
   --mono: "SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
 }
 
@@ -42,9 +45,9 @@ body {
 
 #shell {
   display: grid;
-  /* The comic pane is primary and the console subordinate-but-complete (§4);
-     at 5.2 the inspector stands in the primary slot. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* The comic pane is primary and the console subordinate-but-complete (§4).
+     Primary is expressed as *more room*, never as the other pane's absence. */
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 0.75rem;
   padding: 0.75rem;
   height: 100dvh;
@@ -56,6 +59,61 @@ section {
   flex-direction: column;
   border: 1px solid var(--rule);
   overflow: hidden;
+}
+
+/* ---------------- comic pane: a Comic Chat window ---------------- */
+
+#comic {
+  /* Not a skin: Comic Chat *was* an IRC client, so this is the artifact
+     rebuilt. §4a is what keeps it a reconstruction in style and not in bitmap
+     dimensions — the chrome stretches, the figures do not distort. */
+  background: var(--comic-chrome);
+  border-color: var(--comic-edge);
+}
+
+#comic h2 {
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #f4f4f4;
+  background: linear-gradient(90deg, #1c2f6b, #4a6bbd);
+  border-bottom: 1px solid var(--comic-edge);
+}
+
+#comic h2 small {
+  font-weight: 400;
+  color: #c3cef0;
+}
+
+.comic-strip {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  background: var(--comic-paper);
+}
+
+/* Panels size themselves in script — width is a Layout Manager input evaluated
+   per render (§4a), not a CSS constant — so this only draws the edge. */
+.panel {
+  display: block;
+  max-width: 100%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 35%);
+}
+
+.comic-notice {
+  margin: 0;
+  padding: 0.6rem;
+  color: #7a2020;
+  font-size: 0.85rem;
 }
 
 /* ---------------- console pane ---------------- */
@@ -149,21 +207,28 @@ section {
 
 /* ---------------- inspector ---------------- */
 
+/* Collapsed inside the console pane as of 5.3: the comic now holds the primary
+   slot, and the inspector renders exactly the event types the console drops —
+   the ones the comic draws — so it stays one click away rather than on stage. */
 #inspector {
   background: var(--panel-bg);
   color: var(--panel-fg);
+  border-top: 1px solid var(--rule);
+  max-height: 45%;
+  display: flex;
+  flex-direction: column;
 }
 
-#inspector h2 {
-  margin: 0;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.85rem;
+#inspector > summary {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  flex: 0 0 auto;
 }
 
-#inspector h2 small {
+#inspector > summary small {
   color: var(--console-dim);
   font-weight: 400;
   text-transform: none;
@@ -228,7 +293,9 @@ section {
 @media (max-width: 720px) {
   #shell {
     grid-template-columns: minmax(0, 1fr);
-    /* Console gets the larger share; the other pane stays on screen. */
-    grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+    /* The comic leads and the console keeps a real share of the vertical.
+       "Subordinate" means smaller, never hidden: a transcript behind a gesture
+       does not satisfy §2, and one truncated to fit has broken it outright. */
+    grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
   }
 }

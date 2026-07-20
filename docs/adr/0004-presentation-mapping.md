@@ -5,6 +5,7 @@
 - **Amended:** 2026-07-20 — §4a added: responsiveness outranks retro fidelity (resolves the item that had blocked acceptance)
 - **Amended:** 2026-07-20 — §4a: mobile keeps both panes visible (reverses this ADR's own drawer proposal); optional dictation input added
 - **Amended:** 2026-07-20 — §2/§2a: the Hero's channel is a **thought** balloon, not speech; balloon classes fixed per channel; "verbatim typed command" generalized to "canonical form" for assisted input
+- **Amended:** 2026-07-20 (stage 5.3, from building it) — §10: `parser-miss` fires on the `narration:system` **channel**, not only on prose patterns; §11: the Hero must own a BORED *face* as well as a SHRUG torso, which recasts the Hero
 - **Stage:** 5.2/5.3 (decides panel grammar *before* the comic layer is built, per Next Action #5)
 - **Related:** ADR 0002 (the event contract this consumes and must not extend), `wiki/comic-chat-presentation.md` (the 5.1 source analysis), `docs/panel-grammar-discussion.md` (the reasoning and the measurements; this ADR is its output)
 
@@ -161,6 +162,8 @@ Priority descending; angles are `EMOTION_ANGLES` indices (`art/src/format.ts:83`
 - **Hero and Guide must both be complex avatars.** Simple and mascot avatars have monolithic bodies and cannot carry the default shot.
 - **HAPPY and NEUTRAL share angle 0**, separated only by intensity (`format.ts:93`). Measured across the Guide shortlist: HAPPY *faces* exist at graded intensities (0.1–1.0), but **no shortlist avatar owns a HAPPY torso**. Joy is a face-only emotion in this corpus; a scoring turn draws a neutral body under a smiling face, and no table tuning changes that.
 - **A Hero who shrugs at the parser must come from the 5 of 18 complex avatars that own a SHRUG torso**: dan, lance, mike, susan, tongtyed. Since `parser-miss` is the largest marker, this is a real constraint and not a preference.
+- **Amended at 5.3: the Hero needs a BORED *face* as well.** `parser-miss` emits BORED **and** SHRUG (§10), and the two inventories are nearly disjoint — of the SHRUG five, only **dan** and **lance** own a BORED face. This was missed above by reading the gesture requirement and not the expression one, and it does not fail loudly: the emotion wheel is nearest-neighbour by design, so a Hero without BORED lands on whatever is nearest and renders fine. Susan lands on COY, and the comic's single most common beat then reads as the Hero being *coy* at the parser rather than exasperated by it — a silent characterisation change, which is the kind this ADR exists to catch.
+- **The cast is Hero = dan, Guide = tiki** (settled at 5.3). dan is the larger of the two avatars owning both halves of `parser-miss` (17 faces × 11 torsos = 187 figures; lance has 121). Note what this dissolves: dan is not on the Guide shortlist at all, so the "cast both together, they intersect only at susan" problem below simply stops existing.
 - Cast both roles together. The Guide shortlist (lynnea, anna, margaret, tiki, susan) and the SHRUG list intersect only at susan.
 
 ## Consequences

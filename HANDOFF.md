@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.3.0**
+**1.4.0**
 
 ---
 
@@ -38,74 +38,78 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 - **M5** Comic Chat presentation — **5.1 ✅** art pipeline (`art/`: decode, pose selection,
   compositing; 13 tests, whole-corpus sweep) and the presentation analysis in `wiki/` ·
   **panel grammar ✅ (v1.2.0)** — `docs/adr/0004-presentation-mapping.md` Accepted ·
-  **5.2 ✅ (v1.3.0)** — `web/`, the browser shell; Zork I is playable in a browser.
-  **5.3 is now unblocked on both design and plumbing.**
+  **5.2 ✅ (v1.3.0)** — `web/`, the browser shell · **5.3 ✅ (v1.4.0)** — the comic renderer;
+  every turn draws a Comic Chat panel beside the transcript, 50 web tests.
+  ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
 
 ---
 
-## Last Session — stage 5.2, the browser shell (v1.3.0)
+## Last Session — stage 5.3, the comic renderer (v1.4.0)
 
-**Zork I is playable in a browser.** New package `web/`; read `web/README.md` first, the full
-narrative is `WORKLOG.md` v1.3.0. Engine, IR and art are untouched — parity is unchanged at
-143/143 strict, 155/161 overall.
+**Zork I draws itself as a comic.** Read `web/README.md` first; the full narrative is
+`WORKLOG.md` v1.4.0. Engine and IR untouched — parity unchanged at 143/143 strict, 155/161
+overall. Removing the comic layer leaves engine behaviour bit-identical, which is ADR 0004
+§3 as a testable constraint rather than a claim.
 
-5.2's real job was to consume the ADR 0002 contract from *outside* the engine for the first time.
-**The contract survived.** Three things only become visible from outside; none needs a contract
-change, and each is pinned by a test in `web/test/status.test.ts` rather than left as prose:
+**Gate D's answer: the browser runs the selector, never the decoder.** `art/` decodes at
+build time and emits one sprite sheet per avatar plus a manifest (`npm --prefix art run
+pack`); the shell imports `format.ts` and `pose.ts` as source — the emotion wheel, pure
+arithmetic — and loads PNGs for the rest. Five requests, ~330 KiB, no bundler. **Parts are
+packed, not figures**, so the join happens in the browser and §8's round-robin can keep
+re-pairing them.
 
-1. **`room-title` never arrives** — the standing open issue, now confirmed from the consumer side
-   and marked resolved below. The status line resolves the room name from the world document by id.
-2. **`start()` emits no `player-moved`.** The opening placement arrives as an `object-moved` of
-   `ADVENTURER` with `from` === `to`. **Scope that rule to the player**: the thief's wander daemon
-   emits ~1 `object-moved` per turn, so a looser rule puts the status line in the thief's room.
-3. **`restore()` emits no events**, so any UI state *derived* from the stream must be rebuilt from
-   `SaveState` (`locations`, `globals.SCORE`).
+Two ADR amendments, both found by *running* the tables rather than reading them:
+
+1. **§10 — `parser-miss` fires on the `narration:system` channel**, not only on prose. Every
+   engine-issued refusal goes out there, and `I don't know the word "…"` interpolates the word
+   and matched none of the four listed patterns: the commonest refusal in real play was drawing
+   a neutral Hero. Walkthrough distribution unchanged, so this is free robustness.
+2. **§11 — the Hero needs a BORED *face*, not only a SHRUG torso.** `parser-miss` emits both and
+   the inventories are nearly disjoint. **Cast settled: Hero = dan, Guide = tiki**, which also
+   dissolves §11's "intersect only at susan" problem.
 
 Carried forward as the things most likely to be got wrong next:
 
-- **`src/session.ts` is deliberately DOM-free, and that is what 5.3 consumes.** It hands over a
-  turn's events plus derived state and holds no opinion about panels. Both panes reading one
-  stream is what makes ADR 0004 §2's "narration is accompanied, never replaced" cheap instead of a
-  synchronization problem. **Do not give the comic pane its own engine handle.**
-- **The console pane was built subordinate already** (ADR 0004 §4), owning a `<section>` rather
-  than the page, so 5.3 adds a sibling. §4a was verified in a real browser at 390×844 — both panes
-  visible, no horizontal scroll — not asserted from the CSS.
-- **Style by channel, never by parsing text.** There is no regex over narration anywhere in `web/`;
-  adding one is the failure mode ADR 0002 exists to prevent. Likewise `textContent`, never
-  `innerHTML` — the transcript is where a world document could inject markup into the page.
-- **No bundler, no new dependencies, by decision.** `tsc` alone emits browser-native ESM because the
-  engine imports the IR for types only. If 5.3 needs asset pipelines or code splitting, add a
-  bundler *then*, on that evidence — `web/README.md` records why it was not needed here.
-- **The inspector is the half of 5.2 worth keeping.** The console renders four event types and
-  drops three; the three it drops are exactly what 5.3 renders. The live mix reproduced the ADR 0004
-  census on a real session (`object-moved` ≈ 1.00/turn, `speech` 0.00).
+- **A type-only import is erased at emit but not at type-check.** Naming the manifest types from
+  a module that imports the decoder put `node:zlib` in the browser program; hence the types-only
+  leaf `art/src/cast-manifest.ts`. **If `web/dist/art/src/` ever holds more than `format.js`,
+  `pose.js` and `cast-manifest.js`, that line has been crossed.**
+- **The join is implemented twice on purpose** — pixels in `art/src/composite.ts`, sheet
+  sub-rects in `web/src/comic/figure.ts` — because merging them drags the decoder into the
+  browser. `web/test/figure.test.ts` runs both over the real cast pose for pose; that test is the
+  only thing making the duplication acceptable, so do not weaken it.
+- **Resize re-renders, never rescales**, and the pose round-robin is frozen per panel. Balloon
+  breaks are a function of panel width (§4a), and an unfrozen cycle would redraw the whole strip
+  with different bodies whenever the window moved.
+- **The mapper is pure and canvas-free; the renderer holds all the numbers.** The mapper decides
+  *what shot this is*, `render.ts` decides what that looks like at the current width. Keep that
+  split — it is what lets 11 walkthroughs replay through the mapping in Node.
+- **`SHOTS` in `render.ts` is authoring judgement sitting on top of the ADR**, not part of it.
+  The ADR fixes which rung fires; those fill/reveal/backdrop numbers are the first values that
+  made each rung legible and are the obvious thing to tune when the comic is *looked at*.
+- **The mapper independently reproduced ADR 0004's own measurements** (medium 49.5% ·
+  establishing 30.5% · close-up 12.0% · reaction 5.5% · wide 2.5%, against the ADR's 52.4 / 26.5 /
+  12.7 / 5.8 / 2.6). Treat that as evidence the tables describe the event stream — and still
+  assert orderings, never percentages.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅.** Nothing is blocked; **5.3 is next by the plan** and is
-⚑ **Gate D**.
+**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared).** Nothing is blocked; **5.4 is
+next by the plan**, and it can now be planned in detail.
 
-1. **Stage 5.3 — comic renderer POC: one scene as panels + speech bubbles.** ⚑ **Gate D** — it
-   decides art pipeline and asset strategy, and 5.4–5.5 are planned in detail only after it.
-   Both blockers are gone: the design is `docs/adr/0004-presentation-mapping.md` (Accepted) and
-   the plumbing is `web/`.
-   - **Consume `web/src/session.ts`.** It is DOM-free and already hands over a turn's events plus
-     derived state; the comic pane is a sibling `<section>` of the console pane, not a new engine
-     handle. ADR 0004 §2's "narration is accompanied, never replaced" is only cheap if both panes
-     read one stream.
-   - **The material is the event types the console pane drops** — `object-moved`, `player-moved`,
-     `score-changed`, `game-over`. `web/src/inspector-view.ts` already displays them per turn,
-     which is the cheapest way to watch a mapping rule behave before committing it.
-   - **The salience filter is a precondition, not a detail (ADR 0004 §7).** Only 31 of 187
-     `object-moved` are player-salient; without it the most common shot in the comic is a close-up
-     on an unseen thief. The live mix in the shell confirmed the ~1/turn rate on a real session.
-   - **Sprite-sheet packing was deferred to this stage** — `art/tools/avbdump.ts` emits one PNG per
-     pose plus a JSON manifest, and packing waits on what the renderer wants to load.
-   - **Panel width is a Layout Manager parameter (§4a)**, evaluated per render at the current panel
-     size. Review that as a design change, not as a diff against the C++.
-   - **A bundler is a live option now, and only now.** `web/` deliberately has none; if 5.3 needs
-     asset pipelines or code splitting, add one on that evidence (`web/README.md` records why it
-     was not needed at 5.2).
+1. **Stage 5.4 — presentation buildout: panel sequencing, portraits, narration styling,
+   persistence.** Exit criterion is the opening area playable in comic form. What 5.3 leaves it:
+   - **The mapper and the renderer are the seam.** Add framing and sequencing in `render.ts` and
+     `comic-view.ts`; changing what a *shot means* is a `mapper.ts` change and an ADR question.
+   - **The three authoring items 5.3 stubbed**, each marked at its call site: the **Guide's
+     identity and voice** (`GUIDE_SCRIPT` in `comic-view.ts` is six placeholder lines proving the
+     mechanism, plus a cooldown the ADR deliberately does not set), **room → backdrop**
+     (a regex stub against a known-open M5 question), and **`SHOTS`** in `render.ts`.
+   - **Backdrop scarcity is now the binding constraint** — 3 backdrops, 110 rooms — and it is the
+     M5 decision most likely to gate "the opening area playable in comic form". See Open Issues.
+   - **Page composition and PDF export are §5**, and deliberately not WYSIWYG: once panel width is
+     a function of the viewport, a WYSIWYG export would have to pick one reader's window to be
+     canonical. Expect that to read as a bug to someone; it is the decision.
 
 2. **`V-CLIMB-UP`, the last stub** — stalls on `GETPT`. Recorded as a known limitation at Gate C
    because no walkthrough diverges on it, but it is the last known gap in Group A coverage and
@@ -127,13 +131,16 @@ Carried forward as the things most likely to be got wrong next:
    that failed but never what its failure cost, which is exactly why combat stayed hidden for
    two milestones.
 
-5. **Panel grammar ✅ — `docs/adr/0004-presentation-mapping.md` is Accepted.** No longer a
-   blocker on 5.3. The ADR is the decision of record; **amend the ADR, not the discussion doc.**
-   What is left is authoring judgement, not design, and the user has asked for a **recommendation
-   at the point each is needed — lead with a pick, not a survey**: the Guide's identity, final
-   Hero/Guide casting (cast both together — the shortlists intersect only at susan), Guide
-   trigger/cooldown, page composition and pull-quote selection, §4a breakpoints, PDF byte size,
-   pane scroll coupling.
+5. **Panel grammar ✅ — `docs/adr/0004-presentation-mapping.md` is Accepted**, and amended twice
+   at 5.3 from implementation evidence. The ADR is the decision of record; **amend the ADR, not
+   the discussion doc.** What is left is authoring judgement, and the user has asked for a
+   **recommendation at the point each is needed — lead with a pick, not a survey**. Settled at
+   5.3: **casting (Hero = dan, Guide = tiki)** and **pull-quote selection** (the caption quotes
+   the sentence the affect marker matched, else the turn's first; an over-long one is dropped
+   rather than trimmed, since trimming makes it a paraphrase by omission). Still open: the
+   **Guide's identity and voice**, its **trigger rate** (the mechanism ships, the rate is
+   deliberately unset by the ADR), **page composition**, **§4a breakpoints**, **PDF byte size**,
+   **pane scroll coupling**, and the **`SHOTS` framing table**.
 
 6. **Assisted input — designed, deferred to after the MVP.** A SCUMM-style command picker; see
    discussion §15. Not to be started before the MVP ships, but two constraints should be
@@ -220,14 +227,24 @@ sat unread for two sessions before it settled the balloon class.
   alone is not evidence of anything but legality.
 
 **Project / M5**
+- **Backdrops are now the binding constraint on 5.4.** 5.3 proved the renderer can place one and
+  ships a regex stub for room → backdrop; "the opening area playable in comic form" is the point
+  at which three backdrops for 110 rooms stops being deferrable. Options were sketched below and
+  remain undecided.
+- **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run
+  pack`; the cast is pinned in that script, so a recast is a one-line change plus a re-pack.
+- **Running `npx vitest` from the repo root times out `art/test/corpus.test.ts`.** The corpus
+  sweep takes ~11 s and its longer timeout lives in `art/vitest.config.ts`, which a root-level
+  run does not pick up. Not a regression and not new; use `npm --prefix <pkg> test`.
 - Neutral branding for commercial assets (engine/IR/importer).
 - Repo is prepared for public release but not yet public; nothing blocks it.
 - **Backdrop scarcity**: 3 shipped Comic Chat backdrops vs. 110 Zork rooms, and no `AT_BACKDROP`
   assets exist. Options sketched but undecided — panel compositions that avoid backdrops,
   deriving variants from the three originals, or new art in the Woodring hatch idiom for the ~10
   rooms that carry the game. M5 decision.
-- **Sprite-sheet packing is deferred to 5.3.** `art/tools/avbdump.ts` emits one PNG per pose plus a
-  JSON manifest; packing waits until the renderer shows what it wants to load.
+- **Sprite-sheet packing ✅ decided at 5.3** — one sheet per avatar, **parts not figures**, figure
+  and aura as paired sub-rects. `art/tools/avbdump.ts` remains the *inspection* tool;
+  `art/tools/avbpack.ts` is the build. Rationale is on `art/src/cast-manifest.ts`.
 - **`art/src/pose.ts` diverges from the original on purpose, once.**
   `CAvatarComplex::GetBodyFromEmotion` reuses one `nearestI` across its face and torso loops, so
   a request whose torso search matches nothing draws *the face's index as a torso*. The port

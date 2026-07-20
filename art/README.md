@@ -3,9 +3,9 @@
 Comic Chat visual assets: reading the historical `.avb` avatar format, selecting poses
 from an emotion, and compositing faces onto torsos.
 
-**Status:** stage 5.1 complete. Format decoding, pose selection and compositing are
-implemented and verified against the whole corpus. Nothing here is wired into a build
-yet — sprite-sheet packing waits on stage 5.3, which will show what the renderer wants.
+**Status:** stage 5.1 complete, and wired into a build at 5.3. Format decoding, pose
+selection and compositing are implemented and verified against the whole corpus;
+`tools/avbpack.ts` now emits the browser cast bundle the web shell loads.
 
 The normative format specification is `docs/AVB_FORMAT.md` (repo root). Read it before
 touching the decoder — it records eight undocumented behaviours that a reader written
@@ -25,7 +25,11 @@ The presentation algorithms this module implements the *asset half* of are analy
 | `src/composite.ts` | Face-onto-torso join |
 | `src/png.ts` | PNG output |
 | `src/inflate.ts` | The one platform dependency — see below |
-| `tools/avbdump.ts` | CLI: dump an avatar as PNGs plus a JSON manifest |
+| `src/bmp.ts` | Standalone `.bmp` files (the three shipped backdrops) as opaque rasters |
+| `src/cast-manifest.ts` | The browser bundle's types — a leaf that imports nothing, deliberately |
+| `src/pack.ts` | Sheet packing: every part of an avatar onto one raster |
+| `tools/avbdump.ts` | CLI: **inspect** — one PNG per pose, or assembled figures |
+| `tools/avbpack.ts` | CLI: **build** — the cast bundle the browser loads |
 | `poc/avbdec.py` | The Python reference the TypeScript was validated against |
 
 ## Running
@@ -43,6 +47,31 @@ npx --prefix art tsx art/tools/avbdump.ts \
 ```
 
 `--no-aura` drops the white halo, which is presentation rather than figure.
+
+```sh
+# the browser cast bundle: sheets + cast.json into web/assets/comic/
+npm --prefix art run pack
+```
+
+## Packing, decided at 5.3 (⚑ Gate D)
+
+This was the open question 5.1 deferred. The answer, and why none of it is the obvious
+choice, is documented on `src/cast-manifest.ts`; in short:
+
+- **Parts are packed, not figures.** A complex avatar composites faces × torsos at draw
+  time, so dan's 187 figures are 28 drawings. Baking figures multiplies the payload by an
+  order of magnitude for identical pixels *and* freezes the join, which ADR 0004 §8's
+  round-robin exists to keep re-pairing.
+- **A figure and its aura are separate sub-rects.** A correctness requirement, not an
+  optimization: both halos must be drawn before either figure, so a part flattened into one
+  image has the second blit taking a halo-shaped bite out of the first at the neck.
+- **One sheet per avatar**, shelf-packed. The whole two-role cast plus three backdrops is
+  five requests and ~330 KiB.
+
+**The browser never runs the decoder.** It imports `format.ts` and `pose.ts` — the emotion
+wheel, pure arithmetic — and loads PNGs for everything else. That is why the selectors in
+`pose.ts` are generic over `{ angle, intensity }` rather than fixed to `PoseRecord`: it lets
+the shell run the real wheel over manifest entries instead of forking it.
 
 ## Verification
 
@@ -93,6 +122,8 @@ effective variety is much higher than raw pose counts suggest: Tiki's 32 records
 faces and 12 torsos, which is 240 figures, not 32.
 
 Backdrops are the real scarcity: the format defines an `AT_BACKDROP` type but **no
-instance exists in the corpus**. The only shipped backdrops are three 315×315 `.bmp`
-files in `original-projects/comic-chat/v1.0/client/comicart/backdrop/`. Zork I has 110
-rooms, and closing that gap is an open M5 design question, not a decoding problem.
+instance exists in the corpus**. The only shipped backdrops are three 315×315 `.bmp` files
+in `original-projects/comic-chat/v1.0-pre-modern/comicart/backdrop/` — `pastoral`, `field`
+and `room8bs`. Zork I has 110 rooms, and closing that gap is an open M5 design question,
+not a decoding problem: 5.3 ships a stub room→backdrop rule in `web/src/comic-view.ts` that
+proves the renderer can place one and claims nothing more.

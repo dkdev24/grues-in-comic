@@ -86,7 +86,7 @@ Torso images are headless. This multiplies effective variety: Tiki ships 20 face
 torsos, not 32 poses.
 
 **`AT_BACKDROP`** — declared by the format; **zero instances exist in the corpus.** The
-only shipped backdrops are three plain `.bmp` files in `v1.0/client/comicart/backdrop/`
+only shipped backdrops are three plain `.bmp` files in `v1.0-pre-modern/comicart/backdrop/`
 (`field`, `pastoral`, `room8bs`, all 315×315).
 
 Composition geometry (`cx`/`cy`, `cxDelta`/`cyDelta`, `x`/`y`) is specified under

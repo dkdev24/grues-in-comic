@@ -12,3 +12,5 @@ export {
 } from "./pose.js";
 export { compositeBody, compositeSimpleBody, type CompositeBody } from "./composite.js";
 export { encodePng } from "./png.js";
+export { decodeBmp } from "./bmp.js";
+export type * from "./cast-manifest.js";

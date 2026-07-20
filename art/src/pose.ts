@@ -10,7 +10,7 @@
  * `CAvatarComplex::GetBodyFromEmotion` and `GetHeadAndBodyFromEmotion`
  * (`v2.1b/cchat/avatar.cpp:200-330`). Divergences from the original are marked.
  */
-import { NEMOTIONS, isGesture, type PoseRecord } from "./format.js";
+import { NEMOTIONS, isGesture } from "./format.js";
 
 export interface Emotion {
   /** Radians on the wheel, or a gesture sentinel above 2π. */
@@ -18,6 +18,19 @@ export interface Emotion {
   /** 0.0–1.0. */
   intensity: number;
 }
+
+/**
+ * Every selector below is generic over `T extends Emotion` rather than fixed to
+ * `PoseRecord`, because selection only ever reads an angle and an intensity —
+ * it never touches a byte offset or a palette.
+ *
+ * That is not a tidying: it is what lets the **browser run the selector without
+ * the decoder** (stage 5.3). `art/` is a build-time pipeline — `inflate.ts` is
+ * Node-only, and every module that touches pixels leads back to it — so the web
+ * shell loads pre-rendered parts plus a manifest and passes *manifest entries*
+ * to these functions. Narrowing them back to `PoseRecord` would force the
+ * renderer either to fabricate fake records or to fork the emotion wheel.
+ */
 
 /** One weighted candidate in a `CEmotionOpts` set. Higher priority wins. */
 export interface EmotionOption extends Emotion {
@@ -44,16 +57,16 @@ export function subtractAngles(a: number, b: number): number {
  */
 const ANGLE_TOLERANCE = Math.PI / NEMOTIONS;
 
-const isNeutral = (rec: PoseRecord) => rec.angle === 0 && rec.intensity === 0;
+const isNeutral = (rec: Emotion) => rec.angle === 0 && rec.intensity === 0;
 
 /**
  * Nearest pose by angle, then by intensity. Used for faces, which always
  * resolve to *something*: an avatar with one face still has to render.
  */
-export function nearestByAngle(
-  records: readonly PoseRecord[], want: Emotion,
-): PoseRecord | undefined {
-  let best: PoseRecord | undefined;
+export function nearestByAngle<T extends Emotion>(
+  records: readonly T[], want: Emotion,
+): T | undefined {
+  let best: T | undefined;
   let bestAngle = 3 * Math.PI;
   let bestIntensity = 2.0;
 
@@ -80,10 +93,10 @@ export function nearestByAngle(
  * a Comic Chat conversation does not look like a row of clones, and it is worth
  * preserving.
  */
-export function nearestGated(
-  records: readonly PoseRecord[], want: Emotion, start = 0,
-): PoseRecord | undefined {
-  let best: PoseRecord | undefined;
+export function nearestGated<T extends Emotion>(
+  records: readonly T[], want: Emotion, start = 0,
+): T | undefined {
+  let best: T | undefined;
   let bestIntensity = 2.0;
   const n = records.length;
 
@@ -106,7 +119,7 @@ export function nearestGated(
   return best;
 }
 
-export function firstNeutral(records: readonly PoseRecord[]): PoseRecord | undefined {
+export function firstNeutral<T extends Emotion>(records: readonly T[]): T | undefined {
   return records.find(isNeutral) ?? records[0];
 }
 
@@ -120,9 +133,9 @@ export function firstNeutral(records: readonly PoseRecord[]): PoseRecord | undef
  * half of the figure and leaves the other free — which is what lets a character
  * wave while looking sad.
  */
-export function headAndTorsoFor(
-  faces: readonly PoseRecord[], torsos: readonly PoseRecord[], want: Emotion,
-): { face?: PoseRecord; torso?: PoseRecord } {
+export function headAndTorsoFor<T extends Emotion>(
+  faces: readonly T[], torsos: readonly T[], want: Emotion,
+): { face?: T; torso?: T } {
   if (!isGesture(want.angle)) {
     const face = nearestByAngle(faces, want);
     return face ? { face } : {};
@@ -143,13 +156,13 @@ export function headAndTorsoFor(
  * detected gesture phrase, and a sentence-level mood could all be offered at
  * once, and each got to claim the half of the figure it spoke to.
  */
-export function selectComplexPose(
-  faces: readonly PoseRecord[], torsos: readonly PoseRecord[],
+export function selectComplexPose<T extends Emotion>(
+  faces: readonly T[], torsos: readonly T[],
   options: readonly EmotionOption[],
-): { face?: PoseRecord; torso?: PoseRecord } {
+): { face?: T; torso?: T } {
   const remaining = options.map((o) => ({ ...o }));
-  let face: PoseRecord | undefined;
-  let torso: PoseRecord | undefined;
+  let face: T | undefined;
+  let torso: T | undefined;
 
   for (;;) {
     let best: (typeof remaining)[number] | undefined;
@@ -166,7 +179,7 @@ export function selectComplexPose(
 
   face ??= firstNeutral(faces);
   torso ??= firstNeutral(torsos);
-  const out: { face?: PoseRecord; torso?: PoseRecord } = {};
+  const out: { face?: T; torso?: T } = {};
   if (face) out.face = face;
   if (torso) out.torso = torso;
   return out;
@@ -181,23 +194,23 @@ export function selectComplexPose(
  * torso*. Here an unmatched torso falls back to neutral, which is what the
  * `CEmotionOpts` path already does.
  */
-export function selectPose(
-  faces: readonly PoseRecord[], torsos: readonly PoseRecord[], want: Emotion,
+export function selectPose<T extends Emotion>(
+  faces: readonly T[], torsos: readonly T[], want: Emotion,
   lastTorso = -1,
-): { face?: PoseRecord; torso?: PoseRecord } {
+): { face?: T; torso?: T } {
   const face = nearestByAngle(faces, want);
   const torso = nearestGated(torsos, want, (lastTorso + 1) % Math.max(1, torsos.length))
     ?? firstNeutral(torsos);
-  const out: { face?: PoseRecord; torso?: PoseRecord } = {};
+  const out: { face?: T; torso?: T } = {};
   if (face) out.face = face;
   if (torso) out.torso = torso;
   return out;
 }
 
 /** Simple avatars have one image per pose; the same gated search applies. */
-export function selectBody(
-  bodies: readonly PoseRecord[], want: Emotion, lastBody = -1,
-): PoseRecord | undefined {
+export function selectBody<T extends Emotion>(
+  bodies: readonly T[], want: Emotion, lastBody = -1,
+): T | undefined {
   if (isGesture(want.angle)) {
     return bodies.find((rec) => rec.angle === want.angle) ?? firstNeutral(bodies);
   }

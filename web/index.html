@@ -3,29 +3,25 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Grues in Comic — text shell</title>
+    <title>Grues in Comic</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <!--
-      Stage 5.2: the console pane plus an event inspector. The two-pane grid is
-      ADR 0004 §4's shell with the comic pane not yet built — 5.3 replaces the
-      inspector slot with the comic and the console keeps its role unchanged.
-      Both panes stay visible when the grid stacks (§4a).
+      Stage 5.3: the comic pane takes the primary slot ADR 0004 §4 assigns it,
+      and the console keeps its role unchanged — subordinate but always complete,
+      because narration is accompanied, never replaced (§2). Both panes stay
+      visible when the grid stacks (§4a); neither becomes a drawer.
+
+      The event inspector moves inside the console pane as a collapsed details.
+      It is 5.2's most useful half — it renders exactly the event types the
+      console drops, which are the ones the comic draws — so it stays reachable
+      without competing with the comic for the primary slot.
     -->
     <main id="shell">
-      <section id="inspector" aria-label="Event stream">
-        <h2>Event stream <small>ADR 0002 contract</small></h2>
-        <div class="inspector-body">
-          <div class="inspector-block">
-            <h3>Mix so far</h3>
-            <div class="mix"></div>
-          </div>
-          <div class="inspector-block">
-            <h3>Last turn</h3>
-            <div class="last-events"></div>
-          </div>
-        </div>
+      <section id="comic" aria-label="Comic">
+        <h2>Grues in Comic <small>Comic Chat on IRC</small></h2>
+        <div class="comic-strip"></div>
       </section>
 
       <section id="console" aria-label="Game transcript">
@@ -34,6 +30,19 @@
           <span class="status-score"></span>
         </div>
         <div class="transcript" role="log" aria-live="polite"></div>
+        <details id="inspector" aria-label="Event stream">
+          <summary>Event stream <small>ADR 0002 contract</small></summary>
+          <div class="inspector-body">
+            <div class="inspector-block">
+              <h3>Mix so far</h3>
+              <div class="mix"></div>
+            </div>
+            <div class="inspector-block">
+              <h3>Last turn</h3>
+              <div class="last-events"></div>
+            </div>
+          </div>
+        </details>
         <form id="command-form" autocomplete="off">
           <label class="prompt" for="command">&gt;</label>
           <input id="command" name="command" type="text" autocomplete="off"

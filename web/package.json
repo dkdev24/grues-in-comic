@@ -1,7 +1,7 @@
 {
   "name": "@grues-in-comic/web",
   "version": "0.1.0",
-  "description": "Browser shell over the ADR 0002 event stream — the console pane of the two-pane shell (stage 5.2)",
+  "description": "Browser shell over the ADR 0002 event stream \u2014 the comic and console panes of the two-pane shell (stages 5.2\u20135.3)",
   "type": "module",
   "license": "Apache-2.0",
   "private": true,

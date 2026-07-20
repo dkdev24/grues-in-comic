@@ -12,9 +12,12 @@ import type { WorldDocument } from "@grues-in-comic/ir";
 import { createSession, type Session } from "./session.js";
 import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
+import { createComicView, type ComicView } from "./comic-view.js";
 
 /** Where `tools/serve.ts` mounts `ir/artifacts/`. ~1.8 MB, fetched once. */
 const WORLD_URL = "./world/zork1.world.json";
+/** Sheets and manifest from `art/tools/avbpack.ts`; ~330 KiB, five requests. */
+const COMIC_ASSETS = "./assets/comic";
 const SAVE_KEY = "grues-in-comic/save/v1";
 
 async function main(): Promise<void> {
@@ -39,8 +42,22 @@ async function main(): Promise<void> {
     consoleView.appendSystem(`[missing routines: ${missing.join(", ")}]`);
   }
 
+  // The comic pane is primary (§4) but it is also the only part of the shell
+  // with assets to fetch, so the game stays playable if they fail: a null comic
+  // degrades to 5.2's text shell rather than to a blank page.
+  let comic: ComicView | null = null;
+  try {
+    comic = await createComicView(requireEl("#comic"), COMIC_ASSETS);
+  } catch (err) {
+    consoleView.appendSystem(`[comic pane unavailable: ${message(err)}]`);
+  }
+
   const play = (turn: ReturnType<Session["command"]>): void => {
+    // One session, one event stream, both panes. The comic never gets its own
+    // engine handle — that is what makes §2's "accompanied, never replaced" a
+    // property of the wiring rather than something to keep in sync.
     consoleView.appendTurn(turn);
+    comic?.appendTurn(turn);
     inspector.update(turn);
   };
 
