@@ -3076,6 +3076,12 @@
         "WHITE-HOUSE",
         "BOARD",
         "FOREST"
+      ],
+      "adjacent": [
+        "NORTH-OF-HOUSE",
+        "SOUTH-OF-HOUSE",
+        "FOREST-1",
+        "STONE-BARROW"
       ]
     },
     {
@@ -3094,7 +3100,10 @@
         "SACREDBIT"
       ],
       "description": "You are standing in front of a massive barrow of stone. In the east face is a huge stone door which is open. You cannot see into the dark of the tomb.",
-      "action": "STONE-BARROW-FCN"
+      "action": "STONE-BARROW-FCN",
+      "adjacent": [
+        "WEST-OF-HOUSE"
+      ]
     },
     {
       "id": "NORTH-OF-HOUSE",
@@ -3142,6 +3151,11 @@
         "BOARD",
         "WHITE-HOUSE",
         "FOREST"
+      ],
+      "adjacent": [
+        "WEST-OF-HOUSE",
+        "EAST-OF-HOUSE",
+        "PATH"
       ]
     },
     {
@@ -3190,6 +3204,11 @@
         "BOARD",
         "WHITE-HOUSE",
         "FOREST"
+      ],
+      "adjacent": [
+        "WEST-OF-HOUSE",
+        "EAST-OF-HOUSE",
+        "FOREST-3"
       ]
     },
     {
@@ -3244,6 +3263,12 @@
         "WHITE-HOUSE",
         "KITCHEN-WINDOW",
         "FOREST"
+      ],
+      "adjacent": [
+        "NORTH-OF-HOUSE",
+        "SOUTH-OF-HOUSE",
+        "CLEARING",
+        "KITCHEN"
       ]
     },
     {
@@ -3288,6 +3313,11 @@
         "SONGBIRD",
         "WHITE-HOUSE",
         "FOREST"
+      ],
+      "adjacent": [
+        "GRATING-CLEARING",
+        "PATH",
+        "FOREST-3"
       ]
     },
     {
@@ -3332,6 +3362,11 @@
         "SONGBIRD",
         "WHITE-HOUSE",
         "FOREST"
+      ],
+      "adjacent": [
+        "MOUNTAINS",
+        "CLEARING",
+        "PATH"
       ]
     },
     {
@@ -3373,6 +3408,9 @@
       "scenery": [
         "TREE",
         "WHITE-HOUSE"
+      ],
+      "adjacent": [
+        "FOREST-2"
       ]
     },
     {
@@ -3422,6 +3460,11 @@
         "SONGBIRD",
         "WHITE-HOUSE",
         "FOREST"
+      ],
+      "adjacent": [
+        "CLEARING",
+        "FOREST-1",
+        "SOUTH-OF-HOUSE"
       ]
     },
     {
@@ -3466,6 +3509,13 @@
         "SONGBIRD",
         "WHITE-HOUSE",
         "FOREST"
+      ],
+      "adjacent": [
+        "UP-A-TREE",
+        "GRATING-CLEARING",
+        "FOREST-2",
+        "NORTH-OF-HOUSE",
+        "FOREST-1"
       ]
     },
     {
@@ -3494,6 +3544,9 @@
         "FOREST",
         "SONGBIRD",
         "WHITE-HOUSE"
+      ],
+      "adjacent": [
+        "PATH"
       ]
     },
     {
@@ -3535,6 +3588,11 @@
       "scenery": [
         "WHITE-HOUSE",
         "GRATE"
+      ],
+      "adjacent": [
+        "FOREST-2",
+        "FOREST-1",
+        "PATH"
       ]
     },
     {
@@ -3579,6 +3637,12 @@
         "SONGBIRD",
         "WHITE-HOUSE",
         "FOREST"
+      ],
+      "adjacent": [
+        "CANYON-VIEW",
+        "FOREST-2",
+        "FOREST-3",
+        "EAST-OF-HOUSE"
       ]
     },
     {
@@ -3626,6 +3690,12 @@
         "KITCHEN-WINDOW",
         "CHIMNEY",
         "STAIRS"
+      ],
+      "adjacent": [
+        "EAST-OF-HOUSE",
+        "LIVING-ROOM",
+        "ATTIC",
+        "STUDIO"
       ]
     },
     {
@@ -3645,6 +3715,9 @@
       "description": "This is the attic. The only exit is a stairway leading down.",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "KITCHEN"
       ]
     },
     {
@@ -3687,6 +3760,10 @@
           "noun": "NAIL",
           "routine": "NAILS-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "KITCHEN",
+        "STRANGE-PASSAGE"
       ]
     },
     {
@@ -3724,6 +3801,11 @@
         "TRAP-DOOR",
         "SLIDE",
         "STAIRS"
+      ],
+      "adjacent": [
+        "TROLL-ROOM",
+        "EAST-OF-CHASM",
+        "LIVING-ROOM"
       ]
     },
     {
@@ -3754,7 +3836,12 @@
         "RLANDBIT"
       ],
       "description": "This is a small room with passages to the east and south and a forbidding hole leading west. Bloodstains and deep scratches (perhaps made by an axe) mar the walls.",
-      "action": "TROLL-ROOM-F"
+      "action": "TROLL-ROOM-F",
+      "adjacent": [
+        "CELLAR",
+        "EW-PASSAGE",
+        "MAZE-1"
+      ]
     },
     {
       "id": "EAST-OF-CHASM",
@@ -3785,6 +3872,10 @@
           "noun": "CHASM",
           "routine": "CHASM-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "CELLAR",
+        "GALLERY"
       ]
     },
     {
@@ -3806,7 +3897,11 @@
         "RLANDBIT",
         "ONBIT"
       ],
-      "description": "This is an art gallery. Most of the paintings have been stolen by vandals with exceptional taste. The vandals left through either the north or west exits."
+      "description": "This is an art gallery. Most of the paintings have been stolen by vandals with exceptional taste. The vandals left through either the north or west exits.",
+      "adjacent": [
+        "EAST-OF-CHASM",
+        "STUDIO"
+      ]
     },
     {
       "id": "STUDIO",
@@ -3839,6 +3934,9 @@
           "noun": "PAINT",
           "routine": "PAINT-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "GALLERY"
       ]
     },
     {
@@ -3870,7 +3968,13 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "TROLL-ROOM",
+        "MAZE-1",
+        "MAZE-2",
+        "MAZE-4"
+      ]
     },
     {
       "id": "MAZE-2",
@@ -3896,7 +4000,11 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-1",
+        "MAZE-3"
+      ]
     },
     {
       "id": "MAZE-3",
@@ -3922,7 +4030,12 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-2",
+        "MAZE-4",
+        "MAZE-5"
+      ]
     },
     {
       "id": "MAZE-4",
@@ -3948,7 +4061,12 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-3",
+        "MAZE-1",
+        "DEAD-END-1"
+      ]
     },
     {
       "id": "DEAD-END-1",
@@ -3964,7 +4082,10 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "You have come to a dead end in the maze."
+      "description": "You have come to a dead end in the maze.",
+      "adjacent": [
+        "MAZE-4"
+      ]
     },
     {
       "id": "MAZE-5",
@@ -3990,7 +4111,12 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike. A skeleton, probably the remains of a luckless adventurer, lies here."
+      "description": "This is part of a maze of twisty little passages, all alike. A skeleton, probably the remains of a luckless adventurer, lies here.",
+      "adjacent": [
+        "DEAD-END-2",
+        "MAZE-3",
+        "MAZE-6"
+      ]
     },
     {
       "id": "DEAD-END-2",
@@ -4006,7 +4132,10 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "You have come to a dead end in the maze."
+      "description": "You have come to a dead end in the maze.",
+      "adjacent": [
+        "MAZE-5"
+      ]
     },
     {
       "id": "MAZE-6",
@@ -4037,7 +4166,13 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-5",
+        "MAZE-7",
+        "MAZE-6",
+        "MAZE-9"
+      ]
     },
     {
       "id": "MAZE-7",
@@ -4073,7 +4208,13 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-14",
+        "MAZE-6",
+        "MAZE-8",
+        "MAZE-15"
+      ]
     },
     {
       "id": "MAZE-8",
@@ -4099,7 +4240,12 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-7",
+        "MAZE-8",
+        "DEAD-END-3"
+      ]
     },
     {
       "id": "DEAD-END-3",
@@ -4115,7 +4261,10 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "You have come to a dead end in the maze."
+      "description": "You have come to a dead end in the maze.",
+      "adjacent": [
+        "MAZE-8"
+      ]
     },
     {
       "id": "MAZE-9",
@@ -4156,7 +4305,14 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-6",
+        "MAZE-10",
+        "MAZE-13",
+        "MAZE-12",
+        "MAZE-9"
+      ]
     },
     {
       "id": "MAZE-10",
@@ -4182,7 +4338,12 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-9",
+        "MAZE-13",
+        "MAZE-11"
+      ]
     },
     {
       "id": "MAZE-11",
@@ -4213,7 +4374,13 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "GRATING-ROOM",
+        "MAZE-10",
+        "MAZE-13",
+        "MAZE-12"
+      ]
     },
     {
       "id": "GRATING-ROOM",
@@ -4238,6 +4405,10 @@
       "action": "MAZE-11-FCN",
       "scenery": [
         "GRATE"
+      ],
+      "adjacent": [
+        "MAZE-11",
+        "GRATING-CLEARING"
       ]
     },
     {
@@ -4274,7 +4445,13 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-11",
+        "MAZE-13",
+        "MAZE-9",
+        "DEAD-END-4"
+      ]
     },
     {
       "id": "DEAD-END-4",
@@ -4290,7 +4467,10 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "You have come to a dead end in the maze."
+      "description": "You have come to a dead end in the maze.",
+      "adjacent": [
+        "MAZE-12"
+      ]
     },
     {
       "id": "MAZE-13",
@@ -4321,7 +4501,13 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-9",
+        "MAZE-12",
+        "MAZE-10",
+        "MAZE-11"
+      ]
     },
     {
       "id": "MAZE-14",
@@ -4352,7 +4538,12 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-15",
+        "MAZE-14",
+        "MAZE-7"
+      ]
     },
     {
       "id": "MAZE-15",
@@ -4378,7 +4569,12 @@
         "RLANDBIT",
         "MAZEBIT"
       ],
-      "description": "This is part of a maze of twisty little passages, all alike."
+      "description": "This is part of a maze of twisty little passages, all alike.",
+      "adjacent": [
+        "MAZE-14",
+        "MAZE-7",
+        "CYCLOPS-ROOM"
+      ]
     },
     {
       "id": "CYCLOPS-ROOM",
@@ -4410,6 +4606,11 @@
       "action": "CYCLOPS-ROOM-FCN",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "MAZE-15",
+        "STRANGE-PASSAGE",
+        "TREASURE-ROOM"
       ]
     },
     {
@@ -4435,7 +4636,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a long passage. To the west is one entrance. On the east there is an old wooden door, with a large opening in it (about cyclops sized)."
+      "description": "This is a long passage. To the west is one entrance. On the east there is an old wooden door, with a large opening in it (about cyclops sized).",
+      "adjacent": [
+        "CYCLOPS-ROOM",
+        "LIVING-ROOM"
+      ]
     },
     {
       "id": "TREASURE-ROOM",
@@ -4455,6 +4660,9 @@
       "score": 25,
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "CYCLOPS-ROOM"
       ]
     },
     {
@@ -4505,6 +4713,13 @@
           "noun": "CHASM",
           "routine": "CHASM-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "DEEP-CANYON",
+        "CHASM-ROOM",
+        "DAM-ROOM",
+        "STREAM-VIEW",
+        "RESERVOIR"
       ]
     },
     {
@@ -4549,6 +4764,11 @@
           "noun": "STREAM",
           "routine": "STREAM-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "RESERVOIR-NORTH",
+        "RESERVOIR-SOUTH",
+        "IN-STREAM"
       ]
     },
     {
@@ -4581,6 +4801,10 @@
           "noun": "LAKE",
           "routine": "LAKE-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "ATLANTIS-ROOM",
+        "RESERVOIR"
       ]
     },
     {
@@ -4610,6 +4834,9 @@
           "noun": "STREAM",
           "routine": "STREAM-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "RESERVOIR-SOUTH"
       ]
     },
     {
@@ -4654,6 +4881,10 @@
           "noun": "STREAM",
           "routine": "STREAM-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "STREAM-VIEW",
+        "RESERVOIR"
       ]
     },
     {
@@ -4679,7 +4910,12 @@
       "flags": [
         "RLANDBIT"
       ],
-      "action": "MIRROR-ROOM"
+      "action": "MIRROR-ROOM",
+      "adjacent": [
+        "COLD-PASSAGE",
+        "TWISTING-PASSAGE",
+        "SMALL-CAVE"
+      ]
     },
     {
       "id": "MIRROR-ROOM-2",
@@ -4705,7 +4941,12 @@
         "RLANDBIT",
         "ONBIT"
       ],
-      "action": "MIRROR-ROOM"
+      "action": "MIRROR-ROOM",
+      "adjacent": [
+        "WINDING-PASSAGE",
+        "NARROW-PASSAGE",
+        "TINY-CAVE"
+      ]
     },
     {
       "id": "SMALL-CAVE",
@@ -4738,6 +4979,11 @@
       "description": "This is a tiny cave with entrances west and north, and a staircase leading down.",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "MIRROR-ROOM-1",
+        "ATLANTIS-ROOM",
+        "TWISTING-PASSAGE"
       ]
     },
     {
@@ -4767,6 +5013,11 @@
       "action": "CAVE2-ROOM",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "MIRROR-ROOM-2",
+        "WINDING-PASSAGE",
+        "ENTRANCE-TO-HADES"
       ]
     },
     {
@@ -4787,7 +5038,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a cold and damp corridor where a long east-west passageway turns into a southward path."
+      "description": "This is a cold and damp corridor where a long east-west passageway turns into a southward path.",
+      "adjacent": [
+        "MIRROR-ROOM-1",
+        "SLIDE-ROOM"
+      ]
     },
     {
       "id": "NARROW-PASSAGE",
@@ -4807,7 +5062,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a long and narrow corridor where a long north-south passageway briefly narrows even further."
+      "description": "This is a long and narrow corridor where a long north-south passageway briefly narrows even further.",
+      "adjacent": [
+        "ROUND-ROOM",
+        "MIRROR-ROOM-2"
+      ]
     },
     {
       "id": "WINDING-PASSAGE",
@@ -4827,7 +5086,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a winding passage. It seems that there are only exits on the east and north."
+      "description": "This is a winding passage. It seems that there are only exits on the east and north.",
+      "adjacent": [
+        "MIRROR-ROOM-2",
+        "TINY-CAVE"
+      ]
     },
     {
       "id": "TWISTING-PASSAGE",
@@ -4847,7 +5110,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a winding passage. It seems that there are only exits on the east and north."
+      "description": "This is a winding passage. It seems that there are only exits on the east and north.",
+      "adjacent": [
+        "MIRROR-ROOM-1",
+        "SMALL-CAVE"
+      ]
     },
     {
       "id": "ATLANTIS-ROOM",
@@ -4870,6 +5137,10 @@
       "description": "This is an ancient room, long under water. There is an exit to the south and a staircase leading up.",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "SMALL-CAVE",
+        "RESERVOIR-NORTH"
       ]
     },
     {
@@ -4904,6 +5175,11 @@
       "score": 5,
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "ROUND-ROOM",
+        "TROLL-ROOM",
+        "CHASM-ROOM"
       ]
     },
     {
@@ -4939,7 +5215,14 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a circular stone room with passages in all directions. Several of them have unfortunately been blocked by cave-ins."
+      "description": "This is a circular stone room with passages in all directions. Several of them have unfortunately been blocked by cave-ins.",
+      "adjacent": [
+        "LOUD-ROOM",
+        "EW-PASSAGE",
+        "NS-PASSAGE",
+        "NARROW-PASSAGE",
+        "ENGRAVINGS-CAVE"
+      ]
     },
     {
       "id": "DEEP-CANYON",
@@ -4972,6 +5255,12 @@
       "action": "DEEP-CANYON-F",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "RESERVOIR-SOUTH",
+        "DAM-ROOM",
+        "NS-PASSAGE",
+        "LOUD-ROOM"
       ]
     },
     {
@@ -5000,6 +5289,10 @@
       "description": "This cave has exits to the west and east, and narrows to a crack toward the south. The earth is particularly damp here.",
       "scenery": [
         "CRACK"
+      ],
+      "adjacent": [
+        "LOUD-ROOM",
+        "WHITE-CLIFFS-NORTH"
       ]
     },
     {
@@ -5028,6 +5321,11 @@
       "action": "LOUD-ROOM-FCN",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "DAMP-CAVE",
+        "ROUND-ROOM",
+        "DEEP-CANYON"
       ]
     },
     {
@@ -5053,7 +5351,12 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a high north-south passage, which forks to the northeast."
+      "description": "This is a high north-south passage, which forks to the northeast.",
+      "adjacent": [
+        "CHASM-ROOM",
+        "DEEP-CANYON",
+        "ROUND-ROOM"
+      ]
     },
     {
       "id": "CHASM-ROOM",
@@ -5098,6 +5401,11 @@
           "noun": "CHASM",
           "routine": "CHASM-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "RESERVOIR-SOUTH",
+        "EW-PASSAGE",
+        "NS-PASSAGE"
       ]
     },
     {
@@ -5141,6 +5449,10 @@
           "noun": "GATES",
           "routine": "GATE-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "TINY-CAVE",
+        "LAND-OF-LIVING-DEAD"
       ]
     },
     {
@@ -5165,6 +5477,9 @@
       "description": "You have entered the Land of the Living Dead. Thousands of lost souls can be heard weeping and moaning. In the corner are stacked the remains of dozens of previous adventurers less fortunate than yourself. A passage exits to the north.",
       "scenery": [
         "BODIES"
+      ],
+      "adjacent": [
+        "ENTRANCE-TO-HADES"
       ]
     },
     {
@@ -5185,7 +5500,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "You have entered a low cave with passages leading northwest and east."
+      "description": "You have entered a low cave with passages leading northwest and east.",
+      "adjacent": [
+        "ROUND-ROOM",
+        "DOME-ROOM"
+      ]
     },
     {
       "id": "EGYPT-ROOM",
@@ -5208,6 +5527,9 @@
       "description": "This is a room which looks like an Egyptian tomb. There is an ascending staircase to the west.",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "NORTH-TEMPLE"
       ]
     },
     {
@@ -5236,6 +5558,10 @@
           "noun": "DOME",
           "routine": "DOME-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "ENGRAVINGS-CAVE",
+        "TORCH-ROOM"
       ]
     },
     {
@@ -5270,6 +5596,9 @@
           "noun": "DOME",
           "routine": "DOME-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "NORTH-TEMPLE"
       ]
     },
     {
@@ -5315,6 +5644,11 @@
       "description": "This is the north end of a large temple. On the east wall is an ancient inscription, probably a prayer in a long-forgotten language. Below the prayer is a staircase leading down. The west wall is solid granite. The exit to the north end of the room is through huge marble pillars.",
       "scenery": [
         "STAIRS"
+      ],
+      "adjacent": [
+        "EGYPT-ROOM",
+        "TORCH-ROOM",
+        "SOUTH-TEMPLE"
       ]
     },
     {
@@ -5340,7 +5674,11 @@
         "SACREDBIT"
       ],
       "description": "This is the south end of a large temple. In front of you is what appears to be an altar. In one corner is a small hole in the floor which leads into darkness. You probably could not get back up it.",
-      "action": "SOUTH-TEMPLE-FCN"
+      "action": "SOUTH-TEMPLE-FCN",
+      "adjacent": [
+        "NORTH-TEMPLE",
+        "TINY-CAVE"
+      ]
     },
     {
       "id": "DAM-ROOM",
@@ -5379,6 +5717,12 @@
       "action": "DAM-ROOM-FCN",
       "scenery": [
         "GLOBAL-WATER"
+      ],
+      "adjacent": [
+        "DEEP-CANYON",
+        "DAM-BASE",
+        "DAM-LOBBY",
+        "RESERVOIR-SOUTH"
       ]
     },
     {
@@ -5405,7 +5749,11 @@
         "RLANDBIT",
         "ONBIT"
       ],
-      "description": "This room appears to have been the waiting room for groups touring the dam. There are open doorways here to the north and east marked \"Private\", and there is a path leading south over the top of the dam."
+      "description": "This room appears to have been the waiting room for groups touring the dam. There are open doorways here to the north and east marked \"Private\", and there is a path leading south over the top of the dam.",
+      "adjacent": [
+        "DAM-ROOM",
+        "MAINTENANCE-ROOM"
+      ]
     },
     {
       "id": "MAINTENANCE-ROOM",
@@ -5425,7 +5773,10 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is what appears to have been the maintenance room for Flood Control Dam #3. Apparently, this room has been ransacked recently, for most of the valuable equipment is gone. On the wall in front of you is a group of buttons colored blue, yellow, brown, and red. There are doorways to the west and south."
+      "description": "This is what appears to have been the maintenance room for Flood Control Dam #3. Apparently, this room has been ransacked recently, for most of the valuable equipment is gone. On the wall in front of you is a group of buttons colored blue, yellow, brown, and red. There are doorways to the west and south.",
+      "adjacent": [
+        "DAM-LOBBY"
+      ]
     },
     {
       "id": "DAM-BASE",
@@ -5451,6 +5802,9 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "DAM-ROOM"
       ]
     },
     {
@@ -5492,6 +5846,10 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "DAM-BASE",
+        "RIVER-2"
       ]
     },
     {
@@ -5532,6 +5890,9 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "RIVER-3"
       ]
     },
     {
@@ -5567,6 +5928,10 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "RIVER-4",
+        "WHITE-CLIFFS-NORTH"
       ]
     },
     {
@@ -5598,6 +5963,10 @@
         "GLOBAL-WATER",
         "WHITE-CLIFF",
         "RIVER"
+      ],
+      "adjacent": [
+        "WHITE-CLIFFS-SOUTH",
+        "DAMP-CAVE"
       ]
     },
     {
@@ -5622,6 +5991,9 @@
         "GLOBAL-WATER",
         "WHITE-CLIFF",
         "RIVER"
+      ],
+      "adjacent": [
+        "WHITE-CLIFFS-NORTH"
       ]
     },
     {
@@ -5663,6 +6035,11 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "RIVER-5",
+        "WHITE-CLIFFS-SOUTH",
+        "SANDY-BEACH"
       ]
     },
     {
@@ -5694,6 +6071,9 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "SHORE"
       ]
     },
     {
@@ -5720,6 +6100,10 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "SANDY-BEACH",
+        "ARAGAIN-FALLS"
       ]
     },
     {
@@ -5745,6 +6129,10 @@
       "scenery": [
         "GLOBAL-WATER",
         "RIVER"
+      ],
+      "adjacent": [
+        "SANDY-CAVE",
+        "SHORE"
       ]
     },
     {
@@ -5760,7 +6148,10 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a sand-filled cave whose exit is to the southwest."
+      "description": "This is a sand-filled cave whose exit is to the southwest.",
+      "adjacent": [
+        "SANDY-BEACH"
+      ]
     },
     {
       "id": "ARAGAIN-FALLS",
@@ -5799,6 +6190,10 @@
         "GLOBAL-WATER",
         "RIVER",
         "RAINBOW"
+      ],
+      "adjacent": [
+        "ON-RAINBOW",
+        "SHORE"
       ]
     },
     {
@@ -5824,6 +6219,10 @@
       "description": "You are on top of a rainbow (I bet you never thought you would walk on a rainbow), with a magnificent view of the Falls. The rainbow travels east-west here.",
       "scenery": [
         "RAINBOW"
+      ],
+      "adjacent": [
+        "END-OF-RAINBOW",
+        "ARAGAIN-FALLS"
       ]
     },
     {
@@ -5863,6 +6262,10 @@
         "GLOBAL-WATER",
         "RAINBOW",
         "RIVER"
+      ],
+      "adjacent": [
+        "ON-RAINBOW",
+        "CANYON-BOTTOM"
       ]
     },
     {
@@ -5890,6 +6293,10 @@
         "GLOBAL-WATER",
         "CLIMBABLE-CLIFF",
         "RIVER"
+      ],
+      "adjacent": [
+        "CLIFF-MIDDLE",
+        "END-OF-RAINBOW"
       ]
     },
     {
@@ -5916,6 +6323,10 @@
       "scenery": [
         "CLIMBABLE-CLIFF",
         "RIVER"
+      ],
+      "adjacent": [
+        "CANYON-VIEW",
+        "CANYON-BOTTOM"
       ]
     },
     {
@@ -5959,6 +6370,11 @@
         "CLIMBABLE-CLIFF",
         "RIVER",
         "RAINBOW"
+      ],
+      "adjacent": [
+        "CLIFF-MIDDLE",
+        "CLEARING",
+        "FOREST-3"
       ]
     },
     {
@@ -5984,7 +6400,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "You are standing at the entrance of what might have been a coal mine. The shaft enters the west wall, and there is another exit on the south end of the room."
+      "description": "You are standing at the entrance of what might have been a coal mine. The shaft enters the west wall, and there is another exit on the south end of the room.",
+      "adjacent": [
+        "SLIDE-ROOM",
+        "SQUEEKY-ROOM"
+      ]
     },
     {
       "id": "SQUEEKY-ROOM",
@@ -6004,7 +6424,11 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "You are in a small room. Strange squeaky sounds may be heard coming from the passage at the north end. You may also escape to the east."
+      "description": "You are in a small room. Strange squeaky sounds may be heard coming from the passage at the north end. You may also escape to the east.",
+      "adjacent": [
+        "BAT-ROOM",
+        "MINE-ENTRANCE"
+      ]
     },
     {
       "id": "BAT-ROOM",
@@ -6025,7 +6449,11 @@
         "RLANDBIT",
         "SACREDBIT"
       ],
-      "action": "BATS-ROOM"
+      "action": "BATS-ROOM",
+      "adjacent": [
+        "SQUEEKY-ROOM",
+        "SHAFT-ROOM"
+      ]
     },
     {
       "id": "SHAFT-ROOM",
@@ -6056,6 +6484,10 @@
           "noun": "CHAIN",
           "routine": "CHAIN-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "BAT-ROOM",
+        "SMELLY-ROOM"
       ]
     },
     {
@@ -6089,6 +6521,10 @@
           "noun": "GAS",
           "routine": "GAS-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "GAS-ROOM",
+        "SHAFT-ROOM"
       ]
     },
     {
@@ -6124,6 +6560,10 @@
           "noun": "ODOR",
           "routine": "GAS-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "SMELLY-ROOM",
+        "MINE-1"
       ]
     },
     {
@@ -6148,6 +6588,10 @@
       "scenery": [
         "LADDER",
         "STAIRS"
+      ],
+      "adjacent": [
+        "LADDER-BOTTOM",
+        "MINE-4"
       ]
     },
     {
@@ -6176,6 +6620,11 @@
       "description": "This is a rather wide room. On one side is the bottom of a narrow wooden ladder. To the west and the south are passages leaving the room.",
       "scenery": [
         "LADDER"
+      ],
+      "adjacent": [
+        "DEAD-END-5",
+        "TIMBER-ROOM",
+        "LADDER-TOP"
       ]
     },
     {
@@ -6191,7 +6640,10 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "You have come to a dead end in the mine."
+      "description": "You have come to a dead end in the mine.",
+      "adjacent": [
+        "LADDER-BOTTOM"
+      ]
     },
     {
       "id": "TIMBER-ROOM",
@@ -6215,7 +6667,11 @@
         "SACREDBIT"
       ],
       "description": "This is a long and narrow passage, which is cluttered with broken timbers. A wide passage comes from the east and turns at the west end of the room into a very narrow passageway. From the west comes a strong draft.",
-      "action": "NO-OBJS"
+      "action": "NO-OBJS",
+      "adjacent": [
+        "LADDER-BOTTOM",
+        "LOWER-SHAFT"
+      ]
     },
     {
       "id": "LOWER-SHAFT",
@@ -6252,6 +6708,10 @@
           "noun": "CHAIN",
           "routine": "CHAIN-PSEUDO"
         }
+      ],
+      "adjacent": [
+        "MACHINE-ROOM",
+        "TIMBER-ROOM"
       ]
     },
     {
@@ -6267,7 +6727,10 @@
       "flags": [
         "RLANDBIT"
       ],
-      "action": "MACHINE-ROOM-FCN"
+      "action": "MACHINE-ROOM-FCN",
+      "adjacent": [
+        "LOWER-SHAFT"
+      ]
     },
     {
       "id": "MINE-1",
@@ -6292,7 +6755,12 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a nondescript part of a coal mine."
+      "description": "This is a nondescript part of a coal mine.",
+      "adjacent": [
+        "GAS-ROOM",
+        "MINE-1",
+        "MINE-2"
+      ]
     },
     {
       "id": "MINE-2",
@@ -6317,7 +6785,12 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a nondescript part of a coal mine."
+      "description": "This is a nondescript part of a coal mine.",
+      "adjacent": [
+        "MINE-2",
+        "MINE-1",
+        "MINE-3"
+      ]
     },
     {
       "id": "MINE-3",
@@ -6342,7 +6815,12 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a nondescript part of a coal mine."
+      "description": "This is a nondescript part of a coal mine.",
+      "adjacent": [
+        "MINE-3",
+        "MINE-4",
+        "MINE-2"
+      ]
     },
     {
       "id": "MINE-4",
@@ -6367,7 +6845,12 @@
       "flags": [
         "RLANDBIT"
       ],
-      "description": "This is a nondescript part of a coal mine."
+      "description": "This is a nondescript part of a coal mine.",
+      "adjacent": [
+        "MINE-3",
+        "MINE-4",
+        "LADDER-TOP"
+      ]
     },
     {
       "id": "SLIDE-ROOM",
@@ -6395,6 +6878,11 @@
       "description": "This is a small chamber, which appears to have been part of a coal mine. On the south wall of the chamber the letters \"Granite Wall\" are etched in the rock. To the east is a long passage, and there is a steep metal slide twisting downward. To the north is a small opening.",
       "scenery": [
         "SLIDE"
+      ],
+      "adjacent": [
+        "COLD-PASSAGE",
+        "MINE-ENTRANCE",
+        "CELLAR"
       ]
     }
   ],
@@ -29185,6 +29673,393 @@
       }
     },
     {
+      "id": "I-SWORD",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "DEM",
+          "value": {
+            "op": "call",
+            "routine": "INT",
+            "args": [
+              {
+                "op": "const",
+                "value": "I-SWORD"
+              }
+            ]
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "G",
+          "value": {
+            "op": "prop",
+            "entity": {
+              "op": "entity",
+              "id": "SWORD"
+            },
+            "prop": "treasureValue"
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "NG",
+          "value": {
+            "op": "const",
+            "value": 0
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "in?",
+                "entity": {
+                  "op": "entity",
+                  "id": "SWORD"
+                },
+                "container": {
+                  "op": "entity",
+                  "id": "ADVENTURER"
+                }
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "call",
+                        "routine": "INFESTED?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "HERE"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "NG",
+                          "value": {
+                            "op": "const",
+                            "value": 2
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "P",
+                          "value": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        },
+                        {
+                          "op": "loop",
+                          "body": [
+                            {
+                              "op": "set-local",
+                              "id": "P",
+                              "value": {
+                                "op": "add",
+                                "a": {
+                                  "op": "local",
+                                  "id": "P"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              }
+                            },
+                            {
+                              "op": "cond",
+                              "clauses": [
+                                {
+                                  "when": {
+                                    "op": "gt?",
+                                    "a": {
+                                      "op": "local",
+                                      "id": "P"
+                                    },
+                                    "b": {
+                                      "op": "table-get",
+                                      "table": {
+                                        "op": "prop",
+                                        "entity": {
+                                          "op": "global",
+                                          "id": "HERE"
+                                        },
+                                        "prop": "adjacentRooms"
+                                      },
+                                      "index": {
+                                        "op": "const",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "break",
+                                      "value": {
+                                        "op": "const",
+                                        "value": false
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "when": {
+                                    "op": "const",
+                                    "value": true
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "cond",
+                                      "clauses": [
+                                        {
+                                          "when": {
+                                            "op": "call",
+                                            "routine": "INFESTED?",
+                                            "args": [
+                                              {
+                                                "op": "table-get",
+                                                "table": {
+                                                  "op": "prop",
+                                                  "entity": {
+                                                    "op": "global",
+                                                    "id": "HERE"
+                                                  },
+                                                  "prop": "adjacentRooms"
+                                                },
+                                                "index": {
+                                                  "op": "local",
+                                                  "id": "P"
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          "do": [
+                                            {
+                                              "op": "set-local",
+                                              "id": "NG",
+                                              "value": {
+                                                "op": "const",
+                                                "value": 1
+                                              }
+                                            },
+                                            {
+                                              "op": "break",
+                                              "value": {
+                                                "op": "const",
+                                                "value": true
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "NG"
+                          },
+                          {
+                            "op": "local",
+                            "id": "G"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "NG"
+                          },
+                          {
+                            "op": "const",
+                            "value": 2
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Your sword has begun to glow very brightly."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "NG"
+                          },
+                          {
+                            "op": "const",
+                            "value": 1
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Your sword is glowing with a faint blue glow."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "NG"
+                          },
+                          {
+                            "op": "const",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Your sword is no longer glowing."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "set-prop",
+                  "entity": {
+                    "op": "entity",
+                    "id": "SWORD"
+                  },
+                  "prop": "treasureValue",
+                  "value": {
+                    "op": "local",
+                    "id": "NG"
+                  }
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "table-set",
+                  "table": {
+                    "op": "local",
+                    "id": "DEM"
+                  },
+                  "index": {
+                    "op": "const",
+                    "value": 0
+                  },
+                  "value": {
+                    "op": "const",
+                    "value": 0
+                  }
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "DEM",
+        "G",
+        "NG",
+        "P",
+        "T",
+        "L"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3851
+      }
+    },
+    {
       "id": "I-THIEF",
       "body": [
         {
@@ -30338,6 +31213,120 @@
       "source": {
         "file": "gverbs.zil",
         "line": 1966
+      }
+    },
+    {
+      "id": "INFESTED?",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "F",
+          "value": {
+            "op": "first",
+            "entity": {
+              "op": "local",
+              "id": "R"
+            }
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "F"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "op": "const",
+                        "value": false
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "and",
+                    "args": [
+                      {
+                        "op": "flag?",
+                        "entity": {
+                          "op": "local",
+                          "id": "F"
+                        },
+                        "flag": "ACTORBIT"
+                      },
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "flag?",
+                          "entity": {
+                            "op": "local",
+                            "id": "F"
+                          },
+                          "flag": "INVISIBLE"
+                        }
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "set-local",
+                      "id": "F",
+                      "value": {
+                        "op": "next",
+                        "entity": {
+                          "op": "local",
+                          "id": "F"
+                        }
+                      }
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "op": "const",
+                        "value": false
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "R"
+      ],
+      "locals": [
+        "F"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3881
       }
     },
     {

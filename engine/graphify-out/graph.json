@@ -263,8 +263,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_builtins",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "builtins.ts"
     },
     {
@@ -274,8 +274,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "src_builtins_createbuiltins",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "createbuiltins()"
     },
     {
@@ -296,8 +296,8 @@
       "source_location": "L392",
       "_origin": "ast",
       "id": "src_builtins_vehiclecarrying",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "vehiclecarrying()"
     },
     {
@@ -329,8 +329,8 @@
       "source_location": "L481",
       "_origin": "ast",
       "id": "src_builtins_isbrief",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "isbrief()"
     },
     {
@@ -340,8 +340,8 @@
       "source_location": "L486",
       "_origin": "ast",
       "id": "src_builtins_addscore",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "addscore()"
     },
     {
@@ -351,8 +351,8 @@
       "source_location": "L493",
       "_origin": "ast",
       "id": "src_builtins_resolvetable",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "resolvetable()"
     },
     {
@@ -362,8 +362,8 @@
       "source_location": "L500",
       "_origin": "ast",
       "id": "src_builtins_interruptrecord",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "interruptrecord()"
     },
     {
@@ -373,8 +373,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_builtins_ts_docref_adr_0001",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "adr-0001"
     },
     {
@@ -384,8 +384,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_builtins_ts_docref_adr_0002",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "adr-0002"
     },
     {
@@ -406,8 +406,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_engine_engineoptions",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 7,
+      "community_name": "engine.ts",
       "norm_label": "engineoptions"
     },
     {
@@ -428,8 +428,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "src_engine_engine",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "engine"
     },
     {
@@ -439,8 +439,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "src_engine_engine_command",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": ".command()"
     },
     {
@@ -450,8 +450,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "src_engine_engine_start",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": ".start()"
     },
     {
@@ -461,8 +461,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "src_engine_engine_missingroutines",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": ".missingroutines()"
     },
     {
@@ -472,8 +472,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "src_engine_engine_snapshot",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": ".snapshot()"
     },
     {
@@ -483,8 +483,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "src_engine_engine_restore",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": ".restore()"
     },
     {
@@ -637,8 +637,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_events",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "events.ts"
     },
     {
@@ -659,8 +659,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_events_engineevent",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "engineevent"
     },
     {
@@ -670,8 +670,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "src_events_turnresult",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "turnresult"
     },
     {
@@ -681,8 +681,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "src_events_transcripttext",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "transcripttext()"
     },
     {
@@ -692,8 +692,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "src_events_ts_docref_adr_0002",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "adr-0002"
     },
     {
@@ -868,8 +868,8 @@
       "source_location": "L319",
       "_origin": "ast",
       "id": "src_interpreter_callroutine",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 7,
+      "community_name": "engine.ts",
       "norm_label": "callroutine()"
     },
     {
@@ -967,8 +967,8 @@
       "source_location": "L477",
       "_origin": "ast",
       "id": "src_interpreter_num",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "num()"
     },
     {
@@ -1011,8 +1011,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_load",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "load.ts"
     },
     {
@@ -1022,8 +1022,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "src_load_loadoptions",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 7,
+      "community_name": "engine.ts",
       "norm_label": "loadoptions"
     },
     {
@@ -1033,53 +1033,86 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "src_load_loadedworld",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "loadedworld"
+    },
+    {
+      "label": "adjacencyTableId()",
+      "file_type": "code",
+      "source_file": "src/load.ts",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "src_load_adjacencytableid",
+      "community": 2,
+      "community_name": "index.ts",
+      "norm_label": "adjacencytableid()"
     },
     {
       "label": "loadWorld()",
       "file_type": "code",
       "source_file": "src/load.ts",
-      "source_location": "L55",
+      "source_location": "L65",
       "_origin": "ast",
       "id": "src_load_loadworld",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "loadworld()"
     },
     {
       "label": "link()",
       "file_type": "code",
       "source_file": "src/load.ts",
-      "source_location": "L160",
+      "source_location": "L192",
       "_origin": "ast",
       "id": "src_load_link",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "link()"
     },
     {
       "label": "containerFor()",
       "file_type": "code",
       "source_file": "src/load.ts",
-      "source_location": "L165",
+      "source_location": "L197",
       "_origin": "ast",
       "id": "src_load_containerfor",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "containerfor()"
     },
     {
       "label": "elementValue()",
       "file_type": "code",
       "source_file": "src/load.ts",
-      "source_location": "L183",
+      "source_location": "L215",
       "_origin": "ast",
       "id": "src_load_elementvalue",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "elementvalue()"
+    },
+    {
+      "label": "ADR-0003",
+      "file_type": "concept",
+      "source_file": "src/load.ts",
+      "source_location": "L117",
+      "_origin": "ast",
+      "id": "src_load_ts_docref_adr_0003",
+      "community": 2,
+      "community_name": "index.ts",
+      "norm_label": "adr-0003"
+    },
+    {
+      "label": "ADR-0002",
+      "file_type": "concept",
+      "source_file": "src/load.ts",
+      "source_location": "L122",
+      "_origin": "ast",
+      "id": "src_load_ts_docref_adr_0002",
+      "community": 2,
+      "community_name": "index.ts",
+      "norm_label": "adr-0002"
     },
     {
       "label": "movement.ts",
@@ -1132,8 +1165,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "src_movement_goto",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "goto()"
     },
     {
@@ -1209,8 +1242,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "src_parser_parsedtravel",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 4,
+      "community_name": "state.ts",
       "norm_label": "parsedtravel"
     },
     {
@@ -1220,8 +1253,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "src_parser_parsefailure",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 4,
+      "community_name": "state.ts",
       "norm_label": "parsefailure"
     },
     {
@@ -1385,8 +1418,8 @@
       "source_location": "L590",
       "_origin": "ast",
       "id": "src_parser_alleligible",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 4,
+      "community_name": "state.ts",
       "norm_label": "alleligible()"
     },
     {
@@ -1616,8 +1649,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_scope_scopeentry",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 4,
+      "community_name": "state.ts",
       "norm_label": "scopeentry"
     },
     {
@@ -1726,8 +1759,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "src_state_worldindex",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "worldindex"
     },
     {
@@ -1737,8 +1770,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "src_state_indexworld",
-      "community": 3,
-      "community_name": "movement.ts",
+      "community": 2,
+      "community_name": "index.ts",
       "norm_label": "indexworld()"
     },
     {
@@ -1814,8 +1847,8 @@
       "source_location": "L152",
       "_origin": "ast",
       "id": "src_state_move",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "move()"
     },
     {
@@ -1825,8 +1858,8 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "src_state_remove",
-      "community": 8,
-      "community_name": "interpreter.ts",
+      "community": 3,
+      "community_name": "movement.ts",
       "norm_label": "remove()"
     },
     {
@@ -2075,7 +2108,7 @@
       "label": "escape()",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L97",
+      "source_location": "L105",
       "_origin": "ast",
       "id": "test_combat_test_escape",
       "community": 1,
@@ -2086,7 +2119,7 @@
       "label": "messageRows()",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L108",
+      "source_location": "L116",
       "_origin": "ast",
       "id": "test_combat_test_messagerows",
       "community": 1,
@@ -2097,7 +2130,7 @@
       "label": "rowPattern()",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L132",
+      "source_location": "L140",
       "_origin": "ast",
       "id": "test_combat_test_rowpattern",
       "community": 1,
@@ -2108,7 +2141,7 @@
       "label": "literalLength()",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L152",
+      "source_location": "L160",
       "_origin": "ast",
       "id": "test_combat_test_literallength",
       "community": 1,
@@ -2119,7 +2152,7 @@
       "label": "discriminating()",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L156",
+      "source_location": "L164",
       "_origin": "ast",
       "id": "test_combat_test_discriminating",
       "community": 1,
@@ -2130,7 +2163,7 @@
       "label": "tellPatterns()",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L176",
+      "source_location": "L184",
       "_origin": "ast",
       "id": "test_combat_test_tellpatterns",
       "community": 1,
@@ -2141,7 +2174,7 @@
       "label": "legalPatterns",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L207",
+      "source_location": "L215",
       "_origin": "ast",
       "id": "test_combat_test_legalpatterns",
       "community": 1,
@@ -2152,7 +2185,7 @@
       "label": "legalTurn",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L217",
+      "source_location": "L225",
       "_origin": "ast",
       "id": "test_combat_test_legalturn",
       "community": 1,
@@ -2163,7 +2196,7 @@
       "label": "APPROACH",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L223",
+      "source_location": "L231",
       "_origin": "ast",
       "id": "test_combat_test_approach",
       "community": 1,
@@ -2174,11 +2207,11 @@
       "label": "Fight",
       "file_type": "code",
       "source_file": "test/combat.test.ts",
-      "source_location": "L230",
+      "source_location": "L238",
       "_origin": "ast",
       "id": "test_combat_test_fight",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "fight"
     },
     {
@@ -2193,14 +2226,25 @@
       "norm_label": "adr-0002"
     },
     {
+      "label": "ADR-0003",
+      "file_type": "concept",
+      "source_file": "test/combat.test.ts",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "test_combat_test_ts_docref_adr_0003",
+      "community": 1,
+      "community_name": "Rng",
+      "norm_label": "adr-0003"
+    },
+    {
       "label": "engine.test.ts",
       "file_type": "code",
       "source_file": "test/engine.test.ts",
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_engine_test",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "engine.test.ts"
     },
     {
@@ -2210,8 +2254,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "test_engine_test_doc",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "doc"
     },
     {
@@ -2221,8 +2265,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "test_engine_test_text",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "text()"
     },
     {
@@ -2232,8 +2276,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "test_engine_test_say",
-      "community": 2,
-      "community_name": "index.ts",
+      "community": 1,
+      "community_name": "Rng",
       "norm_label": "say()"
     },
     {
@@ -2604,7 +2648,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L261",
+      "source_location": "L269",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test_fight",
@@ -4699,7 +4743,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "test/combat.test.ts",
-      "source_location": "L252",
+      "source_location": "L260",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test_fight",
@@ -4878,7 +4922,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L242",
+      "source_location": "L250",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test_fight",
@@ -5437,7 +5481,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L252",
+      "source_location": "L260",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test_fight",
@@ -6982,7 +7026,18 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/load.ts",
-      "source_location": "L165",
+      "source_location": "L61",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_load",
+      "target": "src_load_adjacencytableid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/load.ts",
+      "source_location": "L197",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load",
@@ -6993,7 +7048,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/load.ts",
-      "source_location": "L183",
+      "source_location": "L215",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load",
@@ -7004,7 +7059,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/load.ts",
-      "source_location": "L160",
+      "source_location": "L192",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load",
@@ -7037,11 +7092,33 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/load.ts",
-      "source_location": "L55",
+      "source_location": "L65",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load",
       "target": "src_load_loadworld",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "source_file": "src/load.ts",
+      "source_location": "L122",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_load",
+      "target": "src_load_ts_docref_adr_0002",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "source_file": "src/load.ts",
+      "source_location": "L117",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_load",
+      "target": "src_load_ts_docref_adr_0003",
       "confidence_score": 1.0
     },
     {
@@ -7169,7 +7246,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/load.ts",
-      "source_location": "L120",
+      "source_location": "L134",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_load_loadworld",
+      "target": "src_load_adjacencytableid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/load.ts",
+      "source_location": "L152",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load_loadworld",
@@ -7181,7 +7270,7 @@
       "context": "argument",
       "confidence": "INFERRED",
       "source_file": "src/load.ts",
-      "source_location": "L76",
+      "source_location": "L86",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load_loadworld",
@@ -7193,7 +7282,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/load.ts",
-      "source_location": "L90",
+      "source_location": "L100",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load_loadworld",
@@ -7206,7 +7295,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/load.ts",
-      "source_location": "L56",
+      "source_location": "L66",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_load_loadworld",
@@ -9516,7 +9605,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L223",
+      "source_location": "L231",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9538,7 +9627,7 @@
       "relation": "indirect_call",
       "confidence": "INFERRED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L210",
+      "source_location": "L218",
       "weight": 1.0,
       "_origin": "ast",
       "context": "argument",
@@ -9561,7 +9650,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L97",
+      "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9572,7 +9661,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L241",
+      "source_location": "L249",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9583,7 +9672,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L207",
+      "source_location": "L215",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9594,7 +9683,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L217",
+      "source_location": "L225",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9605,7 +9694,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L152",
+      "source_location": "L160",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9627,7 +9716,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L108",
+      "source_location": "L116",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9649,7 +9738,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L132",
+      "source_location": "L140",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test",
@@ -9671,7 +9760,7 @@
       "relation": "indirect_call",
       "confidence": "INFERRED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L209",
+      "source_location": "L217",
       "weight": 1.0,
       "_origin": "ast",
       "context": "argument",
@@ -9691,6 +9780,17 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "source_file": "test/combat.test.ts",
+      "source_location": "L83",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_combat_test",
+      "target": "test_combat_test_ts_docref_adr_0003",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
@@ -9706,7 +9806,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L133",
+      "source_location": "L141",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test_rowpattern",
@@ -9718,7 +9818,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L193",
+      "source_location": "L201",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test_tellpatterns",
@@ -9730,7 +9830,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "test/combat.test.ts",
-      "source_location": "L166",
+      "source_location": "L174",
       "weight": 1.0,
       "_origin": "ast",
       "source": "test_combat_test_discriminating",
@@ -9849,5 +9949,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "34ba79a4ef72b0aaadbaf9dd44b66e678f24b9c0"
+  "built_at_commit": "53716a38024e1c9b745b40d3f735c2b807bb9b2c"
 }

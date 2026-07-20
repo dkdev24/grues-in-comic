@@ -50,16 +50,6 @@
     ]
   },
   {
-    "id": "I-SWORD",
-    "source": {
-      "file": "1actions.zil",
-      "line": 3851
-    },
-    "reasons": [
-      "unknown form <NEXTP …>"
-    ]
-  },
-  {
     "id": "LOUD-ROOM-FCN",
     "source": {
       "file": "1actions.zil",
@@ -146,7 +136,7 @@
       "line": 526
     },
     "reasons": [
-      "operator GETB"
+      "operator GETB outside an exit scan"
     ]
   },
   {

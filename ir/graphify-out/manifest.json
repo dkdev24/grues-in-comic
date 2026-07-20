@@ -40,13 +40,13 @@
     "semantic_hash": ""
   },
   "src/schema.ts": {
-    "mtime": 1784508341.9334936,
-    "ast_hash": "ef5f5d00fc9a8f8b0e91ca472f8e337e",
+    "mtime": 1784511746.1486778,
+    "ast_hash": "fabd84a7b1f0120b0cd5e8dd2fe40bf1",
     "semantic_hash": ""
   },
   "src/validate.ts": {
-    "mtime": 1784508341.934471,
-    "ast_hash": "cbdffef492c8f9d340ca42186bb2c659",
+    "mtime": 1784511804.8831458,
+    "ast_hash": "5c8d3cf12374753b49ca0f456491a659",
     "semantic_hash": ""
   },
   "test/behavior-poc.test.ts": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/extract-world.ts": {
-    "mtime": 1784509314.9182544,
-    "ast_hash": "232f8588e1ee4a1e8139bba6a3260a19",
+    "mtime": 1784511762.8157783,
+    "ast_hash": "fe1cdaaa6572996ff340c2d29b1ef95f",
     "semantic_hash": ""
   },
   "test/extract.test.ts": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784509672.9519818,
-    "ast_hash": "d3f48081d9a93d8a00767830db30cd84",
+    "mtime": 1784511979.3464117,
+    "ast_hash": "ff212baeba76740cc6ccae917214c0a7",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -142,6 +142,11 @@
   "test/nested-tables.test.ts": {
     "mtime": 1784468262.912189,
     "ast_hash": "b07f1dec96e97cbdbfcb4d1568cac95c",
+    "semantic_hash": ""
+  },
+  "test/exit-scan.test.ts": {
+    "mtime": 1784512468.551399,
+    "ast_hash": "5307c91b3a7e0015238fe6b9cc66f614",
     "semantic_hash": ""
   }
 }

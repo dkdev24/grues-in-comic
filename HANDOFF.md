@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.8.0**
+**0.8.1**
 
 ---
 
@@ -24,87 +24,81 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 - **M2 ✅** `ir/` — IR schema/validator; ADR 0001 (behavior AST + builtins), ADR 0002 (TS engine,
   JSON event contract, ⚑ Gate B); Graphify adopted per-module (⚑ Gate A); OpenWiki not adopted
 - **M3 ✅** Semantic extraction ZIL→IR — world-document unit complete. 110 rooms/exits,
-  137 objects, 267 parser rules, 358 routines (29 catalogued, all triaged), 87% ref coverage.
+  137 objects, 267 parser rules, 360 routines (28 catalogued, all triaged), 87% ref coverage.
   IR schema 0.14.0
 - **M4 ⏳** Engine core — 4.1 ✅ world runtime · 4.2 ✅ parser · 4.3 ✅ dispatch, save/restore ·
   4.4 ✅ transcript harness · 4.5 ✅ `TAKE ALL`, wider corpus · 4.6 ✅ orphan questions,
   pronouns, compound sentences, per-turn parity directives · **4.7 ✅ villain combat**
   (IR `random` op, membership verification, `GO` as entry ref — both sides of the fight,
-  death and resurrection).
-  **11 walkthroughs, 117/117 strict turns (100%), 151/163 overall. 108 engine tests, IR 184/184.**
+  death and resurrection) · **ADR 0003 ✅ derived adjacency** (`I-SWORD`).
+  **11 walkthroughs, 143/143 strict turns (100%), 155/161 overall. 110 engine tests, IR 193.**
   ⚑ **Gate C not yet claimed**
 - **M5** Comic Chat presentation — `.avb` decoding solved (v0.5.18); the rest is open
 
 ---
 
-## Last Session (v0.8.0)
+## Last Session (v0.8.1)
 
-**`GO` is now an entry ref, which fixed all three things v0.7.1 flagged.** The game's own
-initialization routine was unreachable, so nothing it did happened: the five daemons were never
-queued and the melee tables never patched.
+**ADR 0003 — `I-SWORD` extracts, and walkthrough 10 verifies strictly.** The daemon walked
+exits as numbered Z-machine properties (`NEXTP`/`GETPT`/`PTSIZE`/`GETB`) and the IR models exits
+structurally, so there was nothing to translate mechanically. Resolved as an IR decision, per
+the open issue this replaces.
 
-- **Combat is whole.** `I-FIGHT` → `DO-FIGHT` → `VILLAIN-BLOW` → `WINNER-RESULT` all extract.
-  Villains strike back, disarm the player, knock them out and kill them; `JIGS-UP` and
-  **resurrection** work. The troll also gets its free swing on entry, so some seeds end before
-  the player swings at all.
-- **`TABLE_CORRECTIONS` is deleted.** `GO` patches `DEF*-RES` at runtime, as the source always
-  meant it to. The extractor no longer hardcodes what the game does itself.
-- **Four extractor gaps fell out of reaching `GO`**, each documented at its site: flags used as
-  *values* (`,NONLANDBIT`, `,ONBIT` — also fixed `LIT?`); `PROB`'s two-argument form, which
-  expands to `<ZPROB base>` and **discards its second operand** (VILLAIN-BLOW passes an
-  undeclared `.HERO?` there, which is legal precisely because the macro drops it);
-  `NON_RETURNING_BUILTINS`, so `GO`'s trailing `<MAIN-LOOP> <AGAIN>` stops catalogueing it; and
-  `ENGINE_IMPLEMENTED`, after extracting `LIT?` silently **shadowed** the engine's own lighting
-  and cost every dark-room turn in the corpus.
-- **Initialization runs at construction, not in `start()`**, so a host that goes straight to
-  `command()` cannot get a daemon-less game. An explicit `start:` option still overrides `GO`'s
-  placement.
-- **The combat test grew the damage assertion it was missing**, and its legal-message set is now
-  derived from the `VILLAINS` table rather than hand-listed. The negative control twice caught
-  the check going soft — first accepting a marker printed as a raw number, then accepting
-  anything at all once wildcard-dominant patterns entered the set.
+- **`Room.adjacent` is derived at extraction time** — the ids a room declares a static exit to.
+  `deriveAdjacent()` in `ir/src/schema.ts` is the single definition: `extract-world` emits it and
+  `validate` **re-derives and compares**, so a stale list is an error, not a silent divergence.
+- **Declared, not reachable.** `to`/`conditional`/`door` in, `blocked`/`routine` out — a shut
+  door and a false condition still count, because the ZIL tests the exit's *shape*, not its
+  state. **Do not use this field for pathfinding or a map view.**
+- **The engine materializes it, never computes it**: a `pure` `ltable` per room reached through
+  an ordinary property (`adjacentRooms`), so ADR 0002's line holds.
+- **The extractor rewrites the idiom** (`RoutineTransformer.exitScan`) onto that list. This is
+  the one place in the extractor where output is not a mechanical image of its input, so it is
+  **fail-closed**: any clause that does not match falls back to the ordinary path and catalogs
+  on `NEXTP`/`GETPT`. `ir/test/exit-scan.test.ts` proves that by perturbing single atoms.
+- **No new IR ops** — `prop`/`table-get`/`gt?`/`add`/`loop`/`break` only, so ADR 0001's growth
+  log needs no entry.
 
-Parity unchanged at **151/163, 117/117 strict**: combat's *text* is a random draw either way.
-Engine 108 tests, IR 185.
+**Two turns of walkthrough 10 stay quarantined, for a different reason than before**: the glow
+reports the randomized fight's *outcome* (the reference stuns the troll and it stays next door;
+our seed kills it). The glow itself is verified directly in `engine/test/engine.test.ts` — all
+three levels and the transitions, since the ZIL prints only on a change.
+
+Parity **155/161, 143/143 strict** (was 117/117 — walkthrough 10 is no longer file-level
+informational). Engine 110 tests, IR 193. 360 routines extracted, 28 catalogued.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
 **M4: 4.1–4.7 ✅. Combat, the RNG question and `GO` are settled.**
 
-1. **⚑ `I-SWORD` — the last blocker on walkthrough 10, and it needs an *IR* answer.**
-   `GO` now queues it, so the daemon runs the moment it extracts; the four remaining diffs there
-   are all the sword glow. Delete the `# parity:` line in
-   `verification/walkthroughs/10-dam-and-reservoir.cmd` when it lands and the walkthrough
-   verifies strictly. It walks exits as numbered Z-machine properties (`<NEXTP …>`) and the IR
-   models exits structurally, so it likely wants a small behavior op for "rooms adjacent to
-   here". **A schema decision — deliberately not taken autonomously.** `I-CYCLOPS` (`<NTH …>`)
-   has the same shape and would be answered by the same op.
-
-2. **The thief is live and unverified.** `I-THIEF` is queued and running as of v0.8.0, but no
+1. **The thief is live and unverified.** `I-THIEF` is queued and running as of v0.8.0, but no
    walkthrough exercises a robbery and `ROB`/the thief's pass have never been checked against
    the reference. Verify by membership, as combat is. Longer walkthroughs are where an
    unverified thief will show up first.
 
-3. **Systems completion** (⚑ Gate C): **death and resurrection now work** (v0.8.0 — `JIGS-UP`
-   via `WINNER-RESULT`), so what remains here is the thief's robbery pass, which is item 2.
+2. **Systems completion** (⚑ Gate C): **death and resurrection now work** (v0.8.0 — `JIGS-UP`
+   via `WINNER-RESULT`), so what remains here is the thief's robbery pass, which is item 1.
    **P-WON gating is settled: do not implement it** — the transcripts contradict the source
    (v0.6.5; reasoning is at the call site, because the source reads the other way and the next
    reader will otherwise "fix" it back). `V-CLIMB-UP` is the last stub.
 
-4. **Unassigned one-off tail** in the routine catalog: `<NEXTP …>` (I-SWORD, OTHER-SIDE),
-   `<NTH …>` (I-CYCLOPS), String-in-statement-position (GRATE-FUNCTION), bare
+3. **Unassigned one-off tail** in the routine catalog: `<NEXTP …>` (OTHER-SIDE — ADR 0003
+   rewrote `I-SWORD`'s scan but does **not** cover OTHER-SIDE, which needs the direction number
+   and a door match), `<NTH …>` (I-CYCLOPS — a table index, not an exit scan, despite having
+   been grouped with `I-SWORD`), String-in-statement-position (GRATE-FUNCTION), bare
    `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with a non-literal
    byte count (PICK-ONE — Group A regardless).
 
-5. **The invisible-routine audit, re-run after `GO`.** 439 ROUTINE forms, **358 extracted, 29
-   catalogued, 52 invisible**. 45 are correctly excluded by design (40 `gparser`, 3 `gclock`,
+4. **The invisible-routine audit, re-run after ADR 0003.** 439 ROUTINE forms, **360 extracted,
+   28 catalogued, 51 invisible**. 45 are correctly excluded by design (40 `gparser`, 3 `gclock`,
    2 `gmain`: the engine owns the parser, the clock and the turn loop). The tail worth triage is
-   now seven: `BREATHE`, `INFESTED?`, `MIN`, `UNTIE-FROM`, `FIND-IN`, `NO-GO-TELL`, `YES?`.
+   now six: `BREATHE`, `MIN`, `UNTIE-FROM`, `FIND-IN`, `NO-GO-TELL`, `YES?` — `INFESTED?` left
+   the list by being reached, which is precisely the point below.
    **Worth making this a standing report rather than a one-off**: the catalog names the routine
    that failed but never what its failure cost, which is exactly why combat stayed hidden for
    two milestones.
 
-6. **Stage 5.1 (Comic Chat) = filler, independent of every gate.** Read
+5. **Stage 5.1 (Comic Chat) = filler, independent of every gate.** Read
    `reference/comic-chat-paper.md` (SIGGRAPH '96 — balloon layout, character placement, gesture
    selection, camera zoom) alongside `original-projects/comic-chat/`. Remaining: **face/torso
    compositing** (`cx`/`cy`/`cxDelta`/`cyDelta`; selection in `GetHeadAndBodyFromEmotion`,
@@ -127,11 +121,18 @@ Engine 108 tests, IR 185.
   v0.6.6, breaks ten of eleven walkthroughs, because `truthy()` counts 0 as true and the `false`
   sentinel distinguishes absent from zero. The table also carries `strength`, a Zork property
   rather than a library one — the ADR 0002 seam this table already sits on.
-- **`I-SWORD` needs an IR answer, not an engine one.** It walks exits as numbered Z-machine
-  properties (`<NEXTP …>`); the IR models exits structurally, so the extractor cannot translate
-  it mechanically and the engine must not hard-code it (ADR 0002). Likely needs a small IR
-  behavior op for "rooms adjacent to here" — an IR schema decision, deliberately not taken
-  autonomously. Same shape as `I-CYCLOPS` (`<NTH …>`).
+- **`Room.adjacent` is derived data in a document that otherwise transcribes the source**
+  (ADR 0003) — the first such field, and the precedent should not be extended casually. It is
+  safe only because `validate.ts` re-derives it from `exits`; keep that check if the field
+  changes. Two traps: it means **declared, not reachable** (a shut door and a false condition are
+  in the list — it is not a pathfinding graph), and it assumes the **exit graph is static**,
+  which holds for Zork I but would fail *silently* for a game that opens a passage at runtime.
+  That game forces the general reflection op ADR 0003 rejected on cost.
+- **The exit-scan rewrite is the extractor's one non-mechanical transform.** It is fail-closed
+  and tested by perturbation, but it is a pattern match against one ZIL idiom: an unrelated
+  routine written in a *similar* shape would not match (correct), and a future edit that loosens
+  the match to catch more cases is how it would start producing wrong loops. Loosen it only with
+  a test that pins what it must still refuse.
 - **`state.parser` is deliberately outside the save contract.** Orphan questions and the "it"
   referent are mid-sentence scratch, not world state; `restore` clears them rather than
   reinstating a half-asked question.

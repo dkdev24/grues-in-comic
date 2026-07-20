@@ -35,7 +35,7 @@ import type {
   WorldDocument,
   WorldObject,
 } from "./schema.js";
-import { IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
+import { deriveAdjacent, IR_VERSION, SYNTAX_SEARCH_OPTIONS } from "./schema.js";
 import { extractBehavior, type CatalogEntry } from "./extract-behavior.js";
 
 // ---- minimal AST node model (importer artifact shape) ----
@@ -593,6 +593,9 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
   const globalRefs = new Set<string>();
   for (const form of roomForms) {
     const { room, globalRefs: g } = extractRoom(form);
+    // Derived field, emitted last so it always reflects the exits above it.
+    const adjacent = deriveAdjacent(room.exits);
+    if (adjacent.length > 0) room.adjacent = adjacent;
     rooms.push(room);
     for (const ref of g) globalRefs.add(ref);
   }

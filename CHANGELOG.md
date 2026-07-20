@@ -11,6 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.8.1] - 2026-07-20 — ADR 0003: Derived Adjacency
+
+`I-SWORD` extracts, and walkthrough 10 verifies strictly. It was the last M4 item ADR 0001 deferred without an answer.
+
+### Added
+- **`Room.adjacent`** — the ids a room declares a static exit to, derived at extraction time. `deriveAdjacent()` is the single definition: `extract-world` emits the field and `validate` **re-derives and compares** it, so a stale or hand-edited list fails validation instead of silently disagreeing with the exits beside it.
+- **The exit-scan rewrite** (`RoutineTransformer.exitScan`) — structurally matches the ZIL `NEXTP`/`GETPT`/`PTSIZE`/`GETB` idiom and emits an index walk over the adjacency list. Fail-closed: any clause that does not match falls back to the ordinary path and catalogs on `NEXTP`, so a near-miss costs extraction rather than producing a plausible loop over the wrong thing.
+- **ADR 0003** (`docs/adr/0003-adjacency-derivation.md`), with the rejected alternatives argued: a general `exits-of` reflection op, a quantifier op, an engine builtin, a villain-side threat field.
+- Direct verification of the glow at all three levels *and* the transitions between them (`engine/test/engine.test.ts`), plus perturbation tests for the rewrite's fallback (`ir/test/exit-scan.test.ts`).
+
+### Changed
+- The engine **materializes** adjacency as a `pure` `ltable` per room, reached through an ordinary property (`adjacentRooms`); it never computes it, so the document keeps owning the world model (ADR 0002).
+- **No new IR ops** — the rewrite is `prop`/`table-get`/`gt?`/`add`/`loop`/`break`, so ADR 0001's growth log is unchanged.
+- Walkthrough 10's `# parity:` line is gone. Two turns are still quarantined per-turn, now because the glow reports the *randomized fight's outcome* (the reference stuns the troll and it stays next door; our seed kills it) rather than because `I-SWORD` was missing.
+- The combat suite's legal-message set includes `I-SWORD`: killing the last villain in the room is what makes the glow change, so its line lands in combat turns.
+
+### Results
+- **360 routines extracted** (was 358), **28 catalogued** (was 29).
+- Parity **155/161, 143/143 strict** (was 117/117 — walkthrough 10 is no longer file-level informational); engine **110** tests, IR **193**.
+
+---
+
 ## [v0.8.0] - 2026-07-20 — `GO` as an Entry Ref
 
 Villain combat is whole, and the game's five daemons run for the first time.

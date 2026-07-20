@@ -15,6 +15,7 @@
 
 import {
   BEHAVIOR_PROPERTY_KEYS,
+  deriveAdjacent,
   DIRECTIONS,
   IR_VERSION,
   META_ENTITY_ROLES,
@@ -338,7 +339,8 @@ export function validateWorld(input: unknown): ValidationResult {
     const path = `rooms[${i}]`;
     if (!isObject(raw)) return ctx.fail(path, "must be an object");
     checkKeys(ctx, path, raw, [
-      "id", "name", "description", "exits", "flags", "action", "scenery", "pseudo", "score", "stub",
+      "id", "name", "description", "exits", "flags", "action", "scenery", "pseudo", "adjacent",
+      "score", "stub",
     ]);
     const id = reqString(ctx, path, raw, "id");
     reqString(ctx, path, raw, "name");
@@ -350,6 +352,7 @@ export function validateWorld(input: unknown): ValidationResult {
     if (action !== undefined) routineRefs.add(action);
 
     const seenDirs = new Set<string>();
+    const errorsBeforeExits = ctx.errors.length;
     reqArray(ctx, path, raw, "exits").forEach((exit, j) => {
       const exitPath = `${path}.exits[${j}]`;
       checkExit(exitPath, exit);
@@ -358,6 +361,30 @@ export function validateWorld(input: unknown): ValidationResult {
         seenDirs.add(exit.direction);
       }
     });
+
+    /*
+     * `adjacent` is derived from `exits` (ADR 0003), so it is re-derived here
+     * rather than merely type-checked: the risk with a denormalized field is
+     * not that it is malformed but that it quietly stops matching the data it
+     * was computed from. Destination ids need no separate resolution pass —
+     * every id in a correct list is an exit `to`, which `checkExit` already
+     * resolves. Only re-derive when the exits themselves validated, or one bad
+     * exit would report as an adjacency mismatch as well.
+     */
+    if (raw.adjacent !== undefined) {
+      const declared = optStringArray(ctx, path, raw, "adjacent");
+      const exits = raw.exits;
+      if (ctx.errors.length === errorsBeforeExits && Array.isArray(exits)) {
+        const expected = deriveAdjacent(exits as Parameters<typeof deriveAdjacent>[0]);
+        if (declared.join(" ") !== expected.join(" ")) {
+          ctx.fail(
+            `${path}.adjacent`,
+            `derived field disagrees with exits — expected [${expected.join(", ")}], ` +
+              `found [${declared.join(", ")}]. Regenerate with extract-world; do not hand-edit.`,
+          );
+        }
+      }
+    }
 
     for (const flag of reqStringArray(ctx, path, raw, "flags")) usedFlags.push({ path: `${path}.flags`, id: flag });
     for (const obj of optStringArray(ctx, path, raw, "scenery")) refs.push({ path: `${path}.scenery`, id: obj, kind: "scenery" });

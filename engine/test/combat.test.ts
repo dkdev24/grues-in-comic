@@ -75,6 +75,14 @@ const MELEE_TABLES = [
  * and humiliated, recovers his weapon.").
  */
 const COMBAT_ROUTINES = [
+  /*
+   * The sword daemon is not combat machinery, but its output lands in combat
+   * turns and always has: killing the last villain in the room is exactly what
+   * makes the glow change, so "Your sword is no longer glowing." follows the
+   * troll's death message on the same turn. It was invisible here only while
+   * I-SWORD sat in the complex-routine catalog (ADR 0003).
+   */
+  "I-SWORD",
   "HERO-BLOW",
   "VILLAIN-BLOW",
   "VILLAIN-RESULT",

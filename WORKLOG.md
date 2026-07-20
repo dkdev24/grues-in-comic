@@ -1068,3 +1068,74 @@ ones are kept at any length, because ZIL assembles a sentence from several TELLs
 
 M4 4.1–4.7 complete. `I-SWORD` is the last blocker on walkthrough 10 and needs an IR answer.
 The thief daemon is live but unverified — no walkthrough exercises a robbery.
+
+---
+
+## v0.8.1 — ADR 0003: Derived Adjacency, and the Sword Glows
+
+**Date:** 2026-07-20
+
+### Changes
+
+`I-SWORD` was the last blocker on walkthrough 10 and the last M4 item ADR 0001 had deferred
+without an answer. It needed an *IR* decision, not an engine one: the daemon walks a room's
+exits as numbered Z-machine properties (`NEXTP`, then `GETPT`/`PTSIZE`/`GETB` to read the
+destination out of byte 0), and the IR models exits structurally, so there was nothing for a
+mechanical extractor to translate.
+
+**ADR 0003** (`docs/adr/0003-adjacency-derivation.md`) resolves it in four parts, with the
+alternatives — a general `exits-of` reflection op, a quantifier op, an engine builtin, a
+villain-side threat field — recorded and argued rather than merely listed.
+
+- **`Room.adjacent` is derived at extraction time.** The ids a room declares a static exit to,
+  deduped, in exit order. `deriveAdjacent()` in `ir/src/schema.ts` is the single definition:
+  `extract-world` emits the field, `validate` **re-derives and compares** it, so a stale or
+  hand-edited list is a validation error rather than a silent divergence. This is the first
+  derived data in a document that otherwise transcribes the source, and the ADR says so.
+- **Declared, not reachable.** `to`/`conditional`/`door` are in (the IR spelling of
+  UEXIT/CEXIT/DEXIT); `blocked` and `routine` are out. A shut door and a false condition still
+  count, because the ZIL tests the exit's *shape* and never its state — so the field must not be
+  used for pathfinding or a map view, which is documented on the field itself.
+- **The engine materializes, it does not compute.** At load each list becomes a `pure` `ltable`
+  reachable as an ordinary room property (`adjacentRooms`). The document owns what is adjacent;
+  the engine owns only the runtime shape, which keeps ADR 0002's line intact.
+- **The extractor rewrites the idiom.** `RoutineTransformer.exitScan()` matches the ZIL shape
+  structurally and emits an index walk over `adjacentRooms`. The `LOW-DIRECTION` guard and the
+  `PTSIZE` test have no lowered form because `deriveAdjacent` already applied both.
+
+**The rewrite is the one place in the extractor where output is not a mechanical image of its
+input**, so it is fail-closed by construction: any clause that does not match returns
+`undefined`, the REPEAT takes the ordinary path, and the routine catalogs on `NEXTP`/`GETPT`
+exactly as before. A near-miss costs extraction; it cannot produce a plausible loop over the
+wrong thing. `ir/test/exit-scan.test.ts` proves that by perturbing single atoms inside the idiom
+(`LOW-DIRECTION` → an unknown name, `DEXIT` → `FEXIT`) and asserting the routine falls back.
+
+**No new IR ops.** The whole rewrite is `prop` / `table-get` / `gt?` / `add` / `loop` / `break`,
+so the behavior AST is unchanged and ADR 0001's growth log needs no entry. `adjacentRooms` joins
+`BEHAVIOR_PROPERTY_KEYS` as the only key there with no ZIL property atom behind it.
+
+**Two turns of walkthrough 10 are still quarantined, for a new reason.** The glow reports the
+*outcome* of the randomized fight: the reference knocks the troll unconscious, so it is still in
+the adjacent Troll Room ("faint blue glow", then nothing once the player leaves), while the
+engine's seed kills it outright. The directive was rewritten to say that instead of the old
+"I-SWORD is not extracted". The glow itself is verified directly in `engine/test/engine.test.ts`
+— all three levels *and* the transitions, since the ZIL only prints when the level changes and a
+scan returning a constant would still print once.
+
+`I-SWORD` also turned out to speak during combat: killing the last villain in the room is
+exactly what makes the glow change, so "Your sword is no longer glowing." now follows the
+troll's death on the same turn. The combat suite's legal-message set gained `I-SWORD` (derived
+from the IR, as the rest of that set is) rather than a hand-written line.
+
+### Results
+
+- 439 ROUTINE forms: **360 extracted** (was 358), **28 catalogued** (was 29).
+- **Walkthrough 10 verifies strictly.** Per-turn parity **143/143 strict** (was 117/117),
+  155/161 overall. All 11 walkthroughs pass.
+- Engine **110** tests, IR **193**.
+
+### Status
+
+M4 4.1–4.7 complete. The thief daemon is live but unverified — no walkthrough exercises a
+robbery — and `V-CLIMB-UP` is the last stub. `OTHER-SIDE` still catalogs on `NEXTP`: its shape
+is different (it needs the direction number and a door match) and ADR 0003 does not cover it.

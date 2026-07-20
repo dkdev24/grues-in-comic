@@ -222,6 +222,53 @@ describe("ZIL semantics that failed silently", () => {
   });
 });
 
+describe("the sword's glow (the ADR 0003 exit scan)", () => {
+  /*
+   * I-SWORD is the only routine that reads a room's *neighbours*, so it is the
+   * only behavioral check on the derived adjacency list and the rewrite that
+   * walks it. Walkthrough 10 cannot do this job: the glow reports whether a
+   * villain is in or next to the room, so its turns there depend on whether
+   * the randomized fight left the troll alive, and both of them are
+   * quarantined for exactly that reason.
+   *
+   * This route has no fight in it. The player picks up the sword and descends
+   * to the Cellar with the troll untouched next door, which pins all three
+   * levels and, more importantly, the transitions between them — the ZIL only
+   * prints when the level *changes*, so a scan that returned a constant would
+   * still print once and could pass a weaker check.
+   */
+  const DESCEND = [
+    "north", "east", "open window", "enter house", "west",
+    "take lamp", "take sword", "move rug", "open trap door", "turn on lamp",
+  ];
+
+  const glow = (input: string): string =>
+    text(say(input)).split("\n").find((line) => /glow/i.test(line)) ?? "";
+
+  it("reports a villain next door, in the room, and gone", () => {
+    engine.start();
+    for (const command of DESCEND) say(command);
+
+    // Cellar: the troll is in the adjacent Troll Room, not this one.
+    expect(glow("down")).toMatch(/faint blue glow/);
+    // The Troll Room itself — INFESTED? answers about HERE, before any scan.
+    expect(glow("north")).toMatch(/begun to glow very brightly/);
+    // Back to merely adjacent: the level drops, so the faint message reprints.
+    expect(glow("south")).toMatch(/faint blue glow/);
+    // East of Chasm neighbours the Cellar but not the Troll Room.
+    expect(glow("south")).toMatch(/no longer glowing/);
+  });
+
+  it("says nothing on a turn that does not change the level", () => {
+    // The guard against a scan that reports every turn: two turns in a row at
+    // the same glow level must produce one message, not two.
+    engine.start();
+    for (const command of DESCEND) say(command);
+    expect(glow("down")).toMatch(/faint blue glow/);
+    expect(glow("look")).toBe("");
+  });
+});
+
 describe("multiple objects (ZIL's MANY option)", () => {
   it("takes everything loose in the room, naming each result", () => {
     engine = createEngine(doc, { seed: 1, start: "KITCHEN" });

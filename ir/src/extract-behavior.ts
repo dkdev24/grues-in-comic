@@ -259,6 +259,12 @@ class RoutineTransformer {
   private defaults = new Map<string, Expr>();
   /** Nesting depth of REPEAT/PROG containers (RETURN/AGAIN target scope). */
   private loopDepth = 0;
+  /**
+   * Set only while transforming the body of a matched exit scan
+   * ({@link exitScan}): the ZIL local holding the property pointer, and the
+   * expression that replaces reading a destination room out of it.
+   */
+  private exitScanPointer: { local: string; destination: Expr } | undefined;
 
   constructor(
     private sources: BehaviorSources,
@@ -443,6 +449,7 @@ class RoutineTransformer {
         if (this.loopDepth === 0) this.deny("AGAIN outside a REPEAT/PROG");
         return { op: "continue" };
       case "REPEAT":
+        return this.exitScan(rest) ?? this.container(head, rest);
       case "PROG":
         return this.container(head, rest);
       default:
@@ -677,6 +684,26 @@ class RoutineTransformer {
           offset: { op: "const", value: n / 2 },
         };
       }
+      /*
+       * `<GETB .T 0>` reads the destination room out of an exit's property
+       * bytes. It is meaningful only inside a matched exit scan, where the
+       * rewrite supplies the destination directly (ADR 0003); anywhere else
+       * GETB stays denied byte addressing, via DENIED_OPERATORS below.
+       */
+      case "GETB": {
+        const scan = this.exitScanPointer;
+        const offset = rest[1];
+        if (
+          scan !== undefined &&
+          localName(rest[0]) === scan.local &&
+          offset?.type === "Number" &&
+          offset.value === 0
+        ) {
+          return scan.destination;
+        }
+        this.deny("operator GETB outside an exit scan");
+        break;
+      }
       case "PUTP":
       case "PUT":
         this.deny(`operator ${head} in expression position`);
@@ -751,6 +778,137 @@ class RoutineTransformer {
       const body = rest.slice(1).map((n) => this.stmt(n));
       return { op: head === "REPEAT" ? "loop" : "block", body };
     } finally {
+      this.loopDepth--;
+    }
+  }
+
+  /**
+   * The ZIL **exit-scan idiom**, rewritten onto the room's derived adjacency
+   * list (ADR 0003).
+   *
+   * ZIL walks a room's exits as numbered Z-machine properties and inspects
+   * their byte layout to find the ones that carry a destination:
+   *
+   * ```
+   * <SET P 0>
+   * <REPEAT ()
+   *   <COND (<0? <SET P <NEXTP ,HERE .P>>> <RETURN>)
+   *         (<NOT <L? .P ,LOW-DIRECTION>>
+   *          <SET T <GETPT ,HERE .P>>
+   *          <SET L <PTSIZE .T>>
+   *          <COND (<EQUAL? .L ,UEXIT ,CEXIT ,DEXIT>
+   *                 …body using <GETB .T 0> as the destination room…)>)>>
+   * ```
+   *
+   * None of that survives into the IR, which models exits structurally: there
+   * is no property number to iterate and no byte 0 to read. So this is a
+   * **rewrite, not a translation** — the one place in this extractor where
+   * output is not a mechanical image of its input, and it is deliberately
+   * scoped to a single idiom.
+   *
+   * The safety property is the same all-or-nothing rule the rest of the file
+   * obeys: every clause below must match, or the method returns `undefined`
+   * and the REPEAT takes the ordinary path — which denies on `NEXTP`/`GETPT`
+   * and catalogues the routine, exactly as before. A near-miss can therefore
+   * only ever cost extraction, never produce a plausible-looking wrong loop.
+   *
+   * The lowering iterates the adjacency ltable by index, reusing the scan's
+   * own loop variable so `<SET P 0>` before the REPEAT still initializes it:
+   *
+   * ```
+   * loop [ P = P + 1
+   *        cond [ (P > count(adjacent)) → break
+   *               (else) → …body, destination = adjacent[P]… ] ]
+   * ```
+   *
+   * The `LOW-DIRECTION` guard and the UEXIT/CEXIT/DEXIT size test have no
+   * lowered form because {@link deriveAdjacent} already applied both when it
+   * built the list: it keeps exactly the direction properties whose exits
+   * carry a static destination. Dropping them here is what makes the two
+   * halves of ADR 0003 one decision rather than two.
+   */
+  private exitScan(rest: AstNode[]): Stmt | undefined {
+    const bindings = rest[0];
+    if (bindings?.type !== "List" || meaningful(bindings.elements ?? []).length > 0) return undefined;
+    const body = rest.slice(1);
+    if (body.length !== 1) return undefined;
+    const outer = formParts(body[0], "COND");
+    if (outer?.length !== 2) return undefined;
+
+    // Clause 1: `(<0? <SET P <NEXTP ROOM .P>>> <RETURN>)` — exhaustion.
+    const [term, scan] = [clauseParts(outer[0]), clauseParts(outer[1])];
+    if (term === undefined || scan === undefined) return undefined;
+    if (term.body.length !== 1 || formParts(term.body[0], "RETURN")?.length !== 0) return undefined;
+    const zero = formParts(term.when, "0?");
+    const setP = zero?.length === 1 ? formParts(zero[0], "SET") : undefined;
+    if (setP?.length !== 2) return undefined;
+    const index = atomName(setP[0]);
+    const nextp = formParts(setP[1], "NEXTP");
+    if (index === undefined || nextp?.length !== 2) return undefined;
+    if (localName(nextp[1]) !== index) return undefined;
+    const roomNode = nextp[0]!;
+
+    // Clause 2: the `LOW-DIRECTION` guard, then the property-layout probe.
+    const guard = formParts(scan.when, "NOT");
+    const less = guard?.length === 1 ? formParts(guard[0], "L?") : undefined;
+    if (less?.length !== 2) return undefined;
+    if (localName(less[0]) !== index || globalName(less[1]) !== "LOW-DIRECTION") return undefined;
+
+    if (scan.body.length !== 3) return undefined;
+    const setT = formParts(scan.body[0], "SET");
+    const getpt = setT?.length === 2 ? formParts(setT[1], "GETPT") : undefined;
+    const pointer = atomName(setT?.[0]);
+    if (pointer === undefined || getpt?.length !== 2) return undefined;
+    if (!sameNode(getpt[0]!, roomNode) || localName(getpt[1]) !== index) return undefined;
+
+    const setL = formParts(scan.body[1], "SET");
+    const ptsize = setL?.length === 2 ? formParts(setL[1], "PTSIZE") : undefined;
+    const size = atomName(setL?.[0]);
+    if (size === undefined || ptsize?.length !== 1 || localName(ptsize[0]) !== pointer) return undefined;
+
+    // The size test, whose body is the part that survives.
+    const sizeCond = formParts(scan.body[2], "COND");
+    const kept = sizeCond?.length === 1 ? clauseParts(sizeCond[0]) : undefined;
+    if (kept === undefined) return undefined;
+    const equal = formParts(kept.when, "EQUAL?");
+    if (equal?.length !== 4 || localName(equal[0]) !== size) return undefined;
+    const kinds = equal.slice(1).map((k) => globalName(k));
+    if (kinds.join(",") !== "UEXIT,CEXIT,DEXIT") return undefined;
+
+    // Matched. Everything below produces the rewrite.
+    const room = this.expr(roomNode);
+    const table: Expr = { op: "prop", entity: room, prop: "adjacentRooms" };
+    const destination: Expr = { op: "table-get", table, index: { op: "local", id: index } };
+
+    this.loopDepth++;
+    this.exitScanPointer = { local: pointer, destination };
+    try {
+      return {
+        op: "loop",
+        body: [
+          {
+            op: "set-local",
+            id: index,
+            value: { op: "add", a: { op: "local", id: index }, b: { op: "const", value: 1 } },
+          },
+          {
+            op: "cond",
+            clauses: [
+              {
+                when: {
+                  op: "gt?",
+                  a: { op: "local", id: index },
+                  b: { op: "table-get", table, index: { op: "const", value: 0 } },
+                },
+                do: [{ op: "break", value: FALSE }],
+              },
+              { when: TRUE, do: kept.body.map((n) => this.stmt(n)) },
+            ],
+          },
+        ],
+      };
+    } finally {
+      this.exitScanPointer = undefined;
       this.loopDepth--;
     }
   }
@@ -939,4 +1097,54 @@ function meaningful(elements: AstNode[]): AstNode[] {
 
 function atomName(node: AstNode | undefined): string | undefined {
   return node?.type === "Atom" ? node.name : undefined;
+}
+
+// ---- shape matchers for the exit-scan rewrite (ADR 0003) ----
+//
+// Deliberately total and undefined-returning rather than denying: a failed
+// match must fall back to ordinary transformation, not abort the routine.
+
+/** A `<HEAD …>` form's arguments, or undefined if the node is not one. */
+function formParts(node: AstNode | undefined, head: string): AstNode[] | undefined {
+  if (node?.type !== "Form") return undefined;
+  const parts = meaningful(node.elements ?? []);
+  if (atomName(parts[0]) !== head) return undefined;
+  return parts.slice(1);
+}
+
+/** A COND clause `(predicate body…)` split into its two halves. */
+function clauseParts(node: AstNode | undefined): { when: AstNode; body: AstNode[] } | undefined {
+  if (node?.type !== "List") return undefined;
+  const parts = meaningful(node.elements ?? []);
+  if (parts.length === 0) return undefined;
+  return { when: parts[0]!, body: parts.slice(1) };
+}
+
+/** The name in a `.LOCAL` reference. */
+function localName(node: AstNode | undefined): string | undefined {
+  return node?.type === "LVal" ? atomName(node.value as AstNode) : undefined;
+}
+
+/** The name in a `,GLOBAL` reference. */
+function globalName(node: AstNode | undefined): string | undefined {
+  return node?.type === "GVal" ? atomName(node.value as AstNode) : undefined;
+}
+
+/**
+ * Whether two nodes name the same thing — enough to confirm the NEXTP and
+ * GETPT calls in a scan walk the *same* room, which is the one identity the
+ * rewrite depends on. Compares only the reference forms a room operand can
+ * take (`,HERE`, `.RM`, a bare atom); anything else fails closed.
+ */
+function sameNode(a: AstNode, b: AstNode): boolean {
+  const key = (n: AstNode): string | undefined => {
+    const g = globalName(n);
+    if (g !== undefined) return `,${g}`;
+    const l = localName(n);
+    if (l !== undefined) return `.${l}`;
+    const atom = atomName(n);
+    return atom === undefined ? undefined : atom;
+  };
+  const ka = key(a);
+  return ka !== undefined && ka === key(b);
 }

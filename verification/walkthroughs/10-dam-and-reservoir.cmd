@@ -1,23 +1,14 @@
 # Flood Control Dam #3: the bubble, the yellow button, the bolt, the sluice gates.
 #
-# parity: informational
-# reason: I-SWORD is not extracted, so the sword never reports its glow. Four
-# turns carry a "Your sword is glowing/has begun to glow/is no longer glowing"
-# sentence the engine omits; the rest of the walkthrough, the whole dam
-# sequence included, matches.
+# This walkthrough verifies strictly. It was informational until ADR 0003
+# landed: I-SWORD was the last blocker, and the four turns that carry a "Your
+# sword is glowing / has begun to glow / is no longer glowing" sentence were the
+# only diffs left once combat started working.
 #
-# Combat *was* the blocker here and no longer is: the troll now dies, the player
-# reaches the dam, and the walkthrough went from stuck-at-turn-13 to 24/28. What
-# is left is a single unextracted daemon, which needs an IR answer rather than
-# an engine one — I-SWORD walks exits as numbered Z-machine properties
-# (`<NEXTP …>`), and the IR models exits structurally (see HANDOFF, Open Issues).
-#
-# This is "fails to verify", not "cannot verify", and it is marked informational
-# only so a known-missing routine does not sit red in the suite. It is NOT a
-# limit of the method: the moment I-SWORD lands, delete the `# parity:` line
-# above and this walkthrough verifies strictly — the four fight turns below stay
-# quarantined, because their *text* is a random draw even when the outcome is
-# right (verified instead by membership, in engine/test/combat.test.ts).
+# The fight turns below stay quarantined per-turn, because their *text* is a
+# random draw even when the outcome is right (verified instead by membership,
+# in engine/test/combat.test.ts) — and so do the two turns after them, which
+# read the fight's *outcome* back out through the sword's glow.
 north
 east
 open window
@@ -35,9 +26,10 @@ kill troll with sword
 kill troll with sword
 kill troll with sword
 kill troll with sword
-# strict:
+# informational: the sword's glow reports whether a villain is in or next to the room, so these two turns inherit the fight's randomness — the reference knocked the troll unconscious and it is still in the adjacent Troll Room ("faint blue glow", then no glow once the player leaves), while this run killed it outright. The glow itself is verified directly in engine/test/engine.test.ts.
 east
 down
+# strict:
 northeast
 east
 examine bubble

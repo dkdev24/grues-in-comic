@@ -52,6 +52,16 @@ export interface LoadedWorld {
   state: GameState;
 }
 
+/**
+ * Table id for a room's adjacency projection. Behavior never names it — it
+ * reaches the table through the room's `adjacentRooms` property — so the id
+ * only has to avoid colliding with a document table, which the `%` prefix
+ * ensures: ZIL atoms cannot contain one, so no extracted id can look like it.
+ */
+function adjacencyTableId(roomId: string): string {
+  return `%ADJACENT-${roomId}`;
+}
+
 export function loadWorld(doc: WorldDocument, options: LoadOptions = {}): LoadedWorld {
   const world = indexWorld(doc);
 
@@ -103,6 +113,28 @@ export function loadWorld(doc: WorldDocument, options: LoadOptions = {}): Loaded
     const props: Record<string, BehaviorValue> = {};
     if (room.action !== undefined) props["action"] = room.action;
     if (room.description !== undefined) props["description"] = room.description;
+    /*
+     * The room's derived adjacency list (ADR 0003), materialized as an
+     * `ltable` and handed to behavior as an ordinary property, so the exit
+     * scan I-SWORD performs is an ordinary table walk — `prop` then
+     * `table-get` — with no IR op and no engine builtin behind it. The IR
+     * document owns *what* is adjacent; the engine only chooses the runtime
+     * representation, which keeps ADR 0002's line intact.
+     *
+     * `pure`: nothing may write it. It is a projection of the document, not
+     * game state, and a write would desynchronize it from `room.adjacent`
+     * with no way to notice.
+     *
+     * Materialized for *every* room, including the ones with no static exit
+     * at all: the property has to answer with an empty table rather than the
+     * `false` an absent property yields, or a scan starting in such a room
+     * would read a table out of a boolean instead of finding nothing.
+     */
+    {
+      const id = adjacencyTableId(room.id);
+      state.tables[id] = { kind: "ltable", elements: [...(room.adjacent ?? [])], pure: true };
+      props["adjacentRooms"] = id;
+    }
     state.properties[room.id] = props;
 
     if (roomsContainer !== undefined) link(state, room.id, roomsContainer);
