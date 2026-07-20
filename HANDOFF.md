@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.4.1**
+**1.5.0**
 
 ---
 
@@ -40,21 +40,39 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   **panel grammar ✅ (v1.2.0)** — `docs/adr/0004-presentation-mapping.md` Accepted ·
   **5.2 ✅ (v1.3.0)** — `web/`, the browser shell · **5.3 ✅ (v1.4.0)** — the comic renderer;
   every turn draws a Comic Chat panel beside the transcript, 50 web tests ·
-  **masked-mono polarity fixed (v1.4.1)** — every figure had shipped inverted.
+  **masked-mono polarity fixed (v1.4.1)** — every figure had shipped inverted ·
+  **5.4 in progress (v1.5.0)** — room→backdrop assignment and session persistence; 67 web tests.
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
 
 ---
 
-## Last Session — masked-mono polarity (v1.4.1)
+## Last Session — stage 5.4 part 1 (v1.5.0)
 
-**Every masked-mono figure had shipped inverted** — white linework on black silhouettes,
-whole corpus. Reported from *looking at the running site*, which is the point below. Full
-narrative in `WORKLOG.md` v1.4.1; the 5.3 narrative it replaces is v1.4.0.
+**Backdrop assignment and session persistence**, plus three scroll defects found by driving the
+site with Playwright. Full narrative in `WORKLOG.md` v1.5.0; the v1.4.1 narrative it replaces is
+already there.
 
-**The header comment is wrong, and `raster.ts` implemented it faithfully.** `avbfile.h:93`
-says the 2bpp codes are `00` blank, `01` aura, `10` black, `11` white.
-`CPose::ConvertMasksCommon` (`avbfile.cpp:1636`) is what actually ran, and it says `10` is
-**paper** and `11` is **ink**. One constant: `MASKEDMONO_INK` was `2`, is now `3`.
+Carried forward as the things most likely to be got wrong next:
+
+- **`Turn` is not JSON-safe, and looked like it was.** `EventMix.counts` is a `Map`, and
+  `JSON.stringify` writes a `Map` as `{}` — no error, no warning, nothing failing until a resumed
+  turn reached the inspector and called `.get` on a plain object. The suite was green; the page
+  was broken. **Persistence recomputes `mix` rather than storing it**, and the general form is
+  worth holding onto: *derived state must not be persisted*, and a `Map` or `Set` anywhere in a
+  persisted type is a silent data-loss bug waiting for a reload.
+- **The v1.4.1 lesson recurred twice in one session, both times in the same shape.** The 5.3
+  backdrop stub always returned *a* backdrop, so a dead branch and a mis-assigned room were both
+  invisible; `scrollIntoView` always scrolled, so a 9.6px shortfall was invisible. **A total
+  function with a wrong answer is the failure mode this codebase keeps producing** — assert the
+  answer, never that an answer happened.
+- **Everything real this session was found by looking at the running page**, not by tests. Three
+  scroll defects, one dead backdrop branch, one `Map` round-trip. Keep Playwright in the loop.
+- **Backdrop scarcity was mis-scoped as 5.4's constraint** and is 5.5's; see Open Issues. The
+  general point: *the exit criterion bounds the constraint*. "Opening area playable" needs 13
+  rooms, not 110, and nobody had counted.
+- **Resume replays turns, it does not re-execute them.** `SaveState` stays the only source of
+  world truth; the replayed turns are rendering. If a future change makes `play()` mutate engine
+  state, resume silently double-applies it.
 
 Carried forward as the things most likely to be got wrong next:
 
@@ -98,19 +116,38 @@ Also fixed: `web/tools/serve.ts` printed a raw unhandled `'error'` stack on `EAD
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared).** Nothing is blocked; **5.4 is
-next by the plan**, and it can now be planned in detail.
+**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared). 5.4 in progress** — **backdrop
+assignment ✅** and **persistence ✅** (v1.5.0). **Panel sequencing** and **portraits** are open and
+unblocked; **narration styling is blocked on a contract question**, below.
+
+0. **Narration styling needs a decision before it needs code.** The transcript renders room name
+   and room description as one undifferentiated `prose` block, because **`room-title` never
+   arrives**: `NarrationChannel` declares `room-title | prose | system`, `builtins.ts:440` emits
+   the title on its own channel, but that engine-side `describeRoom` is not what runs — Zork's own
+   `DESCRIBE-ROOM` from the world document does, and it prints the name inside a `prose` line.
+   **`.line.room-title` in `style.css` is therefore dead CSS**, exactly as the `field` backdrop was
+   dead code, and `web/src/status.ts` already documents the workaround it forced.
+   The shell cannot fix this alone: styling by parsing narration is what ADR 0002 exists to
+   prevent, and there is no regex over narration anywhere in the pane today. **So it is an engine
+   change** — make the ZIL `DESCRIBE-ROOM` path emit `room-title` — **and the risk is parity**:
+   splitting one narration event into two changes the event stream that 143/143 strict turns are
+   measured against. Check whether the harness compares events or concatenated text before
+   estimating this. **Recommendation: do it, and do it before more panes depend on the workaround**
+   — `system` is unemitted for the same reason and will need the same fix.
 
 1. **Stage 5.4 — presentation buildout: panel sequencing, portraits, narration styling,
-   persistence.** Exit criterion is the opening area playable in comic form. What 5.3 leaves it:
+   persistence.** Exit criterion is the opening area playable in comic form. What is left and what
+   5.3 leaves it:
+   - **Done at v1.5.0:** room→backdrop assignment (`web/src/comic/backdrop.ts`, a table, not a
+     regex) and session persistence (`web/src/persistence.ts`, autosave + resume by replaying
+     `Turn[]` through `play()`).
+   - **Still open:** panel sequencing, character portraits, narration styling (item 0).
    - **The mapper and the renderer are the seam.** Add framing and sequencing in `render.ts` and
      `comic-view.ts`; changing what a *shot means* is a `mapper.ts` change and an ADR question.
-   - **The three authoring items 5.3 stubbed**, each marked at its call site: the **Guide's
-     identity and voice** (`GUIDE_SCRIPT` in `comic-view.ts` is six placeholder lines proving the
-     mechanism, plus a cooldown the ADR deliberately does not set), **room → backdrop**
-     (a regex stub against a known-open M5 question), and **`SHOTS`** in `render.ts`.
-   - **Backdrop scarcity is now the binding constraint** — 3 backdrops, 110 rooms — and it is the
-     M5 decision most likely to gate "the opening area playable in comic form". See Open Issues.
+   - **Two authoring items 5.3 stubbed are still stubs**, each marked at its call site: the
+     **Guide's identity and voice** (`GUIDE_SCRIPT` in `comic-view.ts` is six placeholder lines
+     proving the mechanism, plus a cooldown the ADR deliberately does not set) and **`SHOTS`** in
+     `render.ts`. The third, **room → backdrop**, is resolved (v1.5.0).
    - **Page composition and PDF export are §5**, and deliberately not WYSIWYG: once panel width is
      a function of the viewport, a WYSIWYG export would have to pick one reader's window to be
      canonical. Expect that to read as a bug to someone; it is the decision.
@@ -231,10 +268,14 @@ sat unread for two sessions before it settled the balloon class.
   alone is not evidence of anything but legality.
 
 **Project / M5**
-- **Backdrops are now the binding constraint on 5.4.** 5.3 proved the renderer can place one and
-  ships a regex stub for room → backdrop; "the opening area playable in comic form" is the point
-  at which three backdrops for 110 rooms stops being deferrable. Options were sketched below and
-  remain undecided.
+- **Backdrops ✅ decided — three for the MVP, AI-generated ones considered after.** They are
+  **not** the binding constraint on 5.4 after all: the opening area is 12 outdoor rooms plus the
+  house interiors, and the three shipped backdrops cover it. The scarcity gates **5.5**
+  (full-game), not 5.4. `web/src/comic/backdrop.ts` now assigns rooms by table, not regex.
+  **The live risk is `room8bs.bmp`'s content, not the count.** It is a *conservatory* — glass
+  dome, planter, topiary — which is honest for Kitchen and will read badly as Cellar, Maze or
+  Temple, where ~89 of the 110 rooms live. That is what the post-MVP art has to fix, and it is
+  the reason "one generic interior" is not a durable answer.
 - **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run
   pack`; the cast is pinned in that script, so a recast is a one-line change plus a re-pack.
   **Re-pack after any `art/` decode change** — v1.4.1 fixed the decoder and the committed sheets
@@ -250,10 +291,14 @@ sat unread for two sessions before it settled the balloon class.
   run does not pick up. Not a regression and not new; use `npm --prefix <pkg> test`.
 - Neutral branding for commercial assets (engine/IR/importer).
 - Repo is prepared for public release but not yet public; nothing blocks it.
-- **Backdrop scarcity**: 3 shipped Comic Chat backdrops vs. 110 Zork rooms, and no `AT_BACKDROP`
-  assets exist. Options sketched but undecided — panel compositions that avoid backdrops,
-  deriving variants from the three originals, or new art in the Woodring hatch idiom for the ~10
-  rooms that carry the game. M5 decision.
+- **Backdrop scarcity ✅ decided (MVP: ship the three).** 3 shipped Comic Chat backdrops vs. 110
+  Zork rooms, no `AT_BACKDROP` assets. **Ship the three for the MVP; revisit with AI-generated
+  backdrops afterwards.** The options sketched earlier — compositions that avoid backdrops,
+  deriving variants from the three originals, new art in the Woodring hatch idiom for the ~10
+  rooms that carry the game — stay on the table for that pass. Whatever generates them **must
+  match the Woodring hatch idiom and the 1-bit polarity the decoder now produces**, and per the
+  `art/` item above it needs a pinned assertion of its own: nothing in the suite would notice a
+  backdrop that is merely plausible.
 - **Sprite-sheet packing ✅ decided at 5.3** — one sheet per avatar, **parts not figures**, figure
   and aura as paired sub-rects. `art/tools/avbdump.ts` remains the *inspection* tool;
   `art/tools/avbpack.ts` is the build. Rationale is on `art/src/cast-manifest.ts`.

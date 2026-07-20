@@ -1809,3 +1809,86 @@ test rather than to a grammar rule.
 ### Status
 
 **Stage 5.3 ✅ still; a defect in it fixed.** 5.4 remains next.
+
+---
+
+## v1.5.0 — 2026-07-21 — Stage 5.4 (part 1): backdrop assignment and session persistence
+
+Two units of stage 5.4, plus three shell defects found by driving the running site with
+Playwright rather than by reading it.
+
+### Visual defects, found by looking
+
+The session opened by hunting visual glitches in the browser. Three were real, and each had
+been invisible to a passing suite:
+
+- **The transcript lost its scroll position on resize.** `scrollToEnd()` ran only on append, so
+  a viewport change re-flowed the pane and left the newest narration off-screen until the next
+  command — at 390px the status line read "Behind House, Moves: 5" above the opening room
+  description. Fixed with a `ResizeObserver`.
+- **The comic strip did the same thing, worse**, because its `ResizeObserver` already existed and
+  only redrew: a redraw re-heights every panel, so the held scroll position drifted **99px** off
+  the bottom and clipped the newest panel.
+- **`scrollIntoView({ block: "end" })` aligns to the container's *content* edge**, which stops
+  short of the strip's own `padding-bottom`. The newest panel sat flush against the pane while
+  every earlier panel kept its 9.6px gap. Scrolling the strip itself fixes it.
+
+Both panes now track a `pinned` flag from their own scroll events, so a reader who has scrolled
+back into history is not yanked forward by a resize.
+
+### Room → backdrop is a table, not a regex
+
+The 5.3 stub tested `/…|HOUSE|…/` **before** `/^(WEST|NORTH|SOUTH|EAST)-OF-HOUSE$/`, so all four
+house rooms took the first branch and **the `field` backdrop never drew**. `UP-A-TREE` matched
+nothing and rendered as a cellar interior. Neither could fail a test, because the stub always
+returned *some* backdrop — the same shape as the v1.4.1 polarity bug, where the right structure
+hid the wrong content.
+
+`web/src/comic/backdrop.ts` replaces it with an explicit table, **inverted on purpose**: it names
+the 18 outdoor rooms and everything else falls through to `room`, because Zork is mostly indoors,
+so a room missing from the table gets a plausible backdrop rather than a wrong one. All 18 ids are
+asserted present in `zork1.world.json`, so a typo is a test failure rather than a silent interior.
+
+**Verified by reverting to the stub** (the standing rule): 3 of the 6 tests fail, including the
+exact `expected 'pastoral' to be 'field'`.
+
+### Backdrop scarcity ✅ decided — and it was never 5.4's constraint
+
+HANDOFF called three backdrops for 110 rooms the binding constraint on 5.4. Measured, it is not:
+the opening area is **12 outdoor rooms plus the house interiors**, which the three shipped
+backdrops cover. Scarcity gates **5.5**, not 5.4.
+
+**Decision: ship the three for the MVP, revisit with AI-generated backdrops after.** The live risk
+is not the count but `room8bs.bmp`'s *content* — it is a conservatory (glass dome, planter,
+topiary), honest for Kitchen and wrong for the ~89 rooms that are cellar, maze and temple.
+
+### Persistence: the turn history is what gets saved
+
+A reload lost the game entirely; `save`/`restore` existed but wrote state only, and
+`Engine.restore` emits no events by design — so a state-only resume returns a correct world and
+two empty panes.
+
+`web/src/persistence.ts` persists **`Turn[]`**, not rendered output. Resume replays the same
+`play()` the live game uses, so both panes rebuild through the code path they already have, and a
+renderer change applies retroactively to saved games instead of conflicting with them. The strip
+reproduces exactly: panels are a pure function of the turn sequence and the pose round-robin is
+deterministic when replayed from the start.
+
+**`mix` is not persisted, and that was a bug first.** `EventMix.counts` is a `Map`;
+`JSON.stringify` writes a `Map` as `{}`, silently, with nothing failing until a resumed turn
+reached the inspector and called `.get` on a plain object. Found by reloading the page — the suite
+was green. `mix` is a fold over `events`, so `read()` recomputes it through a fresh tracker.
+
+Autosave stops at the first refusal rather than throwing once per turn, and reports why once.
+Every unreadable payload resolves to "no saved game" **and clears the slot**: an autosave that
+throws on boot would make the game unstartable with no in-game way to recover.
+
+### State at the milestone
+
+- `web/`: **67 tests** (was 50) — `backdrop.test.ts` 6, `persistence.test.ts` 11.
+- **Engine and IR untouched.** Parity unchanged at 143/143 strict turns, 155/161 overall.
+
+### Status
+
+**Stage 5.4 in progress.** Backdrop assignment and persistence done; panel sequencing, portraits
+and narration styling remain. Narration styling is blocked on a contract question — see HANDOFF.
