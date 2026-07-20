@@ -43,6 +43,8 @@ Two documents maintain cross-session state. Read them at the start of every sess
 - Contains: current version, project status, last session summary, next actions, open issues, key paths.
 - **Read at the start of every session.**
 - **Update at the end of every session.** Replace the Last Session and Next Actions sections. Append to Open Issues as needed.
+- **Keep only what the next session needs.** This file is read in full at every session start, so its length is a recurring cost. Completed session narrative belongs in `WORKLOG.md` and must not be duplicated here — **do not accumulate a "Prior Session" stack.** Before writing the new Last Session, move the outgoing one to the WORKLOG if it is not already there, then delete it.
+- Revise stale claims rather than appending around them: figures, stage status, and "next step" items go out of date silently.
 
 ### WORKLOG.md
 

@@ -519,6 +519,30 @@ Remaining catalog is Group A engine builtins by design plus the one-off tail (`N
 
 ---
 
+## v0.5.17 — Licensing, Provenance, Public-Repo Prep
+
+**Date:** 2026-07-19
+
+*Backfilled in v0.6.8: this entry lived only in HANDOFF.md and was never written to the WORKLOG.*
+
+### Changes
+
+Documentation and repo hygiene only. No engine, IR, or artifact changes. Triggered by a question about whether ZILF/ZLR make this project redundant — they do not, and the reasoning is now written down instead of being tribal knowledge.
+
+- **ADR 0002 gained an "Alternatives Considered" section.** The ADR argued TypeScript vs. C++/WASM but never recorded why an engine is written at all rather than reusing an interpreter. A compiled story file is an opaque memory image; `speech.speaker` and `player-moved` room ids are recoverable from the IR and not from `zork1.z3`. **The Z-Machine Standards Document 1.1 is now the normative source for M4 Group A builtin semantics** — read `reference/z-machine-standards-1.1.md`, not an interpreter's source.
+- **ZLR ships no license** (verified: no LICENSE/COPYING, no headers in `ZLR.VM/*.cs`; the Gargoyle licenses in the tree cover a vendored dependency). Default copyright applies — stricter than GPL. Last-resort reference only; if consulted, describe observed *behavior*, not implementation, and record it in ADR 0002.
+- **Build tools attributed**: ZILF/ZAPF 0.11.1 (GPL-3.0), Frotz 2.55 (GPL-2.0-or-later) in `NOTICE` + `THIRD_PARTY.md`. Invoked as external executables — not vendored, so no copyleft reach into Apache-2.0 source. Both upstream imports verified to carry genuine Microsoft MIT grants.
+- **`reference/`** created and gitignored: Z-Machine Standard, Comic Chat paper (moved from `docs/`), ZILF/ZLR sources. See `reference/README.md` — it warns that `reference/zilf/AGENTS.md` is ZILF's own agent guide and has **no authority here**.
+- **299 Comic Chat build outputs untracked** (~33 MB: `.exe`/`.dll`/`.ocx`/`.lib`/`.class`/`.map`/`.sym`, plus a vendored Sun JDK). Source, docs, and 661 comic art files kept — the `.avb` art is an M5 input. `original-projects/zork1/` untouched.
+- **`original-projects/` stays version-controlled** — MIT permits redistribution, `AGENTS.md` requires it, and `importer/`/`ir/`/`verification/` read from it. Gitignoring it was considered and rejected.
+- Commit authorship moved to `11153426+dkdev24@users.noreply.github.com`; history rewritten.
+
+### Status
+
+Repo prepared for public release but not made public. Nothing further blocks it.
+
+---
+
 ## v0.5.18 — Project Scope, Trademark Notices, `.avb` Format (Milestone 5, stage 5.1 partial)
 
 **Date:** 2026-07-20
@@ -764,3 +788,113 @@ Per HANDOFF (stage 0.2), the shipped Release 119 story file is the ground truth,
 ### Status
 
 Stage 4.5 substantially advanced. Remaining: death and resurrection, the thief's robbery pass, and combat — all three gated on the RNG decision, which remains the one thing standing between the project and an honest Gate C.
+
+---
+
+## v0.6.6 — Engine Core: Orphan Questions, Pronouns, Compound Sentences (Milestone 4, stage 4.6)
+
+**Date:** 2026-07-20
+
+### Result
+
+Walkthrough `11-parser-edges` replays with zero diff. 99 engine tests, IR 184/184.
+
+The session began by auditing an interrupted one. The working tree held no modified files — only two uncaptured walkthrough/golden pairs. Walkthrough 10 was a **bad capture** (it never reached the dam, dying to the troll at turn 19, so every diff in it was combat noise); walkthrough 11 was a clean spec for four real parser gaps.
+
+### The four gaps
+
+- **Compound sentences.** One line may hold several commands, each its own turn: "TAKE THE LEAFLET AND READ IT" costs two moves, "TAKE LEAFLET AND MAILBOX" costs one. The only discriminator is whether a **verb follows the AND**.
+- **Orphan questions.** ZIL asks for a missing object instead of refusing the verb, and the next input answers it. This makes the parser stateful across turns — a new `ParserMemory` on `GameState`, which nothing else in the engine needed. An orphan is abandoned when the next input starts its own sentence.
+- **Implicit objects.** A slot with a `find` flag and exactly one in-scope candidate is filled and echoed: `(leaflet)`.
+- **HAVE slots** report their own requirement ("You don't have that!") rather than the surroundings ("You can't see any sword here!").
+
+### Every detail came from the reference build
+
+The ZIL reads plausibly several ways on all four. Two first attempts were wrong and dfrotz caught both:
+
+- **Auto-supply must ignore the slot's *location* options.** TAKE searches ON-GROUND/IN-ROOM, yet bare TAKE answers for a leaflet *in your hand*. The first version re-parsed the completed sentence and had it rejected by the very rule that produced it. The command is now built directly: the find flag decides what was meant, and where it sits is the action's problem.
+- **The orphan must not pick the most-specific rule**, though the main parse loop must. Bare PUT would land on `PUT DOWN …` and ask "What do you want to put down?" when the reference asks "What do you want to put?". A slot introduced by a preposition cannot be what the player left out.
+- A third correction: the no-antecedent message, which had been invented rather than checked, is **"I don't see what you are referring to."**
+
+Detail the golden pins down: the orphan question echoes the player's own **six-character-truncated** words — "What do you want to put the mailbo in?", not "the small mailbox".
+
+### Two process failures worth remembering
+
+1. **A new test passed for the wrong reason.** `setFlag(state, "LEAFLET", …)` silently invents a phantom entity — the leaflet's id is `ADVERTISEMENT`. The assertion then "passed" against an object that does not exist in the world. Only a sibling test failing exposed it; the file was then swept and every other id verified real.
+2. **The first property-default fix was wrong.** Bare WAKE supplies the player and V-ALARM reads its STRENGTH, which `ME` does not declare, so arithmetic threw — a pre-existing defect this change merely made reachable. Defaulting *every* absent property to 0, as `GETP` does, **breaks ten of eleven walkthroughs**: `truthy()` counts 0 as true here, so the `false` sentinel is load-bearing and distinguishes absent from zero. `strength` was added to the existing stopgap table instead.
+
+### Status
+
+Left unimplemented deliberately: in West of House, where the mailbox is the room's only object, the reference resolves "READ IT" *to the mailbox* rather than refusing. Whether that is a one-candidate fallback is unverified, so we refuse in both rooms and the divergence is recorded at the call site. Multi-object lists beyond `ALL` remain unimplemented.
+
+---
+
+## v0.6.7 — Engine Core: Per-Turn Parity Directives, Walkthrough 10 Re-Captured (Milestone 4, stage 4.6)
+
+**Date:** 2026-07-20
+
+### Result
+
+**117/117 strict turns — 100%.** 138/163 overall. 103 engine tests, IR 184/184.
+
+### Walkthrough 10, re-captured
+
+The old capture never reached the dam. The new one is the real sequence — bubble, yellow button, bolt, sluice gates open and water pours through. The yellow button was not guessed: the reference refused the bolt with "The bolt won't turn with your best effort." until the button was pressed.
+
+**It is informational, for a reason that expires.** The dam sits behind the Troll Room, which the IR's exit graph shows is a **cut vertex** — no route to the dam avoids it, and no non-combat way past exists (giving the sword, throwing it, and talking were all tried against the reference; he throws it back and keeps blocking). The engine cannot resolve combat *outcomes*, so the troll never dies and all 18 remaining strict turns cascade from that one cause.
+
+Unlike walkthrough 05 this is **"fails to verify", not "cannot verify"** — a missing subsystem, not a limit of the method. The capture is correct and complete: **deleting one `# parity:` line when villain combat lands makes it verify the dam strictly.**
+
+### Per-turn parity directives
+
+`# informational: <reason>` scopes to the commands after it until `# strict:`. Whole-file informational was too blunt for a walkthrough that must *pass through* something unverifiable to reach what it tests — even once combat exists, the four fight turns are a random draw and can never match text-for-text, while everything around them can.
+
+Quarantined turns leave the strict count in **both** numerator and denominator, so a quarantine cannot inflate the ratio.
+
+### The strict-majority guard was rewritten, not relaxed
+
+It allowed one informational file out of however many, and a second tripped it. Bumping the number would have been the exact drift the guard exists to catch. It now counts **turns** (≥ 2/3 strict — no bumping needed when a walkthrough is added, and a long quarantine costs more than a short one) and additionally requires every opt-out to **carry a written reason**.
+
+Also fixed: `# reason:` was swallowing the per-turn directives below it, turning the whole-file reason into an unreadable run-on.
+
+### Status
+
+Villain combat is now the top blocker for Gate C, and it has a waiting test in walkthrough 10.
+
+---
+
+## v0.6.8 — Documentation: HANDOFF Trimmed to Its Purpose
+
+**Date:** 2026-07-20
+
+### Changes
+
+`HANDOFF.md` had grown to 482 lines, most of it a stack of nine "Prior Session" sections
+reproducing material already in this file. Since it is read at the start of every session, that
+cost was paid every time and bought nothing the WORKLOG did not already hold.
+
+- **Removed all Prior/Earlier Session sections.** Each was verified present here first.
+- **v0.5.17 was backfilled into this file before deleting it** — it had been recorded in HANDOFF
+  and never in the WORKLOG, so HANDOFF was its only copy. It now sits between v0.5.16 and
+  v0.5.18.
+- **Added a scope rule at the top of HANDOFF**: only what the next session needs; completed
+  narrative goes to the WORKLOG; do not accumulate a Prior Session stack. The absence of that
+  rule is why the file drifted.
+- **Added a Standing Notes section** collecting the hard-won rules that outlive any one session
+  and were previously buried in session narrative — Release 119 as ground truth, asking the
+  reference build rather than reasoning about the ZIL, the "cannot verify" / "fails to verify"
+  distinction, cascades having one cause, and `setFlag` on an unknown id inventing a phantom
+  entity.
+- **Stale content corrected**, not just moved: Next Actions still claimed "Gate C's criterion is
+  already met on the current three transcripts" (there are now eleven walkthroughs), still
+  described stage 4.5 as in progress, and still listed the three completed M3 gaps as pending
+  items.
+- Open Issues split into Engine/IR and Project/M5; `engine/harness/` and `verification/` added
+  to Key Paths.
+
+482 → 187 lines. No engine, IR, or artifact changes.
+
+### Status
+
+M4 stages 4.1–4.6 complete. Villain combat is the top blocker for Gate C and has a waiting test
+in walkthrough 10.
