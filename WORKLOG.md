@@ -1731,3 +1731,81 @@ evidence available that §7 and §10 describe the event stream rather than a spr
 ### Status
 
 **Stage 5.3 ✅ — ⚑ Gate D cleared.** 5.4 and 5.5 can now be planned in detail.
+
+---
+
+## v1.4.1 — 2026-07-21 — Masked-mono polarity: every figure was inverted
+
+Reported from play, not from a test: the cast rendered as white linework on black
+silhouettes. Real, whole-corpus, and one constant wide.
+
+### The defect
+
+`AIP_MASKEDMONO` packs two bits per pixel. `avbfile.h:93` documents them as
+
+```
+00 = blank    01 = aura    10 = black    11 = white
+```
+
+and `art/src/raster.ts` implemented that faithfully. **The header comment is wrong.**
+`CPose::ConvertMasksCommon` (`avbfile.cpp:1636`) is what actually ran: it splits the pair
+into three 1bpp DIBs — image, mask, aura —
+
+```
+00 => 0,0,0    01 => 1,0,1    10 => 0,1,1    11 => 1,1,1
+```
+
+and gives every one of them the colour table `[white, black]`. In the image DIB, `10` → 0 →
+white and `11` → 1 → black: the opposite of the header. The next line,
+`pbDestBits[0] &= pbDestBits[1]`, forces the aura-only region white, which is why `01`
+never carries ink.
+
+So `MASKEDMONO_INK` was `2` and should have been `3`. Fixed, with `MASKEDMONO_PAPER = 2`
+added so the coverage test reads as an enumeration of the two drawn codes rather than a
+double negation of the two undrawn ones.
+
+### Why 13 tests and a whole-corpus sweep missed it
+
+The art suite asserted that every pose rasterizes to a **non-empty** figure that stays
+**inside its canvas**. An inversion satisfies both perfectly — the geometry is pixel-exact
+and only the polarity is wrong. Nothing in the module asserted colour at all. This is the
+same trap as gotcha 3 one level down: *the right shape is what makes it easy to miss.*
+
+`art/test/polarity.test.ts` (3 tests) now pins it:
+
+- **the mapping, corpus-wide** — for every masked-mono part in all 191 files, a drawn pixel
+  whose code is `10` must be white and `11` must be black;
+- **dan and tiki specifically** — the two avatars the shell casts must have pale faces, with
+  the centre sampled as a patch so one feature pixel cannot decide the test.
+
+All three fail when the constants are reverted; that was checked, not assumed.
+
+### The measurement that corrected the test
+
+The first draft of the corpus assertion said *ink is a minority of the drawn area* —
+plausible for line art, and **false**. It flagged anna at 78–80% ink. Rendering her showed
+the art is correct: a black bob legitimately fills most of the face's bounding box. Had the
+ratio been trusted, a character who was never broken would have been "fixed".
+
+**Art statistics are not invariants; the code table is.** The assertion was rewritten to pin
+the pixel-code → colour mapping, which needs no assumption about any drawing. Noted here
+because it is the standing method note (*measure before proposing rules*) applying to a
+test rather than to a grammar rule.
+
+### Also
+
+- `docs/AVB_FORMAT.md` gotcha 3 repeated the header's claim verbatim; corrected, with the
+  conversion table and the reason the inversion is invisible to a coverage test.
+- Sprite sheets regenerated (`npm --prefix art run pack`).
+- `web/tools/serve.ts` gained a `listen` error handler: `EADDRINUSE` printed a raw unhandled
+  `'error'` stack trace *after* a successful build, which reads as a broken shell rather than
+  a port already held by a previous `dev`.
+
+### State at the milestone
+
+- `art/`: **16 tests** (was 13). `web/` 50, engine 120, IR 193 — all unchanged.
+- **Engine and IR untouched.** Parity unchanged at 143/143 strict turns, 155/161 overall.
+
+### Status
+
+**Stage 5.3 ✅ still; a defect in it fixed.** 5.4 remains next.

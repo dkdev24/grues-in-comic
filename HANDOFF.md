@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.4.0**
+**1.4.1**
 
 ---
 
@@ -36,43 +36,43 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   **11 walkthroughs, 143/143 strict turns (100%), 155/161 overall. 120 engine tests, IR 193.**
   ⚑ **Gate C CLAIMED (v1.0.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`, see below
 - **M5** Comic Chat presentation — **5.1 ✅** art pipeline (`art/`: decode, pose selection,
-  compositing; 13 tests, whole-corpus sweep) and the presentation analysis in `wiki/` ·
+  compositing; 16 tests, whole-corpus sweep) and the presentation analysis in `wiki/` ·
   **panel grammar ✅ (v1.2.0)** — `docs/adr/0004-presentation-mapping.md` Accepted ·
   **5.2 ✅ (v1.3.0)** — `web/`, the browser shell · **5.3 ✅ (v1.4.0)** — the comic renderer;
-  every turn draws a Comic Chat panel beside the transcript, 50 web tests.
+  every turn draws a Comic Chat panel beside the transcript, 50 web tests ·
+  **masked-mono polarity fixed (v1.4.1)** — every figure had shipped inverted.
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
 
 ---
 
-## Last Session — stage 5.3, the comic renderer (v1.4.0)
+## Last Session — masked-mono polarity (v1.4.1)
 
-**Zork I draws itself as a comic.** Read `web/README.md` first; the full narrative is
-`WORKLOG.md` v1.4.0. Engine and IR untouched — parity unchanged at 143/143 strict, 155/161
-overall. Removing the comic layer leaves engine behaviour bit-identical, which is ADR 0004
-§3 as a testable constraint rather than a claim.
+**Every masked-mono figure had shipped inverted** — white linework on black silhouettes,
+whole corpus. Reported from *looking at the running site*, which is the point below. Full
+narrative in `WORKLOG.md` v1.4.1; the 5.3 narrative it replaces is v1.4.0.
 
-**Gate D's answer: the browser runs the selector, never the decoder.** `art/` decodes at
-build time and emits one sprite sheet per avatar plus a manifest (`npm --prefix art run
-pack`); the shell imports `format.ts` and `pose.ts` as source — the emotion wheel, pure
-arithmetic — and loads PNGs for the rest. Five requests, ~330 KiB, no bundler. **Parts are
-packed, not figures**, so the join happens in the browser and §8's round-robin can keep
-re-pairing them.
-
-Two ADR amendments, both found by *running* the tables rather than reading them:
-
-1. **§10 — `parser-miss` fires on the `narration:system` channel**, not only on prose. Every
-   engine-issued refusal goes out there, and `I don't know the word "…"` interpolates the word
-   and matched none of the four listed patterns: the commonest refusal in real play was drawing
-   a neutral Hero. Walkthrough distribution unchanged, so this is free robustness.
-2. **§11 — the Hero needs a BORED *face*, not only a SHRUG torso.** `parser-miss` emits both and
-   the inventories are nearly disjoint. **Cast settled: Hero = dan, Guide = tiki**, which also
-   dissolves §11's "intersect only at susan" problem.
+**The header comment is wrong, and `raster.ts` implemented it faithfully.** `avbfile.h:93`
+says the 2bpp codes are `00` blank, `01` aura, `10` black, `11` white.
+`CPose::ConvertMasksCommon` (`avbfile.cpp:1636`) is what actually ran, and it says `10` is
+**paper** and `11` is **ink**. One constant: `MASKEDMONO_INK` was `2`, is now `3`.
 
 Carried forward as the things most likely to be got wrong next:
 
-- **A type-only import is erased at emit but not at type-check.** Naming the manifest types from
-  a module that imports the decoder put `node:zlib` in the browser program; hence the types-only
-  leaf `art/src/cast-manifest.ts`. **If `web/dist/art/src/` ever holds more than `format.js`,
+- **`art/`'s corpus sweep asserts shape, not colour** — non-empty, inside the canvas — and an
+  inversion satisfies both *perfectly*. That is how this reached a released build. The general
+  form: **the right shape is what makes a colour bug invisible**, which is gotcha 3 in
+  `docs/AVB_FORMAT.md` one level down. **Anything in 5.4 that makes a new colour or polarity
+  decision — backdrops, balloons, page furniture — needs its own pinning assertion**, because
+  no existing test will notice.
+- **`art/test/polarity.test.ts` pins the pixel-code → colour mapping, not the art.** Its first
+  draft asserted *ink is a minority of drawn area*; anna's bob is a legitimate 80% ink and
+  falsified it. **Art statistics are not invariants.** Keep the assertion on the code table —
+  and note the near miss: trusting the ratio would have "fixed" a correct character.
+- **Verify a regression test by reverting the fix**, not by watching it pass. Done here for all
+  three assertions. A test written *from* a known bug passes trivially on the fixed code.
+- **The type-only import line still holds.** Naming the manifest types from a module that
+  imports the decoder put `node:zlib` in the browser program; hence the types-only leaf
+  `art/src/cast-manifest.ts`. **If `web/dist/art/src/` ever holds more than `format.js`,
   `pose.js` and `cast-manifest.js`, that line has been crossed.**
 - **The join is implemented twice on purpose** — pixels in `art/src/composite.ts`, sheet
   sub-rects in `web/src/comic/figure.ts` — because merging them drags the decoder into the
@@ -91,6 +91,10 @@ Carried forward as the things most likely to be got wrong next:
   establishing 30.5% · close-up 12.0% · reaction 5.5% · wide 2.5%, against the ADR's 52.4 / 26.5 /
   12.7 / 5.8 / 2.6). Treat that as evidence the tables describe the event stream — and still
   assert orderings, never percentages.
+
+Also fixed: `web/tools/serve.ts` printed a raw unhandled `'error'` stack on `EADDRINUSE`,
+*after* a successful build — it read as a broken shell rather than a port held by a previous
+`dev`. It now names the port and offers `PORT=`.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
@@ -233,6 +237,14 @@ sat unread for two sessions before it settled the balloon class.
   remain undecided.
 - **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run
   pack`; the cast is pinned in that script, so a recast is a one-line change plus a re-pack.
+  **Re-pack after any `art/` decode change** — v1.4.1 fixed the decoder and the committed sheets
+  stayed inverted until they were regenerated, so the source fix alone did not fix the site.
+- **`art/` has no assertion that any rendered image *looks* like anything, apart from
+  `test/polarity.test.ts`.** The corpus sweep checks coverage and bounds, both of which an
+  inverted, mis-hued or mirrored figure satisfies. This was a released defect at v1.4.0, found
+  by a human looking at the page. **Two consequences for 5.4:** any new colour/polarity decision
+  needs its own pinned assertion, and *looking at the output* stays part of the loop — the
+  regression that reached the browser was invisible to 13 passing tests.
 - **Running `npx vitest` from the repo root times out `art/test/corpus.test.ts`.** The corpus
   sweep takes ~11 s and its longer timeout lives in `art/vitest.config.ts`, which a root-level
   run does not pick up. Not a regression and not new; use `npm --prefix <pkg> test`.
