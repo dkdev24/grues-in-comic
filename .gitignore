@@ -79,3 +79,4 @@ original-projects/comic-chat/**/*.map
 original-projects/comic-chat/**/*.sym
 original-projects/comic-chat/artifacts/jchat/jdk114/lib/classes.zip
 /.playwright-cli
+/graphify-out
