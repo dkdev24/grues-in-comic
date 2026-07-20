@@ -960,3 +960,49 @@ being written, which is why entity names must now begin with a letter.
 
 M4 stages 4.1–4.6 complete, combat outcomes landed. `I-SWORD` is now the single blocker on
 walkthrough 10 and needs an IR answer (`<NEXTP …>`), not an engine one.
+
+---
+
+## v0.7.1 — Correction to v0.7.0
+
+**Date:** 2026-07-20
+
+Documentation only. Two claims in the v0.7.0 entry above are wrong; that entry is left standing
+per the never-edit rule, and this one corrects it.
+
+### Corrections
+
+- **"Villain combat landed" overstated what shipped.** Only the *player's* blow resolves.
+  `VILLAIN-BLOW` and `WINNER-RESULT` are not extracted, nor is the `I-FIGHT` daemon that drives
+  them (`I-FIGHT` → `DO-FIGHT` → `VILLAIN-BLOW` → `WINNER-RESULT`). **Villains never strike
+  back, so the player cannot be hurt or killed in a fight.** The reference build does strike
+  back ("The troll's mighty blow drops you to your knees"); the engine prints nothing like it.
+  The v0.7.0 tests do not catch this — they assert the troll dies and that printed messages are
+  legal, and a one-sided fight satisfies both. A damage assertion is needed.
+
+- **The `DEF*-RES` zeros are not a ZILF reconstruction defect.** `GO` (`1dungeon.zil:2637`)
+  patches all three tables at runtime — `<PUT ,DEF1-RES 1 <REST ,DEF1 2>>` and five more — so
+  the zeros are placeholders the game overwrites, and the `;<REST …>` comments annotate what it
+  writes rather than preserving a lost value. The dfrotz evidence cited in v0.7.0 was real but
+  the conclusion drawn from it was wrong: the shipped build works because `GO` runs, not because
+  the source is defective. `TABLE_CORRECTIONS` therefore holds the right values on a wrong
+  premise and duplicates in the extractor what the game does itself.
+
+### Root cause of both
+
+**`GO` is not an entry ref.** `entryRefs` (`ir/src/extract-world.ts:663`) covers room and object
+actions and syntax handlers only, so nothing reaches the game's initialization routine — which
+queues all five daemons *and* patches the melee tables. `engine/src/load.ts:128` hand-reimplements
+a fragment of it (`HERE`, `WINNER`, `MOVES`) and silently omits the rest.
+
+### Audit
+
+439 ROUTINE forms in the corpus, 352 extracted, 30 catalogued — **57 invisible as neither**. 44
+are correctly excluded by design (39 `gparser`, 3 `gclock`, 2 `gmain`: the engine owns the
+parser, the clock and the turn loop). The remaining 13 are the combat chain, `GO`, and a short
+tail (`BREATHE`, `UNTIE-FROM`, `INFESTED?`, `YES?`, `NO-GO-TELL`, `FIND-IN`, `ZPROB`, `MIN`).
+
+### Status
+
+No code change. `TABLE_CORRECTIONS` stays in place only because deleting it before `GO` is
+extracted breaks the melee draw outright. Extracting `GO` is the next task and supersedes it.

@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.7.0**
+**0.7.1**
 
 ---
 
@@ -28,64 +28,91 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   IR schema 0.14.0
 - **M4 ⏳** Engine core — 4.1 ✅ world runtime · 4.2 ✅ parser · 4.3 ✅ dispatch, save/restore ·
   4.4 ✅ transcript harness · 4.5 ✅ `TAKE ALL`, wider corpus · 4.6 ✅ orphan questions,
-  pronouns, compound sentences, per-turn parity directives · **4.7 ✅ villain combat**
-  (IR `random` op, melee tables, membership verification).
+  pronouns, compound sentences, per-turn parity directives · **4.7 ⏳ villain combat —
+  the player's blow only** (IR `random` op, membership verification); the villain's
+  counterattack is missing, so the player is currently invulnerable in a fight.
   **11 walkthroughs, 117/117 strict turns (100%), 151/163 overall. 108 engine tests, IR 184/184.**
   ⚑ **Gate C not yet claimed**
 - **M5** Comic Chat presentation — `.avb` decoding solved (v0.5.18); the rest is open
 
 ---
 
-## Last Session (v0.7.0)
+## Last Session (v0.7.1)
 
-**Villain combat landed — and the blocker turned out to be extraction, not the engine.**
-`HERO-BLOW` sat in the behavior catalog on one reason, `operator RANDOM`. Extraction is
-reachability-driven, so its failure meant the whole subsystem below it (`VILLAIN-BLOW`,
-`VILLAIN-STRENGTH`, `VILLAIN-RESULT`, `WINNER-RESULT`, `REMARK`) was never queued — missing from
-the IR *and* from the catalog, so it showed up as neither a success nor a failure. Supporting
-`RANDOM` (IR schema **0.14.0**) plus `PRINT`/`PRINTD` cascaded all six routines in.
+**v0.7.0 landed the player's half of combat and two claims about it were wrong. Both are
+corrected here; the code fix is the next session's first task (Next Actions 1).**
 
-Also corrected `DEF1-RES`/`DEF2-RES`/`DEF3-RES`, where the ZILF reconstruction writes literal
-zeros in slots that should hold table views and leaves the real value in a comment. See WORKLOG;
-the reasoning and the dfrotz evidence are at the site in `ir/src/extract-behavior.ts`.
+What is true: `HERO-BLOW` was catalogued on `operator RANDOM`, and because extraction is
+reachability-driven that one denial suppressed everything below it. Supporting `RANDOM` (IR
+schema **0.14.0**) plus `PRINT`/`PRINTD` pulled in `HERO-BLOW`, `VILLAIN-STRENGTH`,
+`VILLAIN-RESULT`, `REMARK`, `RANDOM-ELEMENT`, `RANDOMIZE-OBJECTS`. Walkthrough 10 went from
+stuck-at-turn-13 to 24/28; parity 138/163 → **151/163**. The RNG question is decided —
+option (b), membership — realized in `engine/test/combat.test.ts`.
 
-**The RNG question is decided: option (b), membership.** Randomized turns assert that output is
-*one of* the legal messages rather than matching a golden text-for-text, so the engine keeps its
-own generator. Realized in `engine/test/combat.test.ts`, with the legal set derived from the IR
-and a negative control proving the check can fail.
+**Correction 1 — combat is half-landed, not landed.** `VILLAIN-BLOW` and `WINNER-RESULT` are
+*not* extracted, and neither is the `I-FIGHT` daemon that drives them. The player's blow
+resolves and the troll dies; **the villain never strikes back, so the player cannot be hurt or
+killed in a fight.** The v0.7.0 tests do not catch this: they assert the troll dies and that the
+printed messages are legal, and an invulnerable player satisfies both.
 
-Walkthrough 10 went from stuck-at-turn-13 to 24/28; parity 138/163 → **151/163**.
+**Correction 2 — the `DEF*-RES` zeros are not a reconstruction defect.** `GO`
+(`1dungeon.zil:2637`) patches all three tables at runtime — `<PUT ,DEF1-RES 1 <REST ,DEF1 2>>`
+and five more — so the zeros are placeholders the game overwrites and the `;<REST …>` comments
+annotate what it writes. `TABLE_CORRECTIONS` in `ir/src/extract-behavior.ts` therefore holds the
+right values on a wrong premise, and hardcodes into the extractor something the game does
+itself. **It should be deleted, not maintained** — see Next Actions 1.
+
+**Root cause of both: `GO` is not an entry ref.** `entryRefs` (`ir/src/extract-world.ts:663`)
+covers room/object actions and syntax handlers only, so nothing reaches the game's
+initialization routine — which queues all five daemons *and* patches the melee tables.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.7 ✅. Combat and the RNG question are both settled; what is left is narrower.**
+**M4: 4.1–4.6 ✅, 4.7 in progress. The RNG question is settled; combat is half-built.**
 
-1. **⚑ `I-SWORD` — now the single blocker on walkthrough 10, and it needs an *IR* answer.**
+1. **⚑ Make `GO` an entry ref, and delete `TABLE_CORRECTIONS`.** One change fixes three things:
+   the wrong-premise table patch, the five unqueued daemons, and the villain counterattack that
+   leaves the player invulnerable (`I-FIGHT` → `DO-FIGHT` → `VILLAIN-BLOW` → `WINNER-RESULT`,
+   none extracted). `GO` is the game's initialization routine and nothing currently reaches it.
+   - **Design question to settle first:** `GO` ends `<V-LOOK> <MAIN-LOOP> <AGAIN>`, and the turn
+     loop is the engine's under ADR 0002, so it cannot be extracted wholesale. Either extract it
+     and have the engine call it in place of `load.ts`'s hardcoded seeding, or make `MAIN-LOOP`
+     a builtin no-op so the tail falls away. `engine/src/load.ts:128` currently hand-reimplements
+     a *fragment* of `GO` (`HERE`, `WINNER`, `MOVES`) — game-init semantics in engine code.
+   - **The combat tests need to grow a damage assertion.** They currently pass against an
+     invulnerable player; assert the villain lands blows and that the player can die.
+
+2. **⚑ `I-SWORD` — the single blocker on walkthrough 10, and it needs an *IR* answer.**
    The four remaining diffs there are all the sword-glow daemon; delete the `# parity:` line in
    `verification/walkthroughs/10-dam-and-reservoir.cmd` once it lands and the walkthrough
    verifies strictly. It walks exits as numbered Z-machine properties (`<NEXTP …>`) and the IR
    models exits structurally, so it likely wants a small behavior op for "rooms adjacent to
    here". **A schema decision — deliberately not taken autonomously.** `I-CYCLOPS` (`<NTH …>`)
-   has the same shape and would be answered by the same op.
+   has the same shape and would be answered by the same op. Note `GO` queues `I-SWORD`, so
+   item 1 is a prerequisite for it ever running.
 
-2. **Systems completion** (⚑ Gate C): death and resurrection, and the thief's robbery pass. Both
-   were previously gated on the RNG decision, which is now made — randomized turns are verified
-   by membership (option (b)), the pattern `engine/test/combat.test.ts` establishes and that
-   these two should follow. **P-WON gating is settled: do not implement it** — the transcripts
-   contradict the source (v0.6.5; reasoning is at the call site, because the source reads the
-   other way and the next reader will otherwise "fix" it back). `V-CLIMB-UP` is the last stub.
+3. **Systems completion** (⚑ Gate C): death and resurrection, and the thief's robbery pass.
+   Both were previously gated on the RNG decision, which is now made — randomized turns are
+   verified by membership (option (b)), the pattern `engine/test/combat.test.ts` establishes and
+   that these two should follow. Death is partly item 1's work: `WINNER-RESULT` calls `JIGS-UP`.
+   **P-WON gating is settled: do not implement it** — the transcripts contradict the source
+   (v0.6.5; reasoning is at the call site, because the source reads the other way and the next
+   reader will otherwise "fix" it back). `V-CLIMB-UP` is the last stub.
 
-3. **Unassigned one-off tail** in the routine catalog: `<NEXTP …>` (I-SWORD, OTHER-SIDE),
+4. **Unassigned one-off tail** in the routine catalog: `<NEXTP …>` (I-SWORD, OTHER-SIDE),
    `<NTH …>` (I-CYCLOPS), String-in-statement-position (GRATE-FUNCTION), bare
    `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with a non-literal
    byte count (PICK-ONE — Group A regardless).
 
-4. **Consider whether other catalogued routines hide the same cascade.** Combat was invisible
-   because one denied operator suppressed everything below it, and the catalog reports only the
-   routine that failed, never what its failure cost. A "routines unreachable because a caller
-   was catalogued" report would have surfaced this immediately and is cheap to add.
+5. **The invisible-routine audit is done; act on its tail.** 439 ROUTINE forms in the corpus,
+   352 extracted, 30 catalogued — **57 invisible as neither**. 44 are correctly excluded by
+   design (39 `gparser`, 3 `gclock`, 2 `gmain`: the engine owns the parser, the clock and the
+   turn loop). Item 1 clears the combat chain and `GO`. That leaves a short tail worth triage:
+   `BREATHE`, `UNTIE-FROM`, `INFESTED?`, `YES?`, `NO-GO-TELL`, `FIND-IN`, `ZPROB`, `MIN`.
+   **Worth making this a standing report rather than a one-off**: the catalog names the routine
+   that failed but never what its failure cost, which is exactly why combat stayed hidden.
 
-5. **Stage 5.1 (Comic Chat) = filler, independent of every gate.** Read
+6. **Stage 5.1 (Comic Chat) = filler, independent of every gate.** Read
    `reference/comic-chat-paper.md` (SIGGRAPH '96 — balloon layout, character placement, gesture
    selection, camera zoom) alongside `original-projects/comic-chat/`. Remaining: **face/torso
    compositing** (`cx`/`cy`/`cxDelta`/`cyDelta`; selection in `GetHeadAndBodyFromEmotion`,
@@ -131,11 +158,16 @@ Walkthrough 10 went from stuck-at-turn-13 to 24/28; parity 138/163 → **151/163
 - **Stubbed builtins**: `V-CLIMB-UP` alone now (GETPT), returning a no-op so call sites reach a
   defined value instead of crashing a turn. `RANDOMIZE-OBJECTS` and `HERO-BLOW` are real
   extracted routines as of v0.7.0.
-- **Three melee tables carry a documented correction, not the source's literal values.**
-  `DEF1-RES`/`DEF2-RES`/`DEF3-RES` hold table views the ZILF reconstruction replaced with zeros
-  and preserved only in comments; taken literally the game reads address 0. The corrections and
-  the dfrotz evidence sit in `TABLE_CORRECTIONS` in `ir/src/extract-behavior.ts`. **Do not
-  "simplify" them back to what the ZIL says** — this is the Release-119-is-ground-truth rule.
+- **`TABLE_CORRECTIONS` is wrong and should be deleted** (`ir/src/extract-behavior.ts`). It
+  patches `DEF1-RES`/`DEF2-RES`/`DEF3-RES` on the premise that the source's zeros are a ZILF
+  reconstruction defect. They are not: `GO` writes those slots at runtime
+  (`<PUT ,DEF1-RES 1 <REST ,DEF1 2>>`, `1dungeon.zil:2644`). Right values, wrong premise —
+  extracting `GO` supersedes it. Kept only because removing it before `GO` lands breaks the
+  melee draw outright. See Next Actions 1.
+- **The player is invulnerable in combat.** `I-FIGHT`, `DO-FIGHT`, `VILLAIN-BLOW` and
+  `WINNER-RESULT` are unextracted, so villains never strike back. `engine/test/combat.test.ts`
+  passes against this — it asserts the troll dies and that messages are legal, neither of which
+  a one-sided fight violates.
 - **Randomized turns are verified by membership, not text parity** — the settled answer to the
   RNG question. `engine/test/combat.test.ts` derives the legal message set from the IR; it must
   stay derived, since a hand-listed set drifts and starts passing by construction. Death,

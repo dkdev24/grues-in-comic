@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.7.1] - 2026-07-20 — Correction to v0.7.0
+
+Documentation only. No code change.
+
+### Fixed
+- **v0.7.0's "villain combat landed" was an overstatement.** Only the player's blow resolves; `I-FIGHT`, `DO-FIGHT`, `VILLAIN-BLOW` and `WINNER-RESULT` are unextracted, so villains never strike back and **the player cannot be hurt or killed in a fight**. The v0.7.0 tests pass against this, since a one-sided fight still kills the troll and still prints only legal messages.
+- **v0.7.0's `DEF*-RES` "reconstruction defect" was a misreading.** `GO` patches those tables at runtime (`1dungeon.zil:2644`); the zeros are placeholders the game overwrites. `TABLE_CORRECTIONS` holds correct values on a wrong premise and is superseded by extracting `GO`.
+- Root cause of both: **`GO` is not an entry ref**, so the game's initialization routine — five daemon queues plus the melee-table patches — is never reached.
+
+---
+
 ## [v0.7.0] - 2026-07-20 — Villain Combat
 
 Combat outcomes now resolve: the troll fights, dies, and drops its axe, opening the route past the Troll Room.
