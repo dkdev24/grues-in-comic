@@ -1317,3 +1317,114 @@ and never reach it. No walkthrough diverges on it. It is the last known gap in G
 the session protocol's bar on starting later milestones no longer applies. Stage 5.2, the minimal
 browser shell over the event stream, is the natural next step and is the first real test of
 whether the ADR 0002 event contract is usable from outside the engine.
+
+## v1.1.0 — 2026-07-20 — Stage 5.1 complete: the art pipeline and the presentation analysis
+
+Stage 5.1 was the standing exception in the session protocol — independent of every gate, usable
+as filler. It had been partly started at v0.5.18, which solved `.avb` decoding and left three
+things open. All three are now closed, and the analysis the stage was actually named for is
+written.
+
+### `art/` is a module now, not a POC
+
+The Python decoder (`art/poc/avbdec.py`) stays as a reference; `art/src/` is the implementation,
+TypeScript per ADR 0002. Seven modules: record stream, image decoding, plane rasterization, pose
+selection, compositing, PNG output, and `inflate.ts` — the single platform dependency, isolated
+so a browser-side decoder swaps one file for `DecompressionStream("deflate")`.
+
+**The port is verified against the POC rather than against itself.** 194/194 directly comparable
+poses hash byte-identical. "Directly comparable" means masked-mono poses with no separate planes,
+since the POC never implemented plane compositing and has no output for the DIB poses.
+
+### Face/torso compositing
+
+`AT_COMPLEX` avatars store headless torsos and separate faces. The join is
+`torso.c + face.cDelta - face.c` — landing the face's own anchor on the torso's neck socket, then
+applying a per-face nudge. The offset can be negative, so the composite box is the union of the
+torso at the origin and the face at its offset, with both parts rebased onto it.
+
+Also ported: the emotion wheel and its two *different* searches. Faces use an ungated
+nearest-neighbour (a figure must have a head); torsos and simple bodies use a gated one and can
+fail, falling back to neutral. Gestures are sentinels above 2π, outside the metric, matching only
+exactly — which is what lets a character wave while looking sad.
+
+**One deliberate divergence.** `CAvatarComplex::GetBodyFromEmotion` reuses a single `nearestI`
+across both loops, so an unmatched torso search silently draws the face's index as a torso. The
+port falls back to neutral, as the `CEmotionOpts` path already did.
+
+### Mask and aura planes
+
+Comic Chat drew a pose as up to three Win32 blits: aura `MERGEPAINT`, mask `MERGEPAINT`, drawing
+`SRCAND`. Read as alpha instead of raster ops that says the mask and aura define *coverage*, the
+drawing defines *colour*, and any pixel no plane punched keeps the backdrop — transparency. The
+three-blit dance is a Win32 detail an alpha channel does not need.
+
+**Three new gotchas, all silent, now in `docs/AVB_FORMAT.md` (up to eight):**
+
+- **Plane polarity is not constant.** 2833 aura planes ship the colour table `[white, black]` and
+  **73 ship `[black, white]`**. Assume index 0 is the figure and 73 planes render inverted. Read
+  polarity from the palette — testing luminance costs nothing and decodes both groups.
+- **`AIP_DUALMASK` planes are 2bpp masked-mono, not 1bpp.** 384 of them. "Dual" names the fact
+  that mask and aura ride in one bitmap.
+- **One asset relies on the blits having been `StretchBlt`.** Xeno's LAUGH face carries 145×150
+  planes against a 150×158 drawing, in all four versions of the file. Nothing else in the corpus
+  disagrees with its drawing.
+
+### A bug the paper caught after the code did not
+
+Both halos must be drawn before *either* figure — otherwise the second part's halo eats a
+halo-shaped bite out of the first at the neck. The first implementation flattened each part and
+blitted, which is wrong; §4.4 of the paper states the rule outright and `CBodyDouble::DrawBody`
+implements it. `rasterizeLayers` now keeps the halo separable and `compositeBody` interleaves.
+There is a test that builds the naive ordering alongside the correct one and asserts the naive
+one loses ink, so the rule cannot be quietly undone.
+
+### `wiki/` — the deliverable the stage was named for
+
+`wiki/comic-chat-presentation.md` covers the five algorithms (text→emotion rules, the emotion
+wheel, character staging, balloon routing channels, panel breaks and zoom), what to take, adapt
+and discard, and the panel-grammar problem.
+
+**The most useful finding is that the paper is not a specification.** Five things it describes
+are absent from the shipped code:
+
+- **Semantic elements were never shipped.** The map of Ohio, the scene object, the "Greek Chorus"
+  — the paper's most-cited feature. `AddSemantics` and `PostSemantics` are both `#if 0`'d, their
+  call sites commented out, and the surviving code is annotated `// SIGGRAPH PIX Hack` and keyed
+  on the literal string `"OXio"` — a deliberately unmatchable misspelling, so the demo could not
+  fire by accident. The authors' own stated objection was art budget, which is exactly this
+  project's constraint.
+- The shout balloon. Four balloon types ship, but a *different* four — including
+  `CBWoodringBox`, a caption box the paper never mentions.
+- Character heights: `normHeight` is hard-coded to 100, `XXX ... assuming characters are the same
+  height`.
+- The 15%-probability panel break: the shipped `AddLine` calls no RNG at all.
+- Periodic establishing shots: `Establishing()` is true only for the first one or two panels of
+  the session. No arrival trigger, no refresher.
+
+### What Zork does to the premise, measured
+
+Comic Chat assumes dialogue between peers. Across all 11 walkthroughs (189 turns): **192
+`narration` events and 0 `speech`.** Not few — none. The 189 `object-moved` events are one per
+turn, the thief's wander daemon: the character with the most continuous stage presence is one the
+player usually cannot see.
+
+So captions are the primary device, not the exception. `CBWoodringBox` is the right *geometry* —
+it inherits from the speech balloon and then opts out of outline, tail and routing channel
+entirely — but the wrong *cadence*: it arrives via `SM_ACTION` and forces a panel break, treating
+captions as rare interruptions. Inherit the geometry, invert the cadence.
+
+Two decisions remain open and belong before 5.3, not during it: the player's on-screen
+representation (Zork deliberately never describes the player, so "show the speaker" yields an
+empty panel), and backdrops — 3 shipped against 110 rooms, which no algorithm closes.
+
+### State at the milestone
+
+- **`art/`: 13 tests.** 191 files parse · 4656 images · 2066 masks · 2908 auras · 4656 poses
+  rasterize · 2348 composites. Exact counts, since the corpus is fixed and version-controlled.
+- Engine and IR untouched: 11 walkthroughs, 143/143 strict, 120 engine tests, IR 193.
+- `wiki/` created. `docs/AVB_FORMAT.md` extended to eight gotchas and a compositing section.
+
+### Status
+
+**M5 stage 5.1 ✅.** Stage 5.2 (minimal browser shell) is next by the plan.

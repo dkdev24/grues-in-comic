@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.0.0**
+**1.1.0**
 
 ---
 
@@ -35,42 +35,49 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   (combat gains world-state assertions and its own reference control).
   **11 walkthroughs, 143/143 strict turns (100%), 155/161 overall. 120 engine tests, IR 193.**
   ⚑ **Gate C CLAIMED (v1.0.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`, see below
-- **M5** Comic Chat presentation — `.avb` decoding solved (v0.5.18); the rest is open
+- **M5** Comic Chat presentation — **5.1 ✅** art pipeline (`art/`: decode, pose selection,
+  compositing; 13 tests, whole-corpus sweep) and the presentation analysis in `wiki/`
 
 ---
 
-## Last Session (v1.0.0)
+## Last Session (v1.1.0)
 
-**⚑ Gate C claimed. The engine is complete** — Zork I runs end to end on the IR, in TypeScript,
-zero dependencies, no browser code.
+**Stage 5.1 ✅ complete.** The remaining `.avb` work landed and the presentation analysis is
+written. `art/` is now a real module (TypeScript, per ADR 0002) rather than a Python POC.
 
-- **The criterion was amended in place, not quietly reinterpreted.** Stage 4.5's "all golden
-  transcripts pass" was **unsatisfiable as written**: combat and the thief draw with
-  `<RANDOM …>`, ADR 0002 declined to reproduce the Z-machine PRNG, so `05-troll-combat.cmd` is
-  informational *by method, not by defect*. The amendment lives at
-  `docs/DEVELOPMENT_PLAN.md` under Gate C and is the standard the next gate should be read
-  against.
-- **What parity now means, in two tiers**: deterministic turns strict by text (143/143, every
-  opt-out with a written reason, enforced by test); randomized turns by **membership + world-state
-  assertions + a `dfrotz` positive control** — all three, because membership alone is one-sided.
-- **`V-CLIMB-UP` is a known limitation at the gate, recorded rather than waived.** It stalls on
-  `GETPT` and answers "You can't go that way.", which is correct in every room without a
-  climbable exit; the tree and the Cyclops stairs route through their own exits and never reach
-  it. No walkthrough diverges on it. Last known gap in Group A coverage.
-
-**11 walkthroughs, 143/143 strict, 155/161 overall. 120 engine tests, IR 193.**
+- **`art/src/`** — decoder ported from `art/poc/avbdec.py`, plus the two pieces that were
+  open: **face/torso compositing** (`torso.c + face.cDelta - face.c`, union bounding box,
+  `TORSOFIRST` draw order) and **mask/aura planes** for DIB poses. **13 tests, exact corpus
+  counts**: 191 files, 4656 images, 2066 masks, 2908 auras, 2348 composites.
+- **The port is verified against the POC, not just against itself** — 194/194 directly
+  comparable poses hash byte-identical. That is the only reason the decode claims mean anything.
+- **Three new format gotchas, all silent** (now in `docs/AVB_FORMAT.md`, which is up to eight):
+  plane polarity is **not constant** (73 aura planes ship an inverted colour table — read
+  polarity from the palette, never assume index 0); `AIP_DUALMASK` planes are 2bpp masked-mono,
+  not 1bpp; and one asset (Xeno LAUGH) has planes smaller than its drawing, relying on the
+  original blits having been `StretchBlt`.
+- **A compositing bug the paper caught, not the code**: both halos must be drawn before either
+  figure, or the second part's halo eats a bite out of the first at the neck. Found by reading
+  §4.4 after implementing it wrong. There is now a test that proves the rule is load-bearing.
+- **`wiki/` created** with `comic-chat-presentation.md` — the five algorithms, and **five places
+  the paper describes a system the shipped code does not have** (semantic elements are `#if 0`'d
+  and keyed on a deliberately-unmatchable `"OXio"`; the shout balloon; character heights; the 15%
+  panel break; periodic establishing shots). Read the code, not the paper, before building 5.3.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.7 ✅. Combat, the RNG question and `GO` are settled.**
+**M4: 4.1–4.7 ✅. M5: 5.1 ✅.** Nothing is blocked; 5.2 is next by the plan.
 
-**M5 is unblocked** — the session protocol's bar on starting a later milestone no longer applies.
-
-1. **Stage 5.2 — minimal browser shell** over the event stream. The natural next step now that
-   Gate C is claimed, and the **first real test of whether the ADR 0002 event contract is usable
-   from outside the engine**: everything to date has consumed it from the harness, which was
-   written alongside it and shares its assumptions. Expect the `room-title` channel question
-   (open issues) to become concrete here rather than theoretical.
+1. **Stage 5.2 — minimal browser shell** over the event stream. The **first real test of whether
+   the ADR 0002 event contract is usable from outside the engine**: everything to date has
+   consumed it from the harness, which was written alongside it and shares its assumptions.
+   Expect the `room-title` channel question (open issues) to become concrete here rather than
+   theoretical.
+   - **5.1 sharpened what 5.2 is a rehearsal for.** Measured over all 11 walkthroughs (189
+     turns): **192 `narration`, 0 `speech`.** Not "few" — none. Every player-visible line is
+     narration, and the 189 `object-moved` events are one per turn, the thief's wander daemon.
+     A text UI can ignore that; the 5.3 comic layer cannot, so a 5.2 that surfaces the event
+     *mix* rather than just concatenating text is worth more.
 
 2. **`V-CLIMB-UP`, the last stub** — stalls on `GETPT`. Recorded as a known limitation at Gate C
    because no walkthrough diverges on it, but it is the last known gap in Group A coverage and
@@ -92,17 +99,16 @@ zero dependencies, no browser code.
    that failed but never what its failure cost, which is exactly why combat stayed hidden for
    two milestones.
 
-5. **Stage 5.1 (Comic Chat) = filler, independent of every gate.** Read
-   `reference/comic-chat-paper.md` (SIGGRAPH '96 — balloon layout, character placement, gesture
-   selection, camera zoom) alongside `original-projects/comic-chat/`. Remaining: **face/torso
-   compositing** (`cx`/`cy`/`cxDelta`/`cyDelta`; selection in `GetHeadAndBodyFromEmotion`,
-   `v2.1b/cchat/avatar.cpp`), mask/aura planes for DIB-format poses, and the TS port of the
-   decoder.
-   - **Panel grammar is an open design question, not a decoding one.** Comic Chat assumes
-     dialogue between peers; Zork is second-person narration with 5 NPCs (`GHOSTS`, `BAT`,
-     `CYCLOPS`, `THIEF`, `TROLL`). Most turns emit `narration` with no speaker, so caption boxes
-     must be first-class, not just balloons — and "who is on screen when nobody speaks" needs an
-     answer (the player is deliberately undescribed in Zork).
+5. **Panel grammar — decide before 5.3, not during it.** The one question 5.1 could not answer
+   from the historical code, because Comic Chat has no equivalent. Analysis and options are in
+   `wiki/comic-chat-presentation.md`; the two open decisions are:
+   - **The player's on-screen representation.** Zork deliberately never describes the player, so
+     "show the speaker" yields an empty panel. Pick one: captions-only first-person camera, a
+     chosen player avatar, or panels composed around the room and its objects.
+   - **Caption cadence.** Comic Chat *does* ship a caption box (`CBWoodringBox`) that correctly
+     opts out of outline, tail and routing channel — inherit that geometry. But it arrives via
+     `SM_ACTION` and forces a panel break, treating captions as rare interruptions. In Zork they
+     are every turn. Invert the cadence, keep the geometry.
 
 ---
 
@@ -170,7 +176,13 @@ zero dependencies, no browser code.
   assets exist. Options sketched but undecided — panel compositions that avoid backdrops,
   deriving variants from the three originals, or new art in the Woodring hatch idiom for the ~10
   rooms that carry the game. M5 decision.
-- `art/` has **no test harness**; the 4656-image corpus sweep was ad hoc.
+- **Sprite-sheet packing is deferred to 5.3.** `art/tools/avbdump.ts` emits one PNG per pose plus a
+  JSON manifest; packing waits until the renderer shows what it wants to load.
+- **`art/src/pose.ts` diverges from the original on purpose, once.**
+  `CAvatarComplex::GetBodyFromEmotion` reuses one `nearestI` across its face and torso loops, so
+  a request whose torso search matches nothing draws *the face's index as a torso*. The port
+  falls back to neutral instead, matching what the `CEmotionOpts` path already does. Recorded at
+  the call site.
 - `README.md:27` still says the engine is "inspired by the original gameplay" — understates the
   commitment to behavioral compatibility verified by golden transcripts. Minor wording.
 

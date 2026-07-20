@@ -1,10 +1,12 @@
 # The Comic Chat `.avb` Avatar Format
 
-Normative notes for reading Microsoft Comic Chat avatar files. Written during stage 5.1
-while building `art/poc/avbdec.py`, which decodes the full corpus.
+Normative notes for reading Microsoft Comic Chat avatar files. Written during stage 5.1,
+first while building `art/poc/avbdec.py` and then while porting it to `art/src/`.
 
-**Status:** verified against all 191 `.avb` files in `original-projects/comic-chat/` —
-191/191 parse, 4656/4656 images decode.
+**Status:** stage 5.1 complete. Verified against all 191 `.avb` files in
+`original-projects/comic-chat/` — 191/191 parse, 4656/4656 images decode, 2066 masks and
+2908 auras decode, 4656 poses rasterize, 2348 face/torso composites assemble. The
+TypeScript decoder is byte-identical to the Python POC on every directly comparable pose.
 
 ## Why this document exists
 
@@ -24,7 +26,9 @@ file exists; the rest is orientation.
 | `artifacts/avtools/avbfile.h` | Structs, record-code enum, image format/palette enums |
 | `artifacts/avtools/avbfile.cpp` | Reference reader; tag dispatch at `HandleLoadTag` |
 | `v2.1b/cchat/avatario.cpp` | Client-side pose record reader — **authoritative for field scaling** |
-| `v2.1b/cchat/avatar.h` | Emotion wheel constants (`EM_*`) |
+| `v2.1b/cchat/avatar.h` | Emotion wheel constants (`EM_*`), avatar flag bits |
+| `v2.1b/cchat/avatar.cpp` | Pose selection (`GetBodyFromEmotion`, `GetHeadAndBodyFromEmotion`) |
+| `v2.1b/cchat/bodycam.cpp` | Compositing geometry (`GetBodyBox`) and the plane blits (`DrawBody`) |
 
 Where `avbfile.cpp` and `avatario.cpp` disagree, `avatario.cpp` describes the file and
 `avbfile.cpp`'s protocol helpers describe the wire format. See gotcha 4.
@@ -85,9 +89,8 @@ torsos, not 32 poses.
 only shipped backdrops are three plain `.bmp` files in `v1.0/client/comicart/backdrop/`
 (`field`, `pastoral`, `room8bs`, all 315×315).
 
-Composition geometry (`cx`/`cy`, `cxDelta`/`cyDelta`, `x`/`y`) is parsed by the POC but
-**not yet interpreted** — placement logic lives in `GetHeadAndBodyFromEmotion`
-(`v2.1b/cchat/avatar.cpp`) and is unfinished work.
+Composition geometry (`cx`/`cy`, `cxDelta`/`cyDelta`, `x`/`y`) is specified under
+"Compositing" below.
 
 ## Pose records
 
@@ -145,9 +148,72 @@ INT32  compressed size
 Plain zlib — `DecompressionStream('deflate')` handles it natively in a browser, which
 matters for the eventual TypeScript port.
 
+## Compositing
+
+An `AT_COMPLEX` avatar stores headless torsos and separate faces and joins them at render
+time. The join is defined by three numbers per part, all in the drawing's own pixel space:
+
+| Field | On | Meaning |
+|---|---|---|
+| `cx`, `cy` | torso | The neck socket — where a head attaches |
+| `cx`, `cy` | face | The corresponding anchor inside the face image |
+| `cxDelta`, `cyDelta` | face | A per-face nudge from that socket (tilted head, thrown-back laugh) |
+| `x`, `y` | face, body | `faceX`/`faceY` — the balloon-tail attach point, not a placement |
+
+The face is drawn at
+
+```
+offset = torso.c + face.cDelta - face.c
+```
+
+which lands the face's own anchor on the torso's socket, then applies the nudge. The
+offset may be negative, so the composite's bounding box is the union of the torso at the
+origin and the face at `offset`, and both parts are rebased onto that box
+(`CBodyDouble::GetBodyBox`, `bodycam.cpp:527`; `GetDimInfo`, `avatar.cpp:106`, computes
+the same thing independently).
+
+Draw order comes from the avatar's `AK_FLAGS`. It is visible: whichever part is drawn
+second overlaps the other at the neck, so `TORSOFIRST` decides whether a collar sits over
+the jaw or under it.
+
+| Bit | Name | Effect |
+|---|---|---|
+| 1 | `HEADMASK` | The face's mask plane is blitted |
+| 2 | `TORSOMASK` | The torso's mask plane is blitted |
+| 4 | `TORSOFIRST` | Torso drawn first, head over it |
+| 8 | `OTHERMAPPED` | Unused in this corpus |
+
+Observed combinations: `5` (`HEADMASK|TORSOFIRST`) on 167 files, `2` on 6, `0` on 18.
+A simple avatar's body never blits a mask at all — `CBodySingle::DrawBody` draws only the
+aura and the drawing.
+
+### The three planes
+
+Every pose carries up to three image offsets, and Comic Chat drew them as three Win32
+blits (`bodycam.cpp:438`):
+
+```
+aura     MERGEPAINT   dest = dest | ~src    punch a white halo
+mask     MERGEPAINT   dest = dest | ~src    punch the figure silhouette
+drawing  SRCAND       dest = dest & src     AND the ink in
+```
+
+Read as alpha rather than as raster ops that says: **the mask and aura planes define
+coverage, the drawing defines colour, and any pixel no plane punched keeps the backdrop**
+— which is transparency. The three-blit sequence is a Win32 detail; a renderer with an
+alpha channel does not need it.
+
+Masked-mono poses carry no separate planes because all three ride in one 2bpp bitmap. In
+the corpus: 2906 DIB poses have an aura and 1682 of those also a mask; 384 deflate poses
+carry an `AIP_DUALMASK` mask; 1364 masked-mono poses carry neither.
+
+The aura is the white halo that lifted a figure off a backdrop. It is pure presentation —
+worth keeping separable, since a renderer compositing onto its own background may not
+want it.
+
 ## Gotchas
 
-Five things a header-only reader gets wrong. Ordered by how much time each costs.
+Eight things a header-only reader gets wrong. Ordered by how much time each costs.
 
 ### 1. `AK_OFFSET_ADJUSTMENT` is a 32-bit read
 
@@ -215,6 +281,35 @@ The four are Bolo torso10, Cro torso12, Denise torso08, Lynnea torso17 — each 
 across four version directories, hence 16 failures if unhandled. No `BI_RLE8` in the
 corpus, though handling it is nearly free once RLE4 works.
 
+### 6. Mask and aura plane polarity is not constant
+
+A mask or aura plane is a 1bpp DIB, so it is tempting to treat index 0 as the figure.
+**2833 aura planes ship the colour table `[white, black]` — and 73 ship `[black, white]`.**
+Assume either one and the other group renders inverted: a solid rectangle with a
+figure-shaped hole, or nothing at all.
+
+Read the polarity from the plane's own colour table. Testing luminance (`< 128` is the
+punched side) rather than the raw index decodes both groups correctly and costs nothing.
+
+Fails silently.
+
+### 7. `AIP_DUALMASK` planes are masked-mono, not 1bpp
+
+384 deflate poses carry a mask with palette type 5 (`AIP_DUALMASK`). These are 2bpp with
+the masked-mono colour table and the masked-mono encoding — mask *and* aura in one
+bitmap, which is what "dual" names. Decoding one as 1bpp reads four pixels where there
+are two.
+
+### 8. One asset relies on the blits having been `StretchBlt`
+
+Comic Chat blitted every plane into the *same destination rectangle* as the drawing, so a
+plane whose dimensions disagreed was silently scaled. **Xeno's LAUGH face carries 145×150
+planes against a 150×158 drawing**, in all four versions of the file. It is the only such
+asset in the corpus; every other plane matches its drawing exactly.
+
+A decoder that indexes plane pixels by the drawing's stride reads that one pose skewed.
+Resample planes to the drawing's dimensions instead.
+
 ## Licensing
 
 `AK_COPYRIGHT` and `AK_USAGE_FLAGS` exist and the format supports embedded usage
@@ -222,14 +317,29 @@ restrictions. In this corpus `AK_USAGE_FLAGS` is **unset everywhere**; `AK_COPYR
 carries a Microsoft notice in the v2.5 files. Nothing in the format complicates the MIT
 grant covering these assets — see `NOTICE` and `THIRD_PARTY.md`.
 
+## Implementation
+
+`art/src/` is the production decoder (TypeScript, per ADR 0002); `art/poc/avbdec.py` is
+kept as the reference the port was validated against.
+
+| Module | Covers |
+|---|---|
+| `avb.ts` | Record stream, pose records, offset adjustment |
+| `image.ts` | Both storage formats, all palette modes, RLE4/RLE8 |
+| `raster.ts` | Plane coverage → RGBA, polarity, plane resampling |
+| `pose.ts` | Emotion wheel and pose selection |
+| `composite.ts` | Face-onto-torso join |
+| `png.ts` | Output encoding |
+
+The only platform dependency is `inflate.ts` (Node `zlib`). `AIF_LZDEFLATE` blobs are
+plain zlib, so a browser-side decoder swaps that one file for
+`DecompressionStream("deflate")`.
+
 ## Open work
 
-- **Compositing.** Face-onto-torso placement from `cx`/`cy`/`cxDelta`/`cyDelta`;
-  selection logic in `GetHeadAndBodyFromEmotion` (`v2.1b/cchat/avatar.cpp`).
-- **Mask and aura planes.** The POC decodes the image plane only. Masked-mono images
-  carry all three in one 2bpp bitmap, so those are complete; DIB-format poses have
-  separate mask/aura offsets that are parsed but not decoded.
-- **TypeScript port.** Per ADR 0002 the production pipeline is TS. Expected output is a
-  PNG sprite sheet plus a JSON manifest of `{character, part, emotion, intensity,
-  cx, cy, x, y}` so the engine's `speech` events can be matched against pose metadata
-  without runtime `.avb` parsing.
+- **Sprite-sheet packing.** `art/tools/avbdump.ts` emits one PNG per pose plus a JSON
+  manifest. Packing into a sheet is a build-pipeline concern, deferred until stage 5.3
+  shows what the renderer actually wants to load.
+- **Backdrops.** `AT_BACKDROP` is defined by the format but has zero instances; three
+  plain `.bmp` files are all that ship. Zork I has 110 rooms. This is an M5 design
+  question, not a decoding one.

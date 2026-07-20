@@ -1,0 +1,72 @@
+{
+  "poc/avbdec.py": {
+    "mtime": 1784478642.1293912,
+    "ast_hash": "671a276be2f083383d9ed781fd1a7059",
+    "semantic_hash": ""
+  },
+  "src/avb.ts": {
+    "mtime": 1784526694.799501,
+    "ast_hash": "ecc97675cc39f073167d515f63ce7420",
+    "semantic_hash": ""
+  },
+  "src/composite.ts": {
+    "mtime": 1784527408.0154982,
+    "ast_hash": "240bd22c3c7b61d05e12524d1714a9f3",
+    "semantic_hash": ""
+  },
+  "src/format.ts": {
+    "mtime": 1784526619.8404646,
+    "ast_hash": "b975d0b2d0a830aefd5abf4e51a89c14",
+    "semantic_hash": ""
+  },
+  "src/image.ts": {
+    "mtime": 1784526669.054877,
+    "ast_hash": "1d4efcf73710623563a7bc10a0103dd4",
+    "semantic_hash": ""
+  },
+  "src/index.ts": {
+    "mtime": 1784527411.921699,
+    "ast_hash": "3343f1bb9adba12b6fe11e46c5b2276d",
+    "semantic_hash": ""
+  },
+  "src/inflate.ts": {
+    "mtime": 1784526634.742279,
+    "ast_hash": "cc3353208c557d58b3ece9014bb3a9d9",
+    "semantic_hash": ""
+  },
+  "src/png.ts": {
+    "mtime": 1784526848.795356,
+    "ast_hash": "0ca2c40d73cccbd9471f81a24d0d008f",
+    "semantic_hash": ""
+  },
+  "src/pose.ts": {
+    "mtime": 1784526815.4235454,
+    "ast_hash": "4c44bedf73cd3cb40c6abc9a0a1d3778",
+    "semantic_hash": ""
+  },
+  "src/raster.ts": {
+    "mtime": 1784527384.380091,
+    "ast_hash": "f15f7f5a4a9bbd24de6afe01af6b95ad",
+    "semantic_hash": ""
+  },
+  "src/reader.ts": {
+    "mtime": 1784526627.5776298,
+    "ast_hash": "81e5aae65db88bf7c88386f48b7ad116",
+    "semantic_hash": ""
+  },
+  "test/corpus.test.ts": {
+    "mtime": 1784527473.7619824,
+    "ast_hash": "a6768ceab6c9c384703dc915c38b5ba0",
+    "semantic_hash": ""
+  },
+  "vitest.config.ts": {
+    "mtime": 1784526956.7713466,
+    "ast_hash": "a636d6ba711b8cd327f7c91f48a81300",
+    "semantic_hash": ""
+  },
+  "tools/avbdump.ts": {
+    "mtime": 1784526869.4793143,
+    "ast_hash": "85d6e59826e1c105b7fe752222dd8f6d",
+    "semantic_hash": ""
+  }
+}
