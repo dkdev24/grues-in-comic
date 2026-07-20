@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grues in Comic — text shell</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!--
+      Stage 5.2: the console pane plus an event inspector. The two-pane grid is
+      ADR 0004 §4's shell with the comic pane not yet built — 5.3 replaces the
+      inspector slot with the comic and the console keeps its role unchanged.
+      Both panes stay visible when the grid stacks (§4a).
+    -->
+    <main id="shell">
+      <section id="inspector" aria-label="Event stream">
+        <h2>Event stream <small>ADR 0002 contract</small></h2>
+        <div class="inspector-body">
+          <div class="inspector-block">
+            <h3>Mix so far</h3>
+            <div class="mix"></div>
+          </div>
+          <div class="inspector-block">
+            <h3>Last turn</h3>
+            <div class="last-events"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="console" aria-label="Game transcript">
+        <div class="status-line">
+          <span class="status-room"></span>
+          <span class="status-score"></span>
+        </div>
+        <div class="transcript" role="log" aria-live="polite"></div>
+        <form id="command-form" autocomplete="off">
+          <label class="prompt" for="command">&gt;</label>
+          <input id="command" name="command" type="text" autocomplete="off"
+                 autocapitalize="none" autocorrect="off" spellcheck="false"
+                 aria-label="Command" />
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="./dist/web/src/main.js"></script>
+  </body>
+</html>

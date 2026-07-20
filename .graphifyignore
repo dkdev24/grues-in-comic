@@ -35,6 +35,7 @@ package-lock.json
 # noise (name/version/compilerOptions...), no structural signal
 package.json
 tsconfig.json
+tsconfig.build.json
 
 # Verification ground truth (transcripts, goldens, harness) — not engine source
 verification/

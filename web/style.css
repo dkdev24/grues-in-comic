@@ -1,0 +1,234 @@
+/*
+ * Stage 5.2 styling: the console pane as the terminal Zork was played on
+ * (ADR 0004 §4), and an event inspector beside it.
+ *
+ * §4a governs the layout: responsiveness outranks retro fidelity. Nothing here
+ * is sized in fixed pixels except type; the panes are a fluid grid that stacks
+ * on narrow viewports with *both halves still visible* — a console truncated to
+ * fit has broken §2's "narration is accompanied, never replaced", not just the
+ * shell.
+ */
+
+:root {
+  --console-bg: #000;
+  --console-fg: #d8d8d8;
+  --console-dim: #8a8a8a;
+  --status-bg: #d8d8d8;
+  --status-fg: #000;
+  --accent: #6fc36f;
+  --panel-bg: #1b1b1f;
+  --panel-fg: #c9c9d1;
+  --rule: #3a3a42;
+  --mono: "SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #0c0c0e;
+  color: var(--console-fg);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+#shell {
+  display: grid;
+  /* The comic pane is primary and the console subordinate-but-complete (§4);
+     at 5.2 the inspector stands in the primary slot. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  height: 100dvh;
+}
+
+section {
+  min-height: 0; /* lets the inner scrollers, not the grid, take the overflow */
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+
+/* ---------------- console pane ---------------- */
+
+#console {
+  background: var(--console-bg);
+}
+
+.status-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--status-bg);
+  color: var(--status-fg);
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.status-room {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transcript {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.6rem;
+}
+
+/* Interior newlines are the game's own paragraphing (`TELL` emits them); only
+   the trailing one is stripped, in console-view.ts. */
+.line {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  margin-bottom: 0.55rem;
+}
+
+/* Styling is by ADR 0002 channel, never by inspecting the text. */
+.line.echo {
+  color: var(--accent);
+}
+.line.prose {
+  color: var(--console-fg);
+}
+.line.room-title {
+  color: #fff;
+  font-weight: 700;
+}
+.line.system {
+  color: var(--console-dim);
+}
+.line.question {
+  color: #e0c46c;
+}
+.line.speech {
+  color: #8fb8ff;
+}
+.line.game-over {
+  color: #e08a8a;
+  font-weight: 700;
+}
+
+#command-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-top: 1px solid var(--rule);
+  padding: 0.35rem 0.6rem;
+}
+
+.prompt {
+  color: var(--accent);
+}
+
+#command {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  color: var(--console-fg);
+  font: inherit;
+  padding: 0.2rem 0;
+}
+
+#command:focus {
+  outline: none;
+}
+
+/* ---------------- inspector ---------------- */
+
+#inspector {
+  background: var(--panel-bg);
+  color: var(--panel-fg);
+}
+
+#inspector h2 {
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--rule);
+}
+
+#inspector h2 small {
+  color: var(--console-dim);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+#inspector h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--console-dim);
+}
+
+.inspector-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.6rem;
+  font-size: 0.8rem;
+}
+
+.inspector-block + .inspector-block {
+  margin-top: 1rem;
+}
+
+.mix-row,
+.event-row {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+  padding: 0.1rem 0;
+}
+
+/* A zero row is dimmed but never hidden: the 0-`speech` finding (ADR 0004
+   §Context) is only legible if the row is present. */
+.mix-zero {
+  color: #5a5a63;
+}
+
+.event-row {
+  justify-content: flex-start;
+  border-top: 1px solid #26262c;
+}
+
+.event-kind {
+  flex: 0 0 8.5rem;
+  color: var(--accent);
+}
+
+.event-detail {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.event-empty {
+  color: var(--console-dim);
+}
+
+/* ---------------- §4a: stack, keep both panes visible ---------------- */
+
+@media (max-width: 720px) {
+  #shell {
+    grid-template-columns: minmax(0, 1fr);
+    /* Console gets the larger share; the other pane stays on screen. */
+    grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}

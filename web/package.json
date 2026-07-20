@@ -1,0 +1,21 @@
+{
+  "name": "@grues-in-comic/web",
+  "version": "0.1.0",
+  "description": "Browser shell over the ADR 0002 event stream — the console pane of the two-pane shell (stage 5.2)",
+  "type": "module",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "serve": "tsx tools/serve.ts",
+    "dev": "npm run build && npm run serve"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.5.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.2.0**
+**1.3.0**
 
 ---
 
@@ -37,68 +37,75 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   ⚑ **Gate C CLAIMED (v1.0.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`, see below
 - **M5** Comic Chat presentation — **5.1 ✅** art pipeline (`art/`: decode, pose selection,
   compositing; 13 tests, whole-corpus sweep) and the presentation analysis in `wiki/` ·
-  **panel grammar ✅ (v1.2.0)** — `docs/adr/0004-presentation-mapping.md` Accepted, so 5.3 is
-  unblocked on design
+  **panel grammar ✅ (v1.2.0)** — `docs/adr/0004-presentation-mapping.md` Accepted ·
+  **5.2 ✅ (v1.3.0)** — `web/`, the browser shell; Zork I is playable in a browser.
+  **5.3 is now unblocked on both design and plumbing.**
 
 ---
 
-## Last Session — ADR 0004 written and accepted (v1.2.0)
+## Last Session — stage 5.2, the browser shell (v1.3.0)
 
-**Design only; no code. The decision of record is now `docs/adr/0004-presentation-mapping.md`** —
-read that first. `docs/panel-grammar-discussion.md` (§1–§16, 949 lines) is the reasoning behind it;
-the full narrative is `WORKLOG.md` v1.2.0. Measurement used throwaway scripts under
-`engine/harness/` and `art/tools/`, all removed.
+**Zork I is playable in a browser.** New package `web/`; read `web/README.md` first, the full
+narrative is `WORKLOG.md` v1.3.0. Engine, IR and art are untouched — parity is unchanged at
+143/143 strict, 155/161 overall.
 
-**ADR 0004 — Accepted.** Eleven decisions, three same-day amendments. It consumes the ADR 0002
-event contract and deliberately does **not** extend it.
+5.2's real job was to consume the ADR 0002 contract from *outside* the engine for the first time.
+**The contract survived.** Three things only become visible from outside; none needs a contract
+change, and each is pinned by a test in `web/test/status.test.ts` rather than left as prose:
 
-Carried forward as the things most likely to be got wrong later:
+1. **`room-title` never arrives** — the standing open issue, now confirmed from the consumer side
+   and marked resolved below. The status line resolves the room name from the world document by id.
+2. **`start()` emits no `player-moved`.** The opening placement arrives as an `object-moved` of
+   `ADVENTURER` with `from` === `to`. **Scope that rule to the player**: the thief's wander daemon
+   emits ~1 `object-moved` per turn, so a looser rule puts the status line in the thief's room.
+3. **`restore()` emits no events**, so any UI state *derived* from the stream must be rebuilt from
+   `SaveState` (`locations`, `globals.SCORE`).
 
-- **The Hero thinks; only the Guide speaks (§2a).** Hero channel is `CBWoodringThink`, caption is
-  `CBWoodringBox`, Guide is `CBWoodringNormal`. A speech balloon reading `open the door` makes the
-  Hero appear to order the Guide, and asserts speech on every panel when the engine emits **0
-  `speech` events**. Fixing content without fixing balloon *class* is what caused this.
-- **The salience filter is a precondition, not a detail (§7).** 31 of 187 `object-moved` (16.6%)
-  are player-salient. Without it the most common shot in the comic is a close-up on an unseen thief.
-- **51% of turns are deliberately affectless (§10).** Intent, not a coverage gap. "Improving" it
-  flattens the comic.
-- **Lock the marker *ordering*, not the percentages (§10).** All 11 walkthroughs replay the same
-  opening, so every frequency is opening-shaped.
-- **Emotion derives from narration, never from the Hero's channel (§9)** — inverts Comic Chat's
-  data flow and is the constraint most likely to be implemented backwards.
-- **Panel width is a Layout Manager parameter now (§4a)** — the one place the 5.1 port stops being
-  a transcription. Review it as a design change, not as a diff against the C++.
+Carried forward as the things most likely to be got wrong next:
 
-**Method note: five plausible proposals died on measurement across the two sessions** — the naive
-`object-moved` close-up, the `score-changed` beat rung (0% — fully shadowed), the thin-corpus jitter
-premise, the mobile drawer, and the Hero speech balloon. Measure against the replay and the `art/`
-corpus before committing a rule.
-
-**Settled this session:** retro vs. responsive → **responsive wins** (§4a). Mobile keeps both panes
-visible. Optional dictation sanctioned, must never auto-submit. **cmx.js assessed and not adopted**
-(authoring tool, no composition logic; figure models do not bridge) — see discussion §14.
-**Assisted input** (SCUMM-style picker) designed and **deferred to after the MVP** — discussion §15.
-
-**Still open, and delegated:** the user has asked for a *recommendation* at the point each is
-needed, not a survey — the Guide's identity, final Hero/Guide casting (shortlists intersect only at
-susan, so cast both together), Guide trigger/cooldown, page composition and pull-quote selection,
-§4a breakpoints, PDF byte size, pane scroll coupling.
+- **`src/session.ts` is deliberately DOM-free, and that is what 5.3 consumes.** It hands over a
+  turn's events plus derived state and holds no opinion about panels. Both panes reading one
+  stream is what makes ADR 0004 §2's "narration is accompanied, never replaced" cheap instead of a
+  synchronization problem. **Do not give the comic pane its own engine handle.**
+- **The console pane was built subordinate already** (ADR 0004 §4), owning a `<section>` rather
+  than the page, so 5.3 adds a sibling. §4a was verified in a real browser at 390×844 — both panes
+  visible, no horizontal scroll — not asserted from the CSS.
+- **Style by channel, never by parsing text.** There is no regex over narration anywhere in `web/`;
+  adding one is the failure mode ADR 0002 exists to prevent. Likewise `textContent`, never
+  `innerHTML` — the transcript is where a world document could inject markup into the page.
+- **No bundler, no new dependencies, by decision.** `tsc` alone emits browser-native ESM because the
+  engine imports the IR for types only. If 5.3 needs asset pipelines or code splitting, add a
+  bundler *then*, on that evidence — `web/README.md` records why it was not needed here.
+- **The inspector is the half of 5.2 worth keeping.** The console renders four event types and
+  drops three; the three it drops are exactly what 5.3 renders. The live mix reproduced the ADR 0004
+  census on a real session (`object-moved` ≈ 1.00/turn, `speech` 0.00).
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.7 ✅. M5: 5.1 ✅.** Nothing is blocked; 5.2 is next by the plan.
+**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅.** Nothing is blocked; **5.3 is next by the plan** and is
+⚑ **Gate D**.
 
-1. **Stage 5.2 — minimal browser shell** over the event stream. The **first real test of whether
-   the ADR 0002 event contract is usable from outside the engine**: everything to date has
-   consumed it from the harness, which was written alongside it and shares its assumptions.
-   Expect the `room-title` channel question (open issues) to become concrete here rather than
-   theoretical.
-   - **5.1 sharpened what 5.2 is a rehearsal for.** Measured over all 11 walkthroughs (189
-     turns): **192 `narration`, 0 `speech`.** Not "few" — none. Every player-visible line is
-     narration, and the **187** `object-moved` events are ~one per turn, the thief's wander daemon
-     (count corrected from 189 by the §10 census; only 31 of them are player-salient).
-     A text UI can ignore that; the 5.3 comic layer cannot, so a 5.2 that surfaces the event
-     *mix* rather than just concatenating text is worth more.
+1. **Stage 5.3 — comic renderer POC: one scene as panels + speech bubbles.** ⚑ **Gate D** — it
+   decides art pipeline and asset strategy, and 5.4–5.5 are planned in detail only after it.
+   Both blockers are gone: the design is `docs/adr/0004-presentation-mapping.md` (Accepted) and
+   the plumbing is `web/`.
+   - **Consume `web/src/session.ts`.** It is DOM-free and already hands over a turn's events plus
+     derived state; the comic pane is a sibling `<section>` of the console pane, not a new engine
+     handle. ADR 0004 §2's "narration is accompanied, never replaced" is only cheap if both panes
+     read one stream.
+   - **The material is the event types the console pane drops** — `object-moved`, `player-moved`,
+     `score-changed`, `game-over`. `web/src/inspector-view.ts` already displays them per turn,
+     which is the cheapest way to watch a mapping rule behave before committing it.
+   - **The salience filter is a precondition, not a detail (ADR 0004 §7).** Only 31 of 187
+     `object-moved` are player-salient; without it the most common shot in the comic is a close-up
+     on an unseen thief. The live mix in the shell confirmed the ~1/turn rate on a real session.
+   - **Sprite-sheet packing was deferred to this stage** — `art/tools/avbdump.ts` emits one PNG per
+     pose plus a JSON manifest, and packing waits on what the renderer wants to load.
+   - **Panel width is a Layout Manager parameter (§4a)**, evaluated per render at the current panel
+     size. Review that as a design change, not as a diff against the C++.
+   - **A bundler is a live option now, and only now.** `web/` deliberately has none; if 5.3 needs
+     asset pipelines or code splitting, add one on that evidence (`web/README.md` records why it
+     was not needed at 5.2).
 
 2. **`V-CLIMB-UP`, the last stub** — stalls on `GETPT`. Recorded as a known limitation at Gate C
    because no walkthrough diverges on it, but it is the last known gap in Group A coverage and
@@ -175,13 +182,17 @@ sat unread for two sessions before it settled the balloon class.
 - **Multi-object lists are unimplemented** beyond `ALL`. "TAKE LEAFLET AND MAILBOX" is correctly
   kept as *one* turn by the sentence splitter, but the second noun is dropped; the reference
   prints a prefixed answer per object, as `TAKE ALL` already does.
-- **`room-title` channel is unused in practice.** The engine delegates room description to Zork's
-  own `DESCRIBE-ROOM`, which prints the name with `<TELL D ,HERE>`, so the title cannot be split
-  onto its own channel without parsing prose — which the ADR 0002 contract forbids. A UI wanting
-  the title should read `player-moved`.to and look the name up in the world document. ~~Decide
-  whether the channel stays in the contract.~~ **Decided: the channel stays.** The retro console's
-  Infocom status line (room name, score, moves) refreshes every turn and is its consumer — see
-  `docs/panel-grammar-discussion.md` §7.1. The `player-moved` workaround remains available.
+- **`room-title` channel is unused in practice — resolved at 5.2, no contract change.** The engine
+  delegates room description to Zork's own `DESCRIBE-ROOM`, which prints the name with
+  `<TELL D ,HERE>`, so the title cannot be split onto its own channel without parsing prose —
+  which ADR 0002 forbids. **The channel stays** (the console status line is its consumer,
+  `docs/panel-grammar-discussion.md` §7.1), and the documented workaround is now implemented and
+  tested: `web/src/status.ts` resolves the room name from the world document by id, taking it from
+  `player-moved`.to and — for the opening turn, which emits none — from the player's own
+  `object-moved`. An unknown id renders as the id, so a gap is visible rather than blank.
+  **Two adjacent findings from the same stage**, both consumer-side, both tested, neither needing a
+  contract change: `start()` emits no `player-moved`, and `restore()` emits no events at all
+  (derived UI state must be rebuilt from `SaveState`).
 - **`game-over` may double-emit — unverified.** The §10 event census counts **22 `game-over`
   events across 11 walkthroughs**, two per walkthrough within the same turn. Possibly legitimate
   (a death followed by a quit), possibly a double-emit. Harmless to per-turn logic and to the
@@ -260,6 +271,7 @@ Hard-won rules that outlive any one session.
 | `engine/` | **Engine core (M4).** Zero-dep TS; `src/events.ts` is the ADR 0002 contract as code. `npm test` runs against the real Zork I world |
 | `engine/harness/` | Transcript replay: `replay.ts` (parity oracle), `golden.ts` (normalizer + parity directives) |
 | `verification/` | `walkthroughs/*.cmd` + `golden/*.txt`; `run-transcripts.sh` captures goldens from dfrotz |
+| `web/` | **Browser shell (5.2).** `npm --prefix web run dev` → localhost:8080. `src/session.ts` is DOM-free and is what 5.3's comic pane consumes; no bundler, by decision — see `web/README.md` |
 | `art/` | Comic Chat art tooling. `poc/avbdec.py` decodes `.avb` → PNG (Python by exception — port to TS per ADR 0002) |
 | `docs/AVB_FORMAT.md` | **Normative** `.avb` format spec + the five silent-failure gotchas. Read before touching `art/` |
 | `original-projects/zork1/` | ZIL source reference |

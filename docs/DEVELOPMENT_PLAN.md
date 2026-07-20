@@ -118,7 +118,7 @@ Goal: browser shell consuming engine events; Comic Chat–inspired presentation.
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|
 | 5.1 | **Comic Chat analysis** — study `original-projects/comic-chat/` presentation concepts: panel layout, bubble placement, character/emotion selection; document in `wiki/` (read the paper below alongside the source) | Written analysis of the algorithms worth preserving | ✅ |
-| 5.2 | **Minimal browser shell** — text-mode UI over the event stream (prove the contract end-to-end) | Playable text version in browser | ☐ |
+| 5.2 | **Minimal browser shell** — text-mode UI over the event stream (prove the contract end-to-end) | Playable text version in browser | ✅ |
 | 5.3 | **Comic renderer POC** — one scene as panels + speech bubbles | POC demonstrates event→panel mapping ⚑ **Gate D** | ☐ |
 | 5.4 | **Presentation buildout** — panel sequencing, character portraits, narration styling, persistence | Opening area playable in comic form | ☐ |
 | 5.5 | **Full-game pass** — art/layout coverage for the complete game | Game completable in the browser | ☐ |

@@ -1544,3 +1544,87 @@ amendment — a read-only query API, pull rather than push, leaving the event st
 
 **Panel grammar ✅.** Stage 5.2 (minimal browser shell) is next by the plan, and 5.3 is now
 unblocked on design.
+
+---
+
+## v1.3.0 — Browser Shell (Milestone 5, stage 5.2)
+
+**Date:** 2026-07-20
+
+Zork I is playable in a browser. New package `web/` — the first consumer of the ADR 0002 event
+contract written *outside* the engine, which was the point of the stage: everything to date had
+consumed the stream from the transcript harness, written alongside it and sharing its assumptions.
+
+### The three findings
+
+The contract survived contact, but three things only become visible from outside. None needs a
+contract change; all three need a consumer to know them, so each is pinned by a test in
+`web/test/status.test.ts` rather than left as prose.
+
+1. **`room-title` never arrives.** The standing `HANDOFF.md` open issue, confirmed from the
+   consumer side: room description is delegated to Zork's `DESCRIBE-ROOM`, which prints the name
+   inside a `prose` line, and ADR 0002 forbids parsing prose. The status line looks the name up in
+   the world document by room id. An id missing from the table renders as the id — a visible bug
+   report rather than a blank bar. This is exactly the workaround ADR 0004 §4 anticipated when it
+   kept the channel in the contract for the console status line.
+2. **`start()` emits no `player-moved`.** The opening turn reports the player's placement as an
+   `object-moved` of `ADVENTURER` whose `from` and `to` are both `WEST-OF-HOUSE`. A shell watching
+   `player-moved` alone shows an empty status line until the player first walks. Watching the
+   player's own `object-moved` covers both cases — and must be scoped to the player, because the
+   thief's wander daemon emits roughly one `object-moved` per turn and a looser rule puts the
+   status line in the thief's room.
+3. **`restore()` emits no events.** UI state *derived* from the stream has nothing to fold, so it
+   has to be rebuilt from `SaveState` — which carries `locations` and `globals.SCORE` for the
+   purpose. Found by building save/restore, not by reading the contract.
+
+### The shell
+
+- **The console pane is ADR 0004 §4's terminal**, built subordinate-from-the-start so 5.3 adds a
+  comic pane rather than triggering a rewrite. Infocom status line (room, score, moves), transcript,
+  prompt. `save`/`restore` are shell commands to `localStorage`, not game verbs — ZIL's SAVE/RESTORE
+  are interpreter commands and this shell is the interpreter. A save whose contract *major* differs
+  is refused rather than half-applied.
+- **An event inspector beside it**, showing the running mix and the last turn's raw events. This is
+  the stage's second deliverable and the reason it is worth more than a text concatenator: the
+  console renders four event types and drops three, and the three it drops are what 5.3 renders. The
+  mix seeds every contract type at zero so `speech: 0` is a visible row, not a missing one.
+- **`src/session.ts` holds the engine and the derived state with no DOM**, which is what 5.3's comic
+  pane will consume. Both panes reading one stream is what makes ADR 0004 §2's "narration is
+  accompanied, never replaced" cheap instead of a synchronization problem.
+- **§4a verified in a real browser**, not asserted: at 390×844 both panes stay on screen and the
+  page does not scroll horizontally.
+
+### No bundler, and no new dependencies
+
+`tsc` alone emits browser-native ES modules. It works because the engine has zero runtime
+dependencies and imports the IR for **types only** (ADR 0002) — nothing survives into the emitted
+JS — and because every internal import already carries a `.js` extension. `tools/serve.ts` is
+`node:http` and nothing else, mounting `ir/artifacts/` at `/world/` so the page fetches the same
+1.8 MB world document the parity harness replays rather than a copy that can drift.
+
+A shell that needed a toolchain to demonstrate the contract is consumable would have weakened the
+claim it exists to make. If 5.3 needs asset pipelines or code splitting, that is the evidence to
+add one on.
+
+### Conventions established for the presentation layer
+
+- **Style by channel, never by parsing text.** There is no regex over narration anywhere in `web/`,
+  and adding one is the failure mode ADR 0002 §2 exists to prevent.
+- **`textContent`, never `innerHTML`.** The transcript is the one place a world document could
+  inject markup into the page.
+- **Render `speech` even though the engine emits none.** ADR 0004 §Context measured zero across all
+  11 walkthroughs; a shell that silently dropped the type is how an engine-side change would go
+  unnoticed here. `web/test/session.test.ts` asserts the zero, so if the premise ever changes the
+  ADR hears about it.
+
+### State at the milestone
+
+- New package `web/` (0.1.0): 6 source modules, 12 tests, its own `graphify-out/` (76 nodes,
+  120 edges, 8 communities).
+- **Engine, IR and art untouched.** 120 engine tests, IR 193, art 13; parity unchanged at
+  143/143 strict turns and 155/161 overall.
+
+### Status
+
+**Stage 5.2 ✅.** Stage 5.3 — the comic renderer POC, ⚑ Gate D — is next, and is unblocked on both
+design (ADR 0004 Accepted) and plumbing (this shell).

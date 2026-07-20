@@ -11,6 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v1.3.0] - 2026-07-20 — Browser Shell (stage 5.2)
+
+Zork I is playable in a browser. New package `web/` — the first consumer of the ADR 0002 event contract written **outside** the engine, which was the point of the stage.
+
+### Added
+- **`web/` — the console pane of ADR 0004 §4's two-pane shell**, built subordinate-from-the-start so 5.3 adds a comic pane rather than a rewrite. Infocom status line (room, score, moves), channel-styled transcript, prompt, and `save`/`restore` to `localStorage` as shell commands rather than game verbs. A save whose contract *major* differs is refused, not half-applied.
+- **An event inspector** showing the running event mix and the last turn's raw events. The console renders four event types and drops three; the three it drops are what 5.3 renders. Contract types are seeded at zero so `speech: 0` (ADR 0004 §Context) is a visible row.
+- **`src/session.ts`** — engine plus derived state with no DOM, which is what 5.3's comic pane will consume. One stream, both panes.
+- **`tools/serve.ts`** — a `node:http` static server mounting `ir/artifacts/` at `/world/`, so the page fetches the same 1.8 MB world document the parity harness replays.
+- 12 tests; `web/graphify-out/` (76 nodes, 120 edges, 8 communities).
+
+### Contract findings
+Three things only become visible from outside the engine. None needs a contract change; each is pinned by a test in `web/test/status.test.ts`.
+- **`room-title` never arrives** — the standing open issue, confirmed from the consumer side. The name lives inside a `prose` line (`DESCRIBE-ROOM`), so the status line resolves it from the world document by room id. Unknown ids render as the id.
+- **`start()` emits no `player-moved`** — the opening placement arrives as an `object-moved` of `ADVENTURER` with `from` === `to`. Must be scoped to the player: the thief's daemon emits ~1 `object-moved` per turn.
+- **`restore()` emits no events** — derived UI state must be rebuilt from `SaveState` (`locations`, `globals.SCORE`).
+
+### Notes
+- **No bundler and no new dependencies.** `tsc` alone emits browser-native ES modules: the engine has zero runtime dependencies and imports the IR for types only (ADR 0002), and internal imports already carry `.js`. A shell that needed a toolchain to prove the contract is consumable would have weakened the claim.
+- **ADR 0004 §4a verified in a real browser** — at 390×844 both panes stay visible with no horizontal scroll.
+- Engine, IR and art untouched: parity unchanged at 143/143 strict, 155/161 overall.
+
+---
+
 ## [v1.0.0] - 2026-07-20 — ⚑ Gate C: Engine Complete
 
 Zork I runs end to end on the IR, in TypeScript, with no browser code and no dependencies.
