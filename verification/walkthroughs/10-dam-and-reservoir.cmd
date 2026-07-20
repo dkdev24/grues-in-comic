@@ -1,19 +1,23 @@
 # Flood Control Dam #3: the bubble, the yellow button, the bolt, the sluice gates.
 #
 # parity: informational
-# reason: the engine cannot yet resolve combat *outcomes*, so the troll never
-# dies. The dam is behind the Troll Room and the Troll Room is a cut vertex —
-# there is no route to the dam avoiding it, and no non-combat way past him
-# (giving and throwing the sword, and talking, were all tried against the
-# reference build; he throws it back and keeps blocking). So the player is stuck
-# from turn 13 on and every later turn cascades from that one cause.
+# reason: I-SWORD is not extracted, so the sword never reports its glow. Four
+# turns carry a "Your sword is glowing/has begun to glow/is no longer glowing"
+# sentence the engine omits; the rest of the walkthrough, the whole dam
+# sequence included, matches.
+#
+# Combat *was* the blocker here and no longer is: the troll now dies, the player
+# reaches the dam, and the walkthrough went from stuck-at-turn-13 to 24/28. What
+# is left is a single unextracted daemon, which needs an IR answer rather than
+# an engine one — I-SWORD walks exits as numbered Z-machine properties
+# (`<NEXTP …>`), and the IR models exits structurally (see HANDOFF, Open Issues).
 #
 # This is "fails to verify", not "cannot verify", and it is marked informational
-# only so a known-missing subsystem does not sit red in the suite. It is NOT a
-# limit of the method: the moment villain combat lands, delete the `# parity:`
-# line above and this walkthrough verifies the whole dam sequence strictly —
-# the four turns below stay quarantined, because their *text* is a random draw
-# even when the outcome is right.
+# only so a known-missing routine does not sit red in the suite. It is NOT a
+# limit of the method: the moment I-SWORD lands, delete the `# parity:` line
+# above and this walkthrough verifies strictly — the four fight turns below stay
+# quarantined, because their *text* is a random draw even when the outcome is
+# right (verified instead by membership, in engine/test/combat.test.ts).
 north
 east
 open window

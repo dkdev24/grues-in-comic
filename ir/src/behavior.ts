@@ -75,6 +75,15 @@ export type Expr =
   /** Absolute value (ZIL `ABS`; −32768 wraps to itself, as on the Z-machine). */
   | { op: "abs"; arg: Expr }
   /**
+   * Uniform random integer in 1..`bound` inclusive (ZIL `<RANDOM n>`, the
+   * Z-machine `random` opcode's range — 1-based, not 0-based).
+   *
+   * The IR names the *draw*, not the generator: which sequence a given seed
+   * produces is an engine concern (ADR 0002 makes it a determinism contract
+   * term), so this op stays independent of any one interpreter's PRNG.
+   */
+  | { op: "random"; bound: Expr }
+  /**
    * Conditional in expression position (ZIL COND inside AND/OR or as an
    * argument) — the same shape as the statement op, yielding the taken
    * clause's last value (predicate value on an empty body, false when no

@@ -100,6 +100,14 @@ function evalExpr(expr: Expr, world: WorldState, locals: Locals): BehaviorValue 
     case "abs":
       // 16-bit wrap keeps ABS −32768 = −32768, as on the Z-machine.
       return ((Math.abs(num(evalExpr(expr.arg, world, locals))) + 0x8000) & 0xffff) - 0x8000;
+    case "random":
+      /*
+       * The POC pins the draw to 1 rather than carrying a generator, the same
+       * way it pins PICK-ONE to the first entry (see world.ts): its job is to
+       * demonstrate the IR executes, and an unseeded `Math.random` here would
+       * make its output irreproducible. The real engine draws from `ctx.rng`.
+       */
+      return 1;
     case "cond":
       for (const clause of expr.clauses) {
         const predicate = evalExpr(clause.when, world, locals);

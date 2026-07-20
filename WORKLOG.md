@@ -898,3 +898,65 @@ cost was paid every time and bought nothing the WORKLOG did not already hold.
 
 M4 stages 4.1–4.6 complete. Villain combat is the top blocker for Gate C and has a waiting test
 in walkthrough 10.
+
+---
+
+## v0.7.0 — Villain Combat: `RANDOM` in the IR, and Membership Verification
+
+**Date:** 2026-07-20
+
+### Changes
+
+**The blocker was extraction, not the engine.** Villain combat had been recorded as an engine
+gap, but `HERO-BLOW` was in the behavior catalog with a single reason: `operator RANDOM`. Because
+extraction is reachability-driven from entry refs, its failure meant nothing it called was ever
+queued — so `VILLAIN-BLOW`, `VILLAIN-STRENGTH`, `VILLAIN-RESULT`, `WINNER-RESULT` and `REMARK`
+were absent from the IR *and* from the catalog, invisible as either successes or failures.
+
+- **IR schema 0.14.0 — the `random` expression op** (`<RANDOM n>`, a uniform draw in 1..n). The
+  op names the *draw*; which sequence a seed produces stays an engine concern, so the IR is not
+  pinned to any interpreter's PRNG. `RANDOM` left `DENIED_OPERATORS`; the engine evaluates it
+  through `ctx.rng`, which already round-trips through the save contract.
+- **`RANDOM` in statement position is denied deliberately**, with an accurate reason. There its
+  value is discarded, which on the Z-machine means a non-positive operand *seeds* the generator
+  rather than drawing (`V-RANDOM`, the `#RND` debug verb). Seeding is a different operation and
+  does not lower to `random`.
+- **`PRINT` and `PRINTD` extract as `tell` parts**, unblocking `REMARK` — which became reachable,
+  and therefore catalogued, only once `RANDOM` landed. Both map onto existing shapes: `PRINT`
+  stringifies a value like a bare TELL token, `PRINTD` is exactly TELL's `D`. `PRINTB` and
+  `PRINC` stay denied as Z-machine address plumbing.
+- **Melee result-table corrections (`DEF1-RES`, `DEF2-RES`, `DEF3-RES`).** The ZILF reconstruction
+  declares these with literal zeros in every slot that should hold a table view, parking the real
+  value in a comment (`0 ;<REST ,DEF1 2>`). `HERO-BLOW` indexes them by attack strength and then
+  draws from the row it gets, so the views are what make a stronger blow skip the leading MISSED
+  entries; taken literally the zeros make that second GET read address 0. The shipped Release 119
+  build plainly does not read garbage — fought under dfrotz it lands a knockout and then a kill —
+  so the corrections restore the views the comments describe. Encoded as data with the evidence
+  at the site, not by parsing comments out of the source.
+- **Engine**: `HERO-BLOW` and `RANDOMIZE-OBJECTS` stubs removed. Routines take precedence over
+  builtins, so the stubs were dead code shadowed at every call site. `V-CLIMB-UP` remains (GETPT).
+
+**Verification of randomized turns: membership, not text parity** (the RNG question in HANDOFF,
+resolved to option (b)). Combat draws randomly and the engine's generator is not frotz's, so
+fight text cannot be diffed against a golden. `engine/test/combat.test.ts` instead asserts that
+every line printed during a fight is a message the game *could* have produced, over 40 seeds.
+The legal set is derived from the IR — melee message rows plus the literal TELL text of the
+combat routines — never hand-listed, since a hand-kept list would drift and start passing by
+construction. A negative control asserts the check rejects a corrupted message, a leaked table
+id, and a marker printed as its raw number; it caught a real weakness in the name wildcard while
+being written, which is why entity names must now begin with a letter.
+
+### Results
+
+- **Walkthrough 10 went from stuck-at-turn-13 to 24/28.** The troll dies, the carcass message
+  fires, the axe drops, and the dam sequence is reached and matches.
+- Overall parity **138/163 → 151/163 (93%)**; strict walkthroughs **117/117 (100%)**.
+- Engine tests **103 → 108**; IR **184/184**. Routines extracted **346 → 352**, catalogued
+  complex **32 → 30**.
+- **Walkthrough 10's remaining four diffs are all `I-SWORD`**, not combat. Its `# parity:`
+  directive was rewritten to name the real cause rather than left asserting a fixed problem.
+
+### Status
+
+M4 stages 4.1–4.6 complete, combat outcomes landed. `I-SWORD` is now the single blocker on
+walkthrough 10 and needs an IR answer (`<NEXTP …>`), not an engine one.

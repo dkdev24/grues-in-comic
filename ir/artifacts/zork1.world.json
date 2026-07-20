@@ -1,5 +1,5 @@
 {
-  "irVersion": "0.13.0",
+  "irVersion": "0.14.0",
   "meta": {
     "title": "Zork I — world model (rooms, exits, objects)",
     "source": "importer/artifacts/ast (from original-projects/zork1)",
@@ -356,6 +356,13 @@
     {
       "id": "HERE",
       "value": 0
+    },
+    {
+      "id": "HERO-MELEE",
+      "value": {
+        "table": "HERO-MELEE",
+        "offset": 0
+      }
     },
     {
       "id": "HO-HUM",
@@ -1055,8 +1062,14 @@
           "table": "DEF1",
           "offset": 0
         },
-        0,
-        0
+        {
+          "table": "DEF1",
+          "offset": 1
+        },
+        {
+          "table": "DEF1",
+          "offset": 2
+        }
       ]
     },
     {
@@ -1071,8 +1084,14 @@
           "table": "DEF2B",
           "offset": 0
         },
-        0,
-        0
+        {
+          "table": "DEF2B",
+          "offset": 1
+        },
+        {
+          "table": "DEF2B",
+          "offset": 2
+        }
       ]
     },
     {
@@ -1119,12 +1138,18 @@
           "table": "DEF3A",
           "offset": 0
         },
-        0,
+        {
+          "table": "DEF3A",
+          "offset": 1
+        },
         {
           "table": "DEF3B",
           "offset": 0
         },
-        0,
+        {
+          "table": "DEF3B",
+          "offset": 1
+        },
         {
           "table": "DEF3C",
           "offset": 0
@@ -1245,6 +1270,500 @@
         "Nice weather we've been having lately.",
         "Goodbye."
       ]
+    },
+    {
+      "id": "HERO-MELEE",
+      "kind": "table",
+      "elements": [
+        {
+          "table": "HERO-MELEE#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#1",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#2",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#3",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#4",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#5",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#6",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#0",
+      "kind": "ltable",
+      "elements": [
+        {
+          "table": "HERO-MELEE#0#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#0#1",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#0#2",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#0#3",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#0#4",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#0#5",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#0#0",
+      "kind": "ltable",
+      "elements": [
+        "Your ",
+        0,
+        " misses the ",
+        1,
+        " by an inch."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#0#1",
+      "kind": "ltable",
+      "elements": [
+        "A good slash, but it misses the ",
+        1,
+        " by a mile."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#0#2",
+      "kind": "ltable",
+      "elements": [
+        "You charge, but the ",
+        1,
+        " jumps nimbly aside."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#0#3",
+      "kind": "ltable",
+      "elements": [
+        "Clang! Crash! The ",
+        1,
+        " parries."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#0#4",
+      "kind": "ltable",
+      "elements": [
+        "A quick stroke, but the ",
+        1,
+        " is on guard."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#0#5",
+      "kind": "ltable",
+      "elements": [
+        "A good stroke, but it's too slow; the ",
+        1,
+        " dodges."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#1",
+      "kind": "ltable",
+      "elements": [
+        {
+          "table": "HERO-MELEE#1#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#1#1",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#1#2",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#1#3",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#1#4",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#1#0",
+      "kind": "ltable",
+      "elements": [
+        "Your ",
+        0,
+        " crashes down, knocking the ",
+        1,
+        " into dreamland."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#1#1",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " is battered into unconsciousness."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#1#2",
+      "kind": "ltable",
+      "elements": [
+        "A furious exchange, and the ",
+        1,
+        " is knocked out!"
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#1#3",
+      "kind": "ltable",
+      "elements": [
+        "The haft of your ",
+        0,
+        " knocks out the ",
+        1,
+        "."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#1#4",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " is knocked out!"
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#2",
+      "kind": "ltable",
+      "elements": [
+        {
+          "table": "HERO-MELEE#2#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#2#1",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#2#2",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#2#0",
+      "kind": "ltable",
+      "elements": [
+        "It's curtains for the ",
+        1,
+        " as your ",
+        0,
+        " removes his head."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#2#1",
+      "kind": "ltable",
+      "elements": [
+        "The fatal blow strikes the ",
+        1,
+        " square in the heart: He dies."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#2#2",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " takes a fatal blow and slumps to the floor dead."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#3",
+      "kind": "ltable",
+      "elements": [
+        {
+          "table": "HERO-MELEE#3#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#3#1",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#3#2",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#3#3",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#3#0",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " is struck on the arm; blood begins to trickle down."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#3#1",
+      "kind": "ltable",
+      "elements": [
+        "Your ",
+        0,
+        " pinks the ",
+        1,
+        " on the wrist, but it's not serious."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#3#2",
+      "kind": "ltable",
+      "elements": [
+        "Your stroke lands, but it was only the flat of the blade."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#3#3",
+      "kind": "ltable",
+      "elements": [
+        "The blow lands, making a shallow gash in the ",
+        1,
+        "'s arm!"
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#4",
+      "kind": "ltable",
+      "elements": [
+        {
+          "table": "HERO-MELEE#4#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#4#1",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#4#2",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#4#3",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#4#0",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " receives a deep gash in his side."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#4#1",
+      "kind": "ltable",
+      "elements": [
+        "A savage blow on the thigh! The ",
+        1,
+        " is stunned but can still fight!"
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#4#2",
+      "kind": "ltable",
+      "elements": [
+        "Slash! Your blow lands! That one hit an artery, it could be serious!"
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#4#3",
+      "kind": "ltable",
+      "elements": [
+        "Slash! Your stroke connects! This could be serious!"
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#5",
+      "kind": "ltable",
+      "elements": [
+        {
+          "table": "HERO-MELEE#5#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#5#1",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#5#2",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#5#3",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#5#4",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#5#0",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " is staggered, and drops to his knees."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#5#1",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " is momentarily disoriented and can't fight back."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#5#2",
+      "kind": "ltable",
+      "elements": [
+        "The force of your blow knocks the ",
+        1,
+        " back, stunned."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#5#3",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " is confused and can't fight back."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#5#4",
+      "kind": "ltable",
+      "elements": [
+        "The quickness of your thrust knocks the ",
+        1,
+        " back, stunned."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#6",
+      "kind": "ltable",
+      "elements": [
+        {
+          "table": "HERO-MELEE#6#0",
+          "offset": 0
+        },
+        {
+          "table": "HERO-MELEE#6#1",
+          "offset": 0
+        }
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#6#0",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        "'s weapon is knocked to the floor, leaving him unarmed."
+      ],
+      "pure": true
+    },
+    {
+      "id": "HERO-MELEE#6#1",
+      "kind": "ltable",
+      "elements": [
+        "The ",
+        1,
+        " is disarmed by a subtle feint past his guard."
+      ],
+      "pure": true
     },
     {
       "id": "HO-HUM",
@@ -24540,6 +25059,1239 @@
       }
     },
     {
+      "id": "HERO-BLOW",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "OUT?",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "CNT",
+          "value": {
+            "op": "const",
+            "value": 0
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "LEN",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "global",
+              "id": "VILLAINS"
+            },
+            "index": {
+              "op": "const",
+              "value": 0
+            }
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "set-local",
+              "id": "CNT",
+              "value": {
+                "op": "add",
+                "a": {
+                  "op": "local",
+                  "id": "CNT"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 1
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "CNT"
+                      },
+                      {
+                        "op": "local",
+                        "id": "LEN"
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "OO",
+              "value": {
+                "op": "table-get",
+                "table": {
+                  "op": "global",
+                  "id": "VILLAINS"
+                },
+                "index": {
+                  "op": "local",
+                  "id": "CNT"
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "table-get",
+                        "table": {
+                          "op": "local",
+                          "id": "OO"
+                        },
+                        "index": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-flag",
+          "entity": {
+            "op": "global",
+            "id": "PRSO"
+          },
+          "flag": "FIGHTBIT"
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "flag?",
+                "entity": {
+                  "op": "global",
+                  "id": "WINNER"
+                },
+                "flag": "STAGGERED"
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You are still recovering from that last blow, so your attack is ineffective."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "global",
+                    "id": "WINNER"
+                  },
+                  "flag": "STAGGERED"
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-local",
+          "id": "ATT",
+          "value": {
+            "op": "call",
+            "routine": "FIGHT-STRENGTH",
+            "args": []
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "lt?",
+                "a": {
+                  "op": "local",
+                  "id": "ATT"
+                },
+                "b": {
+                  "op": "const",
+                  "value": 1
+                }
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "ATT",
+                  "value": {
+                    "op": "const",
+                    "value": 1
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-local",
+          "id": "OA",
+          "value": {
+            "op": "local",
+            "id": "ATT"
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "VILLAIN",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "local",
+              "id": "OO"
+            },
+            "index": {
+              "op": "const",
+              "value": 0
+            }
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "set-local",
+                    "id": "OD",
+                    "value": {
+                      "op": "set-local",
+                      "id": "DEF",
+                      "value": {
+                        "op": "call",
+                        "routine": "VILLAIN-STRENGTH",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "OO"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "op": "const",
+                    "value": 0
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          {
+                            "op": "global",
+                            "id": "WINNER"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "return",
+                          "value": {
+                            "op": "call",
+                            "routine": "JIGS-UP",
+                            "args": [
+                              {
+                                "op": "const",
+                                "value": "Well, you really did it that time. Is suicide painless?"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "Attacking the "
+                    },
+                    {
+                      "name": {
+                        "op": "local",
+                        "id": "VILLAIN"
+                      }
+                    },
+                    {
+                      "text": " is pointless."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-local",
+          "id": "DWEAPON",
+          "value": {
+            "op": "call",
+            "routine": "FIND-WEAPON",
+            "args": [
+              {
+                "op": "local",
+                "id": "VILLAIN"
+              }
+            ]
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "DWEAPON"
+                    }
+                  },
+                  {
+                    "op": "lt?",
+                    "a": {
+                      "op": "local",
+                      "id": "DEF"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "The "
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "lt?",
+                        "a": {
+                          "op": "local",
+                          "id": "DEF"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "unconscious"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "unarmed"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": " "
+                    },
+                    {
+                      "name": {
+                        "op": "local",
+                        "id": "VILLAIN"
+                      }
+                    },
+                    {
+                      "text": " cannot defend himself: He dies."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "set-local",
+                  "id": "RES",
+                  "value": {
+                    "op": "const",
+                    "value": 3
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "DEF"
+                          },
+                          {
+                            "op": "const",
+                            "value": 1
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "gt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 2
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 3
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-local",
+                          "id": "TBL",
+                          "value": {
+                            "op": "table-get",
+                            "table": {
+                              "op": "global",
+                              "id": "DEF1-RES"
+                            },
+                            "index": {
+                              "op": "sub",
+                              "a": {
+                                "op": "local",
+                                "id": "ATT"
+                              },
+                              "b": {
+                                "op": "const",
+                                "value": 1
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "local",
+                            "id": "DEF"
+                          },
+                          {
+                            "op": "const",
+                            "value": 2
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "gt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 3
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 4
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-local",
+                          "id": "TBL",
+                          "value": {
+                            "op": "table-get",
+                            "table": {
+                              "op": "global",
+                              "id": "DEF2-RES"
+                            },
+                            "index": {
+                              "op": "sub",
+                              "a": {
+                                "op": "local",
+                                "id": "ATT"
+                              },
+                              "b": {
+                                "op": "const",
+                                "value": 1
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "local",
+                          "id": "DEF"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 2
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "ATT",
+                          "value": {
+                            "op": "sub",
+                            "a": {
+                              "op": "local",
+                              "id": "ATT"
+                            },
+                            "b": {
+                              "op": "local",
+                              "id": "DEF"
+                            }
+                          }
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "lt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": -1
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": -2
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "gt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "ATT"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "ATT",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 2
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-local",
+                          "id": "TBL",
+                          "value": {
+                            "op": "table-get",
+                            "table": {
+                              "op": "global",
+                              "id": "DEF3-RES"
+                            },
+                            "index": {
+                              "op": "add",
+                              "a": {
+                                "op": "local",
+                                "id": "ATT"
+                              },
+                              "b": {
+                                "op": "const",
+                                "value": 2
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "set-local",
+                  "id": "RES",
+                  "value": {
+                    "op": "table-get",
+                    "table": {
+                      "op": "local",
+                      "id": "TBL"
+                    },
+                    "index": {
+                      "op": "sub",
+                      "a": {
+                        "op": "random",
+                        "bound": {
+                          "op": "const",
+                          "value": 9
+                        }
+                      },
+                      "b": {
+                        "op": "const",
+                        "value": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "local",
+                        "id": "OUT?"
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "equal?",
+                                "args": [
+                                  {
+                                    "op": "local",
+                                    "id": "RES"
+                                  },
+                                  {
+                                    "op": "const",
+                                    "value": 6
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "RES",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 8
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "RES",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 9
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "local",
+                                "id": "RES"
+                              },
+                              {
+                                "op": "const",
+                                "value": 6
+                              }
+                            ]
+                          },
+                          {
+                            "op": "local",
+                            "id": "DWEAPON"
+                          },
+                          {
+                            "op": "call",
+                            "routine": "PROB",
+                            "args": [
+                              {
+                                "op": "const",
+                                "value": 25
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "RES",
+                          "value": {
+                            "op": "const",
+                            "value": 7
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "REMARK",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "RANDOM-ELEMENT",
+                      "args": [
+                        {
+                          "op": "table-get",
+                          "table": {
+                            "op": "global",
+                            "id": "HERO-MELEE"
+                          },
+                          "index": {
+                            "op": "sub",
+                            "a": {
+                              "op": "local",
+                              "id": "RES"
+                            },
+                            "b": {
+                              "op": "const",
+                              "value": 1
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "global",
+                      "id": "PRSO"
+                    },
+                    {
+                      "op": "global",
+                      "id": "PRSI"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 8
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": []
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 2
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "DEF",
+                  "value": {
+                    "op": "sub",
+                    "a": {
+                      "op": "const",
+                      "value": 0
+                    },
+                    "b": {
+                      "op": "local",
+                      "id": "DEF"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 3
+                      }
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "RES"
+                      },
+                      {
+                        "op": "const",
+                        "value": 9
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "DEF",
+                  "value": {
+                    "op": "const",
+                    "value": 0
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 4
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "DEF",
+                  "value": {
+                    "op": "sub",
+                    "a": {
+                      "op": "local",
+                      "id": "DEF"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 1
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "lt?",
+                        "a": {
+                          "op": "local",
+                          "id": "DEF"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "DEF",
+                          "value": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 5
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-local",
+                  "id": "DEF",
+                  "value": {
+                    "op": "sub",
+                    "a": {
+                      "op": "local",
+                      "id": "DEF"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 2
+                    }
+                  }
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "lt?",
+                        "a": {
+                          "op": "local",
+                          "id": "DEF"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 0
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "DEF",
+                          "value": {
+                            "op": "const",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 6
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "set-flag",
+                  "entity": {
+                    "op": "global",
+                    "id": "PRSO"
+                  },
+                  "flag": "STAGGERED"
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "local",
+                    "id": "DWEAPON"
+                  },
+                  "flag": "NDESCBIT"
+                },
+                {
+                  "op": "set-flag",
+                  "entity": {
+                    "op": "local",
+                    "id": "DWEAPON"
+                  },
+                  "flag": "WEAPONBIT"
+                },
+                {
+                  "op": "move",
+                  "entity": {
+                    "op": "local",
+                    "id": "DWEAPON"
+                  },
+                  "to": {
+                    "op": "global",
+                    "id": "HERE"
+                  }
+                },
+                {
+                  "op": "call",
+                  "routine": "THIS-IS-IT",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "DWEAPON"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "call",
+          "routine": "VILLAIN-RESULT",
+          "args": [
+            {
+              "op": "global",
+              "id": "PRSO"
+            },
+            {
+              "op": "local",
+              "id": "DEF"
+            },
+            {
+              "op": "local",
+              "id": "RES"
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "OO",
+        "VILLAIN",
+        "OUT?",
+        "DWEAPON",
+        "ATT",
+        "DEF",
+        "CNT",
+        "OA",
+        "OD",
+        "TBL",
+        "RES",
+        "NWEAPON",
+        "LEN"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3476
+      }
+    },
+    {
       "id": "HIT-SPOT",
       "body": [
         {
@@ -36998,6 +38750,377 @@
       }
     },
     {
+      "id": "RANDOM-ELEMENT",
+      "body": [
+        {
+          "op": "value",
+          "expr": {
+            "op": "table-get",
+            "table": {
+              "op": "local",
+              "id": "FROB"
+            },
+            "index": {
+              "op": "random",
+              "bound": {
+                "op": "table-get",
+                "table": {
+                  "op": "local",
+                  "id": "FROB"
+                },
+                "index": {
+                  "op": "const",
+                  "value": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "params": [
+        "FROB"
+      ],
+      "source": {
+        "file": "gmacros.zil",
+        "line": 124
+      }
+    },
+    {
+      "id": "RANDOMIZE-OBJECTS",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "R",
+          "value": {
+            "op": "const",
+            "value": false
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "in?",
+                "entity": {
+                  "op": "entity",
+                  "id": "LAMP"
+                },
+                "container": {
+                  "op": "global",
+                  "id": "WINNER"
+                }
+              },
+              "do": [
+                {
+                  "op": "move",
+                  "entity": {
+                    "op": "entity",
+                    "id": "LAMP"
+                  },
+                  "to": {
+                    "op": "entity",
+                    "id": "LIVING-ROOM"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "in?",
+                "entity": {
+                  "op": "entity",
+                  "id": "COFFIN"
+                },
+                "container": {
+                  "op": "global",
+                  "id": "WINNER"
+                }
+              },
+              "do": [
+                {
+                  "op": "move",
+                  "entity": {
+                    "op": "entity",
+                    "id": "COFFIN"
+                  },
+                  "to": {
+                    "op": "entity",
+                    "id": "EGYPT-ROOM"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "set-prop",
+          "entity": {
+            "op": "entity",
+            "id": "SWORD"
+          },
+          "prop": "treasureValue",
+          "value": {
+            "op": "const",
+            "value": 0
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "N",
+          "value": {
+            "op": "first",
+            "entity": {
+              "op": "global",
+              "id": "WINNER"
+            }
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "L",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "global",
+              "id": "ABOVE-GROUND"
+            },
+            "index": {
+              "op": "const",
+              "value": 0
+            }
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "set-local",
+              "id": "F",
+              "value": {
+                "op": "local",
+                "id": "N"
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "not",
+                    "arg": {
+                      "op": "local",
+                      "id": "F"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "N",
+              "value": {
+                "op": "next",
+                "entity": {
+                  "op": "local",
+                  "id": "F"
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "gt?",
+                    "a": {
+                      "op": "prop",
+                      "entity": {
+                        "op": "local",
+                        "id": "F"
+                      },
+                      "prop": "treasureValue"
+                    },
+                    "b": {
+                      "op": "const",
+                      "value": 0
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "loop",
+                      "body": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "not",
+                                "arg": {
+                                  "op": "local",
+                                  "id": "R"
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "R",
+                                  "value": {
+                                    "op": "first",
+                                    "entity": {
+                                      "op": "entity",
+                                      "id": "ROOMS"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "and",
+                                "args": [
+                                  {
+                                    "op": "flag?",
+                                    "entity": {
+                                      "op": "local",
+                                      "id": "R"
+                                    },
+                                    "flag": "RLANDBIT"
+                                  },
+                                  {
+                                    "op": "not",
+                                    "arg": {
+                                      "op": "flag?",
+                                      "entity": {
+                                        "op": "local",
+                                        "id": "R"
+                                      },
+                                      "flag": "ONBIT"
+                                    }
+                                  },
+                                  {
+                                    "op": "call",
+                                    "routine": "PROB",
+                                    "args": [
+                                      {
+                                        "op": "const",
+                                        "value": 50
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "do": [
+                                {
+                                  "op": "move",
+                                  "entity": {
+                                    "op": "local",
+                                    "id": "F"
+                                  },
+                                  "to": {
+                                    "op": "local",
+                                    "id": "R"
+                                  }
+                                },
+                                {
+                                  "op": "break",
+                                  "value": {
+                                    "op": "const",
+                                    "value": true
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "R",
+                                  "value": {
+                                    "op": "next",
+                                    "entity": {
+                                      "op": "local",
+                                      "id": "R"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "const",
+                    "value": true
+                  },
+                  "do": [
+                    {
+                      "op": "move",
+                      "entity": {
+                        "op": "local",
+                        "id": "F"
+                      },
+                      "to": {
+                        "op": "table-get",
+                        "table": {
+                          "op": "global",
+                          "id": "ABOVE-GROUND"
+                        },
+                        "index": {
+                          "op": "random",
+                          "bound": {
+                            "op": "local",
+                            "id": "L"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "locals": [
+        "R",
+        "F",
+        "N",
+        "L"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 4101
+      }
+    },
+    {
       "id": "RBOAT-FUNCTION",
       "body": [
         {
@@ -38146,6 +40269,194 @@
       "source": {
         "file": "1actions.zil",
         "line": 3949
+      }
+    },
+    {
+      "id": "REMARK",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "LEN",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "local",
+              "id": "REMARK"
+            },
+            "index": {
+              "op": "const",
+              "value": 0
+            }
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "CNT",
+          "value": {
+            "op": "const",
+            "value": 0
+          }
+        },
+        {
+          "op": "loop",
+          "body": [
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "gt?",
+                    "a": {
+                      "op": "set-local",
+                      "id": "CNT",
+                      "value": {
+                        "op": "add",
+                        "a": {
+                          "op": "local",
+                          "id": "CNT"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "b": {
+                      "op": "local",
+                      "id": "LEN"
+                    }
+                  },
+                  "do": [
+                    {
+                      "op": "break",
+                      "value": {
+                        "op": "const",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "set-local",
+              "id": "STR",
+              "value": {
+                "op": "table-get",
+                "table": {
+                  "op": "local",
+                  "id": "REMARK"
+                },
+                "index": {
+                  "op": "local",
+                  "id": "CNT"
+                }
+              }
+            },
+            {
+              "op": "cond",
+              "clauses": [
+                {
+                  "when": {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "STR"
+                      },
+                      {
+                        "op": "const",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "tell",
+                      "parts": [
+                        {
+                          "name": {
+                            "op": "local",
+                            "id": "W"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "local",
+                        "id": "STR"
+                      },
+                      {
+                        "op": "const",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "op": "tell",
+                      "parts": [
+                        {
+                          "name": {
+                            "op": "local",
+                            "id": "D"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "when": {
+                    "op": "const",
+                    "value": true
+                  },
+                  "do": [
+                    {
+                      "op": "tell",
+                      "parts": [
+                        {
+                          "expr": {
+                            "op": "local",
+                            "id": "STR"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "tell",
+          "parts": [
+            {
+              "newline": true
+            }
+          ]
+        }
+      ],
+      "params": [
+        "REMARK",
+        "D",
+        "W"
+      ],
+      "locals": [
+        "LEN",
+        "CNT",
+        "STR"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3363
       }
     },
     {
@@ -58787,6 +61098,423 @@
       "source": {
         "file": "gverbs.zil",
         "line": 1618
+      }
+    },
+    {
+      "id": "VILLAIN-RESULT",
+      "body": [
+        {
+          "op": "set-prop",
+          "entity": {
+            "op": "local",
+            "id": "VILLAIN"
+          },
+          "prop": "strength",
+          "value": {
+            "op": "local",
+            "id": "DEF"
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "DEF"
+                  },
+                  {
+                    "op": "const",
+                    "value": 0
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "clear-flag",
+                  "entity": {
+                    "op": "local",
+                    "id": "VILLAIN"
+                  },
+                  "flag": "FIGHTBIT"
+                },
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "Almost as soon as the "
+                    },
+                    {
+                      "name": {
+                        "op": "local",
+                        "id": "VILLAIN"
+                      }
+                    },
+                    {
+                      "text": " breathes his last breath, a cloud of sinister black fog envelops him, and when the fog lifts, the carcass has disappeared."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                },
+                {
+                  "op": "call",
+                  "routine": "REMOVE-CAREFULLY",
+                  "args": [
+                    {
+                      "op": "local",
+                      "id": "VILLAIN"
+                    }
+                  ]
+                },
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "apply",
+                    "routine": {
+                      "op": "prop",
+                      "entity": {
+                        "op": "local",
+                        "id": "VILLAIN"
+                      },
+                      "prop": "action"
+                    },
+                    "args": [
+                      {
+                        "op": "const",
+                        "value": 2
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "local",
+                    "id": "RES"
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "equal?",
+                "args": [
+                  {
+                    "op": "local",
+                    "id": "RES"
+                  },
+                  {
+                    "op": "const",
+                    "value": 2
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "apply",
+                    "routine": {
+                      "op": "prop",
+                      "entity": {
+                        "op": "local",
+                        "id": "VILLAIN"
+                      },
+                      "prop": "action"
+                    },
+                    "args": [
+                      {
+                        "op": "const",
+                        "value": 3
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "local",
+                    "id": "RES"
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "value",
+                  "expr": {
+                    "op": "local",
+                    "id": "RES"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "params": [
+        "VILLAIN",
+        "DEF",
+        "RES"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3566
+      }
+    },
+    {
+      "id": "VILLAIN-STRENGTH",
+      "body": [
+        {
+          "op": "set-local",
+          "id": "VILLAIN",
+          "value": {
+            "op": "table-get",
+            "table": {
+              "op": "local",
+              "id": "OO"
+            },
+            "index": {
+              "op": "const",
+              "value": 0
+            }
+          }
+        },
+        {
+          "op": "set-local",
+          "id": "OD",
+          "value": {
+            "op": "prop",
+            "entity": {
+              "op": "local",
+              "id": "VILLAIN"
+            },
+            "prop": "strength"
+          }
+        },
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "lt?",
+                  "a": {
+                    "op": "local",
+                    "id": "OD"
+                  },
+                  "b": {
+                    "op": "const",
+                    "value": 0
+                  }
+                }
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "local",
+                                "id": "VILLAIN"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "THIEF"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "global",
+                            "id": "THIEF-ENGROSSED"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "gt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "OD"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 2
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "OD",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 2
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-global",
+                          "id": "THIEF-ENGROSSED",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "PRSI"
+                          },
+                          {
+                            "op": "flag?",
+                            "entity": {
+                              "op": "global",
+                              "id": "PRSI"
+                            },
+                            "flag": "WEAPONBIT"
+                          },
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "table-get",
+                                "table": {
+                                  "op": "local",
+                                  "id": "OO"
+                                },
+                                "index": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "global",
+                                "id": "PRSI"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-local",
+                          "id": "TMP",
+                          "value": {
+                            "op": "sub",
+                            "a": {
+                              "op": "local",
+                              "id": "OD"
+                            },
+                            "b": {
+                              "op": "table-get",
+                              "table": {
+                                "op": "local",
+                                "id": "OO"
+                              },
+                              "index": {
+                                "op": "const",
+                                "value": 2
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "lt?",
+                                "a": {
+                                  "op": "local",
+                                  "id": "TMP"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 1
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-local",
+                                  "id": "TMP",
+                                  "value": {
+                                    "op": "const",
+                                    "value": 1
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "set-local",
+                          "id": "OD",
+                          "value": {
+                            "op": "local",
+                            "id": "TMP"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "op": "value",
+          "expr": {
+            "op": "local",
+            "id": "OD"
+          }
+        }
+      ],
+      "params": [
+        "OO"
+      ],
+      "locals": [
+        "VILLAIN",
+        "OD",
+        "TMP"
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 3383
       }
     },
     {

@@ -1,7 +1,7 @@
 {
   "poc/interpreter.ts": {
-    "mtime": 1784460438.7440457,
-    "ast_hash": "4b633a1105338a1b7ef612ae5b134e9a",
+    "mtime": 1784508363.2193518,
+    "ast_hash": "275abafa9c9735df6bd57d7e52e0d8c5",
     "semantic_hash": ""
   },
   "poc/routines.ts": {
@@ -20,13 +20,13 @@
     "semantic_hash": ""
   },
   "samples/west-of-house.world.json": {
-    "mtime": 1784468285.6321611,
-    "ast_hash": "4e70276f64ade08c621c1af1e0ac5b71",
+    "mtime": 1784508341.9303017,
+    "ast_hash": "db79217893b9eac04a0c6c928dbf53e8",
     "semantic_hash": ""
   },
   "src/behavior.ts": {
-    "mtime": 1784460438.7444952,
-    "ast_hash": "99279b5754c20230910d2f80ec68d394",
+    "mtime": 1784508341.9312778,
+    "ast_hash": "df18cc0f4ba1add532a50278b8b29594",
     "semantic_hash": ""
   },
   "src/cli.ts": {
@@ -35,18 +35,18 @@
     "semantic_hash": ""
   },
   "src/index.ts": {
-    "mtime": 1784480185.8342857,
-    "ast_hash": "a10f4b17210e9b01c135098d622819b3",
+    "mtime": 1784480762.5100482,
+    "ast_hash": "65f6b25b2f7cb516f80a2f8391ac4b63",
     "semantic_hash": ""
   },
   "src/schema.ts": {
-    "mtime": 1784468285.6265535,
-    "ast_hash": "3b95df01f57148c238a6d8a9195c60fe",
+    "mtime": 1784508341.9334936,
+    "ast_hash": "ef5f5d00fc9a8f8b0e91ca472f8e337e",
     "semantic_hash": ""
   },
   "src/validate.ts": {
-    "mtime": 1784468099.9417496,
-    "ast_hash": "0b0120883431904a5992b1757de808bf",
+    "mtime": 1784508341.934471,
+    "ast_hash": "cbdffef492c8f9d340ca42186bb2c659",
     "semantic_hash": ""
   },
   "test/behavior-poc.test.ts": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784468154.367519,
-    "ast_hash": "db43fd3ddeb393c5f9154cad451543df",
+    "mtime": 1784508341.9322703,
+    "ast_hash": "03e2ad41bd416bcdab7444a1b46d5148",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -130,8 +130,8 @@
     "semantic_hash": ""
   },
   "test/meta-entities.test.ts": {
-    "mtime": 1784463879.8325443,
-    "ast_hash": "fa970b754b22990506f78a116a51d707",
+    "mtime": 1784508341.9354584,
+    "ast_hash": "b90cb3de7a50c40a815a998d6ccc648b",
     "semantic_hash": ""
   },
   "test/table-globals.test.ts": {

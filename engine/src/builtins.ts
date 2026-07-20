@@ -321,16 +321,19 @@ export function createBuiltins(): Map<string, Builtin> {
     return fired;
   });
 
-  /* ---------------- placeholders for stage 4.5 ---------------- */
+  /* ---------------- placeholders ---------------- */
 
   /*
-   * These are named by the corpus but belong to systems that land in 4.5
-   * (the thief's robbery pass, combat resolution). They are stubbed rather
-   * than omitted so a call site reaches a defined no-op instead of crashing a
-   * turn, and each returns the "nothing happened" value its callers test for.
+   * Named by the corpus but belonging to a system the extractor cannot yet
+   * represent. Stubbed rather than omitted so a call site reaches a defined
+   * no-op instead of crashing a turn, returning the "nothing happened" value
+   * its callers test for.
+   *
+   * HERO-BLOW and RANDOMIZE-OBJECTS were stubbed here until RANDOM became an
+   * extractable operator; both are real extracted routines now, and routines
+   * take precedence over builtins, so leaving the stubs would only have been
+   * dead code shadowed at every call. V-CLIMB-UP still stalls on GETPT.
    */
-  b.set("RANDOMIZE-OBJECTS", () => false);
-  b.set("HERO-BLOW", () => false);
   b.set("V-CLIMB-UP", (ctx) => {
     tell(ctx, "You can't go that way.");
     return true;

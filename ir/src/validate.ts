@@ -626,6 +626,10 @@ export function validateWorld(input: unknown): ValidationResult {
             checkKeys(ctx, ePath, node, ["op", "arg"]);
             checkExprNode(`${ePath}.arg`, node.arg, loopDepth);
             break;
+          case "random":
+            checkKeys(ctx, ePath, node, ["op", "bound"]);
+            checkExprNode(`${ePath}.bound`, node.bound, loopDepth);
+            break;
           case "gt?":
           case "lt?":
           case "add":

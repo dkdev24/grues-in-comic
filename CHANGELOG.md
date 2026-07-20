@@ -11,6 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.7.0] - 2026-07-20 — Villain Combat
+
+Combat outcomes now resolve: the troll fights, dies, and drops its axe, opening the route past the Troll Room.
+
+### Added
+- **IR `random` expression op** (schema **0.14.0**) — ZIL `<RANDOM n>`, a uniform draw in 1..n. The op names the draw; which sequence a seed produces stays an engine concern, so the IR is not pinned to any interpreter's PRNG.
+- **`PRINT` and `PRINTD` extraction**, as `tell` parts — unblocking `REMARK`, which renders melee messages.
+- **`engine/test/combat.test.ts`** — randomized turns verified by *membership*: every line printed during a fight must be a message the game could have produced, across 40 seeds. The legal set is derived from the IR rather than hand-listed, and a negative control asserts the check can actually fail.
+
+### Fixed
+- **Villain combat was an extraction gap, not an engine one.** `HERO-BLOW` was catalogued on `operator RANDOM`; because extraction is reachability-driven, everything it called (`VILLAIN-BLOW`, `VILLAIN-STRENGTH`, `VILLAIN-RESULT`, `WINNER-RESULT`, `REMARK`) was never queued and appeared in neither the IR nor the catalog.
+- **Melee result tables `DEF1-RES`/`DEF2-RES`/`DEF3-RES`** — the ZILF reconstruction writes literal zeros where table views belong, keeping the real values only in comments; the corrections restore them, with the reference-build evidence recorded at the site.
+
+### Changed
+- `RANDOM` in *statement* position is denied with an accurate reason: there it seeds the generator rather than drawing, which is a different operation.
+- Removed the now-dead `HERO-BLOW` and `RANDOMIZE-OBJECTS` builtin stubs.
+- Walkthrough 10's `# parity:` directive rewritten — its remaining diffs are `I-SWORD`, not combat.
+
+### Results
+- Walkthrough 10: stuck-at-turn-13 → **24/28**. Overall parity **138/163 → 151/163 (93%)**; strict **117/117 (100%)**.
+- Engine tests **103 → 108**; IR **184/184**. Routines extracted **346 → 352**.
+
+---
+
 ## [v0.5.18] - 2026-07-20 — Project Scope, Trademark Notices, and the `.avb` Format
 
 Documentation and tooling only. No engine, IR, or artifact changes; Milestone 4 remains the next work.

@@ -40,10 +40,11 @@ interface AstNode {
 const DENIED_OPERATORS = new Set([
   "MAPF", "MAPR",
   "GETPT", "PTSIZE", "GETB", "PUTB",
-  "RANDOM",
   "BAND", "BOR", "BTST", "BCOM",
   "ASSIGNED?", "DLESS?", "IGRTR?",
-  "PRINT", "PRINTB", "PRINC", "PRINTD",
+  // PRINTB (print at a byte address) and PRINC (print one character) stay
+  // denied: both are Z-machine address plumbing, not game semantics.
+  "PRINTB", "PRINC",
 ]);
 
 /**
@@ -76,6 +77,52 @@ const PROPERTY_MAP = new Map<string, string>([
  * is Z-machine plumbing, not game semantics.
  */
 const CLOCK_BUILTINS = new Set(["QUEUE", "INT", "CLOCKER"]);
+
+/**
+ * Melee result-table corrections — a defect in the ZILF *reconstruction*, not
+ * in the shipped game.
+ *
+ * 1actions.zil declares the three tables with literal zeros in every slot that
+ * should hold a table view, and parks the real value in a comment beside it:
+ *
+ *     <GLOBAL DEF1-RES <TABLE DEF1 0 ;<REST ,DEF1 2> 0 ;<REST ,DEF1 4>>>
+ *
+ * HERO-BLOW indexes these by attack strength (`<GET ,DEF1-RES <- .ATT 1>>`) and
+ * then draws from the row it gets (`<GET .TBL <- <RANDOM 9> 1>>`), so the views
+ * are what make a stronger blow skip the leading MISSED entries. Taken
+ * literally the zeros make that second GET read address 0 — garbage on the
+ * Z-machine, and an outright error here.
+ *
+ * The shipped Release 119 story file is the ground truth (AGENTS.md, stage
+ * 0.2), and it plainly does not read garbage: fought under
+ * `dfrotz -s 1234 original-projects/zork1/COMPILED/zork1.z3`, the troll takes a
+ * knockout ("knocking the troll into dreamland") and then a kill. So the real
+ * tables hold the views the comments describe, and these entries restore them.
+ * REST's byte offsets are halved, matching `table-rest`'s element indexing.
+ *
+ * Written as data rather than by parsing the comments: recovering values from
+ * commented-out source would be far more fragile than stating the three rows.
+ */
+const TABLE_CORRECTIONS = new Map<string, TableElement[]>([
+  ["DEF1-RES", [
+    { table: "DEF1", offset: 0 },
+    { table: "DEF1", offset: 1 },
+    { table: "DEF1", offset: 2 },
+  ]],
+  ["DEF2-RES", [
+    { table: "DEF2A", offset: 0 },
+    { table: "DEF2B", offset: 0 },
+    { table: "DEF2B", offset: 1 },
+    { table: "DEF2B", offset: 2 },
+  ]],
+  ["DEF3-RES", [
+    { table: "DEF3A", offset: 0 },
+    { table: "DEF3A", offset: 1 },
+    { table: "DEF3B", offset: 0 },
+    { table: "DEF3B", offset: 1 },
+    { table: "DEF3C", offset: 0 },
+  ]],
+]);
 
 const TRUE: Expr = { op: "const", value: true };
 const FALSE: Expr = { op: "const", value: false };
@@ -285,12 +332,31 @@ class RoutineTransformer {
     switch (head) {
       case "COND":
         return { op: "cond", clauses: rest.map((c) => this.condClause(c)) };
+      /*
+       * `<RANDOM n>` in *expression* position is a draw and extracts fine.
+       * In statement position its value is discarded, which on the Z-machine
+       * means the call was made for its side effect: a non-positive operand
+       * seeds the generator rather than drawing from it (Standard 1.1 §random,
+       * and V-RANDOM's `<RANDOM <- 0 ,P-NUMBER>>` — the `#RND` debug verb).
+       * Seeding is a different operation from drawing, so it deliberately does
+       * not lower to the `random` op; denying it keeps the two from being
+       * conflated.
+       */
+      case "RANDOM":
+        this.deny("RANDOM in statement position (seeds the generator)");
+        break;
       case "TELL":
         return { op: "tell", parts: this.tellParts(rest) };
       case "CRLF":
         return { op: "tell", parts: [{ newline: true }] };
       case "PRINTN":
+      // PRINT prints a string-valued operand; the tell part stringifies
+      // whatever the expression yields, so it needs no separate shape.
+      case "PRINT":
         return { op: "tell", parts: [{ expr: this.expr(rest[0]!) }] };
+      // PRINTD prints an entity's DESC — exactly TELL's `D`.
+      case "PRINTD":
+        return { op: "tell", parts: [{ name: this.expr(rest[0]!) }] };
       case "SETG": {
         const id = atomName(rest[0]) ?? this.deny("SETG target is not an atom");
         this.needGlobal(id);
@@ -476,6 +542,8 @@ class RoutineTransformer {
         return { op: "in?", entity: this.expr(rest[0]!), container: this.expr(rest[1]!) };
       case "LOC":
         return { op: "loc", entity: this.expr(rest[0]!) };
+      case "RANDOM":
+        return { op: "random", bound: this.expr(rest[0]!) };
       case "FIRST?":
         return { op: "first", entity: this.expr(rest[0]!) };
       case "NEXT?":
@@ -522,7 +590,13 @@ class RoutineTransformer {
       case "CRLF":
         return { op: "tell", parts: [{ newline: true }] };
       case "PRINTN":
+      // PRINT prints a string-valued operand; the tell part stringifies
+      // whatever the expression yields, so it needs no separate shape.
+      case "PRINT":
         return { op: "tell", parts: [{ expr: this.expr(rest[0]!) }] };
+      // PRINTD prints an entity's DESC — exactly TELL's `D`.
+      case "PRINTD":
+        return { op: "tell", parts: [{ name: this.expr(rest[0]!) }] };
       case "FSET":
       case "FCLEAR": {
         const { entity, flag } = this.flagArgs(head, rest);
@@ -795,6 +869,16 @@ class RoutineTransformer {
         this.deny(`table ${id} has an unsupported element (${el.type === "Atom" ? el.name : el.type})`);
       }
     }
+    const correction = TABLE_CORRECTIONS.get(id);
+    if (correction !== undefined) {
+      // The corrected rows name tables by global; declaring each one pulls it
+      // into the extraction closure, exactly as an inline atom element would.
+      for (const el of correction) {
+        if (typeof el === "object" && el !== null && "table" in el) this.needGlobal(el.table);
+      }
+      return { id, kind: "table", elements: [...correction], ...(pure ? { pure } : {}) };
+    }
+
     const table: Table = { id, kind: head === "TABLE" ? "table" : "ltable", elements: out };
     if (pure) table.pure = true;
     return table;

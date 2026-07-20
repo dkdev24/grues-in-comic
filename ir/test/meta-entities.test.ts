@@ -78,9 +78,11 @@ describe("meta entities — the routines they unblock", () => {
     ]) {
       expect(routineById.has(id), `${id} should be extracted`).toBe(true);
     }
-    // RANDOMIZE-OBJECTS and V-CLIMB-UP advance to a later frontier form
-    // (RANDOM, GETPT) rather than clearing outright.
-    expect(routineById.has("RANDOMIZE-OBJECTS")).toBe(false);
+    // RANDOMIZE-OBJECTS advanced to a later frontier form (RANDOM) rather
+    // than clearing outright; RANDOM is supported as of the combat work, so
+    // it now extracts. V-CLIMB-UP still stalls one frontier further out, on
+    // GETPT.
+    expect(routineById.has("RANDOMIZE-OBJECTS")).toBe(true);
     expect(routineById.has("V-CLIMB-UP")).toBe(false);
   });
 

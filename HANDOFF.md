@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.6.8**
+**0.7.0**
 
 ---
 
@@ -24,63 +24,66 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 - **M2 ✅** `ir/` — IR schema/validator; ADR 0001 (behavior AST + builtins), ADR 0002 (TS engine,
   JSON event contract, ⚑ Gate B); Graphify adopted per-module (⚑ Gate A); OpenWiki not adopted
 - **M3 ✅** Semantic extraction ZIL→IR — world-document unit complete. 110 rooms/exits,
-  137 objects, 267 parser rules, 346 routines (32 catalogued, all triaged), 87% ref coverage.
-  IR schema 0.13.0
+  137 objects, 267 parser rules, 352 routines (30 catalogued, all triaged), 87% ref coverage.
+  IR schema 0.14.0
 - **M4 ⏳** Engine core — 4.1 ✅ world runtime · 4.2 ✅ parser · 4.3 ✅ dispatch, save/restore ·
   4.4 ✅ transcript harness · 4.5 ✅ `TAKE ALL`, wider corpus · 4.6 ✅ orphan questions,
-  pronouns, compound sentences, per-turn parity directives.
-  **11 walkthroughs, 117/117 strict turns (100%), 138/163 overall. 103 engine tests, IR 184/184.**
+  pronouns, compound sentences, per-turn parity directives · **4.7 ✅ villain combat**
+  (IR `random` op, melee tables, membership verification).
+  **11 walkthroughs, 117/117 strict turns (100%), 151/163 overall. 108 engine tests, IR 184/184.**
   ⚑ **Gate C not yet claimed**
 - **M5** Comic Chat presentation — `.avb` decoding solved (v0.5.18); the rest is open
 
 ---
 
-## Last Session (v0.6.8)
+## Last Session (v0.7.0)
 
-Documentation only. HANDOFF had accumulated nine "Prior Session" sections duplicating
-`WORKLOG.md`; they were removed and the file cut to roughly a third. **v0.5.17 existed only in
-HANDOFF and was backfilled into WORKLOG** before deleting anything.
+**Villain combat landed — and the blocker turned out to be extraction, not the engine.**
+`HERO-BLOW` sat in the behavior catalog on one reason, `operator RANDOM`. Extraction is
+reachability-driven, so its failure meant the whole subsystem below it (`VILLAIN-BLOW`,
+`VILLAIN-STRENGTH`, `VILLAIN-RESULT`, `WINNER-RESULT`, `REMARK`) was never queued — missing from
+the IR *and* from the catalog, so it showed up as neither a success nor a failure. Supporting
+`RANDOM` (IR schema **0.14.0**) plus `PRINT`/`PRINTD` cascaded all six routines in.
 
-Preceding work, both now in WORKLOG: **v0.6.6** (the four parser gaps walkthrough 11 pinned
-down) and **v0.6.7** (per-turn parity directives, walkthrough 10 re-captured).
+Also corrected `DEF1-RES`/`DEF2-RES`/`DEF3-RES`, where the ZILF reconstruction writes literal
+zeros in slots that should hold table views and leaves the real value in a comment. See WORKLOG;
+the reasoning and the dfrotz evidence are at the site in `ir/src/extract-behavior.ts`.
 
----
+**The RNG question is decided: option (b), membership.** Randomized turns assert that output is
+*one of* the legal messages rather than matching a golden text-for-text, so the engine keeps its
+own generator. Realized in `engine/test/combat.test.ts`, with the legal set derived from the IR
+and a negative control proving the check can fail.
+
+Walkthrough 10 went from stuck-at-turn-13 to 24/28; parity 138/163 → **151/163**.
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.6 ✅. The RNG decision gates most of what is left.**
+**M4: 4.1–4.7 ✅. Combat and the RNG question are both settled; what is left is narrower.**
 
-1. **⚑ Villain combat — the top blocker, and it has a waiting test.** Walkthrough 10 captures
-   the whole dam sequence correctly but is informational because the troll never dies, and the
-   Troll Room is a cut vertex on the way to the dam. Implementing combat *outcomes* turns 18
-   cascading turns green at once: **delete the `# parity:` line in
-   `verification/walkthroughs/10-dam-and-reservoir.cmd` and it verifies the dam strictly**, with
-   the four fight turns already quarantined by per-turn directive. Only the fight *text* is
-   gated on the RNG decision below; the outcome is not.
+1. **⚑ `I-SWORD` — now the single blocker on walkthrough 10, and it needs an *IR* answer.**
+   The four remaining diffs there are all the sword-glow daemon; delete the `# parity:` line in
+   `verification/walkthroughs/10-dam-and-reservoir.cmd` once it lands and the walkthrough
+   verifies strictly. It walks exits as numbered Z-machine properties (`<NEXTP …>`) and the IR
+   models exits structurally, so it likely wants a small behavior op for "rooms adjacent to
+   here". **A schema decision — deliberately not taken autonomously.** `I-CYCLOPS` (`<NTH …>`)
+   has the same shape and would be answered by the same op.
 
-2. **⚑ The RNG question — decide before claiming Gate C.** Combat, PICK-ONE and the thief all
-   draw randomly, and the engine's mulberry32 is not frotz's generator, so those turns cannot
-   match a golden text-for-text. Three options, none chosen:
-   - (a) **reproduce frotz's PRNG** in `Rng` — makes combat verifiable, costs a small
-     well-specified piece of code, but pins the engine to one interpreter's choice
-   - (b) **verify randomized turns differently** — assert the output is *one of* the valid
-     message set, keeping the engine's generator free
-   - (c) **accept combat as unverifiable** and rely on the deterministic corpus
+2. **Systems completion** (⚑ Gate C): death and resurrection, and the thief's robbery pass. Both
+   were previously gated on the RNG decision, which is now made — randomized turns are verified
+   by membership (option (b)), the pattern `engine/test/combat.test.ts` establishes and that
+   these two should follow. **P-WON gating is settled: do not implement it** — the transcripts
+   contradict the source (v0.6.5; reasoning is at the call site, because the source reads the
+   other way and the next reader will otherwise "fix" it back). `V-CLIMB-UP` is the last stub.
 
-   Currently (c) by default, which is the weakest of the three. This is the main thing standing
-   between the project and an honest Gate C.
-
-3. **Systems completion** (⚑ Gate C): death and resurrection, the thief's robbery pass, combat —
-   all three gated on the RNG decision. **P-WON gating is settled: do not implement it** — the
-   transcripts contradict the source (v0.6.5; the reasoning sits in a comment at the call site,
-   because the source reads the other way and the next reader will otherwise "fix" it back).
-   Replace the stubbed builtins (`RANDOMIZE-OBJECTS`, `HERO-BLOW`, `V-CLIMB-UP`) as those
-   systems land.
-
-4. **Unassigned one-off tail** in the routine catalog: `<NEXTP …>` (I-SWORD, OTHER-SIDE),
+3. **Unassigned one-off tail** in the routine catalog: `<NEXTP …>` (I-SWORD, OTHER-SIDE),
    `<NTH …>` (I-CYCLOPS), String-in-statement-position (GRATE-FUNCTION), bare
    `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with a non-literal
    byte count (PICK-ONE — Group A regardless).
+
+4. **Consider whether other catalogued routines hide the same cascade.** Combat was invisible
+   because one denied operator suppressed everything below it, and the catalog reports only the
+   routine that failed, never what its failure cost. A "routines unreachable because a caller
+   was catalogued" report would have surfaced this immediately and is cheap to add.
 
 5. **Stage 5.1 (Comic Chat) = filler, independent of every gate.** Read
    `reference/comic-chat-paper.md` (SIGGRAPH '96 — balloon layout, character placement, gesture
@@ -125,8 +128,18 @@ down) and **v0.6.7** (per-turn parity directives, walkthrough 10 re-captured).
   onto its own channel without parsing prose — which the ADR 0002 contract forbids. A UI wanting
   the title should read `player-moved`.to and look the name up in the world document. Decide
   whether the channel stays in the contract.
-- **Stubbed builtins**: `RANDOMIZE-OBJECTS`, `HERO-BLOW`, `V-CLIMB-UP` return no-ops so call
-  sites reach a defined value instead of crashing a turn.
+- **Stubbed builtins**: `V-CLIMB-UP` alone now (GETPT), returning a no-op so call sites reach a
+  defined value instead of crashing a turn. `RANDOMIZE-OBJECTS` and `HERO-BLOW` are real
+  extracted routines as of v0.7.0.
+- **Three melee tables carry a documented correction, not the source's literal values.**
+  `DEF1-RES`/`DEF2-RES`/`DEF3-RES` hold table views the ZILF reconstruction replaced with zeros
+  and preserved only in comments; taken literally the game reads address 0. The corrections and
+  the dfrotz evidence sit in `TABLE_CORRECTIONS` in `ir/src/extract-behavior.ts`. **Do not
+  "simplify" them back to what the ZIL says** — this is the Release-119-is-ground-truth rule.
+- **Randomized turns are verified by membership, not text parity** — the settled answer to the
+  RNG question. `engine/test/combat.test.ts` derives the legal message set from the IR; it must
+  stay derived, since a hand-listed set drifts and starts passing by construction. Death,
+  resurrection and the thief should follow the same pattern.
 
 **Project / M5**
 - Neutral branding for commercial assets (engine/IR/importer).

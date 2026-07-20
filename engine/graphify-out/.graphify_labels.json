@@ -4,7 +4,6 @@
   "2": "index.ts",
   "3": "movement.ts",
   "4": "state.ts",
-  "5": "builtins.ts",
   "7": "engine.ts",
   "8": "interpreter.ts"
 }

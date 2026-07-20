@@ -134,6 +134,10 @@ export function evalExpr(expr: Expr, ctx: RuntimeContext, locals: Locals): Behav
     case "abs":
       // 16-bit wrap keeps ABS −32768 = −32768, as on the Z-machine.
       return wrap16(Math.abs(num(evalExpr(expr.arg, ctx, locals))));
+    case "random":
+      // Every draw goes through ctx.rng, never Math.random: the generator
+      // round-trips through the save contract, so replay is reproducible.
+      return ctx.rng.random(num(evalExpr(expr.bound, ctx, locals)));
     case "cond":
       for (const clause of expr.clauses) {
         const predicate = evalExpr(clause.when, ctx, locals);

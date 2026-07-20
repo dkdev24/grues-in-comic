@@ -1,6 +1,6 @@
 {
   "name": "@grues-in-comic/engine",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Grues in Comic engine core \u2014 platform-independent IR execution: world runtime, parser, action dispatch, and the ADR 0002 event contract (milestone 4)",
   "type": "module",
   "license": "Apache-2.0",

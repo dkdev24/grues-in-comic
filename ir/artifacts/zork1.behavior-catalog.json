@@ -40,16 +40,6 @@
     ]
   },
   {
-    "id": "HERO-BLOW",
-    "source": {
-      "file": "1actions.zil",
-      "line": 3476
-    },
-    "reasons": [
-      "operator RANDOM"
-    ]
-  },
-  {
     "id": "I-CYCLOPS",
     "source": {
       "file": "1actions.zil",
@@ -130,16 +120,6 @@
     ]
   },
   {
-    "id": "RANDOMIZE-OBJECTS",
-    "source": {
-      "file": "1actions.zil",
-      "line": 4101
-    },
-    "reasons": [
-      "operator RANDOM"
-    ]
-  },
-  {
     "id": "STONE-BARROW-FCN",
     "source": {
       "file": "1actions.zil",
@@ -206,7 +186,7 @@
       "line": 134
     },
     "reasons": [
-      "operator RANDOM"
+      "RANDOM in statement position (seeds the generator)"
     ]
   },
   {

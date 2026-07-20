@@ -65,8 +65,8 @@
     "semantic_hash": ""
   },
   "src/builtins.ts": {
-    "mtime": 1784482293.9813643,
-    "ast_hash": "6df72ae5e41d3c2435bc4226da2c89ab",
+    "mtime": 1784507850.886541,
+    "ast_hash": "4c0f33c0b8bc06ab1f54d879335db8fb",
     "semantic_hash": ""
   },
   "src/engine.ts": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "src/interpreter.ts": {
-    "mtime": 1784505483.1465392,
-    "ast_hash": "416f051d18a7cdc66c7cd58a7cfd50d6",
+    "mtime": 1784507519.297536,
+    "ast_hash": "be5dac5086f7222740f190ab0555116c",
     "semantic_hash": ""
   },
   "src/runtime.ts": {
@@ -102,6 +102,11 @@
   "test/transcript.test.ts": {
     "mtime": 1784506277.398272,
     "ast_hash": "6bfd43eb5970ffac17399a83520df083",
+    "semantic_hash": ""
+  },
+  "test/combat.test.ts": {
+    "mtime": 1784508061.9875937,
+    "ast_hash": "18a72b8ce3f9d80632d62a2154437272",
     "semantic_hash": ""
   }
 }
