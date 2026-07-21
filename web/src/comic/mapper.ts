@@ -109,6 +109,15 @@ export interface MapperOptions {
    * id falls back to the id, and the tests here supply their own table.
    */
   names?: ReadonlyMap<string, string>;
+  /**
+   * Affect marker → Guide line (ADR 0005 §4). This is what makes the Guide
+   * *converse*: it reacts to the beat the Hero just caused (the §10 marker the
+   * turn produced — `combat-victory`, `grue-threat`, `scored`, …) instead of only
+   * to entering a scripted room. Consulted before the room gazetteer and under the
+   * same cooldown, so the Guide stays presentation-only and does not wear out.
+   * Empty keeps the old room-only behaviour.
+   */
+  beatScript?: ReadonlyMap<string, string>;
 }
 
 export interface Mapper {
@@ -122,6 +131,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
   const guideScript = options.guideScript ?? new Map<string, string>();
   const guideCooldown = options.guideCooldown ?? 6;
   const names = options.names ?? new Map<string, string>();
+  const beatScript = options.beatScript ?? new Map<string, string>();
 
   const visited = new Set<string>();
   const inventory = new Set<string>();
@@ -200,7 +210,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       }
 
       const affect = affectFor({ text, gameOver, scoreDelta, systemChannel });
-      const guideLine = guideFor(firstVisit, room, turn.status.moves);
+      const guideLine = guideFor(firstVisit, room, affect.marker, turn.status.moves);
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
 
       const panel: Panel = {
@@ -226,13 +236,28 @@ export function createMapper(options: MapperOptions = {}): Mapper {
     },
   };
 
-  function guideFor(firstVisit: boolean, roomId: string, turnNumber: number): string | null {
-    if (!firstVisit) return null;
+  function guideFor(
+    firstVisit: boolean, roomId: string, marker: string | null, turnNumber: number,
+  ): string | null {
     if (turnNumber - lastGuideTurn < guideCooldown) return null;
-    const line = guideScript.get(roomId);
-    if (line === undefined) return null;
-    lastGuideTurn = turnNumber;
-    return line;
+    // Beat reaction first (ADR 0005 §4): the Guide answers what the Hero just did.
+    // This is the whole of "they talk to each other" — the line is chosen by the
+    // marker the Hero's action produced, so the Guide is replying, not narrating a
+    // room on a timer.
+    const beatLine = marker !== null ? beatScript.get(marker) : undefined;
+    if (beatLine !== undefined) {
+      lastGuideTurn = turnNumber;
+      return beatLine;
+    }
+    // Then the room gazetteer, on first entry (the pre-§4 behaviour, unchanged).
+    if (firstVisit) {
+      const roomLine = guideScript.get(roomId);
+      if (roomLine !== undefined) {
+        lastGuideTurn = turnNumber;
+        return roomLine;
+      }
+    }
+    return null;
   }
 }
 

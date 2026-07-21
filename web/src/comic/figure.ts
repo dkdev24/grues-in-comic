@@ -146,9 +146,21 @@ export function figureFor(
  */
 export function drawFigure(
   ctx: CanvasRenderingContext2D, sheet: CanvasImageSource, figure: Figure,
-  x: number, y: number, scale: number,
+  x: number, y: number, scale: number, mirror = false,
 ): void {
   const { face, torso, facePos, torsoPos } = figure;
+  // `mirror` flips the figure horizontally about its own box so it faces the
+  // other way (ADR 0005 §4): in a two-shot the right-hand figure is drawn
+  // mirrored so the two look at each other instead of both facing out. Done with
+  // a transform rather than per-part x maths so the face/torso join is flipped as
+  // one unit — the whole point of compositing in figure space first.
+  ctx.save();
+  if (mirror) {
+    ctx.translate(x + figure.width * scale, y);
+    ctx.scale(-1, 1);
+  } else {
+    ctx.translate(x, y);
+  }
   const part = (p: PackedPart, rect: typeof p.figure | null, pos: { x: number; y: number }) => {
     if (!rect) return;
     ctx.drawImage(
@@ -156,7 +168,7 @@ export function drawFigure(
       // The aura rect and the figure rect have the same dimensions, so one
       // placement serves both; that is only true because they were packed as a
       // pair, which is what `pack.ts` guarantees.
-      x + pos.x * scale, y + pos.y * scale, rect.width * scale, rect.height * scale,
+      pos.x * scale, pos.y * scale, rect.width * scale, rect.height * scale,
     );
   };
 
@@ -169,4 +181,5 @@ export function drawFigure(
     part(face, face.figure, facePos);
     part(torso, torso.figure, torsoPos);
   }
+  ctx.restore();
 }

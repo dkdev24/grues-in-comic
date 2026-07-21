@@ -109,12 +109,14 @@ export function renderPanel(
     ? figureFor(guide, GUIDE_EMOTION, cycleFor(cycles, "guide"))
     : null;
 
-  const placed: Array<{ figure: Figure; x: number; y: number; scale: number }> = [];
+  const placed: Array<{ figure: Figure; x: number; y: number; scale: number; mirror: boolean }> = [];
 
   if (guideFigure && guideSheet) {
     const scale = fit(guideFigure, height, shot.fill * 0.92);
+    // The Guide sits at the left facing right — the art's default — so it already
+    // looks toward the Hero and is not mirrored.
     placed.push({
-      figure: guideFigure, scale,
+      figure: guideFigure, scale, mirror: false,
       x: width * 0.06,
       y: height - guideFigure.height * scale * shot.reveal,
     });
@@ -122,8 +124,11 @@ export function renderPanel(
   if (heroFigure && heroSheet) {
     const scale = fit(heroFigure, height, shot.fill);
     const solo = guideFigure === null;
+    // In a two-shot the Hero is the right-hand figure; mirror it so it faces the
+    // Guide instead of out of frame (ADR 0005 §4 — the "faces away" symptom). Solo,
+    // it keeps the art's default facing.
     placed.push({
-      figure: heroFigure, scale,
+      figure: heroFigure, scale, mirror: !solo,
       x: solo
         ? (width - heroFigure.width * scale) / 2
         : width * 0.94 - heroFigure.width * scale,
@@ -133,7 +138,7 @@ export function renderPanel(
 
   for (const item of placed) {
     const sheet = cast.sheets.get(item.figure.avatar === hero ? "hero" : "guide");
-    if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale);
+    if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale, item.mirror);
   }
 
   drawBalloons(ctx, panel, width, placed);
@@ -188,14 +193,17 @@ function drawBackdrop(
  */
 function drawBalloons(
   ctx: CanvasRenderingContext2D, panel: Panel, width: number,
-  placed: ReadonlyArray<{ figure: Figure; x: number; y: number; scale: number }>,
+  placed: ReadonlyArray<{ figure: Figure; x: number; y: number; scale: number; mirror: boolean }>,
 ): void {
   ctx.font = '13px "Comic Sans MS", "Comic Neue", ui-rounded, cursive';
 
   const anchors = new Map<Figure, { x: number; y: number }>();
   for (const item of placed) {
+    // A mirrored figure's face is at `width - faceX` from its left edge, so the
+    // balloon tail must follow it or it would point at the back of the head.
+    const faceX = item.mirror ? item.figure.width - item.figure.faceX : item.figure.faceX;
     anchors.set(item.figure, {
-      x: item.x + item.figure.faceX * item.scale,
+      x: item.x + faceX * item.scale,
       y: item.y + item.figure.headHeight * item.scale * 0.35,
     });
   }

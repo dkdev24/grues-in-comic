@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "src/comic-view.ts": {
-    "mtime": 1784654689.6218882,
-    "ast_hash": "b73638daa61c4d03e44ce391da59c1dd",
+    "mtime": 1784655063.6337192,
+    "ast_hash": "30d798d253146011ad4053a0e4d023fd",
     "semantic_hash": ""
   },
   "src/comic/affect.ts": {
@@ -75,18 +75,18 @@
     "semantic_hash": ""
   },
   "src/comic/figure.ts": {
-    "mtime": 1784552794.123774,
-    "ast_hash": "1b102164428beb1514c0e21882a9cce4",
+    "mtime": 1784655103.0188675,
+    "ast_hash": "765fadd1061e5063613fd43eb9174362",
     "semantic_hash": ""
   },
   "src/comic/mapper.ts": {
-    "mtime": 1784654265.8708308,
-    "ast_hash": "674ccf6d03c62d48f54c3b42404f172e",
+    "mtime": 1784655019.6160598,
+    "ast_hash": "5bffa71da37b251fb4e5be80840766b9",
     "semantic_hash": ""
   },
   "src/comic/render.ts": {
-    "mtime": 1784635102.5600991,
-    "ast_hash": "e2d8dedcbf0e28ab09b82732d13b0934",
+    "mtime": 1784655129.04234,
+    "ast_hash": "f7ab69b0f51bca04e9ee817fa4971e11",
     "semantic_hash": ""
   },
   "src/persistence.ts": {
@@ -100,13 +100,13 @@
     "semantic_hash": ""
   },
   "test/figure.test.ts": {
-    "mtime": 1784555205.87029,
-    "ast_hash": "a7a7c8431346e35b8147293356e9fadb",
+    "mtime": 1784655229.8398635,
+    "ast_hash": "f985cfe22d1a70df161c17aee746d197",
     "semantic_hash": ""
   },
   "test/mapper.test.ts": {
-    "mtime": 1784654361.0342965,
-    "ast_hash": "f39cf17c81d320f1f54854db8eb2f1de",
+    "mtime": 1784655243.3875895,
+    "ast_hash": "49a7f3f0607415b9c2375c8c9296e347",
     "semantic_hash": ""
   },
   "test/persistence.test.ts": {

@@ -159,6 +159,33 @@ describe("panel stream", () => {
     expect(panels[6]?.kind).toBe("action");  // drop leaflet
   });
 
+  it("the Guide reacts to the beat the Hero caused, not only to a room (ADR 0005 §4)", () => {
+    // `open mailbox` prints "...reveals a leaflet.", firing the `reveal` marker —
+    // a clean, deterministic beat to key a Guide reply on. No guideScript is given,
+    // so a line here can only have come from the beat reaction, not the gazetteer.
+    const beatScript = new Map([["reveal", "It was waiting to be found."]]);
+    const session = createSession(doc, { seed: SEED });
+    const mapper = createMapper({
+      names: objectNameTable(doc.objects), beatScript, guideCooldown: 0,
+    });
+    mapper.panel(session.start());
+    let panel;
+    for (const command of ["look", "examine mailbox", "open mailbox"]) {
+      panel = mapper.panel(session.command(command));
+    }
+    expect(panel?.marker).toBe("reveal");
+    expect(panel?.guide?.text).toBe("It was waiting to be found.");
+  });
+
+  it("still fires the room gazetteer on first entry when no beat reacts (ADR 0005 §4)", () => {
+    // The opening turn has no reacting marker, so the pre-§4 room path must still
+    // produce the gazetteer line — the broadened trigger is additive, not a swap.
+    const guideScript = new Map([["WEST-OF-HOUSE", "Boarded front door."]]);
+    const session = createSession(doc, { seed: SEED });
+    const mapper = createMapper({ guideScript, guideCooldown: 0 });
+    expect(mapper.panel(session.start()).guide?.text).toBe("Boarded front door.");
+  });
+
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
     const names = new Map([["LAMP", "brass lantern"]]);
     expect(heroBalloon("LAMP", null, names)).toEqual({

@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.7.7**
+**1.8.0**
 
 ---
 
@@ -58,7 +58,7 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — Narrative Director (ADR 0005): Slices 1–4 landed, Slice 5 next
+## Last Session — Narrative Director (ADR 0005) COMPLETE: Slices 1–5 landed (v1.8.0)
 
 The comic pane read as a *play-log, not a story* — a category error: ADR 0004 treats the parser
 transcript and the comic script as one artifact. Fix is **ADR 0005, the Narrative Director**
@@ -86,23 +86,24 @@ pure-function/parity-oracle property. **Full detail: WORKLOG v1.7.5 / v1.7.6. He
   View gained `flush()`, called after the resume replay (`main.ts`) so a session saved mid-walk shows
   where the player is. §6-successor invariant is now **emitted === `edited(full fold)`** (reference
   reducer in `director.test.ts`). Walking through *new* rooms is unaffected (each is an `arrival`).
-- **5 ◐ NEXT — Guide converses + two-shot.** The visible buddy-comic payoff; rests on 1–4. Two parts:
-  (a) **broaden the Guide trigger** from room-keyed first-visit (`guideFor` in `mapper.ts`, script
-  `GUIDE_SCRIPT` in `comic-view.ts`) to **beat-keyed** — the Guide reacts to *what the Hero just did*
-  (the panel's `kind`/events), not only to entering a scripted room. Stay presentation-only (reads
-  events, touches no state, still cooldown-gated) so `wiki/the-guide.md` §3 holds. (b) **two-party
-  affect + facing**: when a beat carries both a Hero action and a Guide reply, compute affect for
-  **both** figures and promote the camera to a real facing two-shot (§7 `over-shoulder`/`wide`, now
-  driven by the *exchange*, not by "a guide line exists and nothing else happened" — see
-  `cameraFor`). When it lands, **`wiki/the-guide.md` rule 6 ("address the scene, not the Hero")
-  relaxes — decide it there**, and note the Hero may move from a *thought* balloon to *speech*
-  (`heroBalloon` balloon class; `wiki/the-hero.md` left this to §4). Affect two-party work lives in
-  `web/src/comic/affect.ts` (currently Hero-only) + `render.ts`/`figure.ts` (facing). This is the
-  largest slice — consider itemizing (a)/(b) as separate commits if it runs long.
+- **5 ✅ Guide converses + two-shot.** (a) **Beat-keyed Guide:** `guideFor` now consults a new
+  `BEAT_SCRIPT` (marker → line, in `comic-view.ts`) *before* the room gazetteer — the Guide replies
+  to the affect marker the Hero's action produced (`combat-victory`, `grue-threat`, `scored`,
+  `reveal`, `combat-threat`), under the same cooldown, still presentation-only. `MapperOptions`
+  gained `beatScript`. (b) **Facing:** `drawFigure` gained a `mirror` param; `render.ts` mirrors the
+  Hero (the right figure) in a two-shot so it faces the Guide — the "faces away" symptom. Balloon-tail
+  anchor flips to match. **Guide kept deadpan** (no two-party emotion — honors `wiki/the-guide.md`;
+  the user-visible fix was facing, not the idol emoting). `wiki/the-guide.md` rule 6 and
+  `wiki/the-hero.md` updated: Hero keeps the *thought* balloon (does not speak). **Web 101/101 green.**
 
-**Not verified in-browser across the whole arc** (offer stands: Playwright screenshots of a take, a
-dropped refusal, and a collapsed backtrack). Deterministic per-object Hero-line variation remains a
-sanctioned later refinement (`wiki/the-hero.md`).
+**⚠ NOT VERIFIED IN-BROWSER.** The whole arc (Slices 1–5) is proven by headless tests only. The
+**facing flip especially needs a visual check** — the mirror direction was inferred from the "Hero
+faces away" symptom (art default assumed to face right), and mirroring could interact badly with the
+masked-mono shading. Also unseen: Guide framing on non-`over-shoulder` shots now that it fires on
+beats (a Guide crammed into a tight `close-up`/`reaction` is possible — death is excluded from
+`BEAT_SCRIPT` for this reason, but tune `SHOTS`/`cameraFor` if others look bad). **First next action:
+Playwright screenshots** — a take, a dropped refusal, a collapsed backtrack, and a Guide two-shot —
+then tune. Deterministic per-object Hero-line variation remains a sanctioned later refinement.
 
 **Slice 2 ✅ landed — Director skeleton (pure 1:1 refactor).** `web/src/comic/director.ts`:
 `createDirector(options) → { ingest(turn) → Panel[], panels }` wraps the mapper and returns exactly
@@ -218,10 +219,10 @@ there yet. Do these in order:
 1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
    - ⚑ **Comic pane reads as a play-log, not a story — scoped as ADR 0005 (Narrative Director),
      Proposed.** Root cause and the 5-slice plan are in `docs/adr/0005-narrative-director.md` and
-     the Last Session note. **Slices 1–4 ✅** (Hero balloon = action · Director skeleton · beat detection
-     + `refusal` drop · traversal collapse). **Next: Slice 5 — Guide converses + two-shot** (design in
-     the Last Session block above). The mapper's "one panel per turn (§6)" test at `mapper.test.ts`
-     still holds (the mapper is 1:1; §6 is superseded on the Director's *emitted* stream, asserted in
+     the Last Session note. **Slices 1–5 ✅ — the Narrative Director subsystem is complete (v1.8.0).**
+     **Next: in-browser visual verification (Playwright) + tuning** — see the ⚠ in the Last Session
+     block; the facing flip and Guide framing are unverified. The mapper's "one panel per turn (§6)"
+     test still holds (the mapper is 1:1; §6 is superseded on the Director's *emitted* stream, in
      `director.test.ts`).
    - ✅ **Backdrop scarcity RESOLVED (v1.6.4).** 30 generated backdrops packed into
      `web/assets/comic/`; `web/src/comic/backdrop.ts` assigns all 110 rooms by id (`ROOM_BACKDROPS`,

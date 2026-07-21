@@ -38,9 +38,15 @@ The six opening lines shipped at 5.3 already fixed the register; this only names
    live in the player's head, not the idol's mouth. (It also literally cannot act on them — §3.)
 5. **Deadpan, faintly ominous, occasionally funny. Never melodramatic.** The empire is dead and the
    Guide finds this mildly amusing. Grues are a punchline, not a scare.
-6. **Address the scene, not the Hero.** The Guide is not in conversation with the player. It talks
-   *about* the room, over the Hero's shoulder (§7 rung 5), the way a statue would narrate to no one
-   in particular.
+6. **Address the beat, now — not only the scene.** *(Relaxed by ADR 0005 §4; this rule formerly
+   read "address the scene, not the Hero.")* The trigger broadened: the Guide also reacts to what the
+   Hero just *did* — the §10 affect marker the action produced (a kill, a find, the dark), keyed in
+   `BEAT_SCRIPT` beside the room gazetteer. So it is, at last, replying rather than narrating to no
+   one. It is still not *conversation* in the back-and-forth sense — the Hero thinks and does not
+   speak ([[the-hero]] §1), the idol remains unaddressable — and the reply is still deadpan
+   atmosphere, never a hint (rule 4 holds). What changed is only who the line is *about*: the beat as
+   often as the room. In a two-shot the Hero now faces the idol (§4 facing), so the reply at least
+   lands on someone looking.
 
 ## Coverage
 

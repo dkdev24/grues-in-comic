@@ -158,6 +158,23 @@ const GUIDE_SCRIPT = new Map<string, string>([
   ["STONE-BARROW", "The barrow, at last. The way in opens once, and only forward."],
 ]);
 
+/**
+ * Beat reactions (ADR 0005 §4): keyed by the affect marker the Hero's action
+ * produced, so the Guide *replies to what just happened* rather than narrating a
+ * room on a timer — the whole of "the two characters talk to each other." Same
+ * voice as the gazetteer (`wiki/the-guide.md`) and now the same relaxed rule 6:
+ * these address the beat, not only the scene. Shares the Guide cooldown, so it
+ * stays presentation-only and never wears out. Death (the `reaction` shot, tight
+ * on the Hero) is deliberately absent — the idol does not crowd a death.
+ */
+const BEAT_SCRIPT = new Map<string, string>([
+  ["combat-victory", "Something that wanted you dead is dead instead. The empire keeps count."],
+  ["combat-threat", "The blade knows before you do. It usually does."],
+  ["grue-threat", "The dark is not empty. It is only patient."],
+  ["scored", "The empire notices what leaves it. It always sends someone."],
+  ["reveal", "There. It was waiting to be found, the way everything here is."],
+]);
+
 /** Sub-pixel slack when deciding whether the reader is still at the newest panel. */
 const PIN_SLACK = 8;
 
@@ -175,7 +192,9 @@ export async function createComicView(
 ): Promise<ComicView> {
   const strip = requireChild(root, ".comic-strip");
   const castBar = root.querySelector<HTMLElement>(".comic-cast");
-  const director: Director = createDirector({ guideScript: GUIDE_SCRIPT, guideCooldown: 3, names });
+  const director: Director = createDirector({
+    guideScript: GUIDE_SCRIPT, beatScript: BEAT_SCRIPT, guideCooldown: 3, names,
+  });
   // Cycles live with the *view*, not with a panel: a panel re-drawn on resize
   // must not advance the round-robin, or the whole strip would change bodies
   // every time the window moved (§8).

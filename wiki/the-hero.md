@@ -52,9 +52,14 @@ Kept here because [[the-guide]] and the Hero share a panel the moment ADR 0005 �
 the two-shot. They are built to converse: **both dry, from opposite ends of time.** The Guide is
 sincere and ominous about a dead empire it has watched for centuries; the Hero is ironic and
 competent because he has seen this *shape* of dungeon before, at a folding table, with dice. They
-agree on tone and disagree on everything else, which is the whole engine of a buddy comic. When
-Slice 5 makes them talk, the Guide's rule 6 ("address the scene, not the Hero") is the clause that
-relaxes — noted there, decided then, not here.
+agree on tone and disagree on everything else, which is the whole engine of a buddy comic.
+
+**Settled by ADR 0005 §4 (Slice 5):** the Guide now reacts to the beats the Hero causes and the two
+face each other in a shared panel, but the **Hero keeps the *thought* balloon — he does not speak.**
+The exchange is the idol commenting on what the Hero *does*, not a back-and-forth of dialogue; the
+Hero's genre-literate competence reads louder as private thought than as banter, and it keeps rule 5
+(he never performs for an audience). [[the-guide]] rule 6 relaxed to match. A spoken Hero stays
+available if the comic later wants true dialogue, but it is not the voice as settled.
 
 ## Coverage
 

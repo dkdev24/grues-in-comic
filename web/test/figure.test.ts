@@ -25,7 +25,7 @@ import { packAvatar } from "../../art/src/pack.js";
 import { EMOTION_NAMES, emotionAngle } from "../../art/src/format.js";
 import type { EmotionOption } from "../../art/src/pose.js";
 import type { PackedAvatar } from "../../art/src/cast-manifest.js";
-import { figureFor, newCycle } from "../src/comic/figure.js";
+import { drawFigure, figureFor, newCycle } from "../src/comic/figure.js";
 import { AFFECT_MARKERS } from "../src/comic/affect.js";
 
 const CORPUS = fileURLToPath(
@@ -67,6 +67,34 @@ describe.each(Object.entries(CAST))("%s (%s)", (_role, file) => {
         expect(part.aura.height).toBe(part.figure.height);
       }
     }
+  });
+
+  it("draws mirrored about the figure box, unmirrored by default (ADR 0005 §4)", () => {
+    const figure = figureFor(avatar, [{ angle: 0, intensity: 0, priority: 1 }], newCycle());
+    if (!figure) throw new Error("expected a figure for a neutral pose");
+    const calls: string[] = [];
+    const ctx = {
+      save: () => calls.push("save"),
+      restore: () => calls.push("restore"),
+      translate: (x: number, y: number) => calls.push(`translate(${x},${y})`),
+      scale: (x: number, y: number) => calls.push(`scale(${x},${y})`),
+      drawImage: () => calls.push("drawImage"),
+    } as unknown as CanvasRenderingContext2D;
+    const sheet = {} as CanvasImageSource;
+
+    // Mirrored: origin moves to the figure's right edge and x is flipped, so the
+    // whole join faces the other way; save/restore bracket the transform.
+    drawFigure(ctx, sheet, figure, 10, 20, 2, true);
+    expect(calls[0]).toBe("save");
+    expect(calls.at(-1)).toBe("restore");
+    expect(calls).toContain(`translate(${10 + figure.width * 2},20)`);
+    expect(calls).toContain("scale(-1,1)");
+
+    // Default: translate to the origin, no flip — the pre-§4 behaviour.
+    calls.length = 0;
+    drawFigure(ctx, sheet, figure, 10, 20, 2);
+    expect(calls).toContain("translate(10,20)");
+    expect(calls).not.toContain("scale(-1,1)");
   });
 
   it("never overlaps two parts on the sheet", () => {

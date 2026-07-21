@@ -4,6 +4,53 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.8.0 — 2026-07-22 — Narrative Director: Guide converses + facing two-shot — Slice 5 (subsystem complete)
+
+**Date:** 2026-07-22
+
+The buddy-comic payoff, and the last of ADR 0005's five slices: the Guide replies to what the Hero
+does, and the two look at each other. Minor bump — the Narrative Director subsystem is complete.
+
+### Changes
+
+- **(a) Beat-keyed Guide — `web/src/comic/mapper.ts` + `comic-view.ts`.** `guideFor` now takes the
+  turn's affect marker and consults a new `BEAT_SCRIPT` (marker → line) *before* the room gazetteer:
+  the Guide replies to the beat the Hero just caused (`combat-victory`, `combat-threat`, `grue-threat`,
+  `scored`, `reveal`) rather than only narrating a room on entry. This is the whole of "the two
+  characters talk to each other" — the line is chosen by *what the Hero did*. Same cooldown, still
+  presentation-only (reads events/marker, touches no state), so `wiki/the-guide.md` §3 holds; the room
+  gazetteer path is unchanged when no beat reacts. `MapperOptions` gained `beatScript`. Death (the
+  `reaction` shot, tight on the Hero) is deliberately excluded from `BEAT_SCRIPT` — the idol does not
+  crowd a death.
+- **(b) Facing — `web/src/comic/figure.ts` + `render.ts`.** `drawFigure` gained a `mirror` param that
+  flips the figure horizontally about its own box via a `save`/`translate`/`scale(-1,1)` transform, so
+  the face-onto-torso join flips as one unit. `render.ts` mirrors the Hero (the right-hand figure) in a
+  two-shot so the two face each other instead of the Hero facing out of frame — the user-reported
+  "Hero looks away from the Guide" symptom. The Hero's balloon-tail anchor flips to `width - faceX`
+  under mirror so the tail still finds the face.
+- **The Guide stays deadpan.** "Two-party affect" was deliberately narrowed to *facing* only:
+  `GUIDE_EMOTION` remains neutral. `wiki/the-guide.md` settles the Guide as a carving that "reacts to
+  nothing; it comments" — giving the idol expressions would contradict its identity, and the
+  user-visible fix was the two looking at each other, not the idol emoting.
+- **Voice docs updated.** `wiki/the-guide.md` rule 6 relaxed ("address the beat, now — not only the
+  scene"); `wiki/the-hero.md` records the §4 decision that the **Hero keeps the *thought* balloon and
+  does not speak** — the exchange is the idol commenting on the Hero's actions, not spoken dialogue.
+- **Tests.** `mapper.test.ts`: the Guide reacts to a beat (`open mailbox` → `reveal` marker → beat
+  line, with no gazetteer entry present), and the gazetteer still fires on first entry when no beat
+  reacts. `figure.test.ts`: `drawFigure` mirrors about the box when asked and is a no-op transform by
+  default.
+
+### Status
+
+Web 101/101 green, build clean, graph regenerated. **ADR 0005 complete across all five slices**: the
+comic edits out try-and-error (refusals) and backtracking (traversal runs), the Hero acts instead of
+thinking commands, and the Guide replies to the Hero's beats face to face. **NOT verified in-browser
+— the facing flip and the Guide's framing on tight shots need a visual pass (Playwright); the mirror
+direction was inferred from the symptom, not seen.** That visual verification + tuning is the next
+action.
+
+---
+
 ## v1.7.7 — 2026-07-22 — Narrative Director: traversal collapse — Slice 4
 
 **Date:** 2026-07-22

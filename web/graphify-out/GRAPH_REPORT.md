@@ -1,16 +1,16 @@
 # Graph Report - web  (2026-07-22)
 
 ## Corpus Check
-- 29 files · ~30,351 words
+- 29 files · ~31,250 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 250 nodes · 436 edges · 12 communities
+- 253 nodes · 440 edges · 12 communities
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.73)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `92f65ba6`
+- Built from commit: `59aafc6f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -43,14 +43,14 @@
 ## Surprising Connections (you probably didn't know these)
 - `joinOnly()` --calls--> `figureFor()`  [EXTRACTED]
   test/figure.test.ts → src/comic/figure.ts
-- `replayPanels()` --calls--> `createMapper()`  [EXTRACTED]
-  test/mapper.test.ts → src/comic/mapper.ts
 - `replayPanels()` --calls--> `createSession()`  [EXTRACTED]
   test/mapper.test.ts → src/session.ts
 - `options()` --calls--> `objectNameTable()`  [EXTRACTED]
   test/director.test.ts → src/status.ts
-- `createComicView()` --calls--> `createDirector()`  [EXTRACTED]
-  src/comic-view.ts → src/comic/director.ts
+- `replayPanels()` --calls--> `createMapper()`  [EXTRACTED]
+  test/mapper.test.ts → src/comic/mapper.ts
+- `createComicView()` --calls--> `loadCast()`  [EXTRACTED]
+  src/comic-view.ts → src/comic/figure.ts
 
 ## Import Cycles
 - None detected.
@@ -58,32 +58,32 @@
 ## Communities (12 total, 0 thin omitted)
 
 ### Community 0 - "inspector-view.ts"
-Cohesion: 0.10
-Nodes (12): ConsoleView, createMixTracker(), PersistedSession, PersistedTurn, rehydrate(), SessionStore, StorageFullError, ADR-0002 (+4 more)
+Cohesion: 0.13
+Nodes (10): createMixTracker(), PersistedSession, PersistedTurn, rehydrate(), SessionStore, StorageFullError, ADR-0002, Turn (+2 more)
 
 ### Community 1 - "status.ts"
 Cohesion: 0.07
-Nodes (28): createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, fetchWorld(), main() (+20 more)
+Nodes (30): ConsoleView, createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, fetchWorld() (+22 more)
 
 ### Community 2 - "session.ts"
 Cohesion: 0.08
-Nodes (29): Affect, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, sentences(), ADR-0002 (+21 more)
+Nodes (30): Affect, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, sentences(), ADR-0002 (+22 more)
 
 ### Community 3 - "main.ts"
 Cohesion: 0.11
-Nodes (17): createDirector(), Director, DirectorOptions, ADR-0004, ADR-0005, createMapper(), Mapper, MapperOptions (+9 more)
+Nodes (15): Director, DirectorOptions, ADR-0004, ADR-0005, Mapper, MapperOptions, Panel, objectNameTable() (+7 more)
 
 ### Community 4 - "Turn"
-Cohesion: 0.11
-Nodes (26): AFFECT_MARKERS, BalloonBox, Cast, drawFigure(), Figure, figureFor(), loadCast(), loadImage() (+18 more)
+Cohesion: 0.10
+Nodes (28): AFFECT_MARKERS, BalloonBox, Cast, drawFigure(), Figure, figureFor(), loadCast(), loadImage() (+20 more)
 
 ### Community 5 - "serve.ts"
 Cohesion: 0.22
 Nodes (7): CONTENT_TYPES, PORT, REPO_ROOT, server, ADR-0002, WEB_ROOT, WORLD_ROOT
 
 ### Community 6 - "console-view.ts"
-Cohesion: 0.12
-Nodes (15): drawPortrait(), Portrait, portraitCrop(), ADR-0004, ComicView, createComicView(), drawCastBar(), frozen (+7 more)
+Cohesion: 0.11
+Nodes (17): createDirector(), drawPortrait(), Portrait, portraitCrop(), ADR-0004, BEAT_SCRIPT, ComicView, createComicView() (+9 more)
 
 ### Community 7 - "MixTracker"
 Cohesion: 0.33
@@ -106,23 +106,23 @@ Cohesion: 0.31
 Nodes (7): backdropFor(), BackdropId, ROOM_BACKDROPS, ADR-0004, here, roomIds, world
 
 ## Knowledge Gaps
-- **85 isolated node(s):** `status`, `grid`, `PRESETS`, `SIZES`, `GUIDE_SCRIPT` (+80 more)
+- **88 isolated node(s):** `status`, `grid`, `PRESETS`, `SIZES`, `GUIDE_SCRIPT` (+83 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Turn` connect `inspector-view.ts` to `status.ts`, `session.ts`, `main.ts`, `console-view.ts`, `backdrop.ts`?**
-  _High betweenness centrality (0.108) - this node is a cross-community bridge._
+  _High betweenness centrality (0.107) - this node is a cross-community bridge._
 - **Why does `Panel` connect `main.ts` to `session.ts`, `Turn`, `console-view.ts`?**
   _High betweenness centrality (0.026) - this node is a cross-community bridge._
-- **Why does `Session` connect `status.ts` to `inspector-view.ts`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `status`, `grid`, `PRESETS` to the rest of the system?**
-  _85 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _88 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `inspector-view.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.10333333333333333 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13157894736842105 - nodes in this community are weakly interconnected._
 - **Should `status.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07308970099667775 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06648936170212766 - nodes in this community are weakly interconnected._
 - **Should `session.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07657657657657657 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07681365576102418 - nodes in this community are weakly interconnected._
+- **Should `main.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.11255411255411256 - nodes in this community are weakly interconnected._
