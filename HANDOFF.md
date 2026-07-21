@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.7.3**
+**1.7.4**
 
 ---
 
@@ -58,68 +58,27 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — stage 5.5 (v1.7.0–v1.7.3): completable, score evented, suite green, SHOTS tuned
+## Last Session — v1.7.4: two-up panel layout fixed; more comic-pane issues flagged, unenumerated
 
-**v1.7.3 — tuned the `SHOTS` framing table (task 1) by looking at the running page.** Built a dev
-harness (`web/gallery.js` + `gallery.html`) that renders every `CameraPreset` over one constant real
-panel, served it, and screenshotted each via Playwright. Two changes backed by before/after shots:
-`reaction` backdrop 0.3→0.18 (the game-over face was fighting the house behind it) and `over-shoulder`
-fill 1.0→0.86 (the Hero's arm was clipped by the right frame in the two-shot). `establishing`≈`wide`
-similarity noted and left (inherent to solo-Hero scenes). Web green (89), typecheck clean; no test
-asserts SHOTS values. **Reuse `gallery.html` for the next framing pass** — build, `npm run serve`, open
-`/gallery.html`.
+**User-reported, this session: the comic pane has multiple problems when tested live in the
+browser — a fundamental gameplay issue, not cosmetic polish.** The comic pane is the whole point of
+M5, so defects here sit on the exit criterion's remaining half. Only the simplest of the reported
+problems was diagnosed and fixed (below); the rest were called out during testing but not itemized.
+**First task next session: get the specific list from the user before doing anything else** — do not
+guess at what else is wrong.
 
-**v1.7.2 — greened the presentation baseline.** The two long-standing web failures are fixed, both
-root-caused, neither a real defect: `portrait.test.ts`'s tsc error (`dw!/dh!` under
-`noUncheckedIndexedAccess`), and `mapper.test.ts`'s camera-ranking failure — a *test-corpus* issue.
-`allPanels()` globs every `.cmd`, and stage 5.5 added the revisit-heavy `12-full-game.cmd` oracle,
-which pushes `wide` above `establishing` and inverts the ADR §7 order. Measured to confirm: the 11
-scene walkthroughs give the ADR order exactly. Fix: the §7 ranking test now uses a new `scenePanels()`
-(oracle excluded); invariant tests keep the full corpus. **Web suite fully green (89), whole repo now
-has no known failing tests.**
+**v1.7.4 — fixed: the comic pane collapsed to one oversized panel at ordinary browser widths.**
+`columnsFor` in `web/src/comic/layout.ts` required each column to fit a full native-width (400px)
+panel before granting a second column, so any pane narrower than ~810px rendered **one** panel
+stretched toward the 640px scale cap instead of two — confirmed live via Playwright at a perfectly
+ordinary 1280×800. Added `MIN_PANEL_SCALE` (0.75) and made `columnsFor` fit against that shrunk width
+instead of the full native one; two columns now appear from ~610px of strip width. `layout.test.ts`'s
+boundary test updated to match — the boundary itself intentionally moved, not just its value. Web
+suite green (89/89, 468 across all packages); verified in-browser (rebuilt, served, drove two turns,
+screenshotted before/after). Full writeup: WORKLOG v1.7.4.
 
-**v1.7.1 — treasure scoring emits `score-changed`.** The extracted routines that move SCORE
-(`SCORE-UPD` on a case deposit, the LIVING-ROOM M-END recompute) write `globals.SCORE` directly and
-emitted no event, so the whole endgame climb (302→350) was invisible to any `score-changed` listener —
-including `web/src/status.ts`, which already folds it. `reconcileScore(ctx, before)` in `engine.ts`
-now emits one corrective event at the end of `command()` for any SCORE move not already evented,
-covering every path (not just those two routines). `completion.test.ts` pins it with
-`eventScore === 350` (fails at 302 without the fix). 134 engine tests green; transcript parity intact
-(structural event, no prose change). The web score display now updates on take/case.
-
-**v1.7.0 — the exit criterion is met: the engine wins Zork I.** `runFullGame` in the new
-`engine/harness/complete.ts` reaches **350/350**, ends in `STONE-BARROW`, emits `game-over{victory}`,
-0 crashes/deaths. Committed as `engine/test/completion.test.ts` (seed 1234). `full-run.ts` is now a
-thin front end over the shared driver, so probe and test run the same code.
-
-**What closed the v1.6.6 gap: thief-and-inventory-resilient recovery, not an engine change.** The
-334→350 gap was the thief hoarding skull(t10)+torch(t6) in TREASURE-ROOM past the load limit — RNG
-divergence, exactly as flagged, not a defect. `runFullGame` splits the fixed list just before the
-map-gated barrow tail, then `recoverHoard()` loops while score < 350: turn the lantern on (the descent
-`w,w,u` is dark), shed non-treasure junk, take whatever treasures the draw scattered into the hideaway,
-return `d,e,e`, case them, repeat for as many trips as needed. When the case completes, `SCORE-UPD`
-reveals the map and the tail (`take map`/`read map`/navigate SW to the barrow) wins. Recovery keys off
-each object's `treasureValue`/`value` + first synonym — nothing seed-specific is hardcoded.
-
-**Seed 1234 is the committed run *by design*.** The fixed `12-full-game.cmd` is authored to dfrotz seed
-1234; other streams have the thief rob a different mid-game set, so the `put <treasure> in case` lines
-stop matching and the list no longer wins (sampled 30–350 across seeds). That is the fixed list's
-property, not the engine's (ADR 0002 keeps our own PRNG). The recovery + combat repetition layered on
-top are RNG-agnostic; only the underlying command list is seed-bound.
-
-**Green:** 134 engine tests (+4 completion, +1 score-event), typecheck clean, strict parity intact
-(23 transcript tests), graphify regenerated.
-
-**Still open, minor:** `get out of boat` at SANDY-BEACH (#219) still fails — the vehicle didn't follow
-the player east off the river. Cosmetic for completion (the walkthrough continues), but it is the same
-vehicle-follows-player question the boat fix touched; worth a look when vehicles are revisited.
-
-**NEXT — presentation coverage (task 3), the web endgame.** Both engine-side web gaps are now closed
-(completion + the score-event fix). What remains is authoring/rendering judgement on the comic itself,
-best done by *looking at the running page* (the standing lesson): the `SHOTS` framing table in
-`render.ts`, page composition / PDF export (§5), and confirming the comic renders cleanly all the way
-through the win. Launch the web shell and drive the endgame before proposing any rule. See Next
-Actions task 3 and §5.
+Earlier version narrative for this milestone (v1.6.6, v1.7.0–v1.7.3 — completion, score events,
+suite-green, SHOTS tuning) has moved to WORKLOG; see those entries for detail.
 
 Still live from earlier stages:
 
@@ -221,6 +180,11 @@ there yet. Do these in order:
      `game-over{victory}` + score 350 + `STONE-BARROW`, over the shared `runFullGame` driver.
 
 1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
+   - ⚑ **Comic pane has multiple reported issues from live user testing — a fundamental gameplay
+     issue, not polish.** Only the panel-layout/columns problem was diagnosed and fixed (v1.7.4, see
+     Last Session and WORKLOG). The rest were flagged during testing but never itemized. **Get the
+     specific list from the user first**, then triage — don't propose fixes for problems that
+     haven't been named yet.
    - ✅ **Backdrop scarcity RESOLVED (v1.6.4).** 30 generated backdrops packed into
      `web/assets/comic/`; `web/src/comic/backdrop.ts` assigns all 110 rooms by id (`ROOM_BACKDROPS`,
      renamed from `OUTDOORS`/`OUTDOOR_BACKDROPS`); `BackdropId` union is the 30-id set; decoder reads
@@ -394,6 +358,12 @@ sat unread for two sessions before it settled the balloon class.
   alone is not evidence of anything but legality.
 
 **Project / M5**
+- ⚑ **Comic pane: multiple issues reported from live testing, mostly unenumerated.** User testing of
+  the running site found "many issues" in the comic pane; the panel-layout/columns problem (pane
+  collapsed to one oversized panel below ~810px) was diagnosed and fixed at v1.7.4 — see WORKLOG. The
+  rest were not itemized in the session that found them. **Next session: ask for the specific list
+  before investigating further**, then re-test live in the browser per issue (this bug was only
+  caught that way, not by any test).
 - ✅ **Backdrops — 30-backdrop art pass LANDED (v1.6.4).** `web/src/comic/backdrop.ts`
   (`ROOM_BACKDROPS`) assigns all 110 rooms an apt backdrop by id; `BackdropId` is the 30-id union;
   30 BMPs packed into `web/assets/comic/`. The old conservatory `room8bs` was dropped; the generic

@@ -4,6 +4,41 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.7.4 — 2026-07-22 — Two-up panel layout: columns were fitting against native width, not a shrinkable minimum
+
+**Date:** 2026-07-22
+
+User testing of the running site turned up multiple problems in the comic pane; this session fixed the
+simplest — panel layout — and logged the rest as open for the next session (see Open Issues, Project / M5).
+
+### Changes
+
+- **`web/src/comic/layout.ts` — new `MIN_PANEL_SCALE` (0.75), and `columnsFor` now fits against it.**
+  `columnsFor` required each column to hold a full native-width (400px) panel before granting a second
+  column, so any comic pane narrower than ~810px fell back to **one** panel stretched toward
+  `MAX_PANEL_SCALE` (640px) — confirmed live via Playwright at 1280×800, a thoroughly ordinary laptop
+  width. That is the opposite of what a two-up layout should do at a merely-average width, and §4a
+  already settles the direction (style.css: "responsiveness outranks retro fidelity"; stretching was
+  already a parameter on the grow side). `columnsFor` now fits against `UNIT.width * MIN_PANEL_SCALE`
+  (300px) instead of the full native width; `layoutStrip`'s existing share/clamp arithmetic needed no
+  change; because of how `columnsFor`'s fit inequality works, `panelWidth` is mathematically guaranteed
+  `>= MIN_WIDTH` whenever the column count isn't capped by `MAX_COLUMNS`, so panels can't shrink further
+  than 300px this way. Two columns now kick in around 610px of strip width instead of 810px.
+- **`web/test/layout.test.ts`** — the boundary test encoded the old native-width threshold on purpose (it
+  is the test that would have caught a *typo* reproducing the ported bug); updated it to the new
+  `MIN_PANEL_SCALE`-based boundary (`2 * MIN_WIDTH + GUTTER`) since the boundary itself intentionally
+  moved, not just its value.
+
+### Status
+
+**Web suite green (89/89, all packages 468).** Verified live: rebuilt, ran the dev server, drove two
+turns via Playwright at 1280×800 — two panels now render per row where previously one oversized panel
+did. **Comic pane still has other reported issues beyond layout** — user flagged "many issues" during
+testing and called this one "the simplest"; the rest are unenumerated and are next session's first task.
+See Open Issues, Project / M5.
+
+---
+
 ## v1.7.3 — stage 5.5 task 1: tune the SHOTS framing table by looking at the running page
 
 **Date:** 2026-07-21

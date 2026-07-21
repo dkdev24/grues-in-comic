@@ -48,6 +48,21 @@ export const MAX_COLUMNS = 2;
  */
 export const MAX_PANEL_SCALE = 1.6;
 
+/**
+ * The shrink-side counterpart to {@link MAX_PANEL_SCALE}.
+ *
+ * `columnsFor` used to require a full native-width (`UNIT.width`) panel per
+ * column, so a viewport just under the two-column threshold (roughly
+ * 810px of strip width) fell back to *one* panel stretched up toward
+ * `MAX_PANEL_SCALE` — the opposite of what a reader wants from a two-up
+ * layout at a merely-average width. §4a already settles this direction:
+ * responsiveness outranks retro fidelity, and stretching was already treated
+ * as a parameter rather than a constant on the grow side. This is the same
+ * ruling applied to the shrink side, so two columns are preferred whenever
+ * both panels can still shrink to something legible.
+ */
+export const MIN_PANEL_SCALE = 0.75;
+
 export interface StripLayout {
   /** Panels per row. Always at least 1. */
   columns: number;
@@ -83,9 +98,16 @@ export interface LayoutOptions {
  * set to the same value, so the two expressions agree. It is *not* reproduced
  * here: this is one gutter, and reproducing a typo that never fired would be
  * transcription rather than porting.
+ *
+ * The original fits columns against the native unit width. This port fits
+ * against `MIN_PANEL_SCALE` of it instead — the smallest a panel may shrink
+ * to — so a width that cannot hold two *native* panels but can hold two
+ * *shrunk* ones still gets the two-up layout (`layoutStrip` fills in the
+ * actual, larger share width afterward).
  */
 export function columnsFor(available: number, gutter: number, maxColumns = MAX_COLUMNS): number {
-  const fit = Math.floor((available + gutter) / (UNIT.width + gutter));
+  const minWidth = UNIT.width * MIN_PANEL_SCALE;
+  const fit = Math.floor((available + gutter) / (minWidth + gutter));
   return Math.max(1, Math.min(fit, maxColumns));
 }
 

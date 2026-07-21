@@ -12,17 +12,19 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  cellFor, columnsFor, layoutStrip, MAX_COLUMNS, MAX_PANEL_SCALE, UNIT,
+  cellFor, columnsFor, layoutStrip, MAX_COLUMNS, MAX_PANEL_SCALE, MIN_PANEL_SCALE, UNIT,
 } from "../src/comic/layout.js";
 
 const GUTTER = 10;
+const MIN_WIDTH = UNIT.width * MIN_PANEL_SCALE;
 
 describe("columnsFor — panel.cpp:1456", () => {
-  it("fits n panels when n*unit + (n-1)*gutter fits, and not one pixel sooner", () => {
-    // The boundary is the whole content of the ported expression, so test *at*
-    // it rather than near it: two columns need 400 + 10 + 400 = 810.
-    expect(columnsFor(809, GUTTER)).toBe(1);
-    expect(columnsFor(810, GUTTER)).toBe(2);
+  it("fits n shrunk-to-minimum panels, and not one pixel sooner", () => {
+    // Unlike the original, the fit is against MIN_PANEL_SCALE of the unit, not
+    // the full unit — a panel can shrink before the strip gives up a column.
+    // Two columns need 300 + 10 + 300 = 610.
+    expect(columnsFor(2 * MIN_WIDTH + GUTTER - 1, GUTTER)).toBe(1);
+    expect(columnsFor(2 * MIN_WIDTH + GUTTER, GUTTER)).toBe(2);
   });
 
   it("never returns zero columns, however narrow the pane", () => {
