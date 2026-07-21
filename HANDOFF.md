@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.7.5**
+**1.7.6**
 
 ---
 
@@ -58,45 +58,41 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — comic-pane redesign scoped (ADR 0005) + Slice 1 in progress
+## Last Session — Narrative Director (ADR 0005): Slices 1–3 landed, Slice 4 next
 
-**The comic-pane problems were diagnosed as a category error, not a bug list, and a redesign was
-authored: `docs/adr/0005-narrative-director.md` (Proposed).** The pane reads as a *play-log, not a
-story* because ADR 0004 treats the parser transcript and the comic script as one artifact. Four
-root causes, each a deliberate 0004 line: Hero thinks in raw commands (`mapper.ts:176`); Guide is
-room-keyed so it never *responds* to the Hero (`guideFor`); affect is Hero-only so the two never
-face each other (`affect.ts`); one-panel-per-turn renders trial-and-error verbatim (§6).
+The comic pane read as a *play-log, not a story* — a category error: ADR 0004 treats the parser
+transcript and the comic script as one artifact. Fix is **ADR 0005, the Narrative Director**
+(`web/src/comic/director.ts`): `ingest(turn) → Panel[]` (0..N) between the turn stream and the panel
+stream, an *edited, past-tense retelling* — while the console pane still shows every word live.
+Supersedes 0004 §3 (Guide trigger), §6 (1 panel/turn), §2/§2a (Hero balloon = command); preserves
+0002 (contract not extended), the §7 camera ladder, §10 affect ordering, §2 captions, and the
+pure-function/parity-oracle property. **Full detail: WORKLOG v1.7.5 / v1.7.6. Hero voice settled in
+`wiki/the-hero.md`.**
 
-**ADR 0005 inserts a Narrative Director** (`ingest(turn) → Panel[]`, 0..N) between the turn stream
-and the panel stream — an *edited, past-tense retelling* that trails live play, while the console
-pane still shows every word live. It supersedes 0004 §3 (Guide trigger), §6 (1 panel/turn), §2/§2a
-(Hero balloon = command); preserves 0002 (contract not extended), the §7 camera ladder, §10 affect
-ordering, §2 verbatim captions, and the pure-function/parity-oracle property. Testing contract
-changes from "1 panel per turn" to "walkthrough → golden panel **sequence**."
+**Five slices, each green-tested, never one rewrite:**
+- **1 ✅ Hero balloon = resolved action.** `heroBalloon(took, dropped, names)` renders the outcome of
+  `object-moved` events ("The leaflet, then." / "The leaflet can stay."), `null` for
+  movement/look/refusal. Object names via `objectNameTable(doc.objects)`.
+- **2 ✅ Director skeleton.** Wraps the mapper 1:1; view drives `ingest`. `.panels` is the emitted stream.
+- **3 ✅ Beat detection + noise drop.** Mapper tags each panel `kind`
+  (`arrival|traversal|action|terminal|refusal|ambient`, `panelKind()`); Director **drops `refusal`**
+  (parser said no, nothing happened) and passes the rest 1:1. Mapper always folds even on a drop, so
+  stream state stays whole. §6 superseded: emitted stream = full fold **minus refusals**
+  (`director.test.ts`). **Web 95/95 green.**
+- **4 ◐ NEXT — traversal collapse.** Collapse a *run* of consecutive `traversal` panels into its
+  arrival at the destination (ADR 0005 §3). This is the first slice where the Director **buffers**:
+  `ingest` may hold traversal panels and emit them merged when the run ends (a non-traversal turn, or
+  a `traversal` whose room is a first visit → `arrival`). Keep it "collapse, don't drop the beats
+  inside" — a take mid-run still surfaces. Golden: assert a known back-and-forth walkthrough emits
+  fewer panels, with the kept one set at the destination room. Do **not** fold this into Slice 3's
+  refusal logic; they are separate edit policies.
+- **5 ◐ Guide converses + two-shot** (rests on 1–4). Guide reacts to the beat (broaden trigger from
+  room-keyed to beat-keyed, still presentation-only); two-party affect drives real facing. When it
+  lands, `wiki/the-guide.md` rule 6 ("address the scene, not the Hero") relaxes — decide it there.
 
-**Slices (each ships behind green tests, never one rewrite):** 1 Hero balloon = resolved action ·
-2 Director skeleton (1:1 refactor) · 3 beat detect + noise drop · 4 traversal collapse · 5 Guide
-converses + two-shot.
-
-**Slice 1 ✅ landed this session (ready for v1.7.5 patch).** The Hero balloon is now the resolved
-action, not the typed command: `heroBalloon(took, dropped, names)` in `web/src/comic/mapper.ts`
-renders "I take the leaflet." / "I leave the leaflet." from the turn's `object-moved` events, and
-returns **null** for movement, examination and parser refusals — the `s`/`look` thought-bubble tell
-is gone. Object-name table `objectNameTable(doc.objects)` (`web/src/status.ts`, mirrors
-`roomNameTable`) threads `main.ts → createComicView(…, names) → createMapper({names})`; it is static
-world data, so the mapper stays a pure function of (stream + config). The old §2a "command verbatim"
-test was replaced with the §1 derivation + a `heroBalloon` unit test. **Web 90/90 green, build clean,
-graph regenerated. Still 1 panel/turn — no arity change yet.** Not verified in-browser this session
-(offer stands: Playwright screenshot of a take turn).
-
-**Hero voice + character settled: `wiki/the-hero.md`** (sibling of `wiki/the-guide.md`). The Hero is
-the player's deliberately-unnamed self-insert = the target player: middle-aged, tech-savvy, lapsed
-tabletop-D&D — so **systems-minded and genre-literate**, revisiting a familiar dungeon, not
-discovering it. Voice: first-person, terse, dry, earned competence, never quippy, never self-hints
-(same firewall the Guide keeps). Built as the Guide's deliberate complement for the Slice 5 two-shot
-(both dry, opposite ends of time). Slice 1 templates now read in that voice: take → `The {name},
-then.`, drop → `The {name} can stay.` **Deterministic per-object variation** (treasure vs. junk,
-keyed on value/class) is a sanctioned later refinement, noted in the doc, not built.
+**Not verified in-browser this session** (offer stands: Playwright screenshot of a take + a dropped
+refusal). Deterministic per-object Hero-line variation remains a sanctioned later refinement
+(`wiki/the-hero.md`).
 
 **Slice 2 ✅ landed — Director skeleton (pure 1:1 refactor).** `web/src/comic/director.ts`:
 `createDirector(options) → { ingest(turn) → Panel[], panels }` wraps the mapper and returns exactly
@@ -212,16 +208,11 @@ there yet. Do these in order:
 1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
    - ⚑ **Comic pane reads as a play-log, not a story — scoped as ADR 0005 (Narrative Director),
      Proposed.** Root cause and the 5-slice plan are in `docs/adr/0005-narrative-director.md` and
-     the Last Session note. **Slice 1 ✅** (Hero balloon = resolved action). **Slice 2 ✅** (Director
-     skeleton, `web/src/comic/director.ts`, 1:1 refactor proven byte-identical by `director.test.ts`).
-     **Next: Slice 3 — beat detection + noise drop.** In `director.ingest`, classify each turn from
-     its events (arrival/acquire/state-change/combat/death = beat; parser refusal via the
-     `narration:system` channel + redundant look = noise) and **return `[]` for noise** so it draws
-     no panel; buffer only as far as dropping needs. This is where 1:1 breaks: replace the mapper's
-     "one panel per turn (§6)" test (`mapper.test.ts:80`) and `director.test.ts`'s equivalence
-     assertion with **golden panel-sequences** per walkthrough — the ADR 0004 §6 → 0005 supersession,
-     done deliberately with the golden, never by loosening an assertion. Traversal collapse is Slice 4,
-     kept separate so Slice 3 stays "drop, don't merge."
+     the Last Session note. **Slices 1–3 ✅** (Hero balloon = action · Director skeleton · beat detection
+     + `refusal` drop). **Next: Slice 4 — traversal collapse**, then Slice 5 (Guide converses +
+     two-shot). Details and the Slice 4/5 design are in the Last Session block above; the mapper's
+     "one panel per turn (§6)" test at `mapper.test.ts` still holds (the mapper is 1:1; §6 is
+     superseded on the Director's *emitted* stream, asserted in `director.test.ts`).
    - ✅ **Backdrop scarcity RESOLVED (v1.6.4).** 30 generated backdrops packed into
      `web/assets/comic/`; `web/src/comic/backdrop.ts` assigns all 110 rooms by id (`ROOM_BACKDROPS`,
      renamed from `OUTDOORS`/`OUTDOOR_BACKDROPS`); `BackdropId` union is the 30-id set; decoder reads

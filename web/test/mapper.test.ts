@@ -25,7 +25,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { PLAYER_ID } from "../../engine/src/state.js";
 import { createSession } from "../src/session.js";
-import { captionFor, createMapper, heroBalloon, salient, type Panel } from "../src/comic/mapper.js";
+import { captionFor, createMapper, heroBalloon, panelKind, salient, type Panel } from "../src/comic/mapper.js";
 import { objectNameTable } from "../src/status.js";
 import { AFFECT_MARKERS, affectFor } from "../src/comic/affect.js";
 
@@ -124,6 +124,39 @@ describe("panel stream", () => {
     for (const panel of panels) {
       if (panel.hero) expect(commands.has(panel.hero.text)).toBe(false);
     }
+  });
+
+  it("classifies each turn's beat kind, order-priority terminal→move→action→refusal (ADR 0005 §2)", () => {
+    const base = {
+      gameOver: false, moved: false, firstVisit: false,
+      took: null, dropped: null, salientMove: null, scoreDelta: 0, marker: null,
+    };
+    expect(panelKind({ ...base, gameOver: true, moved: true })).toBe("terminal");
+    expect(panelKind({ ...base, moved: true, firstVisit: true })).toBe("arrival");
+    expect(panelKind({ ...base, moved: true })).toBe("traversal");
+    // A move that also scores is still, first, a place the player went.
+    expect(panelKind({ ...base, moved: true, scoreDelta: 5 })).toBe("traversal");
+    expect(panelKind({ ...base, took: "LAMP" })).toBe("action");
+    expect(panelKind({ ...base, dropped: "SWORD" })).toBe("action");
+    expect(panelKind({ ...base, salientMove: { object: "THIEF" } })).toBe("action");
+    expect(panelKind({ ...base, scoreDelta: 10 })).toBe("action");
+    expect(panelKind({ ...base, marker: "parser-miss" })).toBe("refusal");
+    // A non-refusal marker over an otherwise-empty turn is narration, not noise.
+    expect(panelKind({ ...base, marker: "grue-threat" })).toBe("ambient");
+    expect(panelKind(base)).toBe("ambient");
+  });
+
+  it("tags real turns: arrival on the opening, action on take/drop, ambient on look (ADR 0005 §2)", () => {
+    const session = createSession(doc, { seed: SEED });
+    const mapper = createMapper({ names: objectNameTable(doc.objects) });
+    const panels = [mapper.panel(session.start())];
+    for (const command of commandsOf("01-west-of-house.cmd")) {
+      panels.push(mapper.panel(session.command(command)));
+    }
+    expect(panels[0]?.kind).toBe("arrival"); // opening placement at West of House
+    expect(panels[1]?.kind).toBe("ambient"); // look
+    expect(panels[4]?.kind).toBe("action");  // take leaflet
+    expect(panels[6]?.kind).toBe("action");  // drop leaflet
   });
 
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {

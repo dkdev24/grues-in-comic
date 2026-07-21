@@ -35,6 +35,22 @@ export type CameraPreset =
 
 export type BalloonClass = "CBWoodringThink" | "CBWoodringBox" | "CBWoodringNormal";
 
+/**
+ * ADR 0005 §2: what kind of turn a panel came from, so the Director can edit the
+ * stream. The mapper *classifies* — it already folds the events, so the tag is a
+ * byproduct — and the Director sets *policy* on the tag: Slice 3 drops `refusal`,
+ * Slice 4 collapses runs of `traversal`. Read the event contract first (moves,
+ * inventory, score, game-over), and only the affect marker (itself a channel read
+ * before a prose match) to tell a refusal from ordinary narration.
+ */
+export type PanelKind =
+  | "arrival"    // first visit — somewhere new (beat)
+  | "traversal"  // a move to a room already seen (beat today; Slice 4 collapses runs)
+  | "action"     // took/dropped/salient object/score — the player changed the world
+  | "terminal"   // game over — death or victory
+  | "refusal"    // the parser said no and nothing happened (noise — Slice 3 drops it)
+  | "ambient";   // narration only, no change — look/examine/read (kept in Slice 3)
+
 export interface Balloon {
   channel: "hero" | "caption" | "guide";
   /** Fixed per channel by §2/§2a — never chosen per panel. */
@@ -62,6 +78,8 @@ export interface Panel {
   emotion: readonly EmotionOption[];
   /** Which §10 marker fired, or `null` — the correct answer ~51% of the time. */
   marker: string | null;
+  /** ADR 0005 §2 classification, for the Director's edit decisions. */
+  kind: PanelKind;
 }
 
 /**
@@ -198,6 +216,10 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           : { channel: "guide", balloonClass: "CBWoodringNormal", text: guideLine },
         emotion: affect.options,
         marker: affect.marker,
+        kind: panelKind({
+          gameOver, moved, firstVisit, took, dropped, salientMove,
+          scoreDelta, marker: affect.marker,
+        }),
       };
       panels.push(panel);
       return panel;
@@ -220,6 +242,34 @@ interface LadderInput {
   firstVisit: boolean;
   salientMove: { object: string } | null;
   guide: string | null;
+}
+
+interface KindInput {
+  gameOver: boolean;
+  moved: boolean;
+  firstVisit: boolean;
+  took: string | null;
+  dropped: string | null;
+  salientMove: { object: string } | null;
+  scoreDelta: number;
+  marker: string | null;
+}
+
+/**
+ * ADR 0005 §2, first matching rung wins — a beat taxonomy, not a camera. A moved
+ * turn is `arrival`/`traversal` before anything else it also did (a move that
+ * scores is still a place the player went); a turn that changed the world without
+ * moving is an `action`; a refusal is the parser marker with none of the above;
+ * everything left is narration-only `ambient`. The order is the decision.
+ */
+export function panelKind(input: KindInput): PanelKind {
+  if (input.gameOver) return "terminal";
+  if (input.moved) return input.firstVisit ? "arrival" : "traversal";
+  if (input.took !== null || input.dropped !== null || input.salientMove !== null || input.scoreDelta > 0) {
+    return "action";
+  }
+  if (input.marker === "parser-miss") return "refusal";
+  return "ambient";
 }
 
 /** §7, first matching rung wins. The order is the decision; do not reorder. */

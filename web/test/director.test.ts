@@ -1,13 +1,14 @@
 /**
- * The Narrative Director (ADR 0005), Slice 2 skeleton.
+ * The Narrative Director (ADR 0005), Slice 3 — beat detection + noise drop.
  *
- * The whole claim of Slice 2 is **no behaviour change**: the Director wraps the
- * mapper and returns exactly one panel per turn, so its flattened output must
- * equal the mapper's panel sequence over every walkthrough. This is the parity
- * seam — when Slice 3 gives the Director beat detection and it starts dropping
- * and collapsing turns, this equality breaks *on purpose* and is replaced by a
- * golden panel-sequence per walkthrough (ADR 0005, superseding the mapper's §6
- * one-panel-per-turn count).
+ * This is where ADR 0004 §6 (one panel per turn) is superseded: the *emitted*
+ * stream is no longer the turn stream but the turn stream with `refusal` turns
+ * removed. So the invariant replacing the 1:1 count is **emitted === the mapper's
+ * full fold minus its refusals** — asserted over every walkthrough, the noise-aware
+ * successor to Slice 2's byte-identical equivalence. A synthetic refusal exercises
+ * the drop path (the curated walkthroughs are clean winning paths), and a
+ * refusal-between-two-moves check proves the mapper's stream state stays whole
+ * across a dropped turn.
  */
 
 import { readFileSync, readdirSync } from "node:fs";
@@ -46,27 +47,51 @@ function options() {
   return { names: objectNameTable(doc.objects) };
 }
 
-describe("director (Slice 2 skeleton)", () => {
-  it("emits exactly one panel per turn, identical to the mapper's", () => {
+describe("director (Slice 3 — beat detection + noise drop)", () => {
+  it("emits every non-refusal turn and drops the refusals, over every walkthrough", () => {
     for (const file of cmdFiles()) {
       const commands = commandsOf(file);
 
+      // Reference: the mapper's full fold, one panel per turn.
       const bare = createSession(doc, { seed: SEED });
       const mapper = createMapper(options());
-      const mapperPanels = [mapper.panel(bare.start())];
-      for (const command of commands) mapperPanels.push(mapper.panel(bare.command(command)));
+      const full = [mapper.panel(bare.start())];
+      for (const command of commands) full.push(mapper.panel(bare.command(command)));
 
       const wrapped = createSession(doc, { seed: SEED });
       const director = createDirector(options());
       const emitted = director.ingest(wrapped.start());
       for (const command of commands) emitted.push(...director.ingest(wrapped.command(command)));
 
-      // 1:1 today: one panel per turn (start + every command).
-      expect(emitted).toHaveLength(commands.length + 1);
-      // And byte-identical to the mapper — Slice 2 changes structure, not output.
-      expect(emitted).toEqual(mapperPanels);
-      // `.panels` is the same running stream the view reads.
-      expect([...director.panels]).toEqual(emitted);
+      // The edited stream is the full fold minus its refusals — §6's successor.
+      const kept = full.filter((panel) => panel.kind !== "refusal");
+      expect(emitted).toEqual(kept);
+      expect([...director.panels]).toEqual(kept);
+      expect(emitted.every((panel) => panel.kind !== "refusal")).toBe(true);
     }
+  });
+
+  it("drops a parser refusal: computed to keep state, never emitted", () => {
+    const session = createSession(doc, { seed: SEED });
+    const director = createDirector(options());
+    director.ingest(session.start());
+    const before = director.panels.length;
+    // A word Zork does not know — the engine refuses on the `system` channel, so
+    // the mapper tags it `refusal` (not "xyzzy", which Zork answers as a joke).
+    const out = director.ingest(session.command("blorptastic"));
+    expect(out).toEqual([]);
+    expect(director.panels.length).toBe(before); // nothing added to the stream
+  });
+
+  it("keeps the mapper's stream state whole across a dropped turn", () => {
+    const session = createSession(doc, { seed: SEED });
+    const director = createDirector(options());
+    director.ingest(session.start()); // arrival, West of House
+    expect(director.ingest(session.command("blorptastic"))).toEqual([]); // dropped
+    // The move after a dropped refusal must still classify against up-to-date
+    // visited/room state — proving the fold ran even though nothing was emitted.
+    const north = director.ingest(session.command("north"));
+    expect(north[0]?.kind).toBe("arrival");
+    expect(north[0]?.room).toBe("NORTH-OF-HOUSE");
   });
 });

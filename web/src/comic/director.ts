@@ -8,17 +8,23 @@
  * traversal, buffering until a beat resolves — rather than a one-panel-per-turn
  * mirror of the transcript.
  *
- * **This is the Slice 2 skeleton and does none of that yet.** It wraps the mapper
- * and returns exactly one panel per turn, so it is a pure refactor with no
- * behaviour change — proven by `director.test.ts`, which asserts the Director's
- * flattened output equals the mapper's panel sequence over every walkthrough. The
- * beat detection and the noise/traversal edits (ADR 0005 §2/§3) land in Slices 3–4,
- * where this stops returning exactly one panel and that equivalence test becomes a
- * golden panel-*sequence* per walkthrough (superseding the mapper's §6 count test).
+ * **Slice 3 — beat detection + noise drop (this file).** The Director drops turns
+ * the mapper tagged `refusal` (ADR 0005 §2/§3): the parser said no and nothing
+ * happened, the try-and-error the play-log used to render verbatim. `ingest`
+ * returns `[]` for those, so the view draws no panel. Everything else still passes
+ * through 1:1 — traversal *collapse* is Slice 4, kept separate so this slice is
+ * "drop, never merge."
  *
- * The Director keeps only stream-derived state (today: none of its own, all of the
- * mapper's) and reads no engine internals, so the parity oracle still applies —
- * the one property ADR 0004 §5 made load-bearing and ADR 0005 preserves.
+ * The mapper is always folded, even for a dropped turn: it maintains the visited /
+ * inventory / room state the classification of *later* turns depends on, so skipping
+ * it would corrupt the stream. Only the *emission* is filtered. A dropped turn never
+ * carries a Guide line (a refusal is never a first visit), so the cooldown is
+ * unaffected. `.panels` is the **emitted** stream — what is on screen — not the
+ * mapper's full fold.
+ *
+ * The Director keeps only stream-derived state and reads no engine internals, so
+ * the parity oracle still applies — the property ADR 0004 §5 made load-bearing and
+ * ADR 0005 preserves.
  */
 
 import type { Turn } from "../session.js";
@@ -27,22 +33,28 @@ import { createMapper, type MapperOptions, type Panel } from "./mapper.js";
 export type DirectorOptions = MapperOptions;
 
 export interface Director {
-  /** Fold one turn in; get the panels it produced. Slice 2: always exactly one. */
+  /** Fold one turn in; get the panels it produced — `[]` when the turn is dropped. */
   ingest(turn: Turn): Panel[];
-  /** Every panel emitted so far — the canonical stream (ADR 0004 §5). */
+  /** Every panel *emitted* so far — the edited stream the view draws (ADR 0005). */
   readonly panels: readonly Panel[];
 }
 
 export function createDirector(options: DirectorOptions = {}): Director {
   const mapper = createMapper(options);
+  const emitted: Panel[] = [];
   return {
     get panels() {
-      return mapper.panels;
+      return emitted;
     },
     ingest(turn: Turn): Panel[] {
-      // Slice 2: strict 1:1 passthrough. The list return type is the forward
-      // room the later slices grow into — do not collapse it back to `Panel`.
-      return [mapper.panel(turn)];
+      // Always fold — the mapper's stream state must stay whole even when the
+      // panel is dropped (see the module note).
+      const panel = mapper.panel(turn);
+      // Slice 3: drop refusals. Slices 4–5 add traversal collapse and the
+      // conversational two-shot, which can make this return 0 or many.
+      if (panel.kind === "refusal") return [];
+      emitted.push(panel);
+      return [panel];
     },
   };
 }

@@ -4,6 +4,45 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.7.6 — 2026-07-22 — Narrative Director: beat detection + noise drop — Slice 3
+
+**Date:** 2026-07-22
+
+The comic stops being a play-log: the Director now drops parser refusals — the try-and-error that
+ADR 0004's one-panel-per-turn rendered verbatim.
+
+### Changes
+
+- **`web/src/comic/mapper.ts` — panels are tagged with a beat `kind`.** New `PanelKind`
+  (`arrival | traversal | action | terminal | refusal | ambient`) and exported `panelKind()`, a
+  first-match ladder over signals the mapper already folds: game-over → `terminal`; a move →
+  `arrival`/`traversal` (a move that also scored is still, first, a place the player went); took/
+  dropped/salient-object/score → `action`; the `parser-miss` affect marker with none of the above →
+  `refusal`; narration-only → `ambient`. Reads the event contract first, the affect marker (itself a
+  channel-read before a prose match) only to tell a refusal from ordinary narration. `Panel` gains a
+  `kind` field. **Classification is the mapper's (it already folds the stream); the drop *policy* is
+  the Director's** — mechanism vs. policy.
+- **`web/src/comic/director.ts` — drops `refusal`.** `ingest` still folds the mapper on every turn
+  (its visited/inventory/room state is what *later* turns classify against, so skipping a turn would
+  desync the stream) but returns `[]` when the panel's kind is `refusal`, so the view draws nothing.
+  A dropped turn never carries a Guide line (a refusal is never a first visit), so the cooldown is
+  untouched. `.panels` is now the **emitted** stream, not the full fold.
+- **Tests.** `mapper.test.ts`: `panelKind` ordering unit test + a real-turn tagging check (arrival on
+  the opening, action on take/drop, ambient on look). `director.test.ts` rewritten for Slice 3: the
+  §6-successor invariant **emitted === full fold minus refusals** over every walkthrough; a synthetic
+  refusal (`blorptastic`, an unknown word — not `xyzzy`, which Zork answers as a joke) proving the
+  drop; and a refusal-between-two-moves check proving stream state stays whole across a drop (the
+  `north` after it still reads `arrival` at `NORTH-OF-HOUSE`).
+
+### Status
+
+Web 95/95 green, build clean, graph regenerated. ADR 0004 §6 (one panel per turn) is now superseded
+on the emitted stream. The mapper is still 1:1 and its §6 test still holds — the mapper classifies,
+the Director edits. Next: Slice 4 (traversal collapse — the Director's first *buffering* edit), then
+Slice 5 (Guide converses + two-shot).
+
+---
+
 ## v1.7.5 — 2026-07-22 — Narrative Director: scaffolding (ADR 0005) + Hero voice — Slices 1–2
 
 **Date:** 2026-07-22
