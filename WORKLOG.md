@@ -2239,3 +2239,53 @@ room now draws one that fits it.
 is unchanged and lives in the **engine** — the room `M-END` end-of-turn action that gates the
 exorcism's completion (see v1.6.3 and Next Actions task 0). Backdrop polish still open but not
 blocking: `render.ts` cover-fits to a hardcoded 315×315 square, so non-square crops stretch a few px.
+
+---
+
+## v1.6.5 — 2026-07-21 — Room `M-END` end-of-turn action; the exorcism completes (stage 5.5)
+
+**Date:** 2026-07-21
+
+The engine now runs a room's ACTION with `M-END` at end of turn — the last frontier gap identified at
+v1.6.3. ZIL runs it every non-fatal turn (`gmain.zil:154`, order `PERFORM → room M-END → CLOCKER`),
+and the exorcism's completion depended on it: `LLD-FLAG` is set in `LLD-ROOM`'s READ-book branch gated
+on `XC`, and `XC` is set only by that room action running with `M-END`, which the engine never did.
+With the step in place the ceremony finishes, and the full-game oracle advances from a hard stop at the
+temple to **173/350 at DAM-BASE** — the next gap is the magic boat, not the exorcism.
+
+### Changes
+
+- **`engine/src/engine.ts` — room `M-END` step in `runTurn`.** New `runRoomEnd(ctx)` runs the current
+  room's ACTION with `M_END` between the walk-drain and `runClock`, on the room the player *ends* the
+  turn in (so a WALK's `M-END` fires in the destination, matching `<LOC ,WINNER>`). It no-ops once the
+  turn has finished (ZIL gates `M-END` on `PERFORM` not returning `M-FATAL`) and swallows a `FatalSignal`
+  exactly as `runClock` does — an `RFATAL` in `M-END` ends the game and skips the clock. Also added
+  `endIfFinished(ctx)`, a small helper that reads `ctx.finished` in a fresh scope and emits `game-over`:
+  the earlier `if (ctx.finished !== undefined)` guard narrows the property to `undefined` for the rest of
+  `runTurn`, and TS does not widen it back after `runRoomEnd`/`travel` mutate it, so a second inline
+  spread would be a `never`. Both game-over checks now route through the helper (one less duplicated
+  spread).
+- **`engine/src/builtins.ts` — `addScore` advances `BASE-SCORE` in lockstep with `SCORE`.** This is the
+  regression `M-END` exposed and the substantive fix. ZIL splits the score: `SCORE-UPD` (gverbs.zil:1851)
+  adds a fixed award to **both** `BASE-SCORE` and `SCORE`, and `BASE-SCORE` is the accumulator the
+  trophy-case recompute reads back — `LIVING-ROOM-FCN`'s `M-END` sets `SCORE = BASE-SCORE + OTVAL-FROB`
+  on every TAKE/PUT in the Living Room (1actions.zil:483). The engine's native `addScore` (room-visit
+  values, via GOTO) only advanced `SCORE`, so the first `take`/`put` in the Living Room recomputed
+  `SCORE` from a `BASE-SCORE` of 0 and **silently wiped every room-visit point** — walkthrough 06
+  dropped 35→25 (the Kitchen's 10), walkthrough 04 likewise. Advancing `BASE-SCORE` in `addScore`
+  restores the invariant `SCORE = BASE-SCORE + value-of-treasures-in-case`. No double-counting: find
+  value (`P?VALUE`, via SCORE-UPD) and case value (`P?TVALUE`, via OTVAL-FROB) are separate properties.
+- **Verified by perturbation, not just green.** The score regression was diagnosed with a throwaway
+  probe that printed `SCORE` after each command (Kitchen 10 → `take lamp` 0 → `down` 25), pinpointing
+  the loss to the Living Room `M-END` rather than to room scoring; the fix restored 10 → 10 → 35.
+
+### Status
+
+**Stage 5.5 ◐.** Strict parity **143/143** restored (04 and 06 back to full after the score fix);
+**129 engine tests green**; typecheck clean. The exorcism blocker is closed. **Next gap is the magic
+boat:** `#212 "launch"` returns `V-LAUNCH`'s refusal ("You can't launch that by saying \"launch\"!")
+because the boat's ACTION (`RBOAT-FUNCTION`, 1actions.zil:2722) — which intercepts `LAUNCH` and drives
+the Frigid River drift via `RIVER-LAUNCH`/`GO-NEXT` — is not being reached. That blocks the entire
+river leg, so the oracle stalls at 173/350; it is an object-behaviour gap, exactly the class the v1.6.3
+handoff flagged. The committed completion test (`full-run.ts` → asserting `game-over{victory}` + 350)
+is still deferred until the engine actually reaches the barrow.

@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.6.4**
+**1.6.5**
 
 ---
 
@@ -46,65 +46,54 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   grid) and **character portraits** (`comic/portrait.ts` + the cast bar). Opening area playable
   in comic form — the exit criterion. **89 web tests, 468 across all packages, parity 143/143.**
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
-  - **5.5 ◐ (v1.6.3)** — completion oracle `verification/walkthroughs/12-full-game.cmd` wins in
-    dfrotz (**350/350**). Engine runs **West of House → the temple** and now *starts* the exorcism
-    at Entrance to Hades (bell goes red-hot, `XB` sets). Landed earlier: the two native routines
-    (`LOUD-ROOM-FCN` echo, `STONE-BARROW-FCN` — the engine's first **victory**), a
-    room-`M_BEG`-on-travel fix, a scope fix (take from a held open container), and **v1.6.3 the
-    exorcism IR fix** (`,LLD-ROOM` stale room reference — see WORKLOG v1.6.3). Next blocker is now an
-    **engine** one: no room `M-END` end-of-turn action, so the exorcism can't complete. Presentation
-    coverage (task 3): the **30-backdrop art pass has LANDED (v1.6.4)** — full-game room→backdrop
-    map in `backdrop.ts`, all 30 packed into `web/assets/comic/`. See Last Session.
+  - **5.5 ◐ (v1.6.5)** — completion oracle `verification/walkthroughs/12-full-game.cmd` wins in
+    dfrotz (**350/350**). Engine now runs **West of House → past the exorcism → DAM-BASE, 173/350**.
+    Landed earlier: the two native routines (`LOUD-ROOM-FCN` echo, `STONE-BARROW-FCN` — the engine's
+    first **victory**), a room-`M_BEG`-on-travel fix, a scope fix, and **v1.6.3 the exorcism IR fix**.
+    **v1.6.5: the room `M-END` end-of-turn action** (`runRoomEnd` in `engine.ts`) — the exorcism now
+    *completes*; the fix exposed and corrected a scoring bug (`addScore` now advances `BASE-SCORE`, see
+    below). Next blocker is the **magic boat `LAUNCH`** (object-behaviour gap — `RBOAT-FUNCTION` not
+    reached; blocks the whole Frigid River leg). Presentation coverage (task 3): the **30-backdrop art
+    pass LANDED (v1.6.4)**. See Last Session.
 
 ---
 
-## Last Session — stage 5.5 (v1.6.4): 30-backdrop art pass landed (full-game coverage)
+## Last Session — stage 5.5 (v1.6.5): room `M-END` action; exorcism completes; score bug fixed
 
-The post-MVP backdrop art pass shipped: every one of the 110 rooms now draws a fitting backdrop
-instead of ~89 falling through to one generic interior. Backdrop scarcity — 5.5's presentation
-constraint — is resolved. Full narrative in `WORKLOG.md` v1.6.4.
+The engine now runs a room's ACTION with `M-END` at end of turn (`runRoomEnd` in `engine.ts`, between
+the walk-drain and `runClock`, matching ZIL's `PERFORM → room M-END → CLOCKER`, `gmain.zil:154`). It
+fires on the room the player *ends* the turn in, no-ops once the turn has finished (ZIL gates `M-END`
+on `PERFORM` ≠ `M-FATAL`), and swallows a `FatalSignal` like `runClock`. The exorcism now **completes**
+(`XC` → `LLD-FLAG`), and the full-game oracle advances from a hard stop at the temple to **173/350 at
+DAM-BASE**. Full narrative in `WORKLOG.md` v1.6.5.
 
-**Assets.** 30 generated backdrops (Woodring hatch, 1-bit). **Sources are local-only:** the BMP/PNG
-originals live under `reference/backdrops/`, which is **gitignored** (that tree is "third-party, never
-vendored" — first-party art landed there by convenience). They are **not in the repo**; the committed
-artifact is `web/assets/comic/*.png`. To re-crop or regenerate you need those local sources plus
-`npm --prefix art run pack`. Cropped ~260–313 px, not square and not 512 — the renderer cover-fits, so
-the few-px stretch is invisible and was deliberately not corrected.
+**The score regression this exposed, and its fix.** Running the Living Room's `M-END` every turn
+revealed that `LIVING-ROOM-FCN` recomputes `SCORE = BASE-SCORE + OTVAL-FROB` on any TAKE/PUT there
+(1actions.zil:483), and the engine's native `addScore` (room-visit values via GOTO) only advanced
+`SCORE`, never `BASE-SCORE`. So the first `take` in the Living Room recomputed `SCORE` from a
+`BASE-SCORE` of 0 and **silently wiped every room-visit point** — walkthrough 06 read 25 not 35.
+Fix: `addScore` now advances `BASE-SCORE` in lockstep, exactly as ZIL's `SCORE-UPD` does
+(gverbs.zil:1851), restoring the invariant `SCORE = BASE-SCORE + value-of-treasures-in-case`. No
+double-count: find value (`P?VALUE`) and case value (`P?TVALUE`) are separate properties. Diagnosed by
+a throwaway per-command `SCORE` probe (10 → 0 on `take lamp` → 25), then verified restored (10 → 10 → 35).
 
-**Decoder (`art/src/image.ts`).** The BMPs are macOS `sips`/Preview output: 124-byte `BITMAPV4HEADER`,
-some 32-bit `BI_BITFIELDS`. `decodeImage` rejected anything but the 40-byte header and handled no
-32-bit. Extended to accept 40/108/124-byte headers (extra V4/V5 fields skipped — pixel data is found
-via `bfOffBits`) and to decode 32-bit BGRA (`unpackRows`, alpha ignored). No palette-code path, so
-the masked-mono polarity bug cannot recur here.
+**A TypeScript narrowing trap worth remembering.** After `if (ctx.finished !== undefined) return`, TS
+narrows `ctx.finished` to `undefined` for the rest of `runTurn` and does **not** widen it back after a
+later `runRoomEnd(ctx)`/`travel(ctx)` mutates it — so a second inline `emit(..., ...ctx.finished)`
+spreads a `never` and fails to compile even though the runtime is correct. The fix is the
+`endIfFinished(ctx)` helper, which reads the property in a fresh scope. General form: **a mutating call
+does not reset property narrowing; re-read through a function when a later branch depends on the new
+value.**
 
-**Packing (`art/package.json`).** The `pack` script's three `--backdrop` args became 30, sourced from
-`../reference/backdrops/bmp/NN-*.bmp`, ids stripped from filenames. `npm --prefix art run pack`
-rebuilt `web/assets/comic/` → 32 PNGs (30 backdrops + hero + guide); `cast.json` lists all 30.
+**Green:** 143/143 strict parity restored (04, 06 back to full), 129 engine tests, typecheck clean,
+graphify regenerated (254 nodes). Two pre-existing web-test failures are unrelated (portrait tsc,
+mapper shot-ranking) and predate this work.
 
-**Assignment (`web/src/comic/backdrop.ts`).** `BackdropId` union extended 3 → 30. `OUTDOORS` /
-`OUTDOOR_BACKDROPS` renamed to a single exported `ROOM_BACKDROPS` map that now assigns **all 110
-rooms** by id (maze→maze, reservoir→reservoir, Hades→hades-entrance, …); `room` stays the fallback
-for any unlisted id but does not fire for Zork 1. `backdropFor` unchanged in shape.
-
-**Tests.** `web/test/backdrop.test.ts` updated for the rename and reassignments, plus a new pin that
-**every** world room is assigned (nothing silently falls through). `art/test/polarity.test.ts` gains
-a backdrop block that asserts on the **shipped** PNGs (`web/assets/comic/`, listed by `cast.json`),
-decoded by a new `decodePng` in `art/src/png.ts` — **not** the gitignored BMP sources, so it runs on a
-clean clone. All 30 must decode non-degenerate (both ink and paper — catches solid/blank/failed decode
-and full inversion), and four extremes are pinned to human-checkable polarity (temple/round-room
-paper-dominant; hades/barrow-interior ink-dominant). Per-image ink fractions are deliberately **not**
-pinned — they run 13–72% by design, the "ink is a minority" trap. Green: web backdrop 6/6, art suite
-21, web tsc clean for touched files.
-
-**Two pre-existing failures, NOT from this work** (confirmed by stashing on clean HEAD):
-`web/test/portrait.test.ts` tsc `dw/dh possibly undefined`, and `web/test/mapper.test.ts` shot-ranking
-(`medium/establishing` vs `wide`). Both predate this session.
-
-**NEXT is unchanged and still ENGINE — the room `M-END` end-of-turn action** (Next Actions task 0):
-the exorcism can't complete because `XC`/`LLD-FLAG` is set only by a room action run with `M_END`,
-which the engine never does. Insert the room-`M-END` step in `runTurn` between `dispatch` and
-`runClock`, matching `PERFORM → room M-END → CLOCKER` (`gmain.zil:154`); broad reach (reservoir,
-mirror, …), re-verify 143/143.
+**NEXT is the magic boat `LAUNCH` (object-behaviour gap, ENGINE).** `#212 "launch"` at DAM-BASE returns
+`V-LAUNCH`'s refusal because the boat's ACTION `RBOAT-FUNCTION` (1actions.zil:2722) — which intercepts
+`LAUNCH` and drives the Frigid River drift via the `RIVER-LAUNCH` table and `GO-NEXT` — is not being
+reached. Fixing it unblocks the entire river leg (buoy, emerald, scarab, Aragain Falls); the oracle
+stalls at 173/350 until then. Watch for the same object-action-dispatch shape in `DBOAT`/`IBOAT`.
 
 Still live from earlier stages:
 
@@ -178,17 +167,25 @@ there yet. Do these in order:
    - ✅ **The exorcism IR fix (v1.6.3).** `,LLD-ROOM` in `BELL-F` now resolves to
      `entity ENTRANCE-TO-HADES` via `roomByActionRoutine` (fail-closed; ir/ extractor). The ceremony
      now *starts* (bell goes red-hot, `XB` sets). See Last Session.
-   - **NEXT — room `M-END` end-of-turn action (ENGINE).** The exorcism can't *complete*: `LLD-FLAG`
-     is set in `LLD-ROOM`'s READ-book branch, gated on `XC`, and `XC` is set only by that room action
-     running with **`M_END`** — which the engine never does. Insert the room-`M-END` step in `runTurn`
-     (engine.ts) between `dispatch` and `runClock`, matching ZIL's `PERFORM → room M-END → CLOCKER`
-     (`gmain.zil:154`). **Broad reach** — many rooms have `M-END` clauses (reservoir, mirror, …) — so
-     re-verify 143/143 after. Then fix whatever *next* gap surfaces past the exorcism (coal-mine
-     machine, endgame thief — masked until now). Watch for **object-behaviour** gaps, not just
-     undefined routines.
+   - ✅ **Room `M-END` end-of-turn action (v1.6.5).** `runRoomEnd` in `engine.ts` runs the current
+     room's ACTION with `M_END` between the walk-drain and `runClock` (ZIL `gmain.zil:154`). The
+     exorcism now completes. It exposed a scoring bug — `addScore` now advances `BASE-SCORE` too, so the
+     Living Room's `SCORE = BASE-SCORE + OTVAL-FROB` recompute no longer wipes room-visit points. See
+     WORKLOG v1.6.5. 143/143 restored, 129 engine tests green.
+   - **NEXT — magic boat `LAUNCH` (ENGINE, object-behaviour gap).** Past the exorcism the oracle
+     reaches **173/350 at DAM-BASE** and stalls at `#212 "launch"`, which returns `V-LAUNCH`'s refusal
+     ("You can't launch that by saying \"launch\"!"). The boat's ACTION `RBOAT-FUNCTION`
+     (1actions.zil:2722) should intercept `LAUNCH` *before* `V-LAUNCH` and start the Frigid River drift
+     (the `RIVER-LAUNCH` global + `GO-NEXT` per-turn current); it is not being reached. Fixing it
+     unblocks the whole river leg (buoy/emerald/scarab/Aragain Falls, ~104 cascaded misses). Check the
+     object-action dispatch for `VEHBIT`/enter-vehicle verbs; the same shape recurs in
+     `DBOAT-FUNCTION`/`IBOAT-FUNCTION`. Then fix whatever *next* gap surfaces (coal-mine machine,
+     endgame thief). Watch for **object-behaviour** gaps, not just undefined routines.
    - **Also a real gap for the web UI (task 3):** treasure scoring runs the extracted `SCORE-UPD`,
      which writes `globals.SCORE` directly and emits **no `score-changed` event** — the score
      display won't update on take/case. Only room-visit scores (native `addScore`) emit the event.
+     (Note: `addScore` now also advances `BASE-SCORE`; `SCORE-UPD` already did both. The event gap is
+     unchanged.)
    - `GRATE-FUNCTION` (3rd undefined routine) is off-route; do it for completeness, not to unblock.
    - When the engine reaches 350/barrow, **make `full-run.ts`'s combat-resilient replay a committed
      completion test** (task 4) asserting `game-over{victory}` and score 350.
@@ -263,12 +260,15 @@ sat unread for two sessions before it settled the balloon class.
 ## Open Issues
 
 **Engine / IR**
-- **The engine never runs a room's `M_END` action at end of turn** — only `M_BEG`/`M_LOOK`/`M_ENTER`.
-  ZIL runs it every real turn (`gmain.zil:154`, order `PERFORM → room M-END → CLOCKER`). This blocks
-  the exorcism's completion (`XC`→`LLD-FLAG`, see Next Actions task 0) and any other room whose
-  behavior lives in an `M-END` clause. Adding it in `runTurn` is broad-reach — reservoir, mirror and
-  others carry `M-END` — so it must be gated to real (clock-advancing, non-fatal) turns and
-  re-verified against 143/143 strict. The v1.6.3 IR fix is what made this gap the frontier.
+- ✅ **Room `M_END` end-of-turn action — DONE (v1.6.5).** `runRoomEnd` runs it between the walk-drain
+  and `runClock` (`gmain.zil:154`), on the room the player ends the turn in, no-op once the turn has
+  finished. It uncovered a scoring split ZIL relies on: `addScore` now advances `BASE-SCORE` in lockstep
+  with `SCORE` (as `SCORE-UPD` does), so the Living Room's `SCORE = BASE-SCORE + OTVAL-FROB` recompute
+  no longer zeroes room-visit points. The general lesson worth keeping: **the engine's native score
+  helper and ZIL's extracted routines must agree on the same globals** — a native helper that maintains
+  only half of a derived-quantity's inputs is a silent-corruption bug the moment an extracted routine
+  reads the other half back. Watch the same class where a native builtin shadows a ZIL global that
+  extracted code also touches.
 - **A dangling `,NAME` that is a room's ACTION routine now resolves to that room** (`roomByActionRoutine`,
   v1.6.3) — the extractor's second fail-closed non-mechanical transform, after the exit-scan rewrite.
   It fires only on names that resolve to nothing else and only for *unambiguous* action routines. Like

@@ -65,13 +65,13 @@
     "semantic_hash": ""
   },
   "src/builtins.ts": {
-    "mtime": 1784564944.6634974,
-    "ast_hash": "879cb4731400a35b49519476282ddc0e",
+    "mtime": 1784617346.5782676,
+    "ast_hash": "d08bdb38080dcfaf0a05a805e5f6f741",
     "semantic_hash": ""
   },
   "src/engine.ts": {
-    "mtime": 1784596382.0654762,
-    "ast_hash": "2ec37624143a6292e10231ad6626427f",
+    "mtime": 1784617596.1572678,
+    "ast_hash": "c45c57b0c02be2c6923f1d2c9a836043",
     "semantic_hash": ""
   },
   "src/interpreter.ts": {

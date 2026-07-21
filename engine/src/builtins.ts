@@ -491,6 +491,15 @@ export function addScore(ctx: RuntimeContext, delta: number): void {
   if (delta === 0) return;
   const score = num(ctx.state.globals["SCORE"] ?? 0) + delta;
   ctx.state.globals["SCORE"] = score;
+  /*
+   * ZIL's SCORE-UPD advances BASE-SCORE in lockstep with SCORE (gverbs.zil:1851).
+   * BASE-SCORE is the fixed-award accumulator that the trophy-case recompute reads
+   * back: LIVING-ROOM-FCN's M-END sets `SCORE = BASE-SCORE + OTVAL-FROB` on every
+   * TAKE/PUT there (1actions.zil:483). A native award (room-visit value) that
+   * advanced only SCORE was silently wiped the first time that recompute ran — the
+   * gap surfaced the moment the engine started running room M-END actions.
+   */
+  ctx.state.globals["BASE-SCORE"] = num(ctx.state.globals["BASE-SCORE"] ?? 0) + delta;
   emit(ctx, { type: "score-changed", score, delta });
 }
 

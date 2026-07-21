@@ -21,7 +21,7 @@
  */
 
 import type { BehaviorRoutine, BehaviorValue, Direction, WorldDocument } from "@grues-in-comic/ir";
-import { createBuiltins, describeRoom, isLit, M_BEG } from "./builtins.js";
+import { createBuiltins, describeRoom, isLit, M_BEG, M_END } from "./builtins.js";
 import { CONTRACT_VERSION, type EngineEvent, type TurnResult } from "./events.js";
 import { registerGameActions } from "./game-actions.js";
 import { callRoutine, FatalSignal } from "./interpreter.js";
@@ -286,10 +286,7 @@ function runTurn(
   // advance the clock on a parse failure, which is why "XYZZY" never lets the
   // lamp burn down.
   if (!handleParse(ctx, parsed)) return;
-  if (ctx.finished !== undefined) {
-    emit(ctx, { type: "game-over", ...ctx.finished });
-    return;
-  }
+  if (endIfFinished(ctx)) return;
 
   // DO-WALK re-dispatches the turn as travel; drain it before the clock runs.
   let guard = 0;
@@ -298,6 +295,14 @@ function runTurn(
     const dir = ctx.pendingWalks.shift()!;
     travel(ctx, dir as Direction);
   }
+
+  // ZIL runs the room's action with M-END after PERFORM and before CLOCKER
+  // (gmain.zil:154), on the room the WINNER ends the turn in — so a WALK's
+  // M-END fires in the destination. It is where end-of-turn room behaviour
+  // lives: the exorcism's XC->LLD-FLAG, the trophy-case score recompute, the
+  // reservoir level. `runRoomEnd` no-ops on a turn that already ended.
+  runRoomEnd(ctx);
+  if (endIfFinished(ctx)) return;
 
   if (advancesTheClock(ctx)) runClock(ctx);
   state.turn = Number(state.globals["MOVES"] ?? state.turn);
@@ -566,6 +571,42 @@ function travel(ctx: RuntimeContext, direction: Direction): void {
  */
 function advancesTheClock(_ctx: RuntimeContext): boolean {
   return true;
+}
+
+/**
+ * Emit the game-over event and report that the turn is over, when a routine has
+ * set `ctx.finished` this turn. Reading `ctx.finished` here rather than at the
+ * call site is deliberate: an earlier `if (ctx.finished !== undefined)` narrows
+ * the property to `undefined` for the rest of `runTurn`, and TS does not widen
+ * it back after the intervening `runRoomEnd`/`travel` calls that can set it —
+ * so a second inline check would spread a `never`. The fresh scope sees the
+ * property's real type.
+ */
+function endIfFinished(ctx: RuntimeContext): boolean {
+  const finished = ctx.finished;
+  if (finished === undefined) return false;
+  emit(ctx, { type: "game-over", ...finished });
+  return true;
+}
+
+/**
+ * Run the current room's ACTION with M-END — ZIL's end-of-turn room hook
+ * (`<APPLY <GETP <LOC ,WINNER> ,P?ACTION> ,M-END>`, gmain.zil:154), between
+ * PERFORM and CLOCKER. An RFATAL here (M-FATAL) ends the game; we swallow the
+ * signal exactly as `runClock` does and let the caller emit game-over from the
+ * `ctx.finished` the death routine set.
+ */
+function runRoomEnd(ctx: RuntimeContext): void {
+  // Skip once the turn has already ended (a death or a win): ZIL gates M-END on
+  // PERFORM not having returned M-FATAL, and re-entering a room action then is wrong.
+  if (ctx.finished !== undefined) return;
+  const room = ctx.world.rooms.get(here(ctx.state));
+  if (room?.action === undefined) return;
+  try {
+    handled(ctx, room.action, [M_END]);
+  } catch (signal) {
+    if (!(signal instanceof FatalSignal)) throw signal;
+  }
 }
 
 /* ---------------- clock ---------------- */
