@@ -4,6 +4,36 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.7.2 — stage 5.5: green the web presentation baseline (two pre-existing failures)
+
+**Date:** 2026-07-21
+
+### Changes
+
+Cleared the two long-standing red marks in the presentation suite before building further on it —
+both traced to root cause, neither a mapper/renderer defect.
+
+- **`web/test/portrait.test.ts` tsc error** (`'dw'/'dh' possibly undefined`). Under
+  `noUncheckedIndexedAccess` the destructured `drawImage` args are `number | undefined`; the aspect
+  assertion divided them. Fixed with non-null assertions (`dw! / dh!`), matching the existing
+  `calls[0]!` style — the mock always records nine numeric args.
+- **`web/test/mapper.test.ts` camera-ranking failure** — a *test-corpus* issue, not a mapper bug.
+  `allPanels()` globs every `.cmd`, and stage 5.5 added `12-full-game.cmd` (a 405-command, revisit-
+  heavy whole playthrough) to that directory. The §7 ranking assertion expects the ADR's measured
+  order (medium > establishing > …), but a full run contributes 84 `wide` vs 20 `establishing`,
+  flipping `wide` above `establishing`. Measured to confirm: over the 11 scene walkthroughs the order
+  is exactly the ADR's (medium 99 > establishing 61 > close-up 24 > reaction 11 > wide 5); the oracle
+  alone inverts it. Fix: the ranking test now measures over a new `scenePanels()` (oracle excluded),
+  which is the corpus §7 was measured on; the invariant tests keep the full `allPanels()` corpus. File
+  header updated to describe the two corpora.
+
+### Status
+
+**Web suite fully green: 89 tests, typecheck clean.** Engine unchanged (134 green). The whole repo now
+has no known failing tests. Test-only change — no source touched.
+
+---
+
 ## v1.7.1 — stage 5.5: treasure scoring emits `score-changed` (the web score climb)
 
 **Date:** 2026-07-21

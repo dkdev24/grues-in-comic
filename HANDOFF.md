@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.7.1**
+**1.7.2**
 
 ---
 
@@ -58,7 +58,16 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — stage 5.5 (v1.7.0 + v1.7.1): the game is completable, and the score climb is now evented
+## Last Session — stage 5.5 (v1.7.0–v1.7.2): the game is completable, the score climb is evented, the web suite is green
+
+**v1.7.2 — greened the presentation baseline.** The two long-standing web failures are fixed, both
+root-caused, neither a real defect: `portrait.test.ts`'s tsc error (`dw!/dh!` under
+`noUncheckedIndexedAccess`), and `mapper.test.ts`'s camera-ranking failure — a *test-corpus* issue.
+`allPanels()` globs every `.cmd`, and stage 5.5 added the revisit-heavy `12-full-game.cmd` oracle,
+which pushes `wide` above `establishing` and inverts the ADR §7 order. Measured to confirm: the 11
+scene walkthroughs give the ADR order exactly. Fix: the §7 ranking test now uses a new `scenePanels()`
+(oracle excluded); invariant tests keep the full corpus. **Web suite fully green (89), whole repo now
+has no known failing tests.**
 
 **v1.7.1 — treasure scoring emits `score-changed`.** The extracted routines that move SCORE
 (`SCORE-UPD` on a case deposit, the LIVING-ROOM M-END recompute) write `globals.SCORE` directly and

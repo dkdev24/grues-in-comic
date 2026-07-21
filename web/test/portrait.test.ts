@@ -133,7 +133,7 @@ describe("drawPortrait", () => {
     const source = { x: 0, y: 0, width: 37, height: 91 };
     drawPortrait(ctx, sheet, { part: {} as never, source }, 5, 7, PORTRAIT);
     const [, , , , , , dw, dh] = calls[0]!;
-    expect(dw / dh).toBeCloseTo(source.width / source.height, 6);
+    expect(dw! / dh!).toBeCloseTo(source.width / source.height, 6);
   });
 
   it("honours the origin it is given", () => {

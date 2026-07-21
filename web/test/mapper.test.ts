@@ -1,11 +1,18 @@
 /**
- * The mapper, checked by replaying the same 11 walkthroughs the parity harness
- * uses (ADR 0004 Consequences: "testable by replaying walkthroughs and
- * asserting on preset and emotion sequences — the same oracle").
+ * The mapper, checked by replaying the walkthroughs the parity harness uses
+ * (ADR 0004 Consequences: "testable by replaying walkthroughs and asserting on
+ * preset and emotion sequences — the same oracle").
+ *
+ * **Two corpora.** The invariant tests replay *every* `.cmd` including the
+ * stage-5.5 completion oracle (`allPanels`), because an invariant must hold over
+ * a whole playthrough too. The §7 frequency *ordering*, however, was measured
+ * over the 11 scene walkthroughs before the oracle existed; a full run backtracks
+ * so heavily that `wide` overtakes `establishing`, so that one test measures over
+ * `scenePanels` (the oracle excluded). See the note on `FULL_GAME`.
  *
  * **What is asserted and what is not.** ADR 0004 §10 says to lock the ordering
- * and not the measured percentages: all 11 walkthroughs open at West of House
- * and replay the same first moves, so every frequency is opening-sequence-
+ * and not the measured percentages: the scene walkthroughs all open at West of
+ * House and replay the same first moves, so every frequency is opening-sequence-
  * shaped and would shift under real play. So these tests assert *orderings*,
  * *invariants* and *the salience filter's effect*, and only ever bound rates
  * loosely where a rate is the actual claim (the ~1 panel/turn budget).
@@ -49,6 +56,23 @@ function replayPanels(file: string): Panel[] {
 function allPanels(): Panel[] {
   return readdirSync(WALKTHROUGHS)
     .filter((f) => f.endsWith(".cmd"))
+    .flatMap((f) => replayPanels(f));
+}
+
+/**
+ * The completion oracle (stage 5.5) — a *whole* revisit-heavy playthrough, not a
+ * representative scene. It belongs in the corpus-wide invariants (`allPanels`),
+ * but not in the §7 frequency *ordering*, which the ADR measured over the scene
+ * walkthroughs before this file existed. A full run backtracks constantly, so
+ * `wide` (revisit) legitimately overtakes `establishing` (first visit) in it —
+ * a true fact about the comic, but a different distribution from §7's.
+ */
+const FULL_GAME = "12-full-game.cmd";
+
+/** The scene corpus §7's measured ordering describes — the oracle excluded. */
+function scenePanels(): Panel[] {
+  return readdirSync(WALKTHROUGHS)
+    .filter((f) => f.endsWith(".cmd") && f !== FULL_GAME)
     .flatMap((f) => replayPanels(f));
 }
 
@@ -124,11 +148,15 @@ describe("camera ladder (§7)", () => {
   });
 
   it("ranks presets in the ADR's measured order", () => {
+    // Measured over the scene corpus §7 describes, not the full-game oracle: a
+    // whole playthrough's revisits push `wide` above `establishing` (see
+    // `scenePanels`), which is a different distribution from the one the ADR's
+    // 52.4 / 26.5 / 12.7 / 5.8 / 2.6 percentages were taken over.
     const counts = new Map<string, number>();
-    for (const panel of allPanels()) counts.set(panel.camera, (counts.get(panel.camera) ?? 0) + 1);
+    for (const panel of scenePanels()) counts.set(panel.camera, (counts.get(panel.camera) ?? 0) + 1);
     const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
-    // The *order* is the claim (§7's 52.4 / 26.5 / 12.7 / 5.8 / 2.6); the
-    // percentages are opening-sequence-shaped and deliberately not asserted.
+    // The *order* is the claim; the percentages are opening-sequence-shaped and
+    // deliberately not asserted.
     expect(ranked.slice(0, 2)).toEqual(["medium", "establishing"]);
     expect(ranked.indexOf("close-up")).toBeLessThan(ranked.indexOf("wide"));
   });
