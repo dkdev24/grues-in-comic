@@ -23,6 +23,7 @@
 import type { BehaviorRoutine, BehaviorValue, Direction, WorldDocument } from "@grues-in-comic/ir";
 import { createBuiltins, describeRoom, isLit, M_BEG } from "./builtins.js";
 import { CONTRACT_VERSION, type EngineEvent, type TurnResult } from "./events.js";
+import { registerGameActions } from "./game-actions.js";
 import { callRoutine, FatalSignal } from "./interpreter.js";
 import { loadWorld, type LoadOptions } from "./load.js";
 import { exitFor, resolveExit } from "./movement.js";
@@ -79,6 +80,7 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
     (doc.routines ?? []).map((r) => [r.id, r]),
   );
   const builtins = createBuiltins();
+  registerGameActions(builtins);
   const rng = new Rng(seed ?? 0);
   /** Accumulates across turns; see RuntimeContext.missingRoutines. */
   const missingRoutines = new Set<string>();
@@ -304,9 +306,24 @@ function runTurn(
 /** Returns true when the turn should proceed to daemons; false on a parse failure. */
 function handleParse(ctx: RuntimeContext, parsed: ParseResult): boolean {
   switch (parsed.kind) {
-    case "travel":
+    case "travel": {
+      /*
+       * A bare direction is a command like any other: ZIL runs the room's
+       * action with M-BEG before moving, so a room can intercept the walk. Most
+       * do not, but some win or eject on it — the Stone Barrow ends the game
+       * when you walk *west* into it, not through a real exit. So set the walk's
+       * PRSA/PRSO/verb and give the room its M-BEG first; only travel if it
+       * declines. `directObject` carries the direction, exactly as the "WALK
+       * NORTH" command form and V-WALK already expect.
+       */
+      ctx.action = "V-WALK";
+      ctx.verb = "WALK";
+      ctx.directObject = parsed.direction;
+      const room = ctx.world.rooms.get(here(ctx.state));
+      if (room?.action !== undefined && handled(ctx, room.action, [M_BEG])) return true;
       travel(ctx, parsed.direction);
       return true;
+    }
 
     case "command": {
       ctx.action = parsed.action;

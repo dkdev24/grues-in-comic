@@ -45,13 +45,13 @@
     "semantic_hash": ""
   },
   "src/parser.ts": {
-    "mtime": 1784505282.5070403,
-    "ast_hash": "94f8217a0d452374c8b1e9904900472d",
+    "mtime": 1784596853.0689075,
+    "ast_hash": "40de8e7934fac72a9618e66afdd619b0",
     "semantic_hash": ""
   },
   "src/scope.ts": {
-    "mtime": 1784480267.252667,
-    "ast_hash": "df7cb6c4b5b6c4e98f21f229cbf8f11b",
+    "mtime": 1784596847.9419038,
+    "ast_hash": "98105d88d25d7379e1489b6d0eaa4771",
     "semantic_hash": ""
   },
   "src/vocabulary.ts": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "test/parser.test.ts": {
-    "mtime": 1784505627.6617303,
-    "ast_hash": "85cf99b02d03e501aa1ad75163c70c38",
+    "mtime": 1784597515.938191,
+    "ast_hash": "82582918ac077ff7d0d3dadfdba6346c",
     "semantic_hash": ""
   },
   "src/builtins.ts": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/engine.ts": {
-    "mtime": 1784509844.071603,
-    "ast_hash": "2bcb138887339aabb7b25f1b909c3b84",
+    "mtime": 1784596382.0654762,
+    "ast_hash": "2ec37624143a6292e10231ad6626427f",
     "semantic_hash": ""
   },
   "src/interpreter.ts": {
@@ -90,18 +90,18 @@
     "semantic_hash": ""
   },
   "harness/golden.ts": {
-    "mtime": 1784506198.2111757,
-    "ast_hash": "f8b923ef22279acb6a3c72441d2b823f",
+    "mtime": 1784597473.5300562,
+    "ast_hash": "3e0e69cee8388ae49d52720aac4de87a",
     "semantic_hash": ""
   },
   "harness/replay.ts": {
-    "mtime": 1784506056.6203012,
-    "ast_hash": "6cae80e68f2f2b4299ec283c46723e22",
+    "mtime": 1784597493.6632679,
+    "ast_hash": "2a3852c980a7f6cac1c964050bd4eb69",
     "semantic_hash": ""
   },
   "test/transcript.test.ts": {
-    "mtime": 1784506277.398272,
-    "ast_hash": "6bfd43eb5970ffac17399a83520df083",
+    "mtime": 1784597501.9855204,
+    "ast_hash": "584d2a16dab085f2ce5c69c10cffff9d",
     "semantic_hash": ""
   },
   "test/combat.test.ts": {
@@ -117,6 +117,21 @@
   "test/thief.test.ts": {
     "mtime": 1784523371.9447746,
     "ast_hash": "5e1247c349c8faafe820f70da591abe7",
+    "semantic_hash": ""
+  },
+  "harness/full-run.ts": {
+    "mtime": 1784596473.8958752,
+    "ast_hash": "fa57fc6302da242cdd81cd0f31872bdf",
+    "semantic_hash": ""
+  },
+  "src/game-actions.ts": {
+    "mtime": 1784596359.2994468,
+    "ast_hash": "5411881a19195ff4190d4542eb9e5bd1",
+    "semantic_hash": ""
+  },
+  "test/game-actions.test.ts": {
+    "mtime": 1784597271.8964746,
+    "ast_hash": "36b65bbc6b1d9fcd65d8813a42188e44",
     "semantic_hash": ""
   }
 }

@@ -168,12 +168,13 @@ describe("adjectives and disambiguation", () => {
     expect(run("TAKE LAMP")).toMatchObject({ directObject: "LAMP" });
   });
 
-  it("honours a slot that only accepts held objects", () => {
-    // TAKE searches ON-GROUND/IN-ROOM only, so an object already in hand is
-    // deliberately out of its reach — ZIL answers "You already have that".
+  it("resolves an object already in hand rather than refusing to see it", () => {
+    // ZIL's GET-OBJECT always searches the player (gparser.zil:1078), so TAKE
+    // *finds* a held object even though its rule lists only (ON-GROUND IN-ROOM);
+    // the "You already have that" refusal is then V-TAKE's answer, not the
+    // parser's "you can't see any lamp here". Resolving it is the correct step.
     move(state, "LAMP", PLAYER_ID);
-    expect(run("TAKE LAMP").kind).toBe("not-here");
-    // ...while PUT wants exactly the opposite.
+    expect(run("TAKE LAMP")).toMatchObject({ directObject: "LAMP" });
     expect(run("PUT LAMP IN MAILBOX")).toMatchObject({ directObject: "LAMP" });
   });
 

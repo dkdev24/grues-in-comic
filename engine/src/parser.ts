@@ -239,7 +239,9 @@ export function parse(
     const eligible = new Set(allEligible(world, state));
     const matched = visible
       .filter((entry) => eligible.has(entry.id))
-      .filter((entry) => originAllowed(entry.origin, slot.options))
+      // TAKE ALL keeps the slot's location bits (ZIL's P-ALL path), so held and
+      // carried objects are not swept up — you do not re-take what you hold.
+      .filter((entry) => originAllowed(entry.origin, slot.options, false))
       /*
        * TRYTAKEBIT widens the slot's find flag here, and only here. "TAKE ALL"
        * in the Living Room answers for the rug and the trophy case too — "The

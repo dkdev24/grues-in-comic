@@ -2058,3 +2058,86 @@ statistics are not invariants" mistake `art/test/polarity.test.ts` already caugh
 **Stage 5.4 ✅.** The opening area is playable in comic form — its exit criterion. Panel
 sequencing, portraits, backdrop assignment, persistence and narration styling all done. 5.5 next,
 where backdrop scarcity is the live constraint.
+
+---
+
+## v1.6.1 — Full-game completion oracle; engine gap measured (stage 5.5 started)
+
+**Date:** 2026-07-21
+
+### Changes
+
+- **Authored the complete winning walkthrough** `verification/walkthroughs/12-full-game.cmd`:
+  405 commands, West of House → Stone Barrow, all 19 treasures in the trophy case, **350/350,
+  "Master Adventurer"** under dfrotz seed 1234 against the Release 119 reference build. Captured
+  its golden `verification/golden/12-full-game.txt`. Both `run-transcripts.sh` (golden matches
+  dfrotz) and the engine replay suite stay green; the walkthrough is `# parity: informational`
+  (troll/thief combat and the thief relocating the ivory torch are random draws the engine's
+  generator cannot match turn-for-turn — the documented stage-4.5 limitation, multiplied).
+- Route was built incrementally against dfrotz as the oracle. Decisions worth keeping are in the
+  `.cmd` header: lantern stays lit the whole game (LAMP-OFF disables the I-LANTERN timer, so the
+  ~385 on-turn budget only drains while lit; 411 moves with the ends unlit clears it), the torch is
+  a treasure not the light source (so the coal-gas room never detonates it), sharp objects puncture
+  the boat (eat the lunch, carry the garlic, pocket screwdriver+sceptre in the sack), dig the sand
+  exactly four times, drop the torch before the Gas Room.
+- **Measured engine completion** with `engine/harness/full-run.ts` (diagnostic, not a committed
+  test): replays the walkthrough through the engine with combat handled resiliently (attack until
+  the villain leaves the room, re-arm on disarm), since the walkthrough's frotz-tuned hit-counts do
+  not kill the villains under the engine's RNG. Finding: **of 117 action routines the world
+  references, only 3 are undefined** — `LOUD-ROOM-FCN` (echo puzzle → platinum bar; throws today
+  and desyncs everything after it), `STONE-BARROW-FCN` (the winning move; the engine has **no**
+  victory path — `ctx.finished` types `"victory"` but nothing sets it), and `GRATE-FUNCTION`
+  (off the Odysseus route). The first two block completion and are the immediate 5.5 work.
+
+### Status
+
+**Stage 5.5 ◐.** Winning route proven end-to-end in dfrotz; the engine runs opening → troll → maze
+→ painting → dam and is blocked by exactly two missing native routines, both fully scoped in
+HANDOFF (mechanism: register beside the existing `ctx.builtins` specials). Presentation coverage
+(backdrops/art/layout over the full run) not yet started. Not a milestone-complete build — the
+engine does not yet win.
+
+---
+
+## v1.6.2 — Engine driven West of House → the temple; first victory path (stage 5.5)
+
+**Date:** 2026-07-21
+
+### Changes
+
+- **`engine/src/game-actions.ts` (new):** a quarantined home for game-specific action routines the
+  extractor catalogued but cannot mechanically translate — ADR 0002 keeps `builtins.ts`
+  game-agnostic, and combat is *extracted*, so no such home existed. Registered into `ctx.builtins`
+  from `createEngine`; a routine the world document defines still wins. Holds:
+  - **`STONE-BARROW-FCN`** — the engine's **first victory path**. `ctx.finished.outcome` typed
+    `"victory"` but nothing set it (the `FINISH` builtin defaults to death); this sets it on
+    `M_BEG` + ENTER / WALK-west / IN, printing the "mastered the first part of the ZORK trilogy" win.
+  - **`LOUD-ROOM-FCN`** — the Loud Room. `M_LOOK` description (deafening vs. eerie on `LOUD-FLAG` /
+    `GATES-OPEN` / `LOW-TIDE`); verb `ECHO` sets `LOUD-FLAG` and clears `SACREDBIT` on the platinum
+    `BAR`. The modal "commands lost in the noise" read-loop and the roaring-state ejection are
+    deliberately not ported (off-route parser-buffer mechanics), noted at the call site.
+- **`engine.ts`:** a bare direction now runs the current room's `M_BEG` action before travelling, so
+  a room can intercept the move — this is how the Stone Barrow wins on `w`. ZIL runs the room action
+  for every command including walk; the engine's shortcut had skipped it. 143/143 strict held.
+- **`engine/src/scope.ts` (`originAllowed`):** ZIL's `GET-OBJECT` always searches the player
+  (gparser.zil:1078); the syntax's location options scope only the *room* search. So a held object,
+  or one inside an open container you hold, is always referable — `TAKE SCEPTRE` now finds the
+  sceptre in the coffin in your hands. `TAKE ALL` still honours the bits (P-ALL keeps them), so it
+  does not re-take what you already hold. Corrected a parser test that encoded the old wrong "can't
+  see a held object" behaviour.
+- **Completion oracles are now a distinct artifact class.** `12-full-game.cmd` carries
+  `# oracle: completion`; `golden.ts`/`replay.ts` surface `oracle`, and `transcript.test.ts` excludes
+  oracles from the strict-turn ratio (a 405-turn oracle would otherwise swamp the parity corpus —
+  it is verified by *reaching the win*, not turn-parity).
+- Tests: `engine/test/game-actions.test.ts` (echo puzzle, barrow victory, take-from-held-container).
+  129 engine tests pass; replay 143/143 strict; `run-transcripts.sh` golden matches.
+
+### Status
+
+**Stage 5.5 ◐.** With combat handled resiliently (`engine/harness/full-run.ts`, diagnostic) the
+engine now runs West of House → the temple: score 116 of 350, ~command 166 of 405. Next blocker is
+an **IR/extractor** bug, not an engine one — the exorcism at Entrance to Hades never fires because
+`BELL-F`'s extracted body references the room by its pre-rename name `LLD-ROOM` instead of
+`ENTRANCE-TO-HADES` (the modernized source renamed the room but not the reference; Release 119, the
+golden's game, still has the old name, so dfrotz works). Not a milestone-complete build — the engine
+does not yet win the full game.

@@ -53,6 +53,8 @@ export interface WalkthroughResult {
   missingRoutines: string[];
   /** Whether a diff here fails the suite. */
   parity: ParityMode;
+  /** A completion oracle (reaches the barrow), excluded from the parity ratio. */
+  oracle: boolean;
   /** Why, when it does not. */
   reason: string;
   /**
@@ -67,7 +69,7 @@ export interface WalkthroughResult {
 }
 
 export function replay(name: string, doc: WorldDocument): WalkthroughResult {
-  const { commands, parity, reason, informationalTurns } = parseWalkthrough(
+  const { commands, parity, oracle, reason, informationalTurns } = parseWalkthrough(
     readFileSync(join(WALKTHROUGHS, `${name}.cmd`), "utf8"),
   );
   const golden = parseGolden(readFileSync(join(GOLDEN, `${name}.txt`), "utf8"));
@@ -109,6 +111,7 @@ export function replay(name: string, doc: WorldDocument): WalkthroughResult {
     total: strictTotal,
     missingRoutines: engine.missingRoutines(),
     parity,
+    oracle,
     reason,
     informationalDiffs,
     informationalReasons: [...new Set(informationalTurns.values())],

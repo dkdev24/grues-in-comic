@@ -139,6 +139,15 @@ export type ParityMode = "strict" | "informational";
 export interface Walkthrough {
   commands: string[];
   parity: ParityMode;
+  /**
+   * A `# oracle:` walkthrough is a completion oracle, not a parity walkthrough:
+   * it drives the engine to a *destination* (the full game to the barrow), and
+   * its turn-for-turn text is never expected to match — combat and the thief
+   * make most of 400+ turns a random draw. It is verified by reaching the win,
+   * in a dedicated completion test, not by the golden ratio; so the parity
+   * corpus excludes it rather than letting one long oracle swamp the ratio.
+   */
+  oracle: boolean;
   /** Why parity is informational, taken from the directive's `# reason:` lines. */
   reason: string;
   /**
@@ -183,6 +192,7 @@ export function parseWalkthrough(raw: string): Walkthrough {
   const parity: ParityMode = lines.some((line) => /^#\s*parity:\s*informational/.test(line))
     ? "informational"
     : "strict";
+  const oracle = lines.some((line) => /^#\s*oracle:/.test(line));
 
   /*
    * `# reason:` runs until the next directive, not to the end of the file — the
@@ -210,6 +220,7 @@ export function parseWalkthrough(raw: string): Walkthrough {
   return {
     commands,
     parity,
+    oracle,
     reason: parity === "informational" ? reason : "",
     informationalTurns,
   };

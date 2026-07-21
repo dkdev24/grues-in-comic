@@ -61,7 +61,11 @@ describe("golden transcripts", () => {
      * only opt out of verification by saying why, in writing, where the next
      * reader will see it.
      */
-    const results = names.map((name) => replay(name, doc));
+    // Completion oracles (the full game to the barrow) are excluded: they drive
+    // to a destination and their 400+ turns are a random draw, so folding them
+    // into a turn ratio would let one oracle swamp the parity corpus. They are
+    // verified by reaching the win instead — see the completion test.
+    const results = names.map((name) => replay(name, doc)).filter((r) => !r.oracle);
 
     const compared = results.reduce((n, r) => n + r.total + r.informationalTurnCount, 0);
     const strictTurns = results

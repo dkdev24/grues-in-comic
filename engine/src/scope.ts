@@ -132,8 +132,27 @@ const LOCATION_OPTIONS = ["HELD", "CARRIED", "ON-GROUND", "IN-ROOM"] as const;
 export function originAllowed(
   origin: ScopeOrigin,
   options: readonly string[] | undefined,
+  searchesPlayer = true,
 ): boolean {
   if (options === undefined || options.length === 0) return true;
+
+  /*
+   * ZIL's GET-OBJECT always ends with `<DO-SL ,PLAYER ,SH ,SC>` (gparser.zil:1078)
+   * — it searches the player's own held and carried objects on *every* single
+   * resolution, whatever the syntax's location options say. Those options
+   * (ON-GROUND / IN-ROOM) scope only the *room* search, `<DO-SL ,HERE ,SOG ,SIR>`
+   * on the line above it. So anything you hold, or anything inside an open
+   * container you hold, is always referable. Without this, "TAKE SCEPTRE" cannot
+   * find the sceptre inside the coffin in your hands — the plain TAKE rule lists
+   * `(ON-GROUND IN-ROOM)`, and the sceptre's origin is `carried`.
+   *
+   * The exception is `TAKE ALL`: for the P-ALL case, GET-OBJECT keeps the
+   * syntax's location bits rather than widening to -1 (gparser.zil:1068), so a
+   * blanket "take everything" honours ON-GROUND / IN-ROOM and does not re-take
+   * what you already hold ("glass bottle: You already have that!"). Callers
+   * expanding ALL pass `searchesPlayer = false`.
+   */
+  if (searchesPlayer && (origin === "held" || origin === "carried")) return true;
 
   const locations = options.filter((o) =>
     (LOCATION_OPTIONS as readonly string[]).includes(o),

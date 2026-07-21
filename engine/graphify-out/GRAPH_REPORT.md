@@ -1,103 +1,103 @@
 # Graph Report - engine  (2026-07-21)
 
 ## Corpus Check
-- 24 files · ~32,016 words
+- 27 files · ~34,746 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 229 nodes · 683 edges · 7 communities
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.62)
+- 252 nodes · 738 edges · 7 communities
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 14 edges (avg confidence: 0.61)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6cc30e22`
+- Built from commit: `5608253c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- load.ts
 - Rng
 - index.ts
 - movement.ts
 - state.ts
 - load.ts
+- runtime.ts
 - interpreter.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `createEngine()` - 23 edges
+1. `createEngine()` - 26 edges
 2. `createBuiltins()` - 21 edges
 3. `hasFlag()` - 21 edges
 4. `parse()` - 19 edges
-5. `evalExpr()` - 16 edges
-6. `here()` - 16 edges
-7. `truthy()` - 15 edges
-8. `callRoutine()` - 13 edges
-9. `loadWorld()` - 12 edges
-10. `emit()` - 12 edges
+5. `here()` - 17 edges
+6. `truthy()` - 17 edges
+7. `evalExpr()` - 16 edges
+8. `tell()` - 14 edges
+9. `callRoutine()` - 13 edges
+10. `transcriptText()` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `text()` --calls--> `transcriptText()`  [EXTRACTED]
+  test/engine.test.ts → src/events.ts
+- `text()` --calls--> `transcriptText()`  [EXTRACTED]
+  test/game-actions.test.ts → src/events.ts
 - `replay()` --calls--> `createEngine()`  [EXTRACTED]
   harness/replay.ts → src/engine.ts
 - `Fight` --calls--> `createEngine()`  [EXTRACTED]
   test/combat.test.ts → src/engine.ts
 - `vigil()` --calls--> `createEngine()`  [EXTRACTED]
   test/thief.test.ts → src/engine.ts
-- `text()` --calls--> `transcriptText()`  [EXTRACTED]
-  test/engine.test.ts → src/events.ts
-- `Fight` --calls--> `normalize()`  [EXTRACTED]
-  test/combat.test.ts → harness/golden.ts
 
 ## Import Cycles
 - None detected.
 
 ## Communities (7 total, 0 thin omitted)
 
-### Community 0 - "load.ts"
-Cohesion: 0.09
-Nodes (29): diffTurns(), GoldenTranscript, normalize(), ParityMode, parseGolden(), parseWalkthrough(), stripBanner(), stripSessionEnd() (+21 more)
-
 ### Community 1 - "Rng"
-Cohesion: 0.13
-Nodes (24): APPROACH, COMBAT_ROUTINES, legalTurn, MELEE_TABLES, ADR-0002, ADR-0003, villains, discriminating() (+16 more)
+Cohesion: 0.07
+Nodes (50): diffTurns(), GoldenTranscript, normalize(), ParityMode, parseGolden(), parseWalkthrough(), stripBanner(), stripSessionEnd() (+42 more)
 
 ### Community 2 - "index.ts"
-Cohesion: 0.11
-Nodes (28): advancesTheClock(), dispatch(), EngineOptions, entityAction(), handled(), handleParse(), metaVerb(), runClock() (+20 more)
+Cohesion: 0.12
+Nodes (42): addScore(), createBuiltins(), describeContents(), describeRoom(), interruptRecord(), isBrief(), resolveTable(), ADR-0001 (+34 more)
 
 ### Community 3 - "movement.ts"
-Cohesion: 0.13
-Nodes (33): isLit(), vehicleCarrying(), SaveState, ADR-0002, exitFor(), ExitResolution, goTo(), resolveExit() (+25 more)
+Cohesion: 0.10
+Nodes (44): isLit(), EngineOptions, SaveState, NarrationChannel, ADR-0002, adjacencyTableId(), containerFor(), elementValue() (+36 more)
 
 ### Community 4 - "state.ts"
-Cohesion: 0.12
-Nodes (32): ALL_WORDS, allEligible(), askFor(), completeOrAsk(), isPrefixOf(), NounMatch, parse(), ParsedCommand (+24 more)
+Cohesion: 0.14
+Nodes (28): ALL_WORDS, askFor(), completeOrAsk(), isPrefixOf(), NounMatch, parse(), ParsedCommand, ParsedTravel (+20 more)
 
 ### Community 5 - "load.ts"
-Cohesion: 0.36
-Nodes (8): adjacencyTableId(), containerFor(), elementValue(), link(), loadWorld(), ADR-0002, ADR-0003, indexWorld()
+Cohesion: 0.08
+Nodes (17): commands, crashes, doc, engine, misses, raw, ROOT, VILLAIN (+9 more)
+
+### Community 6 - "runtime.ts"
+Cohesion: 0.20
+Nodes (4): Rng, ADR-0002, run(), ADR-0002
 
 ### Community 8 - "interpreter.ts"
-Cohesion: 0.11
-Nodes (38): addScore(), createBuiltins(), describeContents(), describeRoom(), interruptRecord(), isBrief(), resolveTable(), ADR-0001 (+30 more)
+Cohesion: 0.15
+Nodes (24): applyRoutine(), BreakSignal, callRoutine(), ContinueSignal, displayName(), entityId(), evalExpr(), execBody() (+16 more)
 
 ## Knowledge Gaps
-- **47 isolated node(s):** `GoldenTranscript`, `Walkthrough`, `ADR-0002`, `ROOT`, `WALKTHROUGHS` (+42 more)
+- **60 isolated node(s):** `ROOT`, `doc`, `raw`, `commands`, `engine` (+55 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createEngine()` connect `interpreter.ts` to `load.ts`, `Rng`, `index.ts`, `movement.ts`, `state.ts`, `load.ts`?**
-  _High betweenness centrality (0.073) - this node is a cross-community bridge._
-- **Why does `Rng` connect `index.ts` to `movement.ts`, `state.ts`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
-- **Why does `Engine` connect `load.ts` to `index.ts`, `movement.ts`?**
+- **Why does `createEngine()` connect `index.ts` to `Rng`, `movement.ts`, `state.ts`, `load.ts`, `interpreter.ts`?**
+  _High betweenness centrality (0.086) - this node is a cross-community bridge._
+- **Why does `Rng` connect `runtime.ts` to `index.ts`, `movement.ts`?**
+  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+- **Why does `Engine` connect `load.ts` to `Rng`, `index.ts`, `movement.ts`?**
   _High betweenness centrality (0.034) - this node is a cross-community bridge._
-- **What connects `GoldenTranscript`, `Walkthrough`, `ADR-0002` to the rest of the system?**
-  _47 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `load.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.09446693657219973 - nodes in this community are weakly interconnected._
+- **What connects `ROOT`, `doc`, `raw` to the rest of the system?**
+  _60 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Rng` be split into smaller, more focused modules?**
-  _Cohesion score 0.13105413105413105 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07080200501253132 - nodes in this community are weakly interconnected._
 - **Should `index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.1111111111111111 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12077294685990338 - nodes in this community are weakly interconnected._
+- **Should `movement.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.10256410256410256 - nodes in this community are weakly interconnected._

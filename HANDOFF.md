@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.6.0**
+**1.6.2**
 
 ---
 
@@ -46,40 +46,58 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   grid) and **character portraits** (`comic/portrait.ts` + the cast bar). Opening area playable
   in comic form — the exit criterion. **89 web tests, 468 across all packages, parity 143/143.**
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
+  - **5.5 ◐ (v1.6.2)** — completion oracle `verification/walkthroughs/12-full-game.cmd` wins in
+    dfrotz (**350/350**). Engine now runs **West of House → the temple** (score 116 of 350,
+    ~command 166/405, combat handled resiliently): landed the two native routines (`LOUD-ROOM-FCN`
+    echo, `STONE-BARROW-FCN` — the engine's first **victory**), a room-`M_BEG`-on-travel fix, and a
+    scope fix (take from a held open container). Next engine blocker is an **IR/extractor bug, not
+    an engine one** — the exorcism (see Last Session). Presentation coverage (task 3) untouched.
 
 ---
 
-## Last Session — stage 5.4 closed (v1.6.0)
+## Last Session — stage 5.5 (v1.6.2): completion oracle + first engine push to the temple
 
-**Panel sequencing and character portraits**, the last two 5.4 items. Full narrative in
-`WORKLOG.md` v1.6.0.
+Built the oracle 5.5 is measured against, then drove the engine most of the way through it. Full
+narrative in `WORKLOG.md` v1.6.1–v1.6.2.
 
-Carried forward:
+**Committed and green:** `verification/walkthroughs/12-full-game.cmd` (405 commands) wins Zork I in
+dfrotz — 19 treasures, **350/350, "Master Adventurer"** — with its golden captured from Release 119.
+It carries `# parity: informational` **and `# oracle: completion`**: an oracle drives to a
+*destination*, its 400+ turns are a random draw (combat + the thief relocating the torch), so it is
+verified by *reaching the win*, not by turn-parity. `golden.ts`/`replay.ts` now surface `oracle`,
+and `transcript.test.ts` excludes oracles from the strict-turn ratio (one 405-turn oracle would
+otherwise swamp it). `run-transcripts.sh`, replay (143/143 strict), and 129 engine tests all pass.
 
-- **Comic Chat's layout is a *uniform* grid — it never varies panel width by shot.** The
-  comic-book instinct (wide establishing, narrow reaction) is exactly what the original does not
-  do, and adopting it would let §7's camera ladder decide layout as well as framing. **Reading
-  `panel.cpp` replaced a design argument with a citation**; that is the move to reach for first on
-  any remaining presentation question. Rungs stay framing (`render.ts`), `layout.ts` only flows.
-- **`panel.cpp:1456` has a real bug and it is deliberately not reproduced** — `m_vInterstice` over
-  `m_hInterstice` where the line above uses one interstice for both. Invisible in Comic Chat
-  because the two hold the same value. If a future port hits a divergence like this, the rule
-  applied here was: **reproduce behaviour, not a typo that never fired**, and document it at the
-  call site.
-- **Portraits are not a port and the file says so.** The member-list icon feature exists
-  (`memblst.cpp:391`) but `m_iconIndex` is only ever assigned `-1` (`avatar.cpp:896`), so there is
-  no source site. When a 5.5 item has no source site either, name that in the file rather than
-  letting a decision read as fidelity.
-- **A portrait is the *neutral* face, never the panel's emotion.** Wiring the bar to the Hero's
-  current mood is a natural-looking edit and it is wrong twice — a roster would flicker per turn,
-  and §9 gives emotion to the panel, which is the thing that has a turn. A test pins angle **and**
-  intensity, because §11 has HAPPY and NEUTRAL sharing angle 0.
-- **The gutter is one constant in script (`STRIP_GUTTER`), and CSS does not set it.** 5.3's scroll
-  bug was a `0.6rem` gap the pinning arithmetic could not see; sequencing needs the same number in
-  the grid's `gap` and in `layoutStrip`. Do not move it back into the stylesheet.
-- **`layout.ts` exports `MAX_PANEL_SCALE`, `render.ts` owns `MAX_SCALE`.** Same number, different
-  things — a panel in the strip vs. a figure in a panel. The names differ so one does not get
-  changed on the other's evidence.
+**Engine changes this session (all tested in `engine/test/game-actions.test.ts`):**
+- **`engine/src/game-actions.ts`** — new, quarantined home for game-specific routines the extractor
+  catalogued but can't translate (ADR 0002 keeps `builtins.ts` game-agnostic; combat is *extracted*,
+  so there was no such home before). Registered from `createEngine` into `ctx.builtins`. Holds:
+  - **`STONE-BARROW-FCN`** — the engine's **first victory path**. `ctx.finished.outcome` typed
+    `"victory"` but nothing set it (FINISH defaults to death); this sets it on `M_BEG`+ENTER/WALK-west.
+  - **`LOUD-ROOM-FCN`** — `M_LOOK` text + verb `ECHO` → `LOUD-FLAG`, clear `SACREDBIT` on `BAR`. The
+    modal "commands lost in the noise" read-loop and the roaring ejection are **deliberately not
+    ported** (off-route parser-buffer mechanics) — noted at the call site.
+- **`engine.ts` travel now runs the room's `M_BEG` action before moving** — a bare direction is a
+  command too (ZIL runs the room action first), which is how the barrow wins on `w`. 143/143 held.
+- **`scope.ts` `originAllowed`** — ZIL's `GET-OBJECT` *always* searches the player (gparser.zil:1078);
+  the location bits scope only the *room* search. So held/carried is always referable — `TAKE
+  SCEPTRE` finds the sceptre in the coffin in your hands. `TAKE ALL` still honours the bits
+  (`searchesPlayer=false`), so it doesn't re-take what you hold. Fixed a parser test that had
+  encoded the old (wrong) "can't see a held object" behaviour.
+- `GRATE-FUNCTION` (3rd undefined routine) is **off-route** (walkthrough uses `odysseus`) — not done.
+
+**Next engine blocker is IR/extractor, not engine.** The exorcism at Entrance to Hades never fires:
+`BELL-F`'s extracted body compares `HERE == "LLD-ROOM"`, but the room's id is `ENTRANCE-TO-HADES`
+and `LLD-ROOM` is only its *action routine*. The modernized source (`original-projects/zork1/`,
+which the IR was extracted from) renamed the room `LLD-ROOM → ENTRANCE-TO-HADES` in the ROOM form
+(1dungeon.zil:2027) but left the reference `,LLD-ROOM` in `BELL-F` (1actions.zil:345) and the routine
+name untouched. Release 119 (the golden's game) still has the room as `LLD-ROOM`, so dfrotz's
+ceremony works; the IR inherited a latent rename bug. **Fix belongs in the ir/ extractor** (resolve
+`,LLD-ROOM` to the room it names, or a rename map), then regenerate the world doc — a different
+subsystem, hence stopped here. `engine/harness/full-run.ts` is the diagnostic: it reports the real
+score from `globals.SCORE` (treasure scoring runs the extracted `SCORE-UPD`, which sets the global
+directly and **emits no `score-changed` event** — a real gap for the web UI's score display; note it
+for task 3).
 
 Still live from earlier stages:
 
@@ -139,13 +157,37 @@ Still live from earlier stages:
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared), 5.4 ✅ (v1.6.0).** Next is **5.5**.
+**M4: 4.1–4.7 ✅. M5: 5.1 ✅, 5.2 ✅, 5.3 ✅ (⚑ Gate D cleared), 5.4 ✅ (v1.6.0).** In **5.5 ◐**.
+Exit criterion is **"game completable in the browser"** — read as: the engine, driven by
+`12-full-game.cmd` with combat handled resiliently, reaches score 350 / the barrow, and the web
+comic renders every turn. The winning route is proven (dfrotz); the engine and presentation are not
+there yet. Do these in order:
 
-1. **Stage 5.5 — per `docs/DEVELOPMENT_PLAN.md`.** Read the plan's row before scoping; what is
-   known going in:
+0. **Implement the two critical native routines so the engine completes the game.** This is the
+   heart of the exit criterion and is now fully scoped (see Last Session). In `engine/src/builtins.ts`
+   (registered via `createBuiltins`, or in `engine.ts` beside `V-WALK`):
+   - ✅ **`STONE-BARROW-FCN`** and **`LOUD-ROOM-FCN`** done in `engine/src/game-actions.ts`
+     (v1.6.2); ✅ travel-runs-`M_BEG`; ✅ `scope.ts` held/carried fix. See Last Session.
+   - **NEXT — the exorcism (IR/extractor, not engine).** `harness/full-run.ts` now runs to the
+     temple and stalls at Entrance to Hades: `BELL-F` compares `HERE == "LLD-ROOM"` but the room id
+     is `ENTRANCE-TO-HADES` (`LLD-ROOM` is only its action routine). A room rename in the modernized
+     source wasn't propagated to the `,LLD-ROOM` reference. Fix in **`ir/`** (resolve the stale
+     reference / rename map), regenerate `zork1.world.json`, re-run `full-run.ts`. Then fix whatever
+     *next* gap surfaces past the exorcism (coal-mine machine, endgame thief — masked until now).
+     Watch for **object-behaviour** gaps, not just undefined routines.
+   - **Also a real gap for the web UI (task 3):** treasure scoring runs the extracted `SCORE-UPD`,
+     which writes `globals.SCORE` directly and emits **no `score-changed` event** — the score
+     display won't update on take/case. Only room-visit scores (native `addScore`) emit the event.
+   - `GRATE-FUNCTION` (3rd undefined routine) is off-route; do it for completeness, not to unblock.
+   - When the engine reaches 350/barrow, **make `full-run.ts`'s combat-resilient replay a committed
+     completion test** (task 4) asserting `game-over{victory}` and score 350.
+
+1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
    - **Backdrop scarcity is 5.5's live constraint**, mis-scoped to 5.4 once already. The exit
-     criterion bounds it: count the rooms the criterion actually needs before sizing the problem.
-     `web/src/comic/backdrop.ts` is a table and extends by adding rows.
+     criterion bounds it: the winning route visits a knowable room set — audit `backdrop.ts`
+     against *those* rooms, not all 110. `web/src/comic/backdrop.ts` is a table and extends by
+     adding rows. `backdropFor` is already total, so the audit is "which rooms deserve a real
+     backdrop vs. the `room` fallback," not "does it crash."
    - **Two authoring stubs remain**, each marked at its call site and neither blocking: the
      **Guide's identity and voice** (`GUIDE_SCRIPT` in `comic-view.ts` is six placeholder lines
      proving the mechanism, plus a cooldown the ADR deliberately does not set) and **`SHOTS`** in
