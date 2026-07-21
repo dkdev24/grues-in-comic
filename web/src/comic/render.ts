@@ -31,7 +31,9 @@ interface Shot {
  */
 const SHOTS: Record<CameraPreset, Shot> = {
   // Tight on the Hero: the head fills the frame and the body is cropped away.
-  reaction: { fill: 2.1, reveal: 0.4, backdrop: 0.3 },
+  // This rung fires on game-over (§7 rung 0) — the biggest emotional beat — so
+  // the backdrop is pushed almost out: a house behind the head fights the face.
+  reaction: { fill: 2.1, reveal: 0.4, backdrop: 0.18 },
   // A new room is the one moment the backdrop is the subject.
   establishing: { fill: 0.5, reveal: 1, backdrop: 1 },
   // A room already seen: both figures, small, the room incidental.
@@ -39,8 +41,11 @@ const SHOTS: Record<CameraPreset, Shot> = {
   // No object art exists, so the "close-up on the object" is played as a
   // close-up on the Hero handling it, with the caption naming what moved.
   "close-up": { fill: 1.35, reveal: 0.62, backdrop: 0.5 },
-  // Guide foreground, Hero addressed past its shoulder.
-  "over-shoulder": { fill: 1.0, reveal: 0.78, backdrop: 0.6 },
+  // Guide foreground, Hero addressed past its shoulder. The Hero is the smaller,
+  // *addressed* figure here, not the subject, so its fill stays below 1: at 1.0
+  // the Hero's far arm clipped the right frame edge (the Guide sits at x≈0.06,
+  // the Hero at x≈0.94, so a full-size Hero has nowhere to go).
+  "over-shoulder": { fill: 0.86, reveal: 0.78, backdrop: 0.6 },
   medium: { fill: 0.78, reveal: 0.95, backdrop: 0.75 },
 };
 

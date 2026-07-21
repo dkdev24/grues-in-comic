@@ -4,6 +4,39 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.7.3 — stage 5.5 task 1: tune the SHOTS framing table by looking at the running page
+
+**Date:** 2026-07-21
+
+### Changes
+
+The remaining presentation authoring stub — `SHOTS` in `web/src/comic/render.ts`, the per-preset
+framing numbers — tuned per the standing method (look at the running page, don't propose rules blind).
+
+- **New dev harness `web/gallery.js` + `web/gallery.html`.** Holds one real panel constant (real
+  backdrop / pose / emotion, replayed from a short deterministic drive at seed 1234) and renders every
+  `CameraPreset` over it, so the only variable across a row is the SHOTS row itself. Each canvas is
+  id'd `cv-<preset>-<width>` for direct screenshotting. Imports the built `dist/` modules, as
+  `index.html` does. Served by `tools/serve.ts`; viewed via Playwright.
+- **`reaction` backdrop 0.3 → 0.18.** This rung fires on game-over (§7 rung 0), the biggest emotional
+  beat; at 0.3 the house behind the head still competed with the face. At 0.18 the backdrop is a soft
+  ghost and the face dominates. Confirmed by before/after screenshot.
+- **`over-shoulder` fill 1.0 → 0.86.** At 1.0 the Hero (the *addressed* figure, not the subject —
+  Guide at x≈0.06, Hero at x≈0.94) had its far arm clipped by the right frame edge. At 0.86 the Hero
+  sits fully in frame beside the foreground Guide; the two-shot reads cleanly. Confirmed by screenshot.
+- **Left as-is, deliberately:** `establishing` (0.5) vs `wide` (0.58) look near-identical, but the
+  ordering is correct and the similarity is inherent to solo-Hero scenes (no second figure, no object
+  art) — tuning it further is the kind of proposal the method note warns dies under measurement.
+  `medium` / `close-up` already read correctly.
+
+### Status
+
+**Web suite green (89), typecheck clean.** Framing change only — no test asserts SHOTS values (they
+are authoring judgement on top of the ADR, which fixes only *which* rung fires). Screenshots archived
+in the session, not committed.
+
+---
+
 ## v1.7.2 — stage 5.5: green the web presentation baseline (two pre-existing failures)
 
 **Date:** 2026-07-21

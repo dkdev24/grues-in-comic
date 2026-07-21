@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.7.2**
+**1.7.3**
 
 ---
 
@@ -58,7 +58,16 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — stage 5.5 (v1.7.0–v1.7.2): the game is completable, the score climb is evented, the web suite is green
+## Last Session — stage 5.5 (v1.7.0–v1.7.3): completable, score evented, suite green, SHOTS tuned
+
+**v1.7.3 — tuned the `SHOTS` framing table (task 1) by looking at the running page.** Built a dev
+harness (`web/gallery.js` + `gallery.html`) that renders every `CameraPreset` over one constant real
+panel, served it, and screenshotted each via Playwright. Two changes backed by before/after shots:
+`reaction` backdrop 0.3→0.18 (the game-over face was fighting the house behind it) and `over-shoulder`
+fill 1.0→0.86 (the Hero's arm was clipped by the right frame in the two-shot). `establishing`≈`wide`
+similarity noted and left (inherent to solo-Hero scenes). Web green (89), typecheck clean; no test
+asserts SHOTS values. **Reuse `gallery.html` for the next framing pass** — build, `npm run serve`, open
+`/gallery.html`.
 
 **v1.7.2 — greened the presentation baseline.** The two long-standing web failures are fixed, both
 root-caused, neither a real defect: `portrait.test.ts`'s tsc error (`dw!/dh!` under
@@ -225,8 +234,13 @@ there yet. Do these in order:
      across the full main path, replacing the 6 placeholders; keyed by real room id (fixed the
      placeholder's dead `BEHIND-HOUSE` key → `EAST-OF-HOUSE`). Every key validated against
      `zork1.world.json`. Content-only; the mechanism and its tests are unchanged.
-   - **One authoring stub remains**, marked at its call site and not blocking: **`SHOTS`** in
-     `render.ts` (framing numbers, the obvious thing to tune once the comic is *looked at*).
+   - ◐ **`SHOTS` framing table — first pass DONE (v1.7.3), by looking at the running page.** Tuned
+     `reaction` backdrop 0.3→0.18 (face dominates the game-over beat) and `over-shoulder` fill 1.0→0.86
+     (Hero no longer clipped in the two-shot); `medium`/`close-up`/`establishing`/`wide` left as-is.
+     Dev harness `web/gallery.js` + `gallery.html` renders every preset over one constant panel for
+     screenshot comparison — reuse it for the next framing pass. `establishing`≈`wide` similarity noted
+     and deliberately left (inherent to solo-Hero scenes). Further tuning wants real endgame panels
+     (varied rooms/emotions) in front of you, not more constant-panel work.
    - **`layout.ts` is where a page policy would go.** §5 makes a page a layout policy over the
      panel stream, and the on-screen policy now exists as a real one — a print/PDF policy is a
      second function beside it, not a change to the strip. `cellFor` is already the row-major

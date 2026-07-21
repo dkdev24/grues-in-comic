@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>SHOTS framing gallery</title>
+<style>
+  body { margin: 0; background: #2b2b2b; color: #eee; font: 13px system-ui, sans-serif; padding: 16px; }
+  h1 { font-size: 15px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(6, max-content); gap: 14px 12px; align-items: start; }
+  .cell { text-align: center; }
+  .cell .label { margin: 4px 0 0; font-size: 11px; color: #bbb; }
+  canvas { background: #fff; display: block; }
+  .row-label { grid-column: 1 / -1; margin: 10px 0 0; font-weight: 600; color: #9cf; }
+  #status { color: #f88; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>SHOTS framing gallery — one panel, every preset (seed 1234)</h1>
+<p id="status">loading…</p>
+<div class="grid" id="grid"></div>
+<script type="module" src="./gallery.js"></script>
+</body>
+</html>
