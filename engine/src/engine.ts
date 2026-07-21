@@ -247,6 +247,7 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
 
     command(input: string): TurnResult {
       const ctx = context();
+      const scoreBefore = Number(state.globals["SCORE"] ?? 0);
       // One line may hold several commands ("TAKE THE LEAFLET AND READ IT").
       // Each is a turn of its own and advances the clock separately.
       const sentences = splitSentences(lexicon, input);
@@ -257,6 +258,7 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
         runTurn(ctx, world, state, lexicon, sentence);
         if (ctx.finished !== undefined) break;
       }
+      reconcileScore(ctx, scoreBefore);
       flush(ctx);
       return { events: ctx.events, turn: state.turn };
     },
@@ -306,6 +308,30 @@ function runTurn(
 
   if (advancesTheClock(ctx)) runClock(ctx);
   state.turn = Number(state.globals["MOVES"] ?? state.turn);
+}
+
+/**
+ * Guarantee the `score-changed` contract covers *every* way SCORE moves.
+ *
+ * `addScore` (room-visit awards) emits the event itself, but the extracted ZIL
+ * routines write `globals.SCORE` directly and know nothing about the event
+ * stream: `SCORE-UPD` on a trophy-case deposit (gverbs.zil:1851) and the
+ * LIVING-ROOM M-END recompute (1actions.zil:483). Those are exactly the
+ * treasure-scoring turns, so without this the whole endgame score climb is
+ * invisible to a host that only listens for `score-changed` (the web display).
+ *
+ * Reconcile at turn end against the score already reported this turn — the last
+ * `score-changed` if one fired, else the score at turn start. Emitting only the
+ * *remainder* means a turn where `addScore` already carried the full delta adds
+ * nothing, and a turn where an extracted routine moved it emits one corrective
+ * event carrying the final score. It runs after the prose is buffered, so `emit`
+ * flushes that first and the score event lands after the "Done." it explains.
+ */
+function reconcileScore(ctx: RuntimeContext, before: number): void {
+  const after = Number(ctx.state.globals["SCORE"] ?? 0);
+  let reported = before;
+  for (const e of ctx.events) if (e.type === "score-changed") reported = e.score;
+  if (after !== reported) emit(ctx, { type: "score-changed", score: after, delta: after - reported });
 }
 
 /** Returns true when the turn should proceed to daemons; false on a parse failure. */

@@ -4,6 +4,77 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.7.1 — stage 5.5: treasure scoring emits `score-changed` (the web score climb)
+
+**Date:** 2026-07-21
+
+### Changes
+
+- **Fixed the score-event gap: treasure deposits now surface a `score-changed` event.** The extracted
+  ZIL routines that move SCORE — `SCORE-UPD` on a trophy-case deposit (gverbs.zil:1851) and the
+  LIVING-ROOM M-END recompute (1actions.zil:483) — write `globals.SCORE` directly and know nothing
+  about the event stream, so only room-visit awards (native `addScore`) emitted the event. The whole
+  endgame treasure-scoring climb (302 → 350 at seed 1234) was therefore invisible to any host that
+  listens for `score-changed` — including the web status line, which already folds the event
+  (`web/src/status.ts`).
+- **`reconcileScore(ctx, before)` in `engine.ts`**, called at the end of `command()`: compares the
+  final SCORE against the score already reported this turn (the last `score-changed`, else the turn's
+  starting score) and emits one corrective event for any remainder. A turn where `addScore` already
+  carried the full delta adds nothing; a turn moved only by an extracted routine emits one event
+  carrying the final total. It runs on the buffered prose, so `emit` flushes the "Done." first and the
+  score event lands after the line it explains. Covers **every** path that writes SCORE, not just the
+  two named routines — the interpreter stays oblivious to the event contract.
+- **Committed regression: `completion.test.ts` now asserts `eventScore === 350`** — the highest score
+  ever carried by a `score-changed` *event* across the winning run (vs. read from state). Verified to
+  fail without the fix (stalls at 302, the room-visit-only total).
+
+### Status
+
+**134 engine tests green** (+1), typecheck clean, strict transcript parity intact (structural event,
+no narration change). Web suite unchanged (the one `mapper.test.ts` shot-ranking failure predates this
+and is unrelated). Graphify regenerated.
+
+---
+
+## v1.7.0 — stage 5.5: the game is completable — 350/350, victory at the barrow
+
+**Date:** 2026-07-21
+
+### Changes
+
+- **The engine now wins Zork I.** The completion driver reaches score **350/350**, ends in
+  `STONE-BARROW`, and emits `game-over{victory}` — the exit criterion of milestone 5.5.
+- **New shared driver `engine/harness/complete.ts` (`runFullGame`).** The combat-resilient replay
+  logic moved out of `full-run.ts` into this module so the probe and the committed test run the
+  *same* code. `full-run.ts` is now a thin human-readable front end over it.
+- **Thief-and-inventory-resilient recovery.** The v1.6.6 probe stalled at 334/350 because the
+  engine's RNG has the thief hoard skull(t10)+torch(t6) = the 16-pt gap; both drop in his hideaway
+  (TREASURE-ROOM) on death and the fixed list can't recover them past the load limit. `runFullGame`
+  splits the fixed list just before the map-dependent barrow tail, then runs `recoverHoard()`: while
+  score < 350, it ferries **any** treasure stranded in the hideaway back to the trophy case — turning
+  the lantern on for the dark descent (`w,w,u`), shedding non-treasure junk to clear the load limit,
+  taking what fits, returning (`d,e,e`), casing it, and repeating for as many trips as it takes. When
+  the case completes, `SCORE-UPD` reveals the map and the tail (`take map`, `read map`, navigate to
+  the barrow) wins. The recovery hardcodes nothing seed-specific — it recovers whatever the draw
+  scattered, keyed off each object's `treasureValue`/`value` and first synonym.
+- **Committed completion test `engine/test/completion.test.ts`** (seed 1234) asserts score 350,
+  `victory`/`game-over{victory}`/`STONE-BARROW`, zero crashes/deaths/missing-routines, and no
+  stranded treasure. This is the milestone-5.5 exit criterion wired into the suite so it can't
+  regress silently.
+- **Why seed 1234 only:** `12-full-game.cmd` is a fixed command list authored against dfrotz seed
+  1234; under other streams the thief robs a different mid-game set, so which `put <treasure> in
+  case` lines land diverges and the list stops describing a winning game (30–334 across seeds). That
+  is a property of the fixed list, not the engine (ADR 0002 keeps the engine's own PRNG). The
+  recovery loop and combat repetition added on top are RNG-agnostic and player-realistic.
+
+### Status
+
+**133 engine tests green** (+4 completion), typecheck clean, strict parity intact (23 transcript
+tests). Graphify regenerated (1007 nodes). Milestone 5.5's core exit criterion — the game is
+completable in the engine — is met.
+
+---
+
 ## v1.6.6 — stage 5.5: magic boat `LAUNCH` (vehicle M-BEG dispatch)
 
 **Date:** 2026-07-21

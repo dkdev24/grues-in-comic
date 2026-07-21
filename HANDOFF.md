@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.6.6**
+**1.7.1**
 
 ---
 
@@ -46,63 +46,62 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   grid) and **character portraits** (`comic/portrait.ts` + the cast bar). Opening area playable
   in comic form — the exit criterion. **89 web tests, 468 across all packages, parity 143/143.**
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
-  - **5.5 ◐ (v1.6.6)** — completion oracle `verification/walkthroughs/12-full-game.cmd` wins in
-    dfrotz (**350/350**). **v1.6.6: the magic boat `LAUNCH` fix** — M-BEG dispatch now targets
-    `<LOC WINNER>` (the vehicle when aboard), not always the room, so `RBOAT-FUNCTION` intercepts
-    LAUNCH before `V-LAUNCH`. The whole Frigid River leg + coal mine now run: engine advances
-    **173 → 334/350**, misses 104 → 4, 0 crashes, 0 deaths. Earlier: the two native routines
-    (`LOUD-ROOM-FCN`, `STONE-BARROW-FCN` — first **victory**), the exorcism IR fix (v1.6.3), the
-    room `M-END` action (v1.6.5, + `addScore`/`BASE-SCORE` fix). **Remaining 16 pts to 350 is
-    thief-RNG divergence, NOT an engine bug** — see Last Session / Open Issues. Presentation (task 3):
-    30-backdrop art pass LANDED (v1.6.4). See Last Session.
+  - **5.5 ✅ core exit criterion (v1.7.0) — THE GAME IS COMPLETABLE.** The engine wins Zork I:
+    **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths. Committed test
+    `engine/test/completion.test.ts` (seed 1234) locks it in. The resilient driver lives in
+    `engine/harness/complete.ts` (`runFullGame`, shared by `full-run.ts` and the test): it splits the
+    fixed list before the map-gated barrow tail, runs `recoverHoard()` to ferry any thief-scattered
+    treasure back to the case (fixing the v1.6.6 skull+torch strand), then wins. Path there:
+    magic boat `LAUNCH` (v1.6.6, 173→334), room `M-END` (v1.6.5), exorcism IR fix (v1.6.3), the two
+    native routines `LOUD-ROOM-FCN`/`STONE-BARROW-FCN` (v1.6.2, first victory). Presentation
+    (task 3): 30-backdrop art pass LANDED (v1.6.4), Guide gazetteer authored. See Last Session.
 
 ---
 
-## Last Session — stage 5.5 (v1.6.6): magic boat `LAUNCH` (vehicle M-BEG dispatch); 173 → 334/350
+## Last Session — stage 5.5 (v1.7.0 + v1.7.1): the game is completable, and the score climb is now evented
 
-**The boat gap is fixed.** ZIL's PERFORM runs its second dispatch slot as
-`<APPLY <GETP <LOC ,WINNER> ,P?ACTION> ,M-BEG>` (gmain.zil:212) — the M-BEG applicable is the player's
-*container*, which is the vehicle when aboard one, not always the room. The engine had dispatched M-BEG
-only to `here()` (the room), so `RBOAT-FUNCTION`'s LAUNCH handling — which lives under its M-BEG branch
-(1actions.zil:2738), returns nothing when called as PRSO with no arg — was never reached, and
-`V-LAUNCH`'s refusal won. Fix: new `containerAction(ctx)` in `engine.ts` resolves the ACTION of
-`<LOC WINNER>` = `state.locations[PLAYER_ID]` (the room on land — identical to before — or the vehicle
-aboard). Applied at both M-BEG sites: the `command` dispatch and the bare-direction `travel` path (so
-river-current WALK also reaches the boat). `launch` now drifts RIVER-1→4; the whole river leg + coal
-mine run. Full-game probe (seed 1234): **173 → 334/350, misses 104 → 4, 0 crashes, 0 deaths.** Full
-narrative in `WORKLOG.md` v1.6.6.
+**v1.7.1 — treasure scoring emits `score-changed`.** The extracted routines that move SCORE
+(`SCORE-UPD` on a case deposit, the LIVING-ROOM M-END recompute) write `globals.SCORE` directly and
+emitted no event, so the whole endgame climb (302→350) was invisible to any `score-changed` listener —
+including `web/src/status.ts`, which already folds it. `reconcileScore(ctx, before)` in `engine.ts`
+now emits one corrective event at the end of `command()` for any SCORE move not already evented,
+covering every path (not just those two routines). `completion.test.ts` pins it with
+`eventScore === 350` (fails at 302 without the fix). 134 engine tests green; transcript parity intact
+(structural event, no prose change). The web score display now updates on take/case.
 
-**The remaining 16 pts to 350 is thief-RNG divergence, NOT an engine bug — do not chase it as one.**
-The completion oracle is authored for dfrotz seed 1234's exact RNG stream; the engine's generator
-differs (ADR-noted, `full-run.ts` header). Under the engine's draws the thief steals *both* skull and
-torch from the player (dfrotz steals only the torch; the skull is cased early at cmd #215). Both drop
-in TREASURE-ROOM on his death, and at recovery the player hits the inventory limit
-(`"You're holding too many things already!"`), stranding skull(10)+torch(6) = the exact gap. Scores
-swing 30–334 across seeds {1,7,42,99,1234,2026}, confirming RNG-sensitivity. Verified via a throwaway
-treasure-in-case probe (`treasureValue` per object vs `TROPHY-CASE` membership).
+**v1.7.0 — the exit criterion is met: the engine wins Zork I.** `runFullGame` in the new
+`engine/harness/complete.ts` reaches **350/350**, ends in `STONE-BARROW`, emits `game-over{victory}`,
+0 crashes/deaths. Committed as `engine/test/completion.test.ts` (seed 1234). `full-run.ts` is now a
+thin front end over the shared driver, so probe and test run the same code.
 
-**Green:** 129 engine tests, typecheck clean, strict parity intact (23 transcript tests), graphify
-regenerated (1001 nodes). The `containerAction` change only diverges from the old `here()` lookup when
-the player is aboard a vehicle, so every land turn is byte-identical — hence parity untouched.
+**What closed the v1.6.6 gap: thief-and-inventory-resilient recovery, not an engine change.** The
+334→350 gap was the thief hoarding skull(t10)+torch(t6) in TREASURE-ROOM past the load limit — RNG
+divergence, exactly as flagged, not a defect. `runFullGame` splits the fixed list just before the
+map-gated barrow tail, then `recoverHoard()` loops while score < 350: turn the lantern on (the descent
+`w,w,u` is dark), shed non-treasure junk, take whatever treasures the draw scattered into the hideaway,
+return `d,e,e`, case them, repeat for as many trips as needed. When the case completes, `SCORE-UPD`
+reveals the map and the tail (`take map`/`read map`/navigate SW to the barrow) wins. Recovery keys off
+each object's `treasureValue`/`value` + first synonym — nothing seed-specific is hardcoded.
 
-**Also this session — task-1 presentation (Guide voice), at the user's request.** Authored the Guide's
-identity (`wiki/the-guide.md`: the tiki idol; short deadpan present-tense asides; atmosphere not hints)
-and expanded `GUIDE_SCRIPT` (`comic-view.ts`) from 6 placeholders to an 88-room script over the full
-main path — content-only, mechanism untouched, all keys validated against real room ids (and fixed the
-placeholder's dead `BEHIND-HOUSE` key). Web tests: the same two failures as before predate this and are
-unrelated (portrait tsc, mapper shot-ranking — confirmed by stashing). `SHOTS` and page/PDF export
-(§5) are the presentation stubs still open.
+**Seed 1234 is the committed run *by design*.** The fixed `12-full-game.cmd` is authored to dfrotz seed
+1234; other streams have the thief rob a different mid-game set, so the `put <treasure> in case` lines
+stop matching and the list no longer wins (sampled 30–350 across seeds). That is the fixed list's
+property, not the engine's (ADR 0002 keeps our own PRNG). The recovery + combat repetition layered on
+top are RNG-agnostic; only the underlying command list is seed-bound.
 
-**NEXT — the completion harness (task 0 tail + task 4), a distinct problem from the boat gap.** To
-reach 350/barrow the combat-resilient replay must survive the thief stealing *arbitrary* treasures:
-recover ALL loot from his corpse and manage the inventory limit (drop non-treasures / multiple case
-trips) rather than run a fixed command list tuned to one dfrotz seed. When it reaches 350, `SCORE-UPD`
-(gverbs.zil:1855) fires — reveals the MAP (INVISIBLE cleared), clears WEST-OF-HOUSE TOUCHBIT, whispers
-"Look to your treasures for the final secret" — then the map read + SW-from-West-of-House path to
-`STONE-BARROW-FCN` (already the engine's first victory) ends the game. Make that a committed test
-asserting `game-over{victory}` + score 350. Watch also: `get out of boat` at SANDY-BEACH failed
-(#219) — the vehicle didn't follow the player east off the river; minor, cosmetic here, but the same
-vehicle-follows-player question the boat fix touches.
+**Green:** 134 engine tests (+4 completion, +1 score-event), typecheck clean, strict parity intact
+(23 transcript tests), graphify regenerated.
+
+**Still open, minor:** `get out of boat` at SANDY-BEACH (#219) still fails — the vehicle didn't follow
+the player east off the river. Cosmetic for completion (the walkthrough continues), but it is the same
+vehicle-follows-player question the boat fix touched; worth a look when vehicles are revisited.
+
+**NEXT — presentation coverage (task 3), the web endgame.** Both engine-side web gaps are now closed
+(completion + the score-event fix). What remains is authoring/rendering judgement on the comic itself,
+best done by *looking at the running page* (the standing lesson): the `SHOTS` framing table in
+`render.ts`, page composition / PDF export (§5), and confirming the comic renders cleanly all the way
+through the win. Launch the web shell and drive the endgame before proposing any rule. See Next
+Actions task 3 and §5.
 
 Still live from earlier stages:
 
@@ -185,24 +184,23 @@ there yet. Do these in order:
      `containerAction(ctx)`, so `RBOAT-FUNCTION` intercepts `LAUNCH` before `V-LAUNCH`. The whole
      Frigid River leg + coal mine run; oracle advances **173 → 334/350**, misses 104 → 4. See WORKLOG
      v1.6.6.
-   - **NEXT — the completion harness (task 4), the real path to 350/barrow.** The oracle stalls at
-     334/350 **not** on a dispatch gap but on **thief-RNG divergence**: the fixed command list is tuned
-     to dfrotz seed 1234, and under the engine's generator the thief steals different treasures, so the
-     player can't recover them all within the inventory limit (skull+torch = the 16-pt gap at seed
-     1234; scores swing 30–334 across seeds). Make the combat-resilient replay **thief-and-inventory
-     resilient**: recover ALL loot from the corpse, drop non-treasures / make multiple case trips. When
-     it hits 350, `SCORE-UPD` (gverbs.zil:1855) reveals the MAP + whispers, then map-read → SW from
-     West-of-House → `STONE-BARROW-FCN` (already a victory) wins. Commit it asserting
-     `game-over{victory}` + score 350. Minor along the way: `get out of boat` at SANDY-BEACH (#219)
-     failed — the vehicle didn't follow the player off the river.
-   - **Also a real gap for the web UI (task 3):** treasure scoring runs the extracted `SCORE-UPD`,
-     which writes `globals.SCORE` directly and emits **no `score-changed` event** — the score
-     display won't update on take/case. Only room-visit scores (native `addScore`) emit the event.
-     (Note: `addScore` now also advances `BASE-SCORE`; `SCORE-UPD` already did both. The event gap is
-     unchanged.)
+   - ✅ **The completion harness (task 4) — DONE (v1.7.0). The game is won: 350/350, barrow, victory.**
+     The 334→350 gap was thief-RNG divergence, not a dispatch gap. `runFullGame`
+     (`engine/harness/complete.ts`) makes the combat-resilient replay **thief-and-inventory resilient**:
+     it splits the fixed list before the map-gated tail, `recoverHoard()` ferries any hideaway-stranded
+     treasure back to the case (multiple trips, junk dropped, lantern on for the dark descent), then
+     `SCORE-UPD` reveals the MAP and the map-read → SW → `STONE-BARROW-FCN` tail wins. Committed as
+     `engine/test/completion.test.ts` (seed 1234) asserting `game-over{victory}` + score 350. Minor
+     residue: `get out of boat` at SANDY-BEACH (#219) still fails — vehicle didn't follow the player
+     off the river (cosmetic; see Last Session).
+   - ✅ **Web UI score-event gap — DONE (v1.7.1).** `reconcileScore` in `engine.ts` emits a corrective
+     `score-changed` at the end of any `command()` where SCORE moved without an event — covering the
+     extracted `SCORE-UPD` and LIVING-ROOM M-END recompute, i.e. all treasure scoring. `web/src/status.ts`
+     already folds the event, so the display now updates on take/case. Pinned by `completion.test.ts`
+     (`eventScore === 350`; fails at 302 without the fix).
    - `GRATE-FUNCTION` (3rd undefined routine) is off-route; do it for completeness, not to unblock.
-   - When the engine reaches 350/barrow, **make `full-run.ts`'s combat-resilient replay a committed
-     completion test** (task 4) asserting `game-over{victory}` and score 350.
+   - ✅ **Committed completion test landed (v1.7.0)** — `engine/test/completion.test.ts` asserts
+     `game-over{victory}` + score 350 + `STONE-BARROW`, over the shared `runFullGame` driver.
 
 1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
    - ✅ **Backdrop scarcity RESOLVED (v1.6.4).** 30 generated backdrops packed into
@@ -284,13 +282,14 @@ sat unread for two sessions before it settled the balloon class.
   any vehicle/enterable with an ACTION is a first-class turn participant.** The same slot now covers
   `RBOAT-FUNCTION`; if a game adds another rideable with M-BEG behaviour it works for free. Reaching
   350 is now blocked only by thief-RNG (next bullet), not by any dispatch gap.
-- **The completion oracle cannot reach 350 under the engine's RNG — by design, not a bug.**
-  `12-full-game.cmd` is a fixed command list tuned to dfrotz seed 1234; the engine's generator draws a
-  different thief-theft sequence, so which treasures the thief lifts (and whether the player has hands
-  free to recover them) diverges. Seed 1234 strands skull+torch (16 pts) at the inventory limit; other
-  seeds land anywhere 30–334. **Completing the game needs a thief-and-inventory-resilient harness
-  (task 4), not an engine fix.** Do not "correct" the engine toward 350 against this list — that would
-  be fitting the engine to one RNG stream.
+- ✅ **The game is completable — 350/barrow/victory (v1.7.0), via a resilient harness, not an engine
+  fix.** `12-full-game.cmd`'s fixed list is tuned to dfrotz seed 1234, and the engine's generator draws
+  a different thief-theft sequence — so completion is driven by `runFullGame` (`harness/complete.ts`),
+  which repeats combat until the villain falls and ferries any hideaway-stranded treasure back to the
+  case. Locked by `engine/test/completion.test.ts` (seed 1234). **The engine was never "corrected"
+  toward 350 against the list** — the resilience lives in the harness, exactly where it belongs. Other
+  seeds still don't win: the fixed *command list* is seed-1234-specific (the thief's mid-game thefts
+  change which `put ... in case` lines land), which is a property of the authored list, not the engine.
 - ✅ **Room `M_END` end-of-turn action — DONE (v1.6.5).** `runRoomEnd` runs it between the walk-drain
   and `runClock` (`gmain.zil:154`), on the room the player ends the turn in, no-op once the turn has
   finished. It uncovered a scoring split ZIL relies on: `addScore` now advances `BASE-SCORE` in lockstep
