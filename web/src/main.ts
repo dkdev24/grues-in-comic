@@ -146,6 +146,9 @@ async function main(): Promise<void> {
     }
 
     for (const turn of saved.turns) replay(turn);
+    // A saved session may end mid-walk, leaving the Director's last traversal run
+    // buffered; flush it so the resumed strip shows where the player actually is.
+    comic?.flush();
     history.push(...saved.turns);
     // `load` derives status from the save because `restore` emits no events;
     // the replayed turns above are rendering, not engine execution.

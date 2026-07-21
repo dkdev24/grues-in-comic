@@ -1,16 +1,16 @@
 # Graph Report - web  (2026-07-22)
 
 ## Corpus Check
-- 29 files · ~29,716 words
+- 29 files · ~30,351 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 247 nodes · 430 edges · 12 communities
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.7)
+- 250 nodes · 436 edges · 12 communities
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.73)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bfaf0725`
+- Built from commit: `92f65ba6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,9 +32,9 @@
 1. `Turn` - 18 edges
 2. `main()` - 11 edges
 3. `createSession()` - 11 edges
-4. `createComicView()` - 8 edges
-5. `renderPanel()` - 8 edges
-6. `Panel` - 7 edges
+4. `Panel` - 9 edges
+5. `createComicView()` - 8 edges
+6. `renderPanel()` - 8 edges
 7. `Session` - 7 edges
 8. `replayPanels()` - 7 edges
 9. `drawBalloon()` - 6 edges
@@ -59,19 +59,19 @@
 
 ### Community 0 - "inspector-view.ts"
 Cohesion: 0.10
-Nodes (12): Mapper, ConsoleView, createMixTracker(), PersistedSession, PersistedTurn, rehydrate(), SessionStore, StorageFullError (+4 more)
+Nodes (12): ConsoleView, createMixTracker(), PersistedSession, PersistedTurn, rehydrate(), SessionStore, StorageFullError, ADR-0002 (+4 more)
 
 ### Community 1 - "status.ts"
 Cohesion: 0.07
-Nodes (29): createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, fetchWorld(), main() (+21 more)
+Nodes (28): createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, fetchWorld(), main() (+20 more)
 
 ### Community 2 - "session.ts"
 Cohesion: 0.08
 Nodes (29): Affect, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, sentences(), ADR-0002 (+21 more)
 
 ### Community 3 - "main.ts"
-Cohesion: 0.13
-Nodes (15): createDirector(), Director, DirectorOptions, ADR-0004, ADR-0005, createMapper(), MapperOptions, Panel (+7 more)
+Cohesion: 0.11
+Nodes (17): createDirector(), Director, DirectorOptions, ADR-0004, ADR-0005, createMapper(), Mapper, MapperOptions (+9 more)
 
 ### Community 4 - "Turn"
 Cohesion: 0.11
@@ -113,16 +113,16 @@ Nodes (7): backdropFor(), BackdropId, ROOM_BACKDROPS, ADR-0004, here, roomIds, w
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Turn` connect `inspector-view.ts` to `status.ts`, `session.ts`, `main.ts`, `console-view.ts`, `backdrop.ts`?**
-  _High betweenness centrality (0.109) - this node is a cross-community bridge._
-- **Why does `backdropFor()` connect `backdrop.ts` to `console-view.ts`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+  _High betweenness centrality (0.108) - this node is a cross-community bridge._
+- **Why does `Panel` connect `main.ts` to `session.ts`, `Turn`, `console-view.ts`?**
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+- **Why does `Session` connect `status.ts` to `inspector-view.ts`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `status`, `grid`, `PRESETS` to the rest of the system?**
   _85 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `inspector-view.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10333333333333333 - nodes in this community are weakly interconnected._
 - **Should `status.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07171717171717172 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07308970099667775 - nodes in this community are weakly interconnected._
 - **Should `session.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07657657657657657 - nodes in this community are weakly interconnected._
-- **Should `main.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.13157894736842105 - nodes in this community are weakly interconnected._

@@ -4,6 +4,44 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.7.7 — 2026-07-22 — Narrative Director: traversal collapse — Slice 4
+
+**Date:** 2026-07-22
+
+The Director's first *buffering* edit: backtracking no longer renders as a panel per step.
+
+### Changes
+
+- **`web/src/comic/director.ts` — a run of consecutive `traversal` panels collapses to one.** The
+  Director now buffers: a `traversal` panel is held in `pendingTraversal` (kept as the *latest* — the
+  run's destination so far) and not emitted; the run **flushes** — emitting that single panel — when a
+  non-traversal beat arrives (`arrival` in a new room, `action`, `terminal`, `ambient`) or via the new
+  `Director.flush()`. Walking through *new* rooms is untouched: each is an `arrival`, a beat, emitted
+  as it happens — only *revisiting* collapses. A refusal never interrupts a run (the buffer keeps
+  filling across it). A trailing run (input ends mid-walk) stays buffered until `flush`, which is the
+  intended past-tense trailing, not a bug. The mapper is still folded on every turn, so stream state
+  stays whole across buffered turns.
+- **`web/src/comic-view.ts` — `flush()` on `ComicView`, and the draw logic extracted to `render()`.**
+  `appendTurn` and `flush` both call `render(panels)`; the 0..N-panel loop and scroll-to-newest are
+  now shared. `main.ts` calls `comic?.flush()` after the resume replay loop, so a session saved
+  mid-walk shows where the player actually is rather than stalling on the last emitted beat.
+- **`web/test/director.test.ts` — Slice 4 golden.** The §6-successor invariant is now **emitted ===
+  `edited(full fold)`**, where `edited` is a reference reducer (drop refusals, collapse each maximal
+  traversal run to its last panel, trailing flush) kept in the test so the editing contract is
+  executable and reviewable. Asserted over every walkthrough, plus a corpus check that collapse
+  actually fires (`emittedTotal < keptTotal` — the full game backtracks heavily). Focused tests pin
+  the buffering against real geography (WEST-OF-HOUSE ⇄ NORTH-OF-HOUSE): a back-and-forth walk
+  collapses to one panel at the destination; a trailing run waits for `flush`, which is idempotent.
+  The Slice 3 refusal tests are kept.
+
+### Status
+
+Web 97/97 green, build clean, graph regenerated. The comic now edits out both try-and-error
+(refusals, Slice 3) and backtracking (traversal runs, Slice 4). Next: Slice 5 — the Guide converses
+with the Hero and the two share a facing two-shot (the buddy-comic payoff; the largest slice).
+
+---
+
 ## v1.7.6 — 2026-07-22 — Narrative Director: beat detection + noise drop — Slice 3
 
 **Date:** 2026-07-22

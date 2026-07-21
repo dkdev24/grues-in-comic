@@ -23,8 +23,12 @@ import { layoutStrip } from "./comic/layout.js";
 import { drawPortrait, portraitCrop, PORTRAIT } from "./comic/portrait.js";
 
 export interface ComicView {
-  /** Draw the panel this turn produced. */
+  /** Draw the panels this turn produced — 0..N (ADR 0005: a turn may be dropped,
+   * buffered, or collapsed into a following panel). */
   appendTurn(turn: Turn): void;
+  /** Draw any traversal run the Director is still buffering. Call after a replay
+   * batch so a session resumed mid-walk shows its trailing walk (ADR 0005 §3). */
+  flush(): void;
   /** Report a failure in the pane rather than only in the console. */
   fail(message: string): void;
 }
@@ -208,30 +212,36 @@ export async function createComicView(
 
   return {
     appendTurn(turn: Turn) {
-      // A turn now yields 0..N panels (ADR 0005): the Director may drop a noise
-      // turn or emit a collapsed run. Slice 2 always yields exactly one, so this
-      // loop draws a single canvas as before; it is written for the later slices.
-      const panels = director.ingest(turn);
-      if (panels.length === 0) return;
-      for (const panel of panels) {
-        const canvas = document.createElement("canvas");
-        canvas.className = "panel";
-        canvas.setAttribute("role", "img");
-        canvas.setAttribute("aria-label", describe(panel));
-        strip.append(canvas);
-        drawn.push({ canvas, panel });
-        draw(canvas, panel, measure());
-      }
-      // The newest panel is the one the player just caused, so the strip
-      // follows it the way the transcript follows the last line. Scroll the
-      // strip rather than the panel: `scrollIntoView({ block: "end" })` aligns
-      // the panel's edge with the container's *content* edge, which stops short
-      // of the strip's own bottom padding and leaves the newest panel flush
-      // against the pane while every earlier panel keeps its gap.
-      strip.scrollTo({ top: strip.scrollHeight, behavior: "smooth" });
+      // A turn yields 0..N panels (ADR 0005): the Director may drop a noise turn,
+      // buffer a traversal, or flush a collapsed run ahead of this panel.
+      render(director.ingest(turn));
+    },
+    flush() {
+      render(director.flush());
     },
     fail,
   };
+
+  /** Draw a batch of emitted panels and follow the strip to the newest. */
+  function render(panels: readonly Panel[]): void {
+    if (panels.length === 0) return;
+    for (const panel of panels) {
+      const canvas = document.createElement("canvas");
+      canvas.className = "panel";
+      canvas.setAttribute("role", "img");
+      canvas.setAttribute("aria-label", describe(panel));
+      strip.append(canvas);
+      drawn.push({ canvas, panel });
+      draw(canvas, panel, measure());
+    }
+    // The newest panel is the one the player just caused, so the strip follows it
+    // the way the transcript follows the last line. Scroll the strip rather than
+    // the panel: `scrollIntoView({ block: "end" })` aligns the panel's edge with
+    // the container's *content* edge, which stops short of the strip's own bottom
+    // padding and leaves the newest panel flush against the pane while every
+    // earlier panel keeps its gap.
+    strip.scrollTo({ top: strip.scrollHeight, behavior: "smooth" });
+  }
 
   /**
    * Apply the sequencing policy to the strip itself: how many panels per row,

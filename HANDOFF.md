@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.7.6**
+**1.7.7**
 
 ---
 
@@ -58,7 +58,7 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — Narrative Director (ADR 0005): Slices 1–3 landed, Slice 4 next
+## Last Session — Narrative Director (ADR 0005): Slices 1–4 landed, Slice 5 next
 
 The comic pane read as a *play-log, not a story* — a category error: ADR 0004 treats the parser
 transcript and the comic script as one artifact. Fix is **ADR 0005, the Narrative Director**
@@ -79,20 +79,30 @@ pure-function/parity-oracle property. **Full detail: WORKLOG v1.7.5 / v1.7.6. He
   (parser said no, nothing happened) and passes the rest 1:1. Mapper always folds even on a drop, so
   stream state stays whole. §6 superseded: emitted stream = full fold **minus refusals**
   (`director.test.ts`). **Web 95/95 green.**
-- **4 ◐ NEXT — traversal collapse.** Collapse a *run* of consecutive `traversal` panels into its
-  arrival at the destination (ADR 0005 §3). This is the first slice where the Director **buffers**:
-  `ingest` may hold traversal panels and emit them merged when the run ends (a non-traversal turn, or
-  a `traversal` whose room is a first visit → `arrival`). Keep it "collapse, don't drop the beats
-  inside" — a take mid-run still surfaces. Golden: assert a known back-and-forth walkthrough emits
-  fewer panels, with the kept one set at the destination room. Do **not** fold this into Slice 3's
-  refusal logic; they are separate edit policies.
-- **5 ◐ Guide converses + two-shot** (rests on 1–4). Guide reacts to the beat (broaden trigger from
-  room-keyed to beat-keyed, still presentation-only); two-party affect drives real facing. When it
-  lands, `wiki/the-guide.md` rule 6 ("address the scene, not the Hero") relaxes — decide it there.
+- **4 ✅ Traversal collapse.** The Director's first *buffering* edit: a run of consecutive
+  `traversal` panels (backtracking) collapses to one panel at the run's destination (the last one).
+  `pendingTraversal` holds the run; it flushes when a non-traversal beat arrives or via new
+  `Director.flush()`. A trailing run stays buffered until `flush` — intended past-tense trailing.
+  View gained `flush()`, called after the resume replay (`main.ts`) so a session saved mid-walk shows
+  where the player is. §6-successor invariant is now **emitted === `edited(full fold)`** (reference
+  reducer in `director.test.ts`). Walking through *new* rooms is unaffected (each is an `arrival`).
+- **5 ◐ NEXT — Guide converses + two-shot.** The visible buddy-comic payoff; rests on 1–4. Two parts:
+  (a) **broaden the Guide trigger** from room-keyed first-visit (`guideFor` in `mapper.ts`, script
+  `GUIDE_SCRIPT` in `comic-view.ts`) to **beat-keyed** — the Guide reacts to *what the Hero just did*
+  (the panel's `kind`/events), not only to entering a scripted room. Stay presentation-only (reads
+  events, touches no state, still cooldown-gated) so `wiki/the-guide.md` §3 holds. (b) **two-party
+  affect + facing**: when a beat carries both a Hero action and a Guide reply, compute affect for
+  **both** figures and promote the camera to a real facing two-shot (§7 `over-shoulder`/`wide`, now
+  driven by the *exchange*, not by "a guide line exists and nothing else happened" — see
+  `cameraFor`). When it lands, **`wiki/the-guide.md` rule 6 ("address the scene, not the Hero")
+  relaxes — decide it there**, and note the Hero may move from a *thought* balloon to *speech*
+  (`heroBalloon` balloon class; `wiki/the-hero.md` left this to §4). Affect two-party work lives in
+  `web/src/comic/affect.ts` (currently Hero-only) + `render.ts`/`figure.ts` (facing). This is the
+  largest slice — consider itemizing (a)/(b) as separate commits if it runs long.
 
-**Not verified in-browser this session** (offer stands: Playwright screenshot of a take + a dropped
-refusal). Deterministic per-object Hero-line variation remains a sanctioned later refinement
-(`wiki/the-hero.md`).
+**Not verified in-browser across the whole arc** (offer stands: Playwright screenshots of a take, a
+dropped refusal, and a collapsed backtrack). Deterministic per-object Hero-line variation remains a
+sanctioned later refinement (`wiki/the-hero.md`).
 
 **Slice 2 ✅ landed — Director skeleton (pure 1:1 refactor).** `web/src/comic/director.ts`:
 `createDirector(options) → { ingest(turn) → Panel[], panels }` wraps the mapper and returns exactly
@@ -208,11 +218,11 @@ there yet. Do these in order:
 1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
    - ⚑ **Comic pane reads as a play-log, not a story — scoped as ADR 0005 (Narrative Director),
      Proposed.** Root cause and the 5-slice plan are in `docs/adr/0005-narrative-director.md` and
-     the Last Session note. **Slices 1–3 ✅** (Hero balloon = action · Director skeleton · beat detection
-     + `refusal` drop). **Next: Slice 4 — traversal collapse**, then Slice 5 (Guide converses +
-     two-shot). Details and the Slice 4/5 design are in the Last Session block above; the mapper's
-     "one panel per turn (§6)" test at `mapper.test.ts` still holds (the mapper is 1:1; §6 is
-     superseded on the Director's *emitted* stream, asserted in `director.test.ts`).
+     the Last Session note. **Slices 1–4 ✅** (Hero balloon = action · Director skeleton · beat detection
+     + `refusal` drop · traversal collapse). **Next: Slice 5 — Guide converses + two-shot** (design in
+     the Last Session block above). The mapper's "one panel per turn (§6)" test at `mapper.test.ts`
+     still holds (the mapper is 1:1; §6 is superseded on the Director's *emitted* stream, asserted in
+     `director.test.ts`).
    - ✅ **Backdrop scarcity RESOLVED (v1.6.4).** 30 generated backdrops packed into
      `web/assets/comic/`; `web/src/comic/backdrop.ts` assigns all 110 rooms by id (`ROOM_BACKDROPS`,
      renamed from `OUTDOORS`/`OUTDOOR_BACKDROPS`); `BackdropId` union is the 30-id set; decoder reads
