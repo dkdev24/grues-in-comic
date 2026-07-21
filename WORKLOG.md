@@ -2141,3 +2141,41 @@ an **IR/extractor** bug, not an engine one — the exorcism at Entrance to Hades
 `ENTRANCE-TO-HADES` (the modernized source renamed the room but not the reference; Release 119, the
 golden's game, still has the old name, so dfrotz works). Not a milestone-complete build — the engine
 does not yet win the full game.
+
+---
+
+## v1.6.3 — 2026-07-21 — Exorcism IR fix: stale room reference resolved (stage 5.5)
+
+**Date:** 2026-07-21
+
+### Changes
+
+- **`ir/src/extract-behavior.ts` + `ir/src/extract-world.ts`:** a `,NAME` value reference that names
+  a room's ACTION routine and resolves to nothing else now lowers to that **room entity**, not to a
+  bare name string. Zork I renamed the room `LLD-ROOM → ENTRANCE-TO-HADES` (1dungeon.zil) but left
+  `,LLD-ROOM` in `BELL-F`'s `<EQUAL? ,HERE ,LLD-ROOM>` (1actions.zil) and kept the action routine's
+  name; Release 119 — the golden's game — still named the room `LLD-ROOM`, so the exorcism's compare
+  fired there. `extract-world.ts` builds `roomByActionRoutine` from each room's `action` (only
+  *unambiguous* ones — a routine shared by several rooms, e.g. `FOREST-ROOM`, is excluded, as is one
+  whose name is itself a live entity id); `resolveName` consults it just before the routine-atom
+  fallback, so it is **fail-closed** — only otherwise-dangling names are rewritten. The prior code
+  had deliberately encoded this as an always-false "original-game quirk"; that reading was wrong.
+- **`ir/artifacts/zork1.world.json` regenerated.** `BELL-F` now compares `HERE` against
+  `entity ENTRANCE-TO-HADES`; the `LLD-ROOM` routine stays extracted (reachable via the room's
+  `action` entry ref). Extraction still validates: 110 rooms, 137 objects, 360 routines.
+- **Effect (measured, `engine/harness/full-run.ts`):** ringing the bell at Entrance to Hades now
+  fires the exorcism's `M-BEG` branch — the bell goes red-hot and `XB` sets — instead of the old
+  always-false "Ding, dong." The ceremony proceeds correctly through lighting the candles and reading
+  the book. It does **not** yet complete: `XC` (set by the room's `M-END` action, gated on `XB` +
+  lit candles) never becomes true, because the engine does not run a room's `M-END` action at end of
+  turn — so `LLD-FLAG` is never set and the gate stays barred. That is the newly-surfaced **engine**
+  gap (turn-loop, gmain.zil:154 `PERFORM → room M-END → CLOCKER`), a different subsystem.
+- **Tests:** `ir/test/behavior-35-triage.test.ts` rewritten to pin the corrected resolution (was
+  pinning the always-false quirk). 193 IR tests pass; 129 engine tests pass; **replay 143/143 strict
+  (100%)** — parity unbroken.
+
+### Status
+
+**Stage 5.5 ◐.** The IR/extractor blocker is cleared and the exorcism now *starts*. The full game is
+still not winnable in the engine: the next gap is the room `M-END` end-of-turn action (blocks the
+exorcism's completion and any other room whose behavior depends on `M-END`). Not milestone-complete.

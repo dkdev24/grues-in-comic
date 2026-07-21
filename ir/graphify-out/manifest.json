@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/extract-world.ts": {
-    "mtime": 1784511762.8157783,
-    "ast_hash": "fe1cdaaa6572996ff340c2d29b1ef95f",
+    "mtime": 1784612870.5450554,
+    "ast_hash": "b73bd6e4b25b9f75ba5b7a06ce5b3daa",
     "semantic_hash": ""
   },
   "test/extract.test.ts": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784511979.3464117,
-    "ast_hash": "ff212baeba76740cc6ccae917214c0a7",
+    "mtime": 1784612861.7202501,
+    "ast_hash": "64e8574d3c8be7605411e243f89f6812",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "test/behavior-35-triage.test.ts": {
-    "mtime": 1784510314.882056,
-    "ast_hash": "8d36b49bb96b0bb56ed7c368eed71355",
+    "mtime": 1784613307.4463444,
+    "ast_hash": "5011ab3b064717ccb2ca25f1856a0e36",
     "semantic_hash": ""
   },
   "test/behavior-35f.test.ts": {

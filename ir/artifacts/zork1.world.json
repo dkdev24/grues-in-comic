@@ -14805,8 +14805,8 @@
                                 "id": "HERE"
                               },
                               {
-                                "op": "const",
-                                "value": "LLD-ROOM"
+                                "op": "entity",
+                                "id": "ENTRANCE-TO-HADES"
                               }
                             ]
                           },

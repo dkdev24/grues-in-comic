@@ -65,11 +65,16 @@ describe("stage 3.5 triage — extractor-only lowerings", () => {
     );
   });
 
-  it("BELL-F: a ,NAME GVal naming a routine is its name string", () => {
-    // `<EQUAL? ,HERE ,LLD-ROOM>` — an original-game quirk comparing the
-    // current room to a routine; stays always-false, as on the Z-machine.
+  it("BELL-F: a ,NAME naming a room's ACTION routine resolves to that room", () => {
+    // `<EQUAL? ,HERE ,LLD-ROOM>` is a *stale room name*: Zork I renamed the room
+    // `LLD-ROOM → ENTRANCE-TO-HADES` but left `,LLD-ROOM` in BELL-F and kept the
+    // action routine's name. Release 119 still named the room LLD-ROOM, so the
+    // exorcism's compare fired there; it must resolve to that room here too.
     expect(JSON.stringify(routineById.get("BELL-F"))).toContain(
-      '{"op":"equal?","args":[{"op":"global","id":"HERE"},{"op":"const","value":"LLD-ROOM"}]}',
+      '{"op":"equal?","args":[{"op":"global","id":"HERE"},{"op":"entity","id":"ENTRANCE-TO-HADES"}]}',
     );
+    // The action routine itself stays extracted (reachable via the room's
+    // `action` entry ref), so nothing is lost by resolving the reference.
+    expect(routineById.has("LLD-ROOM")).toBe(true);
   });
 });

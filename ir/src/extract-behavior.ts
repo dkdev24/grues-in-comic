@@ -173,6 +173,16 @@ export interface BehaviorSources {
   globalForms: Map<string, AstNode>;
   roomAndObjectIds: Set<string>;
   /**
+   * Room id keyed by the *unambiguous* routine name that room declares as its
+   * ACTION. Resolves a stale room reference left by a rename: Zork I renamed the
+   * room `LLD-ROOM → ENTRANCE-TO-HADES` (1dungeon.zil) but left `,LLD-ROOM` in
+   * BELL-F (1actions.zil) and kept the action routine's name, so `,LLD-ROOM`
+   * still means *that room*. Consulted only for names that resolve to nothing
+   * else (see {@link RoutineTransformer.resolveName}), so it is fail-closed; an
+   * action routine shared by several rooms names no single room and is excluded.
+   */
+  roomByActionRoutine: Map<string, string>;
+  /**
    * Every flag name declared by a room or object `(FLAGS …)` list.
    *
    * Needed because ZIL also uses a flag as a plain *value*: `GO` stores one in
@@ -965,10 +975,17 @@ class RoutineTransformer {
       this.needGlobal(name);
       return { op: "global", id: name };
     }
-    // A routine atom as a value (`,LLD-ROOM` in BELL-F): its name string,
-    // matching bare-atom routine references — applied targets stay
-    // reachable, and BELL-F's routine-vs-room compare (an original-game
-    // quirk) stays always-false, as the Z-machine address compare was.
+    // A stale room name: `,NAME` where NAME is some room's ACTION routine and
+    // resolves to nothing else. Zork I renamed `LLD-ROOM → ENTRANCE-TO-HADES`
+    // but left `,LLD-ROOM` in BELL-F's `<EQUAL? ,HERE ,LLD-ROOM>` and kept the
+    // action routine's name. Release 119 — the golden's game — still named the
+    // room LLD-ROOM, so the exorcism fired there; resolve it to that room so it
+    // fires here too. The action routine itself stays reachable via the room's
+    // `action` entry ref, so no call target is registered here.
+    const staleRoom = this.sources.roomByActionRoutine.get(name);
+    if (staleRoom !== undefined) return { op: "entity", id: staleRoom };
+    // A routine atom as a value: its name string, matching bare-atom routine
+    // references — applied targets stay reachable.
     if (this.sources.callableNames.has(name)) {
       if (this.sources.routineForms.has(name) && !engineOwned(name)) {
         this.callTargets.add(name);

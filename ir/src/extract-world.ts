@@ -684,11 +684,34 @@ export function extractWorld(programs: AstProgram[]): ExtractionResult {
   for (const room of rooms) for (const flag of room.flags) declaredFlags.add(flag);
   for (const object of objects) for (const flag of object.flags) declaredFlags.add(flag);
 
+  // A room's ACTION routine name doubles as a *stale room name* after a rename
+  // (see BehaviorSources.roomByActionRoutine). Only unambiguous action routines
+  // qualify: a routine shared by several rooms (e.g. FOREST-ROOM) names no
+  // single room and is left alone, and one whose name is itself a live entity id
+  // is already resolved as that entity before this map is consulted.
+  const actionRoomCount = new Map<string, number>();
+  for (const room of rooms) {
+    if (room.action !== undefined) {
+      actionRoomCount.set(room.action, (actionRoomCount.get(room.action) ?? 0) + 1);
+    }
+  }
+  const roomByActionRoutine = new Map<string, string>();
+  for (const room of rooms) {
+    if (
+      room.action !== undefined &&
+      actionRoomCount.get(room.action) === 1 &&
+      !entityIds.has(room.action)
+    ) {
+      roomByActionRoutine.set(room.action, room.id);
+    }
+  }
+
   const behavior = extractBehavior(entryRefs, {
     routineForms,
     callableNames,
     globalForms,
     roomAndObjectIds: entityIds,
+    roomByActionRoutine,
     flagNames: declaredFlags,
     constants,
     directionWords: new Map(Object.entries(DIRECTION_MAP)),
