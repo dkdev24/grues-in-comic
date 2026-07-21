@@ -324,8 +324,8 @@ function handleParse(ctx: RuntimeContext, parsed: ParseResult): boolean {
       ctx.action = "V-WALK";
       ctx.verb = "WALK";
       ctx.directObject = parsed.direction;
-      const room = ctx.world.rooms.get(here(ctx.state));
-      if (room?.action !== undefined && handled(ctx, room.action, [M_BEG])) return true;
+      const mBeg = containerAction(ctx);
+      if (mBeg !== undefined && handled(ctx, mBeg, [M_BEG])) return true;
       travel(ctx, parsed.direction);
       return true;
     }
@@ -437,8 +437,8 @@ function dispatch(ctx: RuntimeContext, preAction: string | undefined): void {
       if (action !== undefined && handled(ctx, action)) return;
     }
 
-    const room = ctx.world.rooms.get(here(ctx.state));
-    if (room?.action !== undefined && handled(ctx, room.action, [M_BEG])) return;
+    const mBeg = containerAction(ctx);
+    if (mBeg !== undefined && handled(ctx, mBeg, [M_BEG])) return;
 
     /*
      * Nobody claimed it: the verb's own default runs, and whatever it does is
@@ -501,6 +501,21 @@ function metaVerb(ctx: RuntimeContext, action: string): boolean {
 function entityAction(ctx: RuntimeContext, id: string): string | undefined {
   const value = ctx.state.properties[id]?.["action"];
   return typeof value === "string" ? value : undefined;
+}
+
+/**
+ * ZIL's M-BEG applicable is `<LOC WINNER>`, not always HERE (gmain.zil:212):
+ * when the player is aboard a vehicle, that vehicle's ACTION — not the room's —
+ * runs with M-BEG. This is where `RBOAT-FUNCTION` intercepts LAUNCH (and the
+ * river-current WALK) before the verb default; dispatching M-BEG to the room
+ * would let V-LAUNCH's refusal win instead. On land `<LOC WINNER>` is the room,
+ * so this is identical to the old `here()` lookup.
+ */
+function containerAction(ctx: RuntimeContext): string | undefined {
+  const container = ctx.state.locations[PLAYER_ID];
+  if (container === undefined) return ctx.world.rooms.get(here(ctx.state))?.action;
+  const room = ctx.world.rooms.get(container);
+  return room !== undefined ? room.action : entityAction(ctx, container);
 }
 
 /* ---------------- travel ---------------- */

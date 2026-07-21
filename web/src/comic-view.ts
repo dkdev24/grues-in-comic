@@ -29,24 +29,128 @@ export interface ComicView {
 }
 
 /**
- * Seed Guide lines for the opening scene.
+ * The Guide's script — one line per room, spoken once on first entry.
  *
- * **A seam with a sample in it, not a script.** ADR 0004 §3 makes the Guide
- * presentation-only and its Consequences bound the project's authoring cost by
- * the Guide's trigger rate — a rate the ADR deliberately does not set. What 5.3
- * commits is the *mechanism*: a first-visit trigger, a cooldown, and a table
- * that may be empty. These six lines exist so the POC exercises the rung that
- * needs them (§7 rung 5, over-the-shoulder) and the one balloon class only the
- * Guide uses; the Guide's identity and voice are still open (HANDOFF #5), and
- * replacing every line here changes nothing but the words.
+ * ADR 0004 §3 makes the Guide presentation-only, and its Consequences bound the
+ * project's authoring cost by the Guide's trigger rate. 5.3 committed the
+ * *mechanism* (a first-visit trigger, a cooldown, a table keyed by room id) with
+ * six placeholder lines; this is the authored script the ADR deferred. The
+ * identity and voice it answers to are settled in `wiki/the-guide.md`: the Guide
+ * is the tiki idol (§11), and it talks in short, present-tense, deadpan asides —
+ * first sentence sees the room, second sentence knows something about it. It is
+ * atmosphere, never a hint: no line here gives a puzzle away, and by §3 the Guide
+ * could not act on one if it did. Keyed by room id (see `zork1.world.json`), so
+ * adding a room is the whole cost of giving it a voice. Rooms absent from the map
+ * are silent by design — the cooldown means not every first visit should speak.
  */
-const GUIDE_SCRIPT = new Map([
+const GUIDE_SCRIPT = new Map<string, string>([
+  // Above ground — the house and the forest that rings it.
   ["WEST-OF-HOUSE", "Boarded front door. Someone did not want visitors."],
   ["NORTH-OF-HOUSE", "The path goes on. It usually does."],
-  ["BEHIND-HOUSE", "That window is slightly ajar. That is an invitation."],
+  ["SOUTH-OF-HOUSE", "The same white house, a different side. The boards are just as final."],
+  ["EAST-OF-HOUSE", "That window is slightly ajar. That is an invitation."],
+  ["FOREST-1", "Trees, and more trees. The forest keeps its one idea."],
+  ["FOREST-2", "You have been among these trees before. They will not admit it."],
+  ["FOREST-3", "More forest. It is patient in a way you are not."],
+  ["MOUNTAINS", "The mountains forbid passage. They have had practice."],
+  ["PATH", "A path worn by feet that mostly did not come back."],
+  ["UP-A-TREE", "A nest, an egg, a long way down. Choose carefully."],
+  ["CLEARING", "A clearing. The trees step back to watch."],
+  ["GRATING-CLEARING", "Leaves, and something square beneath them. Not everything buried stays buried."],
+
+  // Inside the house.
   ["KITCHEN", "A table, a sack, a bottle. Somebody left in a hurry."],
+  ["ATTIC", "Dark, and full of the shapes of useful things. Bring your own light."],
   ["LIVING-ROOM", "Note the rug. Rugs in this house are load-bearing."],
   ["CELLAR", "It gets dark down here. Darker than you want."],
+
+  // The first cave — troll country and the galleries.
+  ["TROLL-ROOM", "The troll blocks the way and grins. He has done this to better than you."],
+  ["EAST-OF-CHASM", "A chasm, and a narrow ledge. The empire keeps its treasures behind inconveniences."],
+  ["GALLERY", "A painting worth more than its frame. Take one, leave the other."],
+  ["STUDIO", "Someone worked here once. The chimney still remembers the way up."],
+
+  // The maze, which is its own joke and knows it.
+  ["MAZE-1", "A maze of twisty little passages, all alike. It means that literally."],
+  ["MAZE-2", "Another twist. The maze does not care which."],
+  ["MAZE-5", "Still the maze. Landmarks are a luxury it does not offer."],
+  ["MAZE-8", "The passages keep their faces turned away. Count your steps or lose them."],
+  ["DEAD-END-1", "A dead end. The maze offers several. It is generous that way."],
+  ["DEAD-END-2", "Another wall where a way should be. The maze is consistent, at least."],
+  ["CYCLOPS-ROOM", "The cyclops is hungry and you are on the menu. There is a name he would rather not hear."],
+  ["STRANGE-PASSAGE", "A passage that connects what should not connect. Use it anyway."],
+  ["TREASURE-ROOM", "The thief's own hoard. He will want it back, and he is not far."],
+  ["GRATING-ROOM", "A grating overhead, and daylight past it. Locked, of course."],
+
+  // Mirrors and the round hub of the middle empire.
+  ["MIRROR-ROOM-1", "A mirror you could step through. The empire's shortcuts had style."],
+  ["MIRROR-ROOM-2", "The same mirror from the other side. It kept its promise."],
+  ["ROUND-ROOM", "Every passage meets here. A hub, or a snare, depending on your errand."],
+  ["EW-PASSAGE", "East to west, and nothing to see between. Some rooms are only distance."],
+  ["NS-PASSAGE", "North to south. The empire built corridors the way it built everything: to outlast you."],
+  ["LOUD-ROOM", "The room is very loud. The room is very loud."],
+  ["DAMP-CAVE", "Water somewhere close, and the smell of it older than the walls."],
+  ["DEEP-CANYON", "A canyon that goes down further than your light. Down is a direction here, not a plan."],
+  ["CHASM-ROOM", "A chasm too wide to argue with. Go around."],
+
+  // The dam and the reservoir it holds.
+  ["DAM-ROOM", "A dam, and a control panel. The manual is elsewhere, on purpose."],
+  ["DAM-LOBBY", "Guidebooks and matches. The empire believed in signage."],
+  ["MAINTENANCE-ROOM", "Buttons in four colors. Only some of them regret being pressed."],
+  ["RESERVOIR-SOUTH", "The south bank. The water decides whether this is a shore or a floor."],
+  ["RESERVOIR", "A reservoir, drained or full by a bolt you turned upstream. Cause, then effect."],
+  ["RESERVOIR-NORTH", "The far bank, and a pump for a boat you do not yet own."],
+  ["STREAM-VIEW", "A stream, viewed. The empire liked to be looked at."],
+  ["DAM-BASE", "The river begins here. So does the part of the empire with no walls."],
+
+  // Hades and the temples.
+  ["ENTRANCE-TO-HADES", "The gate to the land of the dead. The dead are in."],
+  ["LAND-OF-LIVING-DEAD", "Spirits, and a bell, a book, a candle. The rite is older than the empire that fears it."],
+  ["ENGRAVINGS-CAVE", "Ancient carvings. They flatter no one who stops to read them."],
+  ["EGYPT-ROOM", "A gold coffin, too heavy to be wise. Everyone takes it anyway."],
+  ["DOME-ROOM", "A railing, a long drop, and a rope you did not think to bring. Improvise."],
+  ["TORCH-ROOM", "A torch that burns without fuel. The empire had good years."],
+  ["NORTH-TEMPLE", "A temple, quiet the way only abandoned holy places are."],
+  ["SOUTH-TEMPLE", "An altar, and a way down. Somewhere to leave what you cannot carry further."],
+  ["ATLANTIS-ROOM", "An ancient hall, and a trident in it. Atlantis kept better souvenirs than it kept itself."],
+
+  // The Frigid River and Aragain Falls.
+  ["RIVER-1", "The current has you now. It knows where it is going, which is more than you can say."],
+  ["RIVER-2", "The banks slide past. Downstream is the only vote that counts here."],
+  ["RIVER-3", "Still drifting. The river is in no hurry and neither, now, are you."],
+  ["RIVER-4", "The water quickens. A buoy rides ahead of you, red and deliberate."],
+  ["RIVER-5", "The last calm stretch. Beyond it the river stops being scenery."],
+  ["WHITE-CLIFFS-NORTH", "Cliffs too sheer to land against. Keep to the water."],
+  ["WHITE-CLIFFS-SOUTH", "More white cliff, no more welcoming. The river chose your route for you."],
+  ["SHORE", "The far shore. The river sets you down, this once."],
+  ["SANDY-BEACH", "Sand, and a buoy that rode the river before you did."],
+  ["SANDY-CAVE", "A cave that wants digging. Bring a shovel and low expectations."],
+  ["ARAGAIN-FALLS", "A waterfall, and a rainbow you might yet be able to walk on."],
+  ["ON-RAINBOW", "You are standing on a rainbow. Do not think about it too hard."],
+  ["END-OF-RAINBOW", "The end of the rainbow, and the pot they promised. For once they meant it."],
+  ["CANYON-BOTTOM", "The bottom of the canyon. Everything rolls down here eventually, including you."],
+  ["CLIFF-MIDDLE", "A ledge halfway up. Halfway is the worst place to stop and think."],
+  ["CANYON-VIEW", "A long look down the canyon. The vertigo is complimentary."],
+
+  // The coal mine.
+  ["MINE-ENTRANCE", "The coal mine yawns. It has swallowed better-equipped men."],
+  ["SQUEEKY-ROOM", "Something small lives here and does not like company."],
+  ["BAT-ROOM", "A bat, and it likes shiny things. Garlic, it likes considerably less."],
+  ["SHAFT-ROOM", "A shaft, a basket, a chain. Load it before you regret the weight on your back."],
+  ["SMELLY-ROOM", "A smell with a warning inside it. The next room is where it comes true."],
+  ["GAS-ROOM", "Gas, and an open flame in your hand. Think."],
+  ["MINE-1", "Coal, and dark, and more of both. The mine repeats like the maze, but dirtier."],
+  ["MINE-2", "The same coal from a different angle. Down here, angles are all you get."],
+  ["MINE-4", "Deeper in. The mine gives up nothing it was not paid for in advance."],
+  ["LADDER-TOP", "A ladder down. The bottom is further than the rung suggests."],
+  ["LADDER-BOTTOM", "The foot of the ladder, and the mine proper. Mind your light."],
+  ["TIMBER-ROOM", "Old timbers, and a gap too narrow for a full pack. Travel light or not at all."],
+  ["LOWER-SHAFT", "A draft from nowhere, and pressure of the diamond-making kind. Something valuable is close."],
+  ["MACHINE-ROOM", "A machine, a lid, a switch. Coal goes in; something better is supposed to come out."],
+  ["SLIDE-ROOM", "A chute back to the cellar. Faster down than up, as these things always are."],
+
+  // The end.
+  ["STONE-BARROW", "The barrow, at last. The way in opens once, and only forward."],
 ]);
 
 /** Sub-pixel slack when deciding whether the reader is still at the newest panel. */

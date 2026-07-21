@@ -4,6 +4,42 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.6.6 — stage 5.5: magic boat `LAUNCH` (vehicle M-BEG dispatch)
+
+**Date:** 2026-07-21
+
+### Changes
+
+- **Fixed the M-BEG applicable to be `<LOC WINNER>`, not always the room** (`engine.ts`).
+  ZIL's PERFORM runs the second dispatch slot as `<APPLY <GETP <LOC ,WINNER> ,P?ACTION> ,M-BEG>`
+  (gmain.zil:212). When the player is aboard a vehicle, `<LOC WINNER>` is the vehicle, so the
+  vehicle's ACTION — not the room's — runs with M-BEG. The engine had dispatched M-BEG only to
+  `here()` (the room), so `RBOAT-FUNCTION`'s LAUNCH handling (which lives under its M-BEG branch,
+  1actions.zil:2738) was never reached and `V-LAUNCH`'s refusal won instead.
+- New `containerAction(ctx)` helper resolves the ACTION of the player's container: the room on
+  land (identical to the old lookup), the vehicle when aboard. Applied at both M-BEG sites — the
+  `command` dispatch and the bare-direction `travel` path (so river-current WALK also reaches the
+  boat).
+- **Impact:** the whole Frigid River leg + coal mine now run. Under the combat-resilient full-game
+  probe (`full-run.ts`, seed 1234) the engine advances **173 → 334/350**, misses **104 → 4**,
+  0 crashes, 0 deaths. `launch` now drifts RIVER-1→4; buoy/emerald/scarab/shovel/dig all work.
+- **Remaining 16 pts to 350 is thief-RNG divergence, not an engine defect.** The completion oracle
+  is authored for dfrotz seed 1234's exact RNG stream; the engine's generator differs (ADR-noted).
+  Under the engine's draws the thief steals *both* skull and torch from the player (dfrotz steals
+  only the torch; the skull is cased early at cmd #215). On the thief's death both drop in
+  TREASURE-ROOM, and at recovery the player hits the inventory limit
+  (`"You're holding too many things already!"`), stranding skull(10)+torch(6) = the exact 16-pt
+  gap. Scores swing 30–334 across seeds {1,7,42,99,1234,2026}, confirming RNG-sensitivity. Reaching
+  350 needs a completion harness resilient to thief theft + inventory (task 4), or dfrotz's exact
+  RNG (infeasible) — a distinct problem from the boat gap.
+
+### Status
+
+129 engine tests green, typecheck clean, strict parity intact (23 transcript tests). Graphify
+regenerated (1001 nodes). The named task-0 blocker (magic boat LAUNCH) is complete.
+
+---
+
 ## v0.1.0 — Repository Initialization
 
 **Date:** 2026-07-18

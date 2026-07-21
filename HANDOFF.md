@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.6.5**
+**1.6.6**
 
 ---
 
@@ -46,54 +46,63 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
   grid) and **character portraits** (`comic/portrait.ts` + the cast bar). Opening area playable
   in comic form — the exit criterion. **89 web tests, 468 across all packages, parity 143/143.**
   ⚑ **Gate D cleared** — asset strategy decided, so **5.4–5.5 can now be planned in detail**.
-  - **5.5 ◐ (v1.6.5)** — completion oracle `verification/walkthroughs/12-full-game.cmd` wins in
-    dfrotz (**350/350**). Engine now runs **West of House → past the exorcism → DAM-BASE, 173/350**.
-    Landed earlier: the two native routines (`LOUD-ROOM-FCN` echo, `STONE-BARROW-FCN` — the engine's
-    first **victory**), a room-`M_BEG`-on-travel fix, a scope fix, and **v1.6.3 the exorcism IR fix**.
-    **v1.6.5: the room `M-END` end-of-turn action** (`runRoomEnd` in `engine.ts`) — the exorcism now
-    *completes*; the fix exposed and corrected a scoring bug (`addScore` now advances `BASE-SCORE`, see
-    below). Next blocker is the **magic boat `LAUNCH`** (object-behaviour gap — `RBOAT-FUNCTION` not
-    reached; blocks the whole Frigid River leg). Presentation coverage (task 3): the **30-backdrop art
-    pass LANDED (v1.6.4)**. See Last Session.
+  - **5.5 ◐ (v1.6.6)** — completion oracle `verification/walkthroughs/12-full-game.cmd` wins in
+    dfrotz (**350/350**). **v1.6.6: the magic boat `LAUNCH` fix** — M-BEG dispatch now targets
+    `<LOC WINNER>` (the vehicle when aboard), not always the room, so `RBOAT-FUNCTION` intercepts
+    LAUNCH before `V-LAUNCH`. The whole Frigid River leg + coal mine now run: engine advances
+    **173 → 334/350**, misses 104 → 4, 0 crashes, 0 deaths. Earlier: the two native routines
+    (`LOUD-ROOM-FCN`, `STONE-BARROW-FCN` — first **victory**), the exorcism IR fix (v1.6.3), the
+    room `M-END` action (v1.6.5, + `addScore`/`BASE-SCORE` fix). **Remaining 16 pts to 350 is
+    thief-RNG divergence, NOT an engine bug** — see Last Session / Open Issues. Presentation (task 3):
+    30-backdrop art pass LANDED (v1.6.4). See Last Session.
 
 ---
 
-## Last Session — stage 5.5 (v1.6.5): room `M-END` action; exorcism completes; score bug fixed
+## Last Session — stage 5.5 (v1.6.6): magic boat `LAUNCH` (vehicle M-BEG dispatch); 173 → 334/350
 
-The engine now runs a room's ACTION with `M-END` at end of turn (`runRoomEnd` in `engine.ts`, between
-the walk-drain and `runClock`, matching ZIL's `PERFORM → room M-END → CLOCKER`, `gmain.zil:154`). It
-fires on the room the player *ends* the turn in, no-ops once the turn has finished (ZIL gates `M-END`
-on `PERFORM` ≠ `M-FATAL`), and swallows a `FatalSignal` like `runClock`. The exorcism now **completes**
-(`XC` → `LLD-FLAG`), and the full-game oracle advances from a hard stop at the temple to **173/350 at
-DAM-BASE**. Full narrative in `WORKLOG.md` v1.6.5.
+**The boat gap is fixed.** ZIL's PERFORM runs its second dispatch slot as
+`<APPLY <GETP <LOC ,WINNER> ,P?ACTION> ,M-BEG>` (gmain.zil:212) — the M-BEG applicable is the player's
+*container*, which is the vehicle when aboard one, not always the room. The engine had dispatched M-BEG
+only to `here()` (the room), so `RBOAT-FUNCTION`'s LAUNCH handling — which lives under its M-BEG branch
+(1actions.zil:2738), returns nothing when called as PRSO with no arg — was never reached, and
+`V-LAUNCH`'s refusal won. Fix: new `containerAction(ctx)` in `engine.ts` resolves the ACTION of
+`<LOC WINNER>` = `state.locations[PLAYER_ID]` (the room on land — identical to before — or the vehicle
+aboard). Applied at both M-BEG sites: the `command` dispatch and the bare-direction `travel` path (so
+river-current WALK also reaches the boat). `launch` now drifts RIVER-1→4; the whole river leg + coal
+mine run. Full-game probe (seed 1234): **173 → 334/350, misses 104 → 4, 0 crashes, 0 deaths.** Full
+narrative in `WORKLOG.md` v1.6.6.
 
-**The score regression this exposed, and its fix.** Running the Living Room's `M-END` every turn
-revealed that `LIVING-ROOM-FCN` recomputes `SCORE = BASE-SCORE + OTVAL-FROB` on any TAKE/PUT there
-(1actions.zil:483), and the engine's native `addScore` (room-visit values via GOTO) only advanced
-`SCORE`, never `BASE-SCORE`. So the first `take` in the Living Room recomputed `SCORE` from a
-`BASE-SCORE` of 0 and **silently wiped every room-visit point** — walkthrough 06 read 25 not 35.
-Fix: `addScore` now advances `BASE-SCORE` in lockstep, exactly as ZIL's `SCORE-UPD` does
-(gverbs.zil:1851), restoring the invariant `SCORE = BASE-SCORE + value-of-treasures-in-case`. No
-double-count: find value (`P?VALUE`) and case value (`P?TVALUE`) are separate properties. Diagnosed by
-a throwaway per-command `SCORE` probe (10 → 0 on `take lamp` → 25), then verified restored (10 → 10 → 35).
+**The remaining 16 pts to 350 is thief-RNG divergence, NOT an engine bug — do not chase it as one.**
+The completion oracle is authored for dfrotz seed 1234's exact RNG stream; the engine's generator
+differs (ADR-noted, `full-run.ts` header). Under the engine's draws the thief steals *both* skull and
+torch from the player (dfrotz steals only the torch; the skull is cased early at cmd #215). Both drop
+in TREASURE-ROOM on his death, and at recovery the player hits the inventory limit
+(`"You're holding too many things already!"`), stranding skull(10)+torch(6) = the exact gap. Scores
+swing 30–334 across seeds {1,7,42,99,1234,2026}, confirming RNG-sensitivity. Verified via a throwaway
+treasure-in-case probe (`treasureValue` per object vs `TROPHY-CASE` membership).
 
-**A TypeScript narrowing trap worth remembering.** After `if (ctx.finished !== undefined) return`, TS
-narrows `ctx.finished` to `undefined` for the rest of `runTurn` and does **not** widen it back after a
-later `runRoomEnd(ctx)`/`travel(ctx)` mutates it — so a second inline `emit(..., ...ctx.finished)`
-spreads a `never` and fails to compile even though the runtime is correct. The fix is the
-`endIfFinished(ctx)` helper, which reads the property in a fresh scope. General form: **a mutating call
-does not reset property narrowing; re-read through a function when a later branch depends on the new
-value.**
+**Green:** 129 engine tests, typecheck clean, strict parity intact (23 transcript tests), graphify
+regenerated (1001 nodes). The `containerAction` change only diverges from the old `here()` lookup when
+the player is aboard a vehicle, so every land turn is byte-identical — hence parity untouched.
 
-**Green:** 143/143 strict parity restored (04, 06 back to full), 129 engine tests, typecheck clean,
-graphify regenerated (254 nodes). Two pre-existing web-test failures are unrelated (portrait tsc,
-mapper shot-ranking) and predate this work.
+**Also this session — task-1 presentation (Guide voice), at the user's request.** Authored the Guide's
+identity (`wiki/the-guide.md`: the tiki idol; short deadpan present-tense asides; atmosphere not hints)
+and expanded `GUIDE_SCRIPT` (`comic-view.ts`) from 6 placeholders to an 88-room script over the full
+main path — content-only, mechanism untouched, all keys validated against real room ids (and fixed the
+placeholder's dead `BEHIND-HOUSE` key). Web tests: the same two failures as before predate this and are
+unrelated (portrait tsc, mapper shot-ranking — confirmed by stashing). `SHOTS` and page/PDF export
+(§5) are the presentation stubs still open.
 
-**NEXT is the magic boat `LAUNCH` (object-behaviour gap, ENGINE).** `#212 "launch"` at DAM-BASE returns
-`V-LAUNCH`'s refusal because the boat's ACTION `RBOAT-FUNCTION` (1actions.zil:2722) — which intercepts
-`LAUNCH` and drives the Frigid River drift via the `RIVER-LAUNCH` table and `GO-NEXT` — is not being
-reached. Fixing it unblocks the entire river leg (buoy, emerald, scarab, Aragain Falls); the oracle
-stalls at 173/350 until then. Watch for the same object-action-dispatch shape in `DBOAT`/`IBOAT`.
+**NEXT — the completion harness (task 0 tail + task 4), a distinct problem from the boat gap.** To
+reach 350/barrow the combat-resilient replay must survive the thief stealing *arbitrary* treasures:
+recover ALL loot from his corpse and manage the inventory limit (drop non-treasures / multiple case
+trips) rather than run a fixed command list tuned to one dfrotz seed. When it reaches 350, `SCORE-UPD`
+(gverbs.zil:1855) fires — reveals the MAP (INVISIBLE cleared), clears WEST-OF-HOUSE TOUCHBIT, whispers
+"Look to your treasures for the final secret" — then the map read + SW-from-West-of-House path to
+`STONE-BARROW-FCN` (already the engine's first victory) ends the game. Make that a committed test
+asserting `game-over{victory}` + score 350. Watch also: `get out of boat` at SANDY-BEACH failed
+(#219) — the vehicle didn't follow the player east off the river; minor, cosmetic here, but the same
+vehicle-follows-player question the boat fix touches.
 
 Still live from earlier stages:
 
@@ -172,15 +181,20 @@ there yet. Do these in order:
      exorcism now completes. It exposed a scoring bug — `addScore` now advances `BASE-SCORE` too, so the
      Living Room's `SCORE = BASE-SCORE + OTVAL-FROB` recompute no longer wipes room-visit points. See
      WORKLOG v1.6.5. 143/143 restored, 129 engine tests green.
-   - **NEXT — magic boat `LAUNCH` (ENGINE, object-behaviour gap).** Past the exorcism the oracle
-     reaches **173/350 at DAM-BASE** and stalls at `#212 "launch"`, which returns `V-LAUNCH`'s refusal
-     ("You can't launch that by saying \"launch\"!"). The boat's ACTION `RBOAT-FUNCTION`
-     (1actions.zil:2722) should intercept `LAUNCH` *before* `V-LAUNCH` and start the Frigid River drift
-     (the `RIVER-LAUNCH` global + `GO-NEXT` per-turn current); it is not being reached. Fixing it
-     unblocks the whole river leg (buoy/emerald/scarab/Aragain Falls, ~104 cascaded misses). Check the
-     object-action dispatch for `VEHBIT`/enter-vehicle verbs; the same shape recurs in
-     `DBOAT-FUNCTION`/`IBOAT-FUNCTION`. Then fix whatever *next* gap surfaces (coal-mine machine,
-     endgame thief). Watch for **object-behaviour** gaps, not just undefined routines.
+   - ✅ **Magic boat `LAUNCH` — DONE (v1.6.6).** M-BEG dispatch now targets `<LOC WINNER>` via
+     `containerAction(ctx)`, so `RBOAT-FUNCTION` intercepts `LAUNCH` before `V-LAUNCH`. The whole
+     Frigid River leg + coal mine run; oracle advances **173 → 334/350**, misses 104 → 4. See WORKLOG
+     v1.6.6.
+   - **NEXT — the completion harness (task 4), the real path to 350/barrow.** The oracle stalls at
+     334/350 **not** on a dispatch gap but on **thief-RNG divergence**: the fixed command list is tuned
+     to dfrotz seed 1234, and under the engine's generator the thief steals different treasures, so the
+     player can't recover them all within the inventory limit (skull+torch = the 16-pt gap at seed
+     1234; scores swing 30–334 across seeds). Make the combat-resilient replay **thief-and-inventory
+     resilient**: recover ALL loot from the corpse, drop non-treasures / make multiple case trips. When
+     it hits 350, `SCORE-UPD` (gverbs.zil:1855) reveals the MAP + whispers, then map-read → SW from
+     West-of-House → `STONE-BARROW-FCN` (already a victory) wins. Commit it asserting
+     `game-over{victory}` + score 350. Minor along the way: `get out of boat` at SANDY-BEACH (#219)
+     failed — the vehicle didn't follow the player off the river.
    - **Also a real gap for the web UI (task 3):** treasure scoring runs the extracted `SCORE-UPD`,
      which writes `globals.SCORE` directly and emits **no `score-changed` event** — the score
      display won't update on take/case. Only room-visit scores (native `addScore`) emit the event.
@@ -198,9 +212,13 @@ there yet. Do these in order:
      blocking:** the renderer (`render.ts:165`) still cover-fits to a hardcoded 315×315 square, so
      non-square crops stretch a few px (accepted); wire it to each image's native aspect if it ever
      shows. See WORKLOG v1.6.4 and Last Session.
-   - **Two authoring stubs remain**, each marked at its call site and neither blocking: the
-     **Guide's identity and voice** (`GUIDE_SCRIPT` in `comic-view.ts` is six placeholder lines
-     proving the mechanism, plus a cooldown the ADR deliberately does not set) and **`SHOTS`** in
+   - ✅ **Guide identity and voice — DONE (this session).** Identity settled in `wiki/the-guide.md`
+     (the tiki idol; short, present-tense, deadpan asides; atmosphere not hints — §3 keeps it
+     presentation-only). `GUIDE_SCRIPT` in `comic-view.ts` is now an authored 88-room gazetteer
+     across the full main path, replacing the 6 placeholders; keyed by real room id (fixed the
+     placeholder's dead `BEHIND-HOUSE` key → `EAST-OF-HOUSE`). Every key validated against
+     `zork1.world.json`. Content-only; the mechanism and its tests are unchanged.
+   - **One authoring stub remains**, marked at its call site and not blocking: **`SHOTS`** in
      `render.ts` (framing numbers, the obvious thing to tune once the comic is *looked at*).
    - **`layout.ts` is where a page policy would go.** §5 makes a page a layout policy over the
      panel stream, and the on-screen policy now exists as a real one — a print/PDF policy is a
@@ -260,6 +278,19 @@ sat unread for two sessions before it settled the balloon class.
 ## Open Issues
 
 **Engine / IR**
+- ✅ **Magic boat `LAUNCH` / vehicle M-BEG — DONE (v1.6.6).** The M-BEG dispatch applicable is
+  `<LOC WINNER>` (the vehicle when aboard), not always `here()` — `containerAction(ctx)` in `engine.ts`.
+  General lesson: **ZIL's per-turn "room" hooks (M-BEG) actually fire on the player's *container*, so
+  any vehicle/enterable with an ACTION is a first-class turn participant.** The same slot now covers
+  `RBOAT-FUNCTION`; if a game adds another rideable with M-BEG behaviour it works for free. Reaching
+  350 is now blocked only by thief-RNG (next bullet), not by any dispatch gap.
+- **The completion oracle cannot reach 350 under the engine's RNG — by design, not a bug.**
+  `12-full-game.cmd` is a fixed command list tuned to dfrotz seed 1234; the engine's generator draws a
+  different thief-theft sequence, so which treasures the thief lifts (and whether the player has hands
+  free to recover them) diverges. Seed 1234 strands skull+torch (16 pts) at the inventory limit; other
+  seeds land anywhere 30–334. **Completing the game needs a thief-and-inventory-resilient harness
+  (task 4), not an engine fix.** Do not "correct" the engine toward 350 against this list — that would
+  be fitting the engine to one RNG stream.
 - ✅ **Room `M_END` end-of-turn action — DONE (v1.6.5).** `runRoomEnd` runs it between the walk-drain
   and `runClock` (`gmain.zil:154`), on the room the player ends the turn in, no-op once the turn has
   finished. It uncovered a scoring split ZIL relies on: `addScore` now advances `BASE-SCORE` in lockstep

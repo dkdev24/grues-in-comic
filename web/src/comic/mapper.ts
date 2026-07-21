@@ -67,13 +67,12 @@ export interface Panel {
 /**
  * Authored Guide lines, keyed by the room a first visit lands in.
  *
- * **This is a seam, not a script.** ADR 0004 §3 makes the Guide presentation-
- * only and its Consequences note that the project's authoring cost is bounded
- * by the Guide's trigger rate — a rate the ADR deliberately does not set. What
- * is committed here is the *mechanism*: first-visit trigger, a cooldown, and a
- * table that may be empty. The lines below cover the opening scene the POC
- * renders and are placeholder voice, to be replaced when the Guide's identity
- * is settled (HANDOFF Next Action #5).
+ * This module owns the *mechanism* — first-visit trigger, cooldown, a table that
+ * may be empty (ADR 0004 §3 keeps the Guide presentation-only, and the project's
+ * authoring cost is bounded by its trigger rate). The script itself is content and
+ * lives with the view: `GUIDE_SCRIPT` in `web/src/comic-view.ts`, written to the
+ * identity settled in `wiki/the-guide.md`. The map may be empty and the mapper is
+ * unchanged if it is — tests here supply their own scripts rather than the real one.
  */
 export type GuideScript = ReadonlyMap<string, string>;
 
