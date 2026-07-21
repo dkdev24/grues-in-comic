@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.6.3**
+**1.6.4**
 
 ---
 
@@ -51,49 +51,60 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
     at Entrance to Hades (bell goes red-hot, `XB` sets). Landed earlier: the two native routines
     (`LOUD-ROOM-FCN` echo, `STONE-BARROW-FCN` — the engine's first **victory**), a
     room-`M_BEG`-on-travel fix, a scope fix (take from a held open container), and **v1.6.3 the
-    exorcism IR fix** (`,LLD-ROOM` stale room reference — see Last Session). Next blocker is now an
+    exorcism IR fix** (`,LLD-ROOM` stale room reference — see WORKLOG v1.6.3). Next blocker is now an
     **engine** one: no room `M-END` end-of-turn action, so the exorcism can't complete. Presentation
-    coverage (task 3): the **30-backdrop art pass is planned** (`docs/backdrop-generation-plan.md`),
-    image generation in progress; nothing landed in `backdrop.ts` yet.
+    coverage (task 3): the **30-backdrop art pass has LANDED (v1.6.4)** — full-game room→backdrop
+    map in `backdrop.ts`, all 30 packed into `web/assets/comic/`. See Last Session.
 
 ---
 
-## Last Session — stage 5.5 (v1.6.3): exorcism IR fix (stale room reference resolved)
+## Last Session — stage 5.5 (v1.6.4): 30-backdrop art pass landed (full-game coverage)
 
-Cleared the IR/extractor blocker from the previous session (the `,LLD-ROOM` reference in `BELL-F`).
-Full narrative in `WORKLOG.md` v1.6.3.
+The post-MVP backdrop art pass shipped: every one of the 110 rooms now draws a fitting backdrop
+instead of ~89 falling through to one generic interior. Backdrop scarcity — 5.5's presentation
+constraint — is resolved. Full narrative in `WORKLOG.md` v1.6.4.
 
-**The fix (ir/, both files).** A `,NAME` value reference that names a room's ACTION routine and
-resolves to nothing else now lowers to that **room entity**, not a bare name string. `BELL-F`'s
-`<EQUAL? ,HERE ,LLD-ROOM>` now compares against `entity ENTRANCE-TO-HADES`.
-- `extract-world.ts` builds `roomByActionRoutine` from each room's `action`, keeping only
-  *unambiguous* action routines (a routine shared by several rooms — e.g. `FOREST-ROOM` — names no
-  single room and is excluded; one whose name is a live entity id is already resolved as that entity).
-- `extract-behavior.ts` `resolveName` consults it **just before** the routine-atom fallback, so it is
-  **fail-closed** — only otherwise-dangling names are rewritten; every real entity/global/flag/verb/
-  direction still takes precedence. The prior code had hard-coded this as an always-false "quirk";
-  that reading was wrong (Release 119 named the room `LLD-ROOM`, so the compare fired there).
-- Regenerated `ir/artifacts/zork1.world.json` (still validates: 110 rooms, 137 objects, 360 routines;
-  `LLD-ROOM` stays extracted, reachable via the room's `action` entry ref).
-- `ir/test/behavior-35-triage.test.ts` rewritten to pin the corrected resolution (it had pinned the
-  old always-false quirk — verify a fix by reverting, not by watching a stale assertion pass).
-- **Green:** 193 IR tests, 129 engine tests, **replay 143/143 strict (100%)**.
+**Assets.** 30 generated backdrops (Woodring hatch, 1-bit). **Sources are local-only:** the BMP/PNG
+originals live under `reference/backdrops/`, which is **gitignored** (that tree is "third-party, never
+vendored" — first-party art landed there by convenience). They are **not in the repo**; the committed
+artifact is `web/assets/comic/*.png`. To re-crop or regenerate you need those local sources plus
+`npm --prefix art run pack`. Cropped ~260–313 px, not square and not 512 — the renderer cover-fits, so
+the few-px stretch is invisible and was deliberately not corrected.
 
-**Measured effect (`engine/harness/full-run.ts`).** Ringing the bell at Entrance to Hades now fires
-the exorcism's `M-BEG` branch — bell goes red-hot, `XB` sets — instead of the old "Ding, dong." The
-ceremony proceeds through lighting candles and reading the book. It does **not complete**: see the
-next blocker.
+**Decoder (`art/src/image.ts`).** The BMPs are macOS `sips`/Preview output: 124-byte `BITMAPV4HEADER`,
+some 32-bit `BI_BITFIELDS`. `decodeImage` rejected anything but the 40-byte header and handled no
+32-bit. Extended to accept 40/108/124-byte headers (extra V4/V5 fields skipped — pixel data is found
+via `bfOffBits`) and to decode 32-bit BGRA (`unpackRows`, alpha ignored). No palette-code path, so
+the masked-mono polarity bug cannot recur here.
 
-**NEXT blocker is now ENGINE, not IR — the room `M-END` end-of-turn action.** The exorcism sets
-`LLD-FLAG` in the `LLD-ROOM` room action's READ-book branch, but that branch is gated on `XC`, and
-`XC` is set only by the same room action running with **`M-END`** (gated on `XB` + carried, lit
-candles). The engine runs a room's action with `M_BEG` (before the verb) and `M_LOOK`/`M_ENTER`, but
-**never with `M_END` at end of turn**, so `XC` stays false → `LLD-FLAG` stays false → the gate stays
-barred (`take skull` at command ~174 fails). ZIL's order is `PERFORM → room M-END → CLOCKER`
-(`gmain.zil:154`, `<APPLY <GETP <LOC ,WINNER> ,P?ACTION> ,M-END>`); the engine needs the same step
-inserted in `runTurn` (engine.ts) between `dispatch` and `runClock`. **This has broad reach** — many
-rooms carry `M-END` clauses (reservoir, mirror, etc. — 1actions.zil:477,1445,1674,2417,…) — so it is
-a turn-loop change to make carefully and re-verify against 143/143. See Open Issues.
+**Packing (`art/package.json`).** The `pack` script's three `--backdrop` args became 30, sourced from
+`../reference/backdrops/bmp/NN-*.bmp`, ids stripped from filenames. `npm --prefix art run pack`
+rebuilt `web/assets/comic/` → 32 PNGs (30 backdrops + hero + guide); `cast.json` lists all 30.
+
+**Assignment (`web/src/comic/backdrop.ts`).** `BackdropId` union extended 3 → 30. `OUTDOORS` /
+`OUTDOOR_BACKDROPS` renamed to a single exported `ROOM_BACKDROPS` map that now assigns **all 110
+rooms** by id (maze→maze, reservoir→reservoir, Hades→hades-entrance, …); `room` stays the fallback
+for any unlisted id but does not fire for Zork 1. `backdropFor` unchanged in shape.
+
+**Tests.** `web/test/backdrop.test.ts` updated for the rename and reassignments, plus a new pin that
+**every** world room is assigned (nothing silently falls through). `art/test/polarity.test.ts` gains
+a backdrop block that asserts on the **shipped** PNGs (`web/assets/comic/`, listed by `cast.json`),
+decoded by a new `decodePng` in `art/src/png.ts` — **not** the gitignored BMP sources, so it runs on a
+clean clone. All 30 must decode non-degenerate (both ink and paper — catches solid/blank/failed decode
+and full inversion), and four extremes are pinned to human-checkable polarity (temple/round-room
+paper-dominant; hades/barrow-interior ink-dominant). Per-image ink fractions are deliberately **not**
+pinned — they run 13–72% by design, the "ink is a minority" trap. Green: web backdrop 6/6, art suite
+21, web tsc clean for touched files.
+
+**Two pre-existing failures, NOT from this work** (confirmed by stashing on clean HEAD):
+`web/test/portrait.test.ts` tsc `dw/dh possibly undefined`, and `web/test/mapper.test.ts` shot-ranking
+(`medium/establishing` vs `wide`). Both predate this session.
+
+**NEXT is unchanged and still ENGINE — the room `M-END` end-of-turn action** (Next Actions task 0):
+the exorcism can't complete because `XC`/`LLD-FLAG` is set only by a room action run with `M_END`,
+which the engine never does. Insert the room-`M-END` step in `runTurn` between `dispatch` and
+`runClock`, matching `PERFORM → room M-END → CLOCKER` (`gmain.zil:154`); broad reach (reservoir,
+mirror, …), re-verify 143/143.
 
 Still live from earlier stages:
 
@@ -183,18 +194,13 @@ there yet. Do these in order:
      completion test** (task 4) asserting `game-over{victory}` and score 350.
 
 1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
-   - **Backdrop scarcity is 5.5's live constraint**, mis-scoped to 5.4 once already. **Now being
-     resolved by `docs/backdrop-generation-plan.md`** — 30 backdrops, all newly generated (the three
-     MVP IDs `pastoral`/`field`/`room` are reused but re-arted; the conservatory `room8bs` is
-     dropped), covering the full game, packed 3 images × 2×5 grid, 512×512 cells, Woodring hatch
-     idiom / 1-bit polarity. Image generation is **in progress**; the plan carries the full
-     `BackdropId` set, the room→backdrop map for `web/src/comic/backdrop.ts`, and a generation
-     checklist. When landing it: `backdropFor` is already total (extends by adding rows), so the
-     work is (a) crop/pack via `art/tools/avbpack.ts`, (b) extend the `BackdropId` union and
-     **rename `OUTDOORS`/`OUTDOOR_BACKDROPS` → `ROOM_BACKDROPS`** (it now holds dungeon/temple/cave
-     rooms, not just outdoor ones), (c) add a pinned polarity assertion per backdrop, (d) re-pack
-     `web/assets/comic/`. The exit criterion still bounds priority: the winning route's room set
-     deserves real backdrops first; everything else falls through to `room`.
+   - ✅ **Backdrop scarcity RESOLVED (v1.6.4).** 30 generated backdrops packed into
+     `web/assets/comic/`; `web/src/comic/backdrop.ts` assigns all 110 rooms by id (`ROOM_BACKDROPS`,
+     renamed from `OUTDOORS`/`OUTDOOR_BACKDROPS`); `BackdropId` union is the 30-id set; decoder reads
+     the macOS V4/32-bit BMPs; polarity pinned per backdrop. **Remaining backdrop polish, not
+     blocking:** the renderer (`render.ts:165`) still cover-fits to a hardcoded 315×315 square, so
+     non-square crops stretch a few px (accepted); wire it to each image's native aspect if it ever
+     shows. See WORKLOG v1.6.4 and Last Session.
    - **Two authoring stubs remain**, each marked at its call site and neither blocking: the
      **Guide's identity and voice** (`GUIDE_SCRIPT` in `comic-view.ts` is six placeholder lines
      proving the mechanism, plus a cooldown the ADR deliberately does not set) and **`SHOTS`** in
@@ -335,16 +341,12 @@ sat unread for two sessions before it settled the balloon class.
   alone is not evidence of anything but legality.
 
 **Project / M5**
-- **Backdrops — MVP shipped three; the post-MVP art pass is now planned and underway.**
-  `docs/backdrop-generation-plan.md` specifies **30 backdrops**, all newly generated (the three MVP
-  IDs are reused but re-arted, conservatory `room8bs` dropped), for full-game
-  coverage — image generation is in progress. The three shipped backdrops were **not** the binding
-  constraint on 5.4 (opening area = 12 outdoor rooms + house interiors, covered); scarcity gates
-  **5.5** (full-game). `web/src/comic/backdrop.ts` now assigns rooms by table, not regex.
-  **The live risk is `room8bs.bmp`'s content, not the count.** It is a *conservatory* — glass
-  dome, planter, topiary — which is honest for Kitchen and will read badly as Cellar, Maze or
-  Temple, where ~89 of the 110 rooms live. That is what the 30-backdrop pass fixes, and it is
-  the reason "one generic interior" is not a durable answer.
+- ✅ **Backdrops — 30-backdrop art pass LANDED (v1.6.4).** `web/src/comic/backdrop.ts`
+  (`ROOM_BACKDROPS`) assigns all 110 rooms an apt backdrop by id; `BackdropId` is the 30-id union;
+  30 BMPs packed into `web/assets/comic/`. The old conservatory `room8bs` was dropped; the generic
+  interior (`room`) is now the fallback only, not the answer for ~89 rooms. Decoder
+  (`art/src/image.ts`) reads macOS V4-header / 32-bit BMPs. Polarity pinned in
+  `art/test/polarity.test.ts`. See WORKLOG v1.6.4.
 - **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run
   pack`; the cast is pinned in that script, so a recast is a one-line change plus a re-pack.
   **Re-pack after any `art/` decode change** — v1.4.1 fixed the decoder and the committed sheets
@@ -360,14 +362,11 @@ sat unread for two sessions before it settled the balloon class.
   run does not pick up. Not a regression and not new; use `npm --prefix <pkg> test`.
 - Neutral branding for commercial assets (engine/IR/importer).
 - Repo is prepared for public release but not yet public; nothing blocks it.
-- **Backdrop scarcity — plan chosen: 30 AI-generated backdrops (`docs/backdrop-generation-plan.md`).**
-  The MVP shipped three against 110 Zork rooms with no `AT_BACKDROP` assets; the post-MVP pass is
-  now scoped as **new art in the Woodring hatch idiom** (the option chosen over compositing tricks or
-  deriving variants), covering every room the winning route touches plus a `room` fallback. It
-  **must match the Woodring hatch idiom and the 1-bit polarity the decoder now produces**, and per
-  the `art/` item above **each new backdrop needs a pinned polarity assertion** in
-  `art/test/polarity.test.ts` — nothing in the suite would notice a backdrop that is merely
-  plausible, mis-hued, or inverted.
+- ✅ **Backdrop scarcity — DELIVERED (v1.6.4): 30 AI-generated backdrops** in the Woodring hatch
+  idiom, one per themed area, packed and assigned to all 110 rooms. Polarity is pinned in
+  `art/test/polarity.test.ts` (non-degeneracy for all 30 + four human-checkable extremes); per-image
+  ink fractions are intentionally not pinned (13–72% by design). If the art is ever regenerated,
+  re-pack (`npm --prefix art run pack`) and re-check those extremes.
 - **Sprite-sheet packing ✅ decided at 5.3** — one sheet per avatar, **parts not figures**, figure
   and aura as paired sub-rects. `art/tools/avbdump.ts` remains the *inspection* tool;
   `art/tools/avbpack.ts` is the build. Rationale is on `art/src/cast-manifest.ts`.

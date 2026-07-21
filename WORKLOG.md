@@ -2179,3 +2179,63 @@ does not yet win the full game.
 **Stage 5.5 ◐.** The IR/extractor blocker is cleared and the exorcism now *starts*. The full game is
 still not winnable in the engine: the next gap is the room `M-END` end-of-turn action (blocks the
 exorcism's completion and any other room whose behavior depends on `M-END`). Not milestone-complete.
+
+---
+
+## v1.6.4 — 2026-07-21 — 30-backdrop art pass: full-game backdrop coverage (stage 5.5, task 3)
+
+**Date:** 2026-07-21
+
+Backdrop scarcity — the presentation constraint on stage 5.5 — is resolved. The MVP shipped three
+backdrops against 110 rooms, so ~89 rooms drew as one generic interior. The post-MVP art pass
+(`docs/backdrop-generation-plan.md`) generated 30 backdrops in the Woodring hatch idiom, and every
+room now draws one that fits it.
+
+### Changes
+
+- **Assets: 30 generated backdrops** committed as `reference/backdrops/bmp/NN-*.bmp` (source PNGs
+  alongside). Cropped ~260–313 px, neither square nor 512 — the renderer cover-fits, so the few-px
+  stretch is invisible and was deliberately left uncorrected.
+- **`art/src/image.ts` — decoder extended to read modern BMPs.** The generated files are macOS
+  `sips`/Preview output: 124-byte `BITMAPV4HEADER`, several 32-bit `BI_BITFIELDS`. `decodeImage`
+  previously required the 40-byte `BITMAPINFOHEADER` and handled 1/2/4/8/24 bpp only, so every file
+  threw `unsupported DIB header 124`. Now accepts 40/108/124-byte headers (V4/V5 extra fields skipped
+  — pixel data is located by `bfOffBits`) and decodes 32-bit BGRA in `unpackRows` (alpha ignored;
+  backdrops are opaque). There is no palette-code path for these, so the masked-mono polarity class of
+  bug cannot recur here. The AVB corpus (40-byte DIBs) is unaffected — 16 art tests still green.
+- **`art/package.json` — `pack` script updated 3 → 30 `--backdrop` args**, sourced from
+  `../reference/backdrops/bmp/NN-*.bmp` with ids stripped from filenames. `npm --prefix art run pack`
+  rebuilds `web/assets/comic/`: 32 PNGs (30 backdrops + hero + guide), `cast.json` lists all 30.
+- **`web/src/comic/backdrop.ts` — full-game assignment.** `BackdropId` union extended from 3 to the
+  30-id set. `OUTDOORS` / `OUTDOOR_BACKDROPS` renamed to a single exported `ROOM_BACKDROPS` map (the
+  table no longer holds only outdoor rooms). It now assigns **all 110 rooms** by id — maze→`maze`,
+  reservoir→`reservoir`, Entrance to Hades→`hades-entrance`, the coal-mine shaft→`timber-room`, and so
+  on. `room` remains the fallback for any unlisted id (`backdropFor` stays total) but does not fire
+  for Zork 1. `comic-view.ts`'s `backdropFor(panel.room)` call is unchanged.
+- **Backdrop sources are local-only; the polarity test asserts on the shipped bundle.** The BMP/PNG
+  originals live under `reference/backdrops/`, which is **gitignored** (that tree is documented as
+  "third-party reference material, never vendored"; the first-party art landed there by convenience
+  and stays local). So the committed artifact is `web/assets/comic/*.png`, and to keep the test
+  runnable on a clean clone it reads *those* — decoded by a new **`decodePng` in `art/src/png.ts`**
+  (RGBA8/RGB/greyscale, all five scanline filters, node `zlib`, symmetric with the existing
+  `encodePng`) — via the ids/files in `cast.json`, not the ignored sources. Regenerating or re-cropping
+  backdrops therefore needs the local sources plus `npm --prefix art run pack`.
+- **Tests.** `web/test/backdrop.test.ts` updated for the rename and the reassignments
+  (Kitchen/Living Room→`house-interior`, Attic→`attic`, Cellar→`cellar`, Maze→`maze`,
+  Hades→`hades-entrance`), and a new assertion that **every** world room is assigned — nothing falls
+  through silently. `art/test/polarity.test.ts` gains a backdrop block: all 30 shipped PNGs must decode
+  non-degenerate (both ink and paper present — catches a solid fill, a blank, a failed decode, or a
+  full inversion), and four extremes are pinned to the polarity a reader can confirm (temple,
+  round-room paper-dominant; hades-entrance, barrow-interior ink-dominant). Per-image ink fractions
+  are deliberately **not** pinned — they span 13–72% by design (Hades and the barrow are meant to be
+  dark), the "ink is a minority" trap this file already warns against.
+- **Green:** web backdrop 6/6, art suite 21 (polarity 8, corpus 13). Two failures predate this work
+  and are unrelated (confirmed by stashing on clean HEAD): `web/test/portrait.test.ts` tsc `dw/dh
+  possibly undefined`, and `web/test/mapper.test.ts` shot-ranking.
+
+### Status
+
+**Stage 5.5 ◐.** Presentation coverage (task 3) for backdrops is complete; the remaining 5.5 blocker
+is unchanged and lives in the **engine** — the room `M-END` end-of-turn action that gates the
+exorcism's completion (see v1.6.3 and Next Actions task 0). Backdrop polish still open but not
+blocking: `render.ts` cover-fits to a hardcoded 315×315 square, so non-square crops stretch a few px.

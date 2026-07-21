@@ -20,6 +20,7 @@ import { globSync, readFileSync } from "node:fs";
 import { parseAvatar, facesOf, torsosOf, adjustOffset } from "../src/avb.js";
 import { rasterizeLayers } from "../src/raster.js";
 import { decodeImage } from "../src/image.js";
+import { decodePng } from "../src/png.js";
 import { AIP_DUALMASK, AIP_MASKEDMONO } from "../src/format.js";
 
 const root = new URL("../../", import.meta.url).pathname;
@@ -100,5 +101,66 @@ describe("masked-mono ink/paper polarity", () => {
     }
     expect(total).toBeGreaterThan(0);
     expect(light / total).toBeGreaterThan(0.5);
+  });
+});
+
+/**
+ * Backdrop polarity (`docs/backdrop-generation-plan.md`).
+ *
+ * This asserts on the **shipped** backdrops — the PNGs in `web/assets/comic/`
+ * listed by `cast.json`, decoded with `decodePng` — not on the generated BMP
+ * sources, which live in the gitignored `reference/` tree and are not present on
+ * a clean clone. The bundle is the committed artifact; it is what renders.
+ *
+ * The backdrops carry no palette-code mapping to get backwards, so the
+ * masked-mono failure cannot recur here. What *can* go wrong is quieter: a decode
+ * that collapses to a solid fill, or a whole-frame inversion, both of which pass
+ * the pack step and render as garbage.
+ *
+ * Per-image ink fractions are **not** pinned — they run from 13% to 72% paper by
+ * design (Hades and the barrow interior are meant to be dark), and pinning them
+ * would be the "ink is a minority" mistake the corpus test above warns against.
+ * Instead every backdrop must be non-degenerate — real line art carries both ink
+ * and paper — and the extremes are pinned to the polarity a human can confirm.
+ */
+describe("backdrop polarity", () => {
+  const bundle = root + "web/assets/comic/";
+  const manifest = JSON.parse(readFileSync(bundle + "cast.json", "utf8")) as {
+    backdrops: { id: string; file: string }[];
+  };
+
+  const inkPaper = (file: string) => {
+    const r = decodePng(new Uint8Array(readFileSync(bundle + file)));
+    let ink = 0, paper = 0;
+    for (let i = 0; i < r.width * r.height; i++) {
+      if (r.data[i * 4]! < 128) ink++; else paper++;
+    }
+    return { ink, paper, paperFrac: paper / (ink + paper) };
+  };
+
+  it("ships a non-degenerate image for every backdrop", () => {
+    expect(manifest.backdrops.length).toBe(30);
+    // Neither a blank sheet, a solid fill, nor a failed decode: line art has
+    // both. This also catches a full inversion that flattened to one value.
+    const degenerate = manifest.backdrops
+      .map((b) => ({ id: b.id, ...inkPaper(b.file) }))
+      .filter((b) => b.ink === 0 || b.paper === 0)
+      .map((b) => b.id);
+    expect(degenerate).toEqual([]);
+  });
+
+  // The four extremes, pinned to a polarity a reader can verify from the art
+  // brief. A whole-set inversion flips every one of these and fails here.
+  it.each([
+    ["temple", "paper"],       // sunlit sacred interior — 72% paper
+    ["round-room", "paper"],   // torchlit circular chamber — 72% paper
+    ["hades-entrance", "ink"], // grim underworld threshold — 17% paper
+    ["barrow-interior", "ink"],// sacred darkness — 13% paper
+  ] as const)("draws %s as %s-dominant", (id, kind) => {
+    const backdrop = manifest.backdrops.find((b) => b.id === id);
+    expect(backdrop, `${id} backdrop missing from cast.json`).toBeDefined();
+    const { paperFrac } = inkPaper(backdrop!.file);
+    if (kind === "paper") expect(paperFrac).toBeGreaterThan(0.6);
+    else expect(paperFrac).toBeLessThan(0.4);
   });
 });

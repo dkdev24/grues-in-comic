@@ -23,9 +23,9 @@ export interface DecodedImage {
   height: number;
   /** Row-major, top-down, one palette index per pixel. */
   pixels: Uint8Array;
-  /** Absent for 24bpp images, where `pixels` is unused and `rgb` is set. */
+  /** Absent for 24/32bpp images, where `pixels` is unused and `rgb` is set. */
   palette?: RGB[];
-  /** Set only for 24bpp DIBs: packed RGB triples, row-major top-down. */
+  /** Set only for 24/32bpp DIBs: packed RGB triples, row-major top-down. */
   rgb?: Uint8Array;
 }
 
@@ -67,16 +67,18 @@ function unpackRows(
   data: Uint8Array, width: number, height: number, bits: number, topDown: boolean,
 ): { pixels: Uint8Array; rgb?: Uint8Array } {
   const stride = (((width * bits + 31) / 32) | 0) * 4;
-  if (bits === 24) {
+  if (bits === 24 || bits === 32) {
+    // 3 = BGR, 4 = BGRA. Alpha is ignored: backdrops are opaque.
+    const bpp = bits >> 3;
     const rgb = new Uint8Array(width * height * 3);
     for (let y = 0; y < height; y++) {
       const src = y * stride;
       const dst = (topDown ? y : height - 1 - y) * width * 3;
       for (let x = 0; x < width; x++) {
-        // DIBs store BGR.
-        rgb[dst + x * 3] = data[src + x * 3 + 2] ?? 0;
-        rgb[dst + x * 3 + 1] = data[src + x * 3 + 1] ?? 0;
-        rgb[dst + x * 3 + 2] = data[src + x * 3] ?? 0;
+        // DIBs store BGR(A).
+        rgb[dst + x * 3] = data[src + x * bpp + 2] ?? 0;
+        rgb[dst + x * 3 + 1] = data[src + x * bpp + 1] ?? 0;
+        rgb[dst + x * 3 + 2] = data[src + x * bpp] ?? 0;
       }
     }
     return { pixels: new Uint8Array(0), rgb };
@@ -169,8 +171,17 @@ export function decodeImage(
     r.u32(); // bfReserved
     const bitsOffset = r.u32();
     const headerSize = r.u32();
-    if (headerSize !== 40) throw new Error(`unsupported DIB header ${headerSize}`);
+    // 40 = BITMAPINFOHEADER; 108/124 = BITMAPV4HEADER/V5HEADER, which macOS
+    // image tools (sips, Preview) emit. The extra V4/V5 fields — colour masks,
+    // colourspace, gamma — sit between the base header and the colour table, so
+    // skip them: pixel data is located by bfOffBits, and for our 24/32bpp
+    // backdrops the BI_BITFIELDS masks are the standard BGRA layout that
+    // unpackRows already assumes.
+    if (headerSize !== 40 && headerSize !== 108 && headerSize !== 124) {
+      throw new Error(`unsupported DIB header ${headerSize}`);
+    }
     const info = readBmih(r);
+    if (headerSize > 40) r.pos += headerSize - 40;
     const ncol = info.colorsUsed || (info.bits <= 8 ? 1 << info.bits : 0);
     const palette: RGB[] = [];
     for (let i = 0; i < ncol; i++) {

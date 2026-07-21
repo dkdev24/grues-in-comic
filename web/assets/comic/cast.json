@@ -1472,20 +1472,182 @@
     {
       "id": "pastoral",
       "file": "pastoral.png",
-      "width": 315,
-      "height": 315
+      "width": 263,
+      "height": 264
     },
     {
       "id": "field",
       "file": "field.png",
+      "width": 262,
+      "height": 260
+    },
+    {
+      "id": "barrow-exterior",
+      "file": "barrow-exterior.png",
+      "width": 265,
+      "height": 266
+    },
+    {
+      "id": "grating-clearing",
+      "file": "grating-clearing.png",
+      "width": 263,
+      "height": 263
+    },
+    {
+      "id": "house-interior",
+      "file": "house-interior.png",
+      "width": 263,
+      "height": 263
+    },
+    {
+      "id": "attic",
+      "file": "attic.png",
+      "width": 264,
+      "height": 264
+    },
+    {
+      "id": "cellar",
+      "file": "cellar.png",
+      "width": 262,
+      "height": 262
+    },
+    {
+      "id": "troll-room",
+      "file": "troll-room.png",
+      "width": 260,
+      "height": 260
+    },
+    {
+      "id": "cyclops-room",
+      "file": "cyclops-room.png",
+      "width": 262,
+      "height": 264
+    },
+    {
+      "id": "timber-room",
+      "file": "timber-room.png",
+      "width": 262,
+      "height": 263
+    },
+    {
+      "id": "machine-room",
+      "file": "machine-room.png",
+      "width": 324,
+      "height": 324
+    },
+    {
+      "id": "reservoir",
+      "file": "reservoir.png",
+      "width": 311,
+      "height": 312
+    },
+    {
+      "id": "dam-lobby",
+      "file": "dam-lobby.png",
+      "width": 317,
+      "height": 318
+    },
+    {
+      "id": "maze",
+      "file": "maze.png",
+      "width": 313,
+      "height": 313
+    },
+    {
+      "id": "temple",
+      "file": "temple.png",
+      "width": 318,
+      "height": 318
+    },
+    {
+      "id": "egypt-room",
+      "file": "egypt-room.png",
+      "width": 316,
+      "height": 317
+    },
+    {
+      "id": "round-room",
+      "file": "round-room.png",
       "width": 315,
-      "height": 315
+      "height": 314
+    },
+    {
+      "id": "torch-room",
+      "file": "torch-room.png",
+      "width": 315,
+      "height": 316
+    },
+    {
+      "id": "cave-system",
+      "file": "cave-system.png",
+      "width": 295,
+      "height": 294
+    },
+    {
+      "id": "dome-room",
+      "file": "dome-room.png",
+      "width": 286,
+      "height": 287
+    },
+    {
+      "id": "mirror-room",
+      "file": "mirror-room.png",
+      "width": 310,
+      "height": 311
+    },
+    {
+      "id": "gallery",
+      "file": "gallery.png",
+      "width": 313,
+      "height": 314
+    },
+    {
+      "id": "atlantis",
+      "file": "atlantis.png",
+      "width": 303,
+      "height": 304
+    },
+    {
+      "id": "hades-entrance",
+      "file": "hades-entrance.png",
+      "width": 310,
+      "height": 310
+    },
+    {
+      "id": "land-of-living-dead",
+      "file": "land-of-living-dead.png",
+      "width": 306,
+      "height": 303
+    },
+    {
+      "id": "barrow-interior",
+      "file": "barrow-interior.png",
+      "width": 308,
+      "height": 309
+    },
+    {
+      "id": "maintenance-room",
+      "file": "maintenance-room.png",
+      "width": 308,
+      "height": 308
+    },
+    {
+      "id": "loud-room",
+      "file": "loud-room.png",
+      "width": 302,
+      "height": 302
+    },
+    {
+      "id": "engravings-cave",
+      "file": "engravings-cave.png",
+      "width": 313,
+      "height": 313
     },
     {
       "id": "room",
       "file": "room.png",
-      "width": 315,
-      "height": 315
+      "width": 313,
+      "height": 311
     }
   ]
 }

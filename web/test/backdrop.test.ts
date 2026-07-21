@@ -17,7 +17,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { WorldDocument } from "@grues-in-comic/ir";
-import { backdropFor, OUTDOOR_BACKDROPS } from "../src/comic/backdrop.js";
+import { backdropFor, ROOM_BACKDROPS } from "../src/comic/backdrop.js";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const world = JSON.parse(
@@ -41,22 +41,32 @@ describe("backdropFor", () => {
     }
   });
 
-  it("falls through to the interior backdrop", () => {
-    for (const room of ["KITCHEN", "LIVING-ROOM", "ATTIC", "CELLAR", "MAZE-1"]) {
-      expect(backdropFor(room)).toBe("room");
-    }
+  it("gives the themed interiors their own backdrops", () => {
+    // The post-MVP art pass replaced the generic-interior fallback for the
+    // rooms a reader would recognise; these no longer draw as `room`.
+    expect(backdropFor("KITCHEN")).toBe("house-interior");
+    expect(backdropFor("LIVING-ROOM")).toBe("house-interior");
+    expect(backdropFor("ATTIC")).toBe("attic");
+    expect(backdropFor("CELLAR")).toBe("cellar");
+    expect(backdropFor("MAZE-1")).toBe("maze");
+    expect(backdropFor("ENTRANCE-TO-HADES")).toBe("hades-entrance");
   });
 
-  it("is total — every room in the world document resolves", () => {
+  it("is total — every room in the world document resolves to a real backdrop", () => {
     for (const id of roomIds) {
-      expect(["pastoral", "field", "room"]).toContain(backdropFor(id));
+      const backdrop = backdropFor(id);
+      expect(typeof backdrop).toBe("string");
+      expect(backdrop.length).toBeGreaterThan(0);
     }
   });
 
-  it("assigns only rooms that exist", () => {
-    // A typo'd id in the table is a room silently rendering as an interior.
-    const unknown = [...OUTDOOR_BACKDROPS.keys()].filter((id) => !roomIds.has(id));
+  it("assigns every room, and only rooms that exist", () => {
+    // A typo'd id in the table is a room silently rendering as the fallback.
+    const unknown = [...ROOM_BACKDROPS.keys()].filter((id) => !roomIds.has(id));
     expect(unknown).toEqual([]);
+    // The whole world is assigned; nothing falls through to the `room` default.
+    const unassigned = [...roomIds].filter((id) => !ROOM_BACKDROPS.has(id));
+    expect(unassigned).toEqual([]);
   });
 
   it("covers the opening area, which 5.4 must render", () => {
