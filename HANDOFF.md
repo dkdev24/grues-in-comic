@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.7.4**
+**1.7.5**
 
 ---
 
@@ -58,24 +58,54 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — v1.7.4: two-up panel layout fixed; more comic-pane issues flagged, unenumerated
+## Last Session — comic-pane redesign scoped (ADR 0005) + Slice 1 in progress
 
-**User-reported, this session: the comic pane has multiple problems when tested live in the
-browser — a fundamental gameplay issue, not cosmetic polish.** The comic pane is the whole point of
-M5, so defects here sit on the exit criterion's remaining half. Only the simplest of the reported
-problems was diagnosed and fixed (below); the rest were called out during testing but not itemized.
-**First task next session: get the specific list from the user before doing anything else** — do not
-guess at what else is wrong.
+**The comic-pane problems were diagnosed as a category error, not a bug list, and a redesign was
+authored: `docs/adr/0005-narrative-director.md` (Proposed).** The pane reads as a *play-log, not a
+story* because ADR 0004 treats the parser transcript and the comic script as one artifact. Four
+root causes, each a deliberate 0004 line: Hero thinks in raw commands (`mapper.ts:176`); Guide is
+room-keyed so it never *responds* to the Hero (`guideFor`); affect is Hero-only so the two never
+face each other (`affect.ts`); one-panel-per-turn renders trial-and-error verbatim (§6).
 
-**v1.7.4 — fixed: the comic pane collapsed to one oversized panel at ordinary browser widths.**
-`columnsFor` in `web/src/comic/layout.ts` required each column to fit a full native-width (400px)
-panel before granting a second column, so any pane narrower than ~810px rendered **one** panel
-stretched toward the 640px scale cap instead of two — confirmed live via Playwright at a perfectly
-ordinary 1280×800. Added `MIN_PANEL_SCALE` (0.75) and made `columnsFor` fit against that shrunk width
-instead of the full native one; two columns now appear from ~610px of strip width. `layout.test.ts`'s
-boundary test updated to match — the boundary itself intentionally moved, not just its value. Web
-suite green (89/89, 468 across all packages); verified in-browser (rebuilt, served, drove two turns,
-screenshotted before/after). Full writeup: WORKLOG v1.7.4.
+**ADR 0005 inserts a Narrative Director** (`ingest(turn) → Panel[]`, 0..N) between the turn stream
+and the panel stream — an *edited, past-tense retelling* that trails live play, while the console
+pane still shows every word live. It supersedes 0004 §3 (Guide trigger), §6 (1 panel/turn), §2/§2a
+(Hero balloon = command); preserves 0002 (contract not extended), the §7 camera ladder, §10 affect
+ordering, §2 verbatim captions, and the pure-function/parity-oracle property. Testing contract
+changes from "1 panel per turn" to "walkthrough → golden panel **sequence**."
+
+**Slices (each ships behind green tests, never one rewrite):** 1 Hero balloon = resolved action ·
+2 Director skeleton (1:1 refactor) · 3 beat detect + noise drop · 4 traversal collapse · 5 Guide
+converses + two-shot.
+
+**Slice 1 ✅ landed this session (ready for v1.7.5 patch).** The Hero balloon is now the resolved
+action, not the typed command: `heroBalloon(took, dropped, names)` in `web/src/comic/mapper.ts`
+renders "I take the leaflet." / "I leave the leaflet." from the turn's `object-moved` events, and
+returns **null** for movement, examination and parser refusals — the `s`/`look` thought-bubble tell
+is gone. Object-name table `objectNameTable(doc.objects)` (`web/src/status.ts`, mirrors
+`roomNameTable`) threads `main.ts → createComicView(…, names) → createMapper({names})`; it is static
+world data, so the mapper stays a pure function of (stream + config). The old §2a "command verbatim"
+test was replaced with the §1 derivation + a `heroBalloon` unit test. **Web 90/90 green, build clean,
+graph regenerated. Still 1 panel/turn — no arity change yet.** Not verified in-browser this session
+(offer stands: Playwright screenshot of a take turn).
+
+**Hero voice + character settled: `wiki/the-hero.md`** (sibling of `wiki/the-guide.md`). The Hero is
+the player's deliberately-unnamed self-insert = the target player: middle-aged, tech-savvy, lapsed
+tabletop-D&D — so **systems-minded and genre-literate**, revisiting a familiar dungeon, not
+discovering it. Voice: first-person, terse, dry, earned competence, never quippy, never self-hints
+(same firewall the Guide keeps). Built as the Guide's deliberate complement for the Slice 5 two-shot
+(both dry, opposite ends of time). Slice 1 templates now read in that voice: take → `The {name},
+then.`, drop → `The {name} can stay.` **Deterministic per-object variation** (treasure vs. junk,
+keyed on value/class) is a sanctioned later refinement, noted in the doc, not built.
+
+**Slice 2 ✅ landed — Director skeleton (pure 1:1 refactor).** `web/src/comic/director.ts`:
+`createDirector(options) → { ingest(turn) → Panel[], panels }` wraps the mapper and returns exactly
+one panel per turn. `comic-view.ts` now drives the Director, not the mapper — `appendTurn` loops over
+`ingest`'s 0..N panels (draws one canvas today; future-correct for drops=0 and montages=N).
+`director.test.ts` proves **no behaviour change**: the Director's flattened output is byte-identical
+to the mapper's panel sequence over every walkthrough. **Web 91/91 green, build clean, graph
+regenerated.** The mapper is unchanged and stays the per-panel renderer; the Director owns only the
+seam where Slice 3 adds beat detection.
 
 Earlier version narrative for this milestone (v1.6.6, v1.7.0–v1.7.3 — completion, score events,
 suite-green, SHOTS tuning) has moved to WORKLOG; see those entries for detail.
@@ -180,11 +210,18 @@ there yet. Do these in order:
      `game-over{victory}` + score 350 + `STONE-BARROW`, over the shared `runFullGame` driver.
 
 1. **Then presentation coverage (task 3) — per `docs/DEVELOPMENT_PLAN.md`.** Known going in:
-   - ⚑ **Comic pane has multiple reported issues from live user testing — a fundamental gameplay
-     issue, not polish.** Only the panel-layout/columns problem was diagnosed and fixed (v1.7.4, see
-     Last Session and WORKLOG). The rest were flagged during testing but never itemized. **Get the
-     specific list from the user first**, then triage — don't propose fixes for problems that
-     haven't been named yet.
+   - ⚑ **Comic pane reads as a play-log, not a story — scoped as ADR 0005 (Narrative Director),
+     Proposed.** Root cause and the 5-slice plan are in `docs/adr/0005-narrative-director.md` and
+     the Last Session note. **Slice 1 ✅** (Hero balloon = resolved action). **Slice 2 ✅** (Director
+     skeleton, `web/src/comic/director.ts`, 1:1 refactor proven byte-identical by `director.test.ts`).
+     **Next: Slice 3 — beat detection + noise drop.** In `director.ingest`, classify each turn from
+     its events (arrival/acquire/state-change/combat/death = beat; parser refusal via the
+     `narration:system` channel + redundant look = noise) and **return `[]` for noise** so it draws
+     no panel; buffer only as far as dropping needs. This is where 1:1 breaks: replace the mapper's
+     "one panel per turn (§6)" test (`mapper.test.ts:80`) and `director.test.ts`'s equivalence
+     assertion with **golden panel-sequences** per walkthrough — the ADR 0004 §6 → 0005 supersession,
+     done deliberately with the golden, never by loosening an assertion. Traversal collapse is Slice 4,
+     kept separate so Slice 3 stays "drop, don't merge."
    - ✅ **Backdrop scarcity RESOLVED (v1.6.4).** 30 generated backdrops packed into
      `web/assets/comic/`; `web/src/comic/backdrop.ts` assigns all 110 rooms by id (`ROOM_BACKDROPS`,
      renamed from `OUTDOORS`/`OUTDOOR_BACKDROPS`); `BackdropId` union is the 30-id set; decoder reads

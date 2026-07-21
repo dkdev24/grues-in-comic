@@ -10,6 +10,7 @@
 
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { createSession, type Session, type Turn } from "./session.js";
+import { objectNameTable } from "./status.js";
 import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
 import { createComicView, type ComicView } from "./comic-view.js";
@@ -28,8 +29,13 @@ async function main(): Promise<void> {
   const form = requireEl<HTMLFormElement>("#command-form");
 
   let session: Session;
+  let names: ReadonlyMap<string, string> = new Map();
   try {
-    session = createSession(await fetchWorld(), {});
+    const doc = await fetchWorld();
+    session = createSession(doc, {});
+    // The Hero balloon renders resolved actions by object *name* (ADR 0005 §1);
+    // the id→name table is static world data, built once beside the session.
+    names = objectNameTable(doc.objects ?? []);
   } catch (err) {
     consoleView.appendSystem(`Could not start: ${message(err)}`);
     return;
@@ -48,7 +54,7 @@ async function main(): Promise<void> {
   // degrades to 5.2's text shell rather than to a blank page.
   let comic: ComicView | null = null;
   try {
-    comic = await createComicView(requireEl("#comic"), COMIC_ASSETS);
+    comic = await createComicView(requireEl("#comic"), COMIC_ASSETS, names);
   } catch (err) {
     consoleView.appendSystem(`[comic pane unavailable: ${message(err)}]`);
   }

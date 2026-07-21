@@ -14,7 +14,8 @@
  */
 
 import type { Turn } from "./session.js";
-import { createMapper, type Mapper, type Panel } from "./comic/mapper.js";
+import { type Panel } from "./comic/mapper.js";
+import { createDirector, type Director } from "./comic/director.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
 import { renderPanel } from "./comic/render.js";
 import { backdropFor } from "./comic/backdrop.js";
@@ -165,10 +166,12 @@ const PIN_SLACK = 8;
  */
 const STRIP_GUTTER = 10;
 
-export async function createComicView(root: HTMLElement, assetBase: string): Promise<ComicView> {
+export async function createComicView(
+  root: HTMLElement, assetBase: string, names: ReadonlyMap<string, string> = new Map(),
+): Promise<ComicView> {
   const strip = requireChild(root, ".comic-strip");
   const castBar = root.querySelector<HTMLElement>(".comic-cast");
-  const mapper: Mapper = createMapper({ guideScript: GUIDE_SCRIPT, guideCooldown: 3 });
+  const director: Director = createDirector({ guideScript: GUIDE_SCRIPT, guideCooldown: 3, names });
   // Cycles live with the *view*, not with a panel: a panel re-drawn on resize
   // must not advance the round-robin, or the whole strip would change bodies
   // every time the window moved (§8).
@@ -205,14 +208,20 @@ export async function createComicView(root: HTMLElement, assetBase: string): Pro
 
   return {
     appendTurn(turn: Turn) {
-      const panel = mapper.panel(turn);
-      const canvas = document.createElement("canvas");
-      canvas.className = "panel";
-      canvas.setAttribute("role", "img");
-      canvas.setAttribute("aria-label", describe(panel));
-      strip.append(canvas);
-      drawn.push({ canvas, panel });
-      draw(canvas, panel, measure());
+      // A turn now yields 0..N panels (ADR 0005): the Director may drop a noise
+      // turn or emit a collapsed run. Slice 2 always yields exactly one, so this
+      // loop draws a single canvas as before; it is written for the later slices.
+      const panels = director.ingest(turn);
+      if (panels.length === 0) return;
+      for (const panel of panels) {
+        const canvas = document.createElement("canvas");
+        canvas.className = "panel";
+        canvas.setAttribute("role", "img");
+        canvas.setAttribute("aria-label", describe(panel));
+        strip.append(canvas);
+        drawn.push({ canvas, panel });
+        draw(canvas, panel, measure());
+      }
       // The newest panel is the one the player just caused, so the strip
       // follows it the way the transcript follows the last line. Scroll the
       // strip rather than the panel: `scrollIntoView({ block: "end" })` aligns

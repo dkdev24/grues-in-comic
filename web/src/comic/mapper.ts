@@ -84,6 +84,13 @@ export interface MapperOptions {
    * what the player just did.
    */
   guideCooldown?: number;
+  /**
+   * Object id → display name (ADR 0005 §1). The Hero balloon is the *resolved
+   * action* — "I take the leaflet." — not the typed command, so it needs the
+   * name behind the id the `object-moved` event carries. Empty is safe: a missed
+   * id falls back to the id, and the tests here supply their own table.
+   */
+  names?: ReadonlyMap<string, string>;
 }
 
 export interface Mapper {
@@ -96,6 +103,7 @@ export interface Mapper {
 export function createMapper(options: MapperOptions = {}): Mapper {
   const guideScript = options.guideScript ?? new Map<string, string>();
   const guideCooldown = options.guideCooldown ?? 6;
+  const names = options.names ?? new Map<string, string>();
 
   const visited = new Set<string>();
   const inventory = new Set<string>();
@@ -116,6 +124,11 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       let scoreDelta = 0;
       let gameOver = false;
       let salientMove: { object: string } | null = null;
+      // ADR 0005 §1: the first object the Hero gained or gave up this turn, which
+      // the Hero balloon renders as an action. Movement, examination and parser
+      // refusals leave both null and the balloon absent — the pose carries them.
+      let took: string | null = null;
+      let dropped: string | null = null;
 
       for (const event of turn.events) {
         switch (event.type) {
@@ -148,8 +161,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
             if (salient(event.object, event.from, event.to, room, inventory)) {
               salientMove ??= { object: event.object };
             }
-            if (event.to === PLAYER_ID) inventory.add(event.object);
-            else if (event.from === PLAYER_ID) inventory.delete(event.object);
+            if (event.to === PLAYER_ID) {
+              inventory.add(event.object);
+              took ??= event.object;
+            } else if (event.from === PLAYER_ID) {
+              inventory.delete(event.object);
+              dropped ??= event.object;
+            }
             break;
           }
           case "score-changed":
@@ -173,9 +191,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
         emphatic: camera === "establishing" && scoreDelta > 0,
         room,
         focus: camera === "close-up" ? (salientMove?.object ?? null) : null,
-        hero: turn.command === null
-          ? null
-          : { channel: "hero", balloonClass: "CBWoodringThink", text: turn.command },
+        hero: heroBalloon(took, dropped, names),
         caption: captionFor(text, affect.matched),
         guide: guideLine === null
           ? null
@@ -227,6 +243,35 @@ export function salient(
   if (object === PLAYER_ID) return true;
   if (inventory.has(object) || from === PLAYER_ID || to === PLAYER_ID) return true;
   return room !== "" && (from === room || to === room);
+}
+
+/**
+ * The Hero balloon: the *resolved action*, not the typed command (ADR 0005 §1).
+ *
+ * The player authored the Hero's action; the command was the authoring, not the
+ * Hero's dialogue. So a turn that moved an object into or out of the Hero's hands
+ * renders that outcome — "I take the leaflet." — and every other turn (movement,
+ * examination, a parser refusal) renders **no balloon**: the pose and the caption
+ * carry it, and a thought bubble reading `s` or `look` was the play-log tell this
+ * whole ADR exists to remove. Take wins over drop when a turn did both; one
+ * balloon per panel is the Comic Chat rule §6 inherits (`AddLine`).
+ *
+ * Still a *thought* balloon (`CBWoodringThink`) — whether the Hero *speaks* is a
+ * two-shot question ADR 0005 §4 answers in Slice 5, not here.
+ *
+ * The lines are the Hero's settled voice (`wiki/the-hero.md`): a systems-minded,
+ * genre-literate, middle-aged player working a familiar dungeon — terse, dry,
+ * faintly proprietary. Templates over object DESCs, so they must stay grammatical
+ * across every name the world holds ("leaflet", "jewel-encrusted egg").
+ */
+export function heroBalloon(
+  took: string | null, dropped: string | null, names: ReadonlyMap<string, string>,
+): Balloon | null {
+  const id = took ?? dropped;
+  if (id === null) return null;
+  const name = names.get(id) ?? id;
+  const text = took !== null ? `The ${name}, then.` : `The ${name} can stay.`;
+  return { channel: "hero", balloonClass: "CBWoodringThink", text };
 }
 
 /**

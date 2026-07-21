@@ -90,3 +90,13 @@ function nameOf(names: ReadonlyMap<string, string>, id: string): string {
 export function roomNameTable(rooms: readonly { id: string; name?: string }[]): Map<string, string> {
   return new Map(rooms.map((r) => [r.id, r.name ?? r.id]));
 }
+
+/**
+ * Object id → display name (ZIL DESC), for the comic mapper's Hero action lines
+ * (ADR 0005 §1). Built from the world document at the view layer — static world
+ * data, the same category as {@link roomNameTable}, never a reach into engine
+ * runtime — so the mapper stays a pure function of (event stream + static config).
+ */
+export function objectNameTable(objects: readonly { id: string; name?: string }[]): Map<string, string> {
+  return new Map(objects.map((o) => [o.id, o.name ?? o.id]));
+}

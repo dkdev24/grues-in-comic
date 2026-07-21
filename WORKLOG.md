@@ -4,6 +4,51 @@ Persistent project history. Append entries; do not edit past entries.
 
 ---
 
+## v1.7.5 — 2026-07-22 — Narrative Director: scaffolding (ADR 0005) + Hero voice — Slices 1–2
+
+**Date:** 2026-07-22
+
+The comic pane read as a *play-log, not a story*. Diagnosed as a category error — ADR 0004 conflated
+the parser transcript with the comic script — and scoped the fix as **ADR 0005, the Narrative
+Director**: a layer that turns the comic into an edited, past-tense retelling (drop noise, collapse
+traversal, converse) instead of a one-panel-per-turn mirror. This entry lands the first two of five
+slices; both are behaviour-preserving groundwork.
+
+### Changes
+
+- **`docs/adr/0005-narrative-director.md` (Proposed).** Supersedes ADR 0004 §3 (Guide trigger), §6
+  (one panel/turn), §2/§2a (Hero balloon = command); preserves ADR 0002 (contract not extended), the
+  §7 camera ladder, §10 affect ordering, §2 verbatim captions, and the pure-function/parity-oracle
+  property. Testing contract moves from "1 panel per turn" to "walkthrough → golden panel sequence."
+  Five slices enumerated.
+- **Slice 1 — Hero balloon = resolved action.** `heroBalloon(took, dropped, names)` in
+  `web/src/comic/mapper.ts` renders the *outcome* of the turn's `object-moved` events ("The leaflet,
+  then." / "The leaflet can stay.") and returns **null** for movement, examination and parser
+  refusals — the raw-command thought bubble (`s`, `look`) is gone. Object-name table
+  `objectNameTable(doc.objects)` (`web/src/status.ts`, mirrors `roomNameTable`) threads
+  `main.ts → createComicView(…, names) → createMapper({names})`; static world data, so the mapper
+  stays a pure function of (stream + config). Replaced the §2a "command verbatim" test with the §1
+  derivation + a `heroBalloon` unit test.
+- **Hero voice + character settled — `wiki/the-hero.md`** (sibling of `wiki/the-guide.md`). The Hero
+  is the player's deliberately-unnamed self-insert = the target player: middle-aged, tech-savvy,
+  lapsed tabletop-D&D, therefore systems-minded and genre-literate, revisiting a familiar dungeon.
+  Five voice rules; built as the Guide's complement (both dry, opposite ends of time) for the Slice 5
+  two-shot. Slice 1 templates now read in that voice.
+- **Slice 2 — Director skeleton.** `web/src/comic/director.ts`: `createDirector(options) →
+  { ingest(turn) → Panel[], panels }` wraps the mapper, returns exactly one panel per turn.
+  `comic-view.ts` now drives the Director; `appendTurn` loops over `ingest`'s 0..N panels (draws one
+  canvas today, future-correct for drops=0 and montages=N). `director.test.ts` proves no behaviour
+  change: flattened output byte-identical to the mapper's sequence over every walkthrough — the parity
+  seam Slice 3 will break on purpose.
+
+### Status
+
+Web 91/91 green, build clean, graph regenerated. Still 1 panel/turn (no arity change until Slice 3).
+Not verified in-browser. Next: Slice 3 (beat detection + noise drop), where 1:1 breaks and golden
+panel-sequences replace the count assertions.
+
+---
+
 ## v1.7.4 — 2026-07-22 — Two-up panel layout: columns were fitting against native width, not a shrinkable minimum
 
 **Date:** 2026-07-22

@@ -25,7 +25,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { PLAYER_ID } from "../../engine/src/state.js";
 import { createSession } from "../src/session.js";
-import { captionFor, createMapper, salient, type Panel } from "../src/comic/mapper.js";
+import { captionFor, createMapper, heroBalloon, salient, type Panel } from "../src/comic/mapper.js";
+import { objectNameTable } from "../src/status.js";
 import { AFFECT_MARKERS, affectFor } from "../src/comic/affect.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -99,14 +100,43 @@ describe("panel stream", () => {
     expect(first?.hero).toBeNull();
   });
 
-  it("puts the player's command in a thought balloon, verbatim (§2a)", () => {
-    const panels = replayPanels("01-west-of-house.cmd");
-    const commands = commandsOf("01-west-of-house.cmd");
-    for (const [i, command] of commands.entries()) {
-      const hero = panels[i + 1]?.hero;
-      expect(hero?.balloonClass).toBe("CBWoodringThink");
-      expect(hero?.text).toBe(command);
+  it("renders the Hero balloon as the resolved action, never the command (ADR 0005 §1)", () => {
+    // 01-west-of-house.cmd: [start, look, examine mailbox, open mailbox,
+    // take leaflet, read leaflet, drop leaflet, look, quit, y]. The take/drop
+    // turns get an action line; every other turn — movement, examination, the
+    // parser echo — gets no balloon, which is the play-log tell being removed.
+    const session = createSession(doc, { seed: SEED });
+    const mapper = createMapper({ names: objectNameTable(doc.objects) });
+    const panels = [mapper.panel(session.start())];
+    for (const command of commandsOf("01-west-of-house.cmd")) {
+      panels.push(mapper.panel(session.command(command)));
     }
+
+    expect(panels[4]?.hero).toEqual({
+      channel: "hero", balloonClass: "CBWoodringThink", text: "The leaflet, then.",
+    });
+    expect(panels[6]?.hero?.text).toBe("The leaflet can stay.");
+    expect(panels[1]?.hero).toBeNull(); // `look` — no action, no balloon
+    expect(panels[2]?.hero).toBeNull(); // `examine mailbox`
+    // The regression this file used to *pin*: the balloon must never be the
+    // typed command. No panel's Hero text is any command the player typed.
+    const commands = new Set(commandsOf("01-west-of-house.cmd"));
+    for (const panel of panels) {
+      if (panel.hero) expect(commands.has(panel.hero.text)).toBe(false);
+    }
+  });
+
+  it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
+    const names = new Map([["LAMP", "brass lantern"]]);
+    expect(heroBalloon("LAMP", null, names)).toEqual({
+      channel: "hero", balloonClass: "CBWoodringThink", text: "The brass lantern, then.",
+    });
+    expect(heroBalloon(null, "LAMP", names)?.text).toBe("The brass lantern can stay.");
+    // Take wins when a turn did both (one balloon per panel).
+    expect(heroBalloon("LAMP", "SWORD", names)?.text).toBe("The brass lantern, then.");
+    expect(heroBalloon(null, null, names)).toBeNull();
+    // An id with no name falls back to the id rather than dropping the balloon.
+    expect(heroBalloon("EGG", null, new Map())?.text).toBe("The EGG, then.");
   });
 
   it("never emits a speech balloon for the Hero", () => {
