@@ -10,6 +10,29 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.8 — 2026-07-23 — ADR 0007: comic-pane port boundary + fixed panels (decision only)
+
+Doc-only milestone — records two architectural decisions; no code changed (115 web tests still green from
+v0.17.7). New `docs/adr/0007-comic-pane-port-boundary-and-fixed-panels.md`; ADR 0004 §4a annotated as
+superseded-in-part (header + inline note). Prompted by the v0.17.7 balloon-drift post-mortem.
+
+- **Decision 1 — port boundary.** The comic pane's **mechanical** layer (balloon spline + arrow/tail,
+  `AddLine`, overlap/route regions, `LayoutAvatars`, the panel grid) is a faithful **port with cited source
+  sites** from `balloon.cpp`/`panel.cpp`; only the **semantic** layer (channel map, emotion-from-narration,
+  camera ladder, Director, cast) is reimplemented. This is ADR 0004 §1 applied to layout mechanics, and the
+  process fix for the class of bug that produced the side tail (a re-derived geometry that drifted from the
+  source). Standing rule: new mechanical code reads the C++ first and cites it.
+- **Decision 2 — fixed panels, reflowing pane.** Reverses ADR 0004 §4a's "panel width is a per-render input."
+  A panel renders at native size (`UNIT` 400×340), no strip-level stretch; the pane varies the column count by
+  width (`m_unitWidth` model, `panel.cpp:1456`). Shrink tolerance ≈0.85 of native prefers an extra column;
+  narrow phones fit-down one column. Cures the "figure/balloon space slides with the viewport" instability
+  that §4a's stretch introduced.
+
+Implementation deferred (see HANDOFF Next Action #0): `layout.ts` rewrite + `layout.test.ts`, plus a tracked
+geometry port-backfill of `render.ts`/`balloon.ts` against the C++.
+
+---
+
 ## v0.17.7 — 2026-07-23 — Balloons straddle the speaker (Comic Chat layout)
 
 Supersedes v0.17.6's approach. Reviewing the original C++ (`balloon.cpp`, `panel.cpp`) showed Comic Chat

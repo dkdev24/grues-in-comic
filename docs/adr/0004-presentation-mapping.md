@@ -6,6 +6,7 @@
 - **Amended:** 2026-07-20 — §4a: mobile keeps both panes visible (reverses this ADR's own drawer proposal); optional dictation input added
 - **Amended:** 2026-07-20 — §2/§2a: the Hero's channel is a **thought** balloon, not speech; balloon classes fixed per channel; "verbatim typed command" generalized to "canonical form" for assisted input
 - **Amended:** 2026-07-20 (stage 5.3, from building it) — §10: `parser-miss` fires on the `narration:system` **channel**, not only on prose patterns; §11: the Hero must own a BORED *face* as well as a SHRUG torso, which recasts the Hero
+- **Superseded (in part):** 2026-07-23 — ADR 0007 reverses §4a's "panel width becomes an input, not a constant" clause: panel size is fixed and the *pane* reflows the column count. The rest of §4a stands.
 - **Stage:** 5.2/5.3 (decides panel grammar *before* the comic layer is built, per Next Action #5)
 - **Related:** ADR 0002 (the event contract this consumes and must not extend), `wiki/comic-chat-presentation.md` (the 5.1 source analysis), `docs/panel-grammar-discussion.md` (the reasoning and the measurements; this ADR is its output)
 
@@ -86,6 +87,8 @@ This corrects an earlier draft of this ADR, which made the console a collapsible
 - **"On-device" must be verified, not assumed.** Browser `SpeechRecognition` implementations have historically streamed audio to vendor servers. Under this project's standing no-cloud-budget constraint, a mode that makes a silent network call per turn is a materially different decision from the one recorded here — confirm platform behaviour before describing it as on-device.
 
 **Panel width becomes an input to the Layout Manager, not a constant.** Comic Chat laid out against a known window width. Ours varies, so `AddLine`'s break rules and `LayoutAvatars`' zoom cap must be evaluated per render at the current panel size rather than once. This is the one place the port stops being a transcription.
+
+> **Superseded by ADR 0007 (2026-07-23).** This clause is reversed: panel size is **fixed** (native, with a bounded shrink tolerance), and responsiveness moves up to the pane, which reflows the *column count*. Restoring Comic Chat's constant `m_unitWidth` both stabilizes composition and lets the mechanical layout layer be a faithful port again. The paragraph below ("Responsiveness lives in the grid and the chrome, not in the figures") still holds.
 
 **Responsiveness lives in the grid and the chrome, not in the figures.** The panel grid reflows and the chrome stretches; figures scale as a unit so a face never scales differently from the torso it is composited onto. §8's compositing is done in figure space before any viewport scaling is applied.
 

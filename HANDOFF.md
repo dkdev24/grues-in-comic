@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.7**
+**0.17.8**
 
 ---
 
@@ -29,7 +29,9 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   claimed (v0.9.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`.
 - **M5 ◐** Comic Chat presentation. 5.1 ✅ art pipeline (`art/`), 5.2 ✅ browser shell (`web/`),
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
-  (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0).
+  (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
+  ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
+  Accepted, implementation pending.
   - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
@@ -41,31 +43,28 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 
 ---
 
-## Last Session — Balloons straddle the speaker, Comic Chat layout (v0.17.7)
+## Last Session — ADR 0007 recorded: port boundary + fixed panels (v0.17.8)
 
-v0.17.6's side-tail was the wrong fix. Reviewing the **original C++** (`original-projects/comic-chat/
-v1.0-pre-modern/balloon.cpp`, `panel.cpp`) showed Comic Chat never draws a side tail: the tail always roots
-on the balloon's **bottom** edge (`AddArrow`), and it reads well because the balloon is placed to **straddle
-the head horizontally and sit above it** (`GetCloudEstimate` puts the left edge in `[headX − width, headX]`;
-`DockAtTop`). Our layout had it backwards — it parked the Hero balloon in a *side margin* and slid it off the
-head, creating the beside-the-head case the original never makes. Rewrote to the original's model. Details in
-WORKLOG v0.17.7.
+Two architectural decisions settled (doc-only; **implementation deferred**). Written up in
+`docs/adr/0007-comic-pane-port-boundary-and-fixed-panels.md`; ADR 0004 §4a annotated as superseded-in-part.
+Prompted by the v0.17.7 balloon-drift post-mortem: the comic pane was a *reimplementation* throughout, which
+was right for the chat→narration semantics but wrong for the mechanical geometry (the side-tail bug was
+re-derived instead of read from `balloon.cpp`).
 
-- **Placement (`render.ts drawBalloons`):** speech balloon centres on the speaker's head x, clamped to panel
-  (straddle). `clearOfFaces` retained only for a thought aside (not emitted yet). Captions pinned top-left.
-- **Headroom (`render.ts`, `BALLOON_HEADROOM = 0.36`):** with a speech/thought balloon present, figures are
-  pushed down so head-top clears the top 36% — the "constrain close-up framing" decision. `reaction` (game-over)
-  has no balloon, keeps its full face.
-- **Tail (`balloon.ts roundedSpeech`):** back to **bottom-edge only**; the v0.17.6 side branch is gone.
-- **Validated headless** across establishing/over-shoulder/close-up/`-tallcap` — balloons above the head,
-  straddling, tail to the crown, matching the reference screenshots. Tests rewritten to pin always-bottom
-  rooting. **115 web tests green, tsc clean.** Presentation-only; engine/IR/parity untouched.
+- **Decision 1 — port boundary.** The **mechanical** layer (geometry/pixels: balloon spline + arrow/tail,
+  `AddLine`, overlap/route regions, `LayoutAvatars`, the panel grid) is a **faithful port with cited source
+  sites** (`balloon.cpp`/`panel.cpp:line`), as `layout.ts` already models. The **semantic** layer (channel
+  map, emotion-from-narration, camera ladder §7, Director, cast) stays reimplemented. Test: geometry → port
+  & cite; event-meaning → ours. Standing rule: new mechanical code reads the C++ first.
+- **Decision 2 — fixed panels, reflowing pane.** Reverses ADR 0004 §4a's "panel width is a per-render input."
+  Panel renders at **native size** (`UNIT` 400×340), no strip-level stretch; the **pane** varies the *column
+  count* by width (Comic Chat's `m_unitWidth` model, `panel.cpp:1456`). **Shrink tolerance ≈ 0.85** of native
+  is allowed only to prefer an extra column; narrow phones fit-down the single column. This cures the
+  "figure/balloon space slides with the viewport" instability.
 
-**Slice 1 is DONE (signed off for MVP).** Hero speaks + balloon layout accepted as good enough for MVP;
-further balloon-layout polish ideas exist but are deferred, not blocking. **Not yet done:** the ADR 0006
-Consequences wiki rewrite (deferred with aside content — `the-hero.md` already defers the class to the ADRs).
-`web/tools/render-panel.ts` (`npm run render:panel`, on `@napi-rs/canvas`) is the headless way to eyeball any
-comic-geometry change — the `web/` suite has no canvas.
+**Next: implement in `layout.ts`** (see Next Actions #0). No code changed this session — 115 web tests still
+green from v0.17.7. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** Still not done: ADR 0006 Consequences
+wiki rewrite. `web/tools/render-panel.ts` (`npm run render:panel`) is the headless way to eyeball geometry.
 
 ---
 
@@ -73,6 +72,15 @@ comic-geometry change — the `web/` suite has no canvas.
 
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
+
+0. **Implement ADR 0007 — fixed panels, reflowing pane (Accepted 2026-07-23, not yet built).** In
+   `web/src/comic/layout.ts`: replace `layoutStrip`'s stretch-to-share (`panelWidth = share` capped at
+   `MAX_PANEL_SCALE`) with **fixed native size + ≈0.85 shrink tolerance** to prefer an extra column;
+   retire the strip-level upscale; narrow phones fit-down one column. Update `columnsFor` (the `0.75` fit
+   floor vs `0.85` preference threshold — decide when building) and `layout.test.ts`. `render.ts`/`balloon.ts`
+   keep taking a width, now (near-)constant. Also a **standing follow-up**: audit `render.ts`/`balloon.ts`
+   geometry against `balloon.cpp`/`panel.cpp` and port gaps with cited source sites (v0.17.7 straddle is the
+   reference standard). MAX_COLUMNS stays 2.
 
 **New direction — `docs/adr/0006-dungeon-master-and-player.md` (Accepted, building).** Recasts the Guide
 as a Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real
