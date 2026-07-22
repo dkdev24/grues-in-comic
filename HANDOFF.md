@@ -63,6 +63,12 @@ were verified-in-browser but unpinned; now tested.
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
 
+**New direction — `docs/adr/0006-dungeon-master-and-player.md` (Proposed).** Recasts the Guide as a
+Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real
+exchange. Deliberately breaks ADR 0004 §2 (Hero thought-only) and ADR 0005 §4; keeps the three
+invariants (presentation-only Guide, no engine internals, deterministic pure function → parity oracle).
+5 slices, Hero-speaks first. **Gated on #1 below** — eyeball the shipped two-shot before building on it.
+
 1. **In-browser visual verification of the Narrative Director + framing (Playwright).** The whole
    ADR 0005 arc (Slices 1–5, v0.17.0) is proven by headless tests only. **The facing flip especially
    needs a visual check** — mirror direction was inferred from the "Hero faces away" symptom and could
