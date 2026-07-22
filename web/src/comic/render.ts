@@ -81,7 +81,7 @@ const MAX_SCALE = 1.6;
  * such balloon (only, at most, a caption box pinned to the top edge), and a face
  * that fills the frame is the whole point of that beat — so it is left uncapped.
  */
-const MAX_FIGURE_WIDTH = 0.55;
+export const MAX_FIGURE_WIDTH = 0.55;
 
 export function renderPanel(
   ctx: CanvasRenderingContext2D, panel: Panel, cast: Cast,
@@ -176,7 +176,7 @@ function cycleFor(cycles: Map<string, PoseCycle>, role: string): PoseCycle {
   return cycle;
 }
 
-function fit(figure: Figure, height: number, fill: number, widthCap = Infinity): number {
+export function fit(figure: Figure, height: number, fill: number, widthCap = Infinity): number {
   return Math.min((height * fill) / figure.height, MAX_SCALE, widthCap / figure.width);
 }
 
@@ -275,7 +275,7 @@ function drawBalloons(
  * was — an overlap the caller has already decided to tolerate over an unreadable
  * layout — and only nudged back inside the panel edges.
  */
-function clearOfFaces(
+export function clearOfFaces(
   x: number, y: number, w: number, h: number, bulge: number,
   faces: ReadonlyArray<{ left: number; right: number; top: number; bottom: number }>,
   width: number,

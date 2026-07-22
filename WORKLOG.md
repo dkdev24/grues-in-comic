@@ -2663,3 +2663,37 @@ the Frigid River drift via `RIVER-LAUNCH`/`GO-NEXT` — is not being reached. Th
 river leg, so the oracle stalls at 173/350; it is an object-behaviour gap, exactly the class the v1.6.3
 handoff flagged. The committed completion test (`full-run.ts` → asserting `game-over{victory}` + 350)
 is still deferred until the engine actually reaches the barrow.
+
+## v1.8.1 — 2026-07-22 — Unit tests for the Hero-balloon fixes
+
+**Date:** 2026-07-22
+
+The three Hero thought-balloon fixes (shape, face-avoidance, close-up width cap) had shipped
+verified-in-browser but unpinned. All three are pure and cheap to test; now each is covered and each
+assertion was confirmed to fail on the reverted bug.
+
+### Changes
+
+- **`web/test/balloon.test.ts` (new, 4 tests).** Drives `drawBalloon` — the only path to the
+  non-exported `cloud()` — through a recording `CanvasRenderingContext2D` that captures path ops.
+  Asserts the thought outline is **one closed path with no interior `rect` and no full-circle arc**
+  (`|end − start| < 2π` for every `arc`), pinning the fix from full-circles-plus-rect to a single
+  scallop loop. A `CBWoodringBox` caption is the control: it still draws a `rect` and no arcs.
+- **`web/test/render.test.ts` (new, 8 tests).** Covers `clearOfFaces` (slides a balloon disjoint from
+  an overlapping face; no-op when it already clears horizontally or vertically; tolerates a
+  panel-spanning head it cannot clear, only clamping to the edges; settles into the gap between two
+  heads) and `fit`/`MAX_FIGURE_WIDTH` (caps a wide figure to the balloon width under a finite cap,
+  leaves it uncapped at `Infinity`, and is a no-op for a narrow figure whose height is the binding
+  term). The multi-head assertion is scoped to a solvable gap on purpose — the pass is greedy, not a
+  global solver.
+- **`web/src/comic/render.ts` — three `export`s added:** `fit`, `clearOfFaces`, and the
+  `MAX_FIGURE_WIDTH` constant, solely so the pure helpers are reachable from the test without a canvas
+  or a cast (their only production caller is `renderPanel`). `cloud()` stays private, tested through
+  `drawBalloon`.
+- **Verified by reverting each fix.** Buggy `cloud()` (full circles + `rect`) fails the no-rect and
+  no-full-circle assertions; `fit` ignoring `widthCap` fails the cap assertion.
+
+### Status
+
+**Stage 5.5.** 113 web tests green (was 101); typecheck clean; graph updated. No behaviour change —
+tests and three exports only.

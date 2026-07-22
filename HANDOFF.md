@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.8.0**
+**1.8.1**
 
 ---
 
@@ -58,34 +58,27 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — Hero thought balloon: shape + face-avoidance
+## Last Session — Unit tests for the balloon fixes
 
-Two defects in the Hero thought balloon, both fixed and verified in-browser on the real
-"The leaflet, then." panel (take leaflet at West of House):
+The three prior-session Hero-balloon fixes were verified-in-browser but unpinned; now tested.
 
-1. **Shape (`comic/balloon.ts`, `cloud()`).** It rendered as a chain of overlapping *full* circles
-   around a visible rectangle: `cloud()` stamped a complete circle (`arc(…, 0, 2π)`) at every bump
-   *and* added the inner `rect`, then the caller stroked the lot, so every circle's inner half and
-   the box edge showed. Rewrote `cloud()` as one continuous closed path of outward-only scallop arcs
-   (top/right/bottom/left, each bump a half-arc whose endpoints touch the next) — a single clean
-   cloud, no interior lines.
-2. **Blocking the face (`comic/render.ts`, `drawBalloons` + new `clearOfFaces`).** The shape fix
-   alone did *not* clear the face — figures are tall enough that the top-down balloon stack reaches
-   the face band and the tail landed on the head. Now each on-stage head is a keep-out box; the Hero
-   thought is capped to the roomier side-margin, parked in that corner (`heroSide`), and any balloon
-   whose box/scallops/tail would enter a face box is slid horizontally out (`clearOfFaces`, pure and
-   testable). Tail now aims at the crown (`headH * 0.2`), not mid-face. On a close-up with no margin
-   it tolerates a small overlap rather than an unreadable ribbon (floor `width*0.3`).
+- **`web/test/balloon.test.ts`** drives `drawBalloon` (the only path to the non-exported `cloud()`)
+  through a recording 2D context and asserts the thought outline is one closed path with **no
+  interior `rect` and no full-circle arc** (`|end−start| < 2π`), and that a `CBWoodringBox` caption
+  still draws a `rect` with no scallops.
+- **`web/test/render.test.ts`** covers `clearOfFaces` (slides a balloon disjoint from an overlapping
+  face; no-op when already clear horizontally or vertically; tolerates a panel-spanning head it can't
+  clear; settles into the gap between two heads) and `fit`/`MAX_FIGURE_WIDTH` (caps a wide figure to
+  the balloon width under a finite cap, uncapped at `Infinity`, no-op for a narrow figure).
+- Source change is minimal: `fit`, `clearOfFaces`, and `MAX_FIGURE_WIDTH` are now `export`ed from
+  `render.ts` for test access (they had no other caller than `renderPanel`). `cloud()` stays private.
+- Each assertion was confirmed to **fail on the reverted bug** (buggy `cloud()` = full circles + rect;
+  `fit` ignoring `widthCap`). 113 web tests green (was 101).
 
-3. **Close-up limit (`comic/render.ts`, `MAX_FIGURE_WIDTH` + `fit`).** To *guarantee* the balloon
-   column rather than rely on `clearOfFaces` tolerating an overlap, a figure is capped to
-   `0.55 × panel width` **only when the panel carries a Guide speech or Hero thought balloon**
-   (`widthCap` in `renderPanel`, threaded into `fit`). Conditional on purpose: the game-over
-   `reaction` rung has no such balloon and stays full-frame. Medium/wide/establishing/over-shoulder
-   are height-driven and fall below the cap, so they are unchanged; only `close-up` shrinks (~6%).
-
-101 web tests green (no placement/shape/cap unit test yet — `clearOfFaces` and the `fit` width cap
-are both pure and worth pinning if they regress).
+The fixes these pin — for context, full detail in WORKLOG: (1) `cloud()` rewritten from
+full-circles-plus-rect to one continuous scallop loop; (2) `clearOfFaces` routes balloons around
+per-head keep-out boxes; (3) conditional `MAX_FIGURE_WIDTH` cap guarantees a balloon column beside
+the head only when a Guide/Hero balloon is present.
 
 **Prior session (ADR 0005 Narrative Director, v1.8.0) — history, full detail in WORKLOG v1.7.5/1.7.6:**
 
@@ -432,13 +425,14 @@ sat unread for two sessions before it settled the balloon class.
   rest were not itemized in the session that found them. **Next session: ask for the specific list
   before investigating further**, then re-test live in the browser per issue (this bug was only
   caught that way, not by any test).
-- ⚑ **NEXT SESSION: unit tests for the balloon fixes (this session).** The three changes — `cloud()`
-  scallop path, `clearOfFaces` face-avoidance, and the `fit` `MAX_FIGURE_WIDTH` cap — all landed
-  verified-in-browser but **unpinned**. All three are pure and cheap to test: assert `cloud()`
-  emits a closed scalloped path with no interior rect/full-circle; assert `clearOfFaces` returns a
-  box disjoint from every face rect (and is a no-op when already clear); assert `fit` caps figure
-  width to `0.55×` only when a Guide/Hero balloon is present and leaves `reaction`/caption-only
-  panels uncapped. Verify each by reverting the fix (a test written from the bug passes trivially).
+- ✅ **Unit tests for the balloon fixes — DONE (this session).** `web/test/balloon.test.ts` drives
+  `drawBalloon` through a recording 2D context and asserts `cloud()` emits one closed path with no
+  interior rect and no full-circle arc (caption box still draws a rect). `web/test/render.test.ts`
+  covers `clearOfFaces` (slides out of a face, no-op when already clear, tolerates an unclearable
+  panel-spanning head) and `fit`/`MAX_FIGURE_WIDTH` (caps a wide figure only under a finite cap,
+  uncapped at `Infinity`, no-op for narrow figures). `fit`/`clearOfFaces`/`MAX_FIGURE_WIDTH` are now
+  exported from `render.ts` for test access. Each assertion was confirmed to fail on the reverted
+  bug. 113 web tests green.
 - ✅ **Backdrops — 30-backdrop art pass LANDED (v1.6.4).** `web/src/comic/backdrop.ts`
   (`ROOM_BACKDROPS`) assigns all 110 rooms an apt backdrop by id; `BackdropId` is the 30-id union;
   30 BMPs packed into `web/assets/comic/`. The old conservatory `room8bs` was dropped; the generic
