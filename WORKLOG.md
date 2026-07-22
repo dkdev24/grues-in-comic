@@ -10,6 +10,46 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.3 — 2026-07-22 — V-CLIMB-UP implemented; OTHER-SIDE latent-bug fix (the GETPT/NEXTP idioms)
+
+**Date:** 2026-07-22
+
+Closed Next Action #2's first two items — the last engine stub and its companion uncovered idiom. Both
+read a room's exit *properties* in the ZIL (`<GETPT ,HERE .DIR>` / the `NEXTP` walk); the IR models
+exits structurally, so both become lookups over `exitFor`/`room.exits` — the same substitution ADR 0003
+made for the sword's exit scan, done here as engine builtins rather than an extractor rewrite. Neither
+routine is reached by any walkthrough (every climbable object and every door object self-handles its own
+passage before the default verb runs), so every message was pinned against the Release 119 build
+(`dfrotz -s 1234`), not reasoned from the ZIL.
+
+**1. V-CLIMB-UP — full builtin (`engine/src/builtins.ts`), replacing the "You can't go that way" stub.**
+Faithful to `gverbs.zil`: dispatched as an action it takes no object (DIR=up, OBJ=false), so "climb up
+<anything>" simply walks any up exit — the case the stub got wrong wherever an up exit existed (Kitchen→
+Attic). `V-CLIMB-DOWN` calls it `<V-CLIMB-UP ,P?DOWN ,PRSO>`, carrying the object through, which makes
+the object-lead / wall / tree / "can't do that" branches reachable. Reproduces the exact refusals,
+including STAIRS printing plural ("The stairs don't lead downward.", no singular "es"), the wall-synonym
+message, and the PATH-vs-tree distinction, via `GLOBAL-IN?` (`room.scenery`) and the exit kinds
+(NEXIT=blocked, UEXIT/CEXIT/DEXIT=real).
+
+**2. OTHER-SIDE — return the door-exit's *direction*, not the room beyond (latent wrong-answer).** The
+builtin returned `exit.to`; ZIL's `<RETURN .P>` returns the direction property, and its only caller
+`V-THROUGH` feeds it to `<DO-WALK .M>`, which expects a heading. Returning a room would push a room id
+onto `pendingWalks` and never move — the "total function with a wrong answer" pattern this codebase keeps
+producing (HANDOFF standing note). Unexercised today only because every door self-handles passage;
+corrected now with a discriminating test (force the cellar trap door open, "enter trap door" → moves up
+to the living room, which fails if a room is returned).
+
+**Also:** factored shared `displayName`/`globalIn` helpers in `builtins.ts` (`GLOBAL-IN?` now delegates);
+refreshed the stale "V-CLIMB-UP still stalls on GETPT" comment.
+
+**Tests:** +5 in `engine/test/engine.test.ts` (139 engine, up from ~129). Strict parity unchanged at
+143/143. `graphify update engine` run.
+
+**Status:** ✅ Committed to 5.5 polish. Remaining catalog-tail idioms (I-CYCLOPS `<NTH>`, GRATE string,
+`,ONBIT`/`,ACTORBIT`, non-atom `FSET?`, non-literal `REST`) still open — none blocks a walkthrough.
+
+---
+
 ## v0.17.2 — 2026-07-22 — Comic pane: tail connection + whole-panel fit on mobile
 
 **Date:** 2026-07-22

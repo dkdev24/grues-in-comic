@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.2**
+**0.17.3**
 
 ---
 
@@ -37,26 +37,28 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 113 web, ~129 engine, 193 IR, parity 143/143 strict.
+**Test counts:** 113 web, 139 engine, 193 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — Comic-pane fixes: tail connection + whole-panel fit (v0.17.2)
+## Last Session — V-CLIMB-UP implemented + OTHER-SIDE latent-bug fix (v0.17.3)
 
-The two comic-pane issues from live testing (old Next Action #2), both confirmed fixed in-browser.
+Closed the first two items of Next Action #2 (the last engine stub + its companion idiom). Both read a
+room's exit *properties* in ZIL (`<GETPT ,HERE .DIR>` / `NEXTP` walk); the IR models exits structurally,
+so both became lookups over `exitFor`/`room.exits` — the ADR 0003 substitution, done as engine builtins.
+Neither is reached by any walkthrough, so every message was pinned against the Release 119 build
+(`dfrotz -s 1234`), not reasoned from the source.
 
-- **Balloon tail reconnected (`web/src/comic/balloon.ts`).** The tail was capped short (`TAIL_REACH`/
-  `clampReach`, 72px) and floated in mid-air because balloons stack at the panel top while figures stand
-  at the bottom — worst single-column, whose tall panel maximizes that gap. `target` is already the head
-  anchor (`render.ts`), so `roundedSpeech`/`bubbleTrail` now run the tail straight to it; `TAIL_DEPTH`
-  still clears the box first. `clampReach`/`TAIL_REACH` removed.
-- **Whole panel fits without scrolling.** `comic-view.ts` `measure()` now caps the panel to the strip's
-  visible height (`clientHeight` − padding) and derives width at the native aspect, not width alone;
-  `style.css` hides `.comic-cast` at `max-width:720px and orientation:portrait` and `max-height:560px`
-  (catches the on-screen keyboard) to hand that space to the panel.
-- **`README.md:27` reworded** — IR extraction + 143/143 strict parity, not "inspired by" (cleared the
-  matching Open Issue).
-- 113 web green; full suite unaffected (`layoutStrip` signature untouched; no test asserts tail geometry).
+- **V-CLIMB-UP** (`engine/src/builtins.ts`) is now a full builtin, not the "You can't go that way" stub.
+  As an action it takes no object → "climb up <anything>" walks any up exit (Kitchen→Attic, the case the
+  stub broke). `V-CLIMB-DOWN` passes `,PRSO`, making the object-lead / wall / tree / "can't do that"
+  branches reachable; reproduces the exact refusals incl. STAIRS-plural ("The stairs don't lead…").
+- **OTHER-SIDE** now returns the door-exit's **direction**, not `exit.to` (a room). ZIL `<RETURN .P>` is
+  a direction, and its only caller `V-THROUGH` feeds it to `<DO-WALK>`. The room-return was the
+  "total-function-wrong-answer" pattern; unexercised only because every door self-handles passage.
+- Factored `displayName`/`globalIn` helpers (`GLOBAL-IN?` delegates now).
+- **+5 engine tests** (139 total), each discriminating (revert either fix and it fails). Strict parity
+  unchanged 143/143; `graphify update engine` run.
 
 ---
 
@@ -77,11 +79,12 @@ invariants (presentation-only Guide, no engine internals, deterministic pure fun
    legible). `establishing`≈`wide` similarity is inherent to solo-Hero scenes and deliberately left.
 
 2. **Engine stubs / uncovered idioms** (not blocking any walkthrough, but the last known gaps):
-   - `V-CLIMB-UP` — the last stub, stalls on `GETPT`; natural companion to `OTHER-SIDE` (same idiom).
-   - Unassigned routine-catalog tail: `<NEXTP …>` (OTHER-SIDE — needs direction number + door match;
-     ADR 0003 rewrote `I-SWORD`'s scan but not this), `<NTH …>` (I-CYCLOPS — a table index, not an exit
-     scan), String-in-statement-position (GRATE-FUNCTION, off-route), bare `,ONBIT`/`,ACTORBIT`
-     (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with non-literal byte count (PICK-ONE).
+   - ✅ **`V-CLIMB-UP`** (last stub) and **`OTHER-SIDE`** (the `NEXTP` idiom) done in v0.17.3 — both as
+     engine builtins over the structural exit model, not extractor rewrites. See WORKLOG.
+   - **Still open, remaining catalog tail** (unrelated shapes — none is an exit scan, so ADR 0003's
+     rewrite doesn't apply; triage individually): `<NTH …>` (I-CYCLOPS — a table index),
+     String-in-statement-position (GRATE-FUNCTION, off-route), bare `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY),
+     non-atom FSET? flag (GOTO), `REST` with non-literal byte count (PICK-ONE).
 
 3. **Invisible-routine audit, re-run after ADR 0003.** 360/439 ROUTINE forms extracted, 28 catalogued,
    51 invisible. 45 correctly excluded by design (parser/clock/turn-loop the engine owns). Tail worth

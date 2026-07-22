@@ -374,3 +374,63 @@ describe("robustness across the map", () => {
     expect(failures).toEqual([]);
   });
 });
+
+describe("V-CLIMB-UP and OTHER-SIDE (the GETPT/NEXTP exit-property idioms)", () => {
+  /*
+   * Both routines read a room's exit *properties* in the ZIL — V-CLIMB-UP with
+   * <GETPT ,HERE .DIR>, OTHER-SIDE with the NEXTP walk — which the IR replaces
+   * with structural exit lookup, the same substitution ADR 0003 made for the
+   * sword's exit scan. No walkthrough reaches either: every climbable object and
+   * every door object self-handles its own passage before the default verb runs.
+   * So each message below is pinned against the Release 119 reference build
+   * (`dfrotz -s 1234`), the ground truth these once-stubbed verbs had none of.
+   */
+
+  const said = (s: string): string => text(say(s)).trim();
+
+  it("walks the climb direction when the room has that exit", () => {
+    // Kitchen's up exit is the staircase to the Attic. As an action V-CLIMB-UP
+    // takes no object, so "climb up <anything>" just walks up — the case the old
+    // "You can't go that way" stub got wrong wherever an up exit existed.
+    engine = createEngine(doc, { seed: 1, start: "KITCHEN" });
+    engine.start();
+    const moved = say("climb up staircase").find((e) => e.type === "player-moved");
+    expect(moved && "to" in moved && moved.to).toBe("ATTIC");
+  });
+
+  it("refuses when a carried object doesn't lead that way, printing STAIRS as plural", () => {
+    // V-CLIMB-DOWN passes PRSO through, so the object-lead check runs: the
+    // staircase leads up, not down. D ,STAIRS is plural, so ZIL omits the
+    // singular "es" — "don't", not "doesn't".
+    engine = createEngine(doc, { seed: 1, start: "KITCHEN" });
+    engine.start();
+    expect(said("climb down staircase")).toBe("The stairs don't lead downward.");
+  });
+
+  it("says you can't go that way with no exit and no carried object", () => {
+    engine = createEngine(doc, { seed: 1, start: "WEST-OF-HOUSE" });
+    engine.start();
+    expect(said("climb up mailbox")).toBe("You can't go that way.");
+  });
+
+  it("says you can't do that for an unclimbable carried object", () => {
+    engine = createEngine(doc, { seed: 1, start: "WEST-OF-HOUSE" });
+    engine.start();
+    expect(said("climb down mailbox")).toBe("You can't do that!");
+  });
+
+  it("OTHER-SIDE returns the door's direction, so V-THROUGH walks through it", () => {
+    // V-THROUGH is <DO-WALK <OTHER-SIDE ,PRSO>>, and DO-WALK expects a heading:
+    // OTHER-SIDE must return the *direction* of the door-exit, not the room
+    // beyond. Returning the room would push a room id onto pendingWalks and
+    // never move. The cellar's up exit is the trap door to the living room;
+    // force it open (it slams shut on the descent) and go through.
+    engine = createEngine(doc, { seed: 1, start: "CELLAR" });
+    engine.start();
+    const save = engine.snapshot();
+    save.flags["TRAP-DOOR"] = ["OPENBIT", "DOORBIT"];
+    engine.restore(save);
+    const moved = say("enter trap door").find((e) => e.type === "player-moved");
+    expect(moved && "to" in moved && moved.to).toBe("LIVING-ROOM");
+  });
+});

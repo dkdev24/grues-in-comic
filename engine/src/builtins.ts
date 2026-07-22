@@ -14,10 +14,10 @@
  * itself the ZIL convention for "shared across games".
  */
 
-import type { BehaviorValue } from "@grues-in-comic/ir";
+import type { BehaviorValue, Direction } from "@grues-in-comic/ir";
 import { callRoutine, entityId, num } from "./interpreter.js";
 import { emit, emitOn, tell, type Builtin, type RuntimeContext } from "./runtime.js";
-import { goTo } from "./movement.js";
+import { exitFor, goTo } from "./movement.js";
 import { scope } from "./scope.js";
 import {
   hasFlag,
@@ -132,7 +132,7 @@ export function createBuiltins(): Map<string, Builtin> {
   b.set("GLOBAL-IN?", (ctx, [obj, room]) => {
     const id = entityId(obj ?? false, "GLOBAL-IN?");
     const roomId = entityId(room ?? false, "GLOBAL-IN?");
-    return ctx.world.rooms.get(roomId)?.scenery?.includes(id) ?? false;
+    return globalIn(ctx, id, roomId);
   });
 
   /**
@@ -212,12 +212,22 @@ export function createBuiltins(): Map<string, Builtin> {
     return true;
   });
 
-  /** ZIL OTHER-SIDE: the room a door leads to from where the player stands. */
+  /**
+   * ZIL OTHER-SIDE (gverbs.zil): the *direction* of the door-exit that leads
+   * through a given door from where the player stands — **not** the room beyond
+   * it, despite the routine's "finds room beyond given door" comment. The ZIL
+   * walks HERE's direction properties (`NEXTP`) for a `DEXIT` whose `DEXITOBJ`
+   * matches the door and `<RETURN .P>` returns the property *number*, i.e. the
+   * direction. Its only caller, `V-THROUGH`, feeds that straight to
+   * `<DO-WALK .M>`, which expects a direction — returning the room would push a
+   * room id onto `pendingWalks` and fail to resolve as a heading. The IR models
+   * exits structurally, so the property walk is a lookup over `exits`.
+   */
   b.set("OTHER-SIDE", (ctx, [door]) => {
     const id = entityId(door ?? false, "OTHER-SIDE");
     const room = ctx.world.rooms.get(here(ctx.state));
     for (const exit of room?.exits ?? []) {
-      if (exit.kind === "door" && exit.door === id) return exit.to;
+      if (exit.kind === "door" && exit.door === id) return exit.direction;
     }
     return false;
   });
@@ -332,7 +342,8 @@ export function createBuiltins(): Map<string, Builtin> {
    * HERO-BLOW and RANDOMIZE-OBJECTS were stubbed here until RANDOM became an
    * extractable operator; both are real extracted routines now, and routines
    * take precedence over builtins, so leaving the stubs would only have been
-   * dead code shadowed at every call. V-CLIMB-UP still stalls on GETPT.
+   * dead code shadowed at every call. V-CLIMB-UP was the last stub of this kind
+   * and is now a full builtin over the structural exit model (see below).
    */
   /*
    * The copyright banner ("ZORK I: The Great Underground Empire / Infocom
@@ -365,8 +376,71 @@ export function createBuiltins(): Map<string, Builtin> {
    */
   b.set("MAIN-LOOP", () => true);
 
-  b.set("V-CLIMB-UP", (ctx) => {
-    tell(ctx, "You can't go that way.");
+  /**
+   * ZIL V-CLIMB-UP (gverbs.zil): "climb up/down <object>" and "walk up/down
+   * <object>". The original reads HERE's exit property in the climb direction
+   * with `<GETPT ,HERE .DIR>` and classifies it by `PTSIZE`; the IR models exits
+   * structurally, so {@link exitFor} answers the same question without a property
+   * walk (the same replacement ADR 0003 made for the sword's exit scan).
+   *
+   * Two entry points share this routine, and their argument shape is the whole
+   * behavior:
+   *  - As an *action* (`CLIMB UP OBJECT`, `WALK UP OBJECT`) it is called with no
+   *    args, so `DIR` defaults to `up` and `OBJ` stays false — the object is
+   *    PRSO but the object-lead check below never runs. This is why "climb up
+   *    <anything>" in a room with an up exit simply walks up.
+   *  - `V-CLIMB-DOWN` calls it `<V-CLIMB-UP ,P?DOWN ,PRSO>`, so the down cases
+   *    carry the object through and the lead/wall branches become reachable.
+   */
+  b.set("V-CLIMB-UP", (ctx, [dirArg, objArg]) => {
+    const dir = (dirArg === undefined || dirArg === false ? "up" : String(dirArg)) as Direction;
+    const prso = ctx.directObject;
+    // <COND (<AND .OBJ <NOT <EQUAL? ,PRSO ,ROOMS>>> <SET OBJ ,PRSO>)> — the
+    // object, present only on the down path; the action path leaves it false.
+    const obj = objArg ? (prso === "ROOMS" ? "ROOMS" : prso) : undefined;
+    const climbWord = dir === "up" ? "up" : "down";
+
+    const exit = exitFor(ctx.world, here(ctx.state), dir);
+    if (exit !== undefined) {
+      // <COND (.OBJ ...)>: does *this object* lead that way? A blocked exit
+      // (NEXIT) leads nowhere; a real exit whose destination doesn't hold the
+      // object as scenery isn't reached by climbing it either.
+      if (obj !== undefined) {
+        const dest =
+          exit.kind === "to" || exit.kind === "conditional" || exit.kind === "door"
+            ? exit.to
+            : undefined;
+        if (exit.kind === "blocked" || (dest !== undefined && !globalIn(ctx, obj, dest))) {
+          // <TELL "The " D .OBJ " do" ["es"] "n't lead " <up|down> "ward.">;
+          // ZIL prints STAIRS without the singular "es" because its DESC is plural.
+          tell(
+            ctx,
+            `The ${displayName(ctx, obj)} do${obj === "STAIRS" ? "" : "es"}n't lead ${climbWord}ward.\n`,
+          );
+          return true;
+        }
+      }
+      // <DO-WALK .DIR>
+      ctx.pendingWalks.push(dir);
+      return true;
+    }
+
+    // No exit that way. The object decides the refusal.
+    if (obj !== undefined && (ctx.world.objects.get(obj)?.synonyms ?? []).includes("WALL")) {
+      tell(ctx, "Climbing the walls is to no avail.\n");
+      return true;
+    }
+    // Tree branch: OBJ is false or the tree itself, a tree is scenery here, and
+    // HERE is not PATH (whose up exit is the real climbable tree).
+    if (
+      (obj === undefined || obj === "TREE") &&
+      here(ctx.state) !== "PATH" &&
+      globalIn(ctx, "TREE", here(ctx.state))
+    ) {
+      tell(ctx, "There are no climbable trees here.\n");
+      return true;
+    }
+    tell(ctx, obj === undefined || obj === "ROOMS" ? "You can't go that way.\n" : "You can't do that!\n");
     return true;
   });
 
@@ -374,6 +448,19 @@ export function createBuiltins(): Map<string, Builtin> {
 }
 
 /* ---------------- shared helpers ---------------- */
+
+/** ZIL `D`: an entity's display name (its DESC), never its id. */
+function displayName(ctx: RuntimeContext, id: string): string {
+  return ctx.world.objects.get(id)?.name ?? ctx.world.rooms.get(id)?.name ?? id;
+}
+
+/**
+ * ZIL GLOBAL-IN?: is an object one of a room's scenery globals? The IR keeps
+ * that list on the room as `scenery`, so the ZIL property walk is a lookup.
+ */
+function globalIn(ctx: RuntimeContext, obj: string, room: string): boolean {
+  return ctx.world.rooms.get(room)?.scenery?.includes(obj) ?? false;
+}
 
 /**
  * Is the room lit? Its own ONBIT, the ALWAYS-LIT debug global, or any object in
