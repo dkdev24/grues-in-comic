@@ -7,14 +7,14 @@
  * transcription. Everything here therefore takes a width and measures at that
  * width; nothing caches a break.
  *
- * Balloon class is fixed per channel and is never a per-panel choice:
+ * The caption and Guide classes are fixed per channel; the Hero's is now chosen
+ * per line (ADR 0006 §3), so class is a property of the balloon, not the drawer:
  *
- * - `CBWoodringThink` — the Hero. A thought balloon, never speech (§2a). The
- *   player's command is an imperative *addressed to* the Hero, and the engine
- *   emits zero `speech` events across every walkthrough, so a speech balloon
- *   would assert on each panel something the contract never said.
+ * - `CBWoodringNormal` — a speech balloon. The Guide/DM, and now the Hero when he
+ *   speaks across the table to the DM (ADR 0006 §3, Slice 1).
+ * - `CBWoodringThink` — a thought balloon. Retained for the Hero's interior asides
+ *   the DM doesn't hear; the second of his two registers.
  * - `CBWoodringBox` — the caption. A verbatim pull-quote from the narration.
- * - `CBWoodringNormal` — the Guide, the only speaker and the only authored text.
  */
 
 import type { Balloon } from "./mapper.js";
@@ -40,7 +40,6 @@ const PADDING = 10;
  */
 const THINK_INSET = 9;
 const LINE_HEIGHT = 15;
-const TAIL_DEPTH = 22;
 /**
  * The tail reaches its speaker. Comic Chat's balloons sit directly over their
  * speaker, so its tails are short; ours stack from the top of the panel while
@@ -48,10 +47,12 @@ const TAIL_DEPTH = 22;
  * in mid-air, connected to nobody — the single-column panel, tall enough to put
  * the head far below the balloon, made this plainly wrong. A balloon's tail is
  * how a comic names its speaker, so it must land on the head however far that
- * is: `target` is already the head anchor (`render.ts`), and the tail now runs
- * to it directly. `TAIL_DEPTH` still guarantees the tail leaves the box before
- * turning toward a speaker that sits close.
+ * is: `target` is already the head anchor (`render.ts`), and the tail runs to it
+ * directly — never *past* it, which on a close-up (head right below the balloon)
+ * would punch the tip through the face. `TAIL_MIN_EXIT` only guarantees the tail
+ * clears the box before angling toward a speaker that sits close.
  */
+const TAIL_MIN_EXIT = 2;
 
 /**
  * `AddLine`'s job, reduced to what a single-balloon-per-character panel needs:
@@ -218,9 +219,15 @@ function roundedSpeech(
 
   if (target) {
     const root = Math.min(Math.max(target.x, box.x + radius + 14), box.x + box.width - radius);
-    const tip = target;
+    // Aim the tip *at* the speaker's head anchor, guaranteeing only a small exit
+    // below the box. The earlier `max(target.y, boxBottom + 22)` forced a
+    // *minimum* tail length: fine for a distant speaker (it just reached them),
+    // but on a close-up the head sits right below the balloon, so that minimum
+    // overshot the crown and drove the tip through the face. Pointing at the
+    // anchor reaches a far speaker the same way and stops at a near one's head.
+    const tipY = Math.max(target.y, box.y + box.height + TAIL_MIN_EXIT);
     ctx.lineTo(root + 9, box.y + box.height);
-    ctx.lineTo(tip.x, Math.max(tip.y, box.y + box.height + TAIL_DEPTH));
+    ctx.lineTo(target.x, tipY);
     ctx.lineTo(root - 9, box.y + box.height);
   }
 

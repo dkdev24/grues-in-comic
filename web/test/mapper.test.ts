@@ -113,7 +113,7 @@ describe("panel stream", () => {
     }
 
     expect(panels[4]?.hero).toEqual({
-      channel: "hero", balloonClass: "CBWoodringThink", text: "The leaflet, then.",
+      channel: "hero", balloonClass: "CBWoodringNormal", text: "The leaflet, then.",
     });
     expect(panels[6]?.hero?.text).toBe("The leaflet can stay.");
     expect(panels[1]?.hero).toBeNull(); // `look` — no action, no balloon
@@ -189,7 +189,7 @@ describe("panel stream", () => {
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
     const names = new Map([["LAMP", "brass lantern"]]);
     expect(heroBalloon("LAMP", null, names)).toEqual({
-      channel: "hero", balloonClass: "CBWoodringThink", text: "The brass lantern, then.",
+      channel: "hero", balloonClass: "CBWoodringNormal", text: "The brass lantern, then.",
     });
     expect(heroBalloon(null, "LAMP", names)?.text).toBe("The brass lantern can stay.");
     // Take wins when a turn did both (one balloon per panel).
@@ -199,13 +199,18 @@ describe("panel stream", () => {
     expect(heroBalloon("EGG", null, new Map())?.text).toBe("The EGG, then.");
   });
 
-  it("never emits a speech balloon for the Hero", () => {
-    // The engine emits zero `speech` events across all 11 walkthroughs; a comic
-    // whose commonest element were a speech balloon would assert on every panel
-    // something the contract never said.
+  it("the Hero speaks: every resolved-action balloon is a speech balloon (ADR 0006 §3)", () => {
+    // ADR 0006 Slice 1 breaks ADR 0004 §2a: the Hero addresses the DM across the
+    // table, so his resolved-action line is spoken, not thought. The thought class
+    // is retained as a register for interior asides (no content authored yet), so
+    // across the walkthroughs every Hero balloon that appears is speech.
+    let seen = 0;
     for (const panel of allPanels()) {
-      expect(panel.hero?.balloonClass ?? "CBWoodringThink").toBe("CBWoodringThink");
+      if (panel.hero === null) continue;
+      seen++;
+      expect(panel.hero.balloonClass).toBe("CBWoodringNormal");
     }
+    expect(seen).toBeGreaterThan(0); // guard: the assertion actually ran
   });
 
   it("quotes narration verbatim and never paraphrases it (§2)", () => {

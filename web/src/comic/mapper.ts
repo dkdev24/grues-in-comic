@@ -53,7 +53,11 @@ export type PanelKind =
 
 export interface Balloon {
   channel: "hero" | "caption" | "guide";
-  /** Fixed per channel by §2/§2a — never chosen per panel. */
+  /**
+   * Fixed per channel for `caption` (box) and `guide` (speech). The `hero`
+   * channel chooses per line (ADR 0006 §3): speech when he addresses the DM,
+   * thought for an interior aside — no longer a per-channel constant.
+   */
   balloonClass: BalloonClass;
   text: string;
 }
@@ -68,7 +72,7 @@ export interface Panel {
   room: string;
   /** Object id rung 4 focused on, when the camera is a close-up. */
   focus: string | null;
-  /** The player's command, as a thought balloon. Absent on the opening turn. */
+  /** The Hero's spoken line to the DM (ADR 0006 §3). Absent on the opening turn. */
   hero: Balloon | null;
   /** A verbatim pull-quote from the turn's narration. */
   caption: Balloon | null;
@@ -331,8 +335,13 @@ export function salient(
  * whole ADR exists to remove. Take wins over drop when a turn did both; one
  * balloon per panel is the Comic Chat rule §6 inherits (`AddLine`).
  *
- * Still a *thought* balloon (`CBWoodringThink`) — whether the Hero *speaks* is a
- * two-shot question ADR 0005 §4 answers in Slice 5, not here.
+ * A **speech** balloon (`CBWoodringNormal`): the Hero now *speaks* across the
+ * table to the DM (ADR 0006 §3, Slice 1). This is the break with ADR 0004 §2a /
+ * ADR 0005 §4 — the resolved action is a line he says aloud, not a caption on his
+ * life. The *thought* register (`CBWoodringThink`) is retained for interior asides
+ * the DM doesn't hear: balloon class is chosen per line, not per character, and
+ * the thought class stays live in the type and the renderer. Aside *content* is
+ * authored in a later slice, so the resolved-action line here is always spoken.
  *
  * The lines are the Hero's settled voice (`wiki/the-hero.md`): a systems-minded,
  * genre-literate, middle-aged player working a familiar dungeon — terse, dry,
@@ -346,7 +355,7 @@ export function heroBalloon(
   if (id === null) return null;
   const name = names.get(id) ?? id;
   const text = took !== null ? `The ${name}, then.` : `The ${name} can stay.`;
-  return { channel: "hero", balloonClass: "CBWoodringThink", text };
+  return { channel: "hero", balloonClass: "CBWoodringNormal", text };
 }
 
 /**

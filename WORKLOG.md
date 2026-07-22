@@ -10,6 +10,57 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.5 — 2026-07-22 — ADR 0006 Slice 1: the Hero speaks
+
+**Date:** 2026-07-22
+
+First build under `docs/adr/0006-dungeon-master-and-player.md` (Guide-as-DM, Hero-as-player). Slice 1
+breaks ADR 0004 §2a / ADR 0005 §4 as the ADR intends: the Hero's resolved-action balloon moves from a
+**thought** balloon to a **speech** balloon — he now addresses the DM across the table rather than
+captioning his life to no one. The **thought register is retained** for interior asides (its type and
+renderer stay live; aside *content* is authored in a later slice), so balloon class is now chosen **per
+line, not per character**.
+
+- **`heroBalloon` returns `CBWoodringNormal`** (was `CBWoodringThink`) — one-token behavioural change;
+  the take/drop templates and object-name resolution (ADR 0005 §1) are unchanged. `web/src/comic/mapper.ts`.
+- **Doc/contract updates:** `Balloon.balloonClass` is no longer "fixed per channel" — caption/guide stay
+  fixed, `hero` chooses per line (`mapper.ts` interface + `heroBalloon` docblock; `balloon.ts` header).
+- **No render change.** `render.ts`/`drawBalloon` were already class-driven and already target the Hero's
+  head for `panel.hero`, so a hero speech balloon renders through the same `roundedSpeech` path the Guide
+  uses, tail to the Hero. The `CBWoodringThink` cloud path stays exercised by `balloon.test.ts`.
+- **Presentation-only — zero engine/IR/parity impact.** The event contract (ADR 0002) is untouched;
+  `replayPanels` still applies. Test `never emits a speech balloon for the Hero` inverted to
+  `the Hero speaks: every resolved-action balloon is a speech balloon`. **113 web tests green, tsc clean.**
+  Engine 139 / IR 198 / parity 143/143 unaffected (not re-run — no code in those packages changed).
+
+**Close-up tail fix + a PNG render harness (same session).** The new speech tail crossed the Hero's face
+on close-ups. Two compounding causes, both found by *rendering panels and reading the geometry*, not by eye:
+
+1. **Aimed at the head's centre.** The tail targeted the crown anchor at `faceX` (horizontal centre of the
+   head), so whenever the balloon sat *beside* the head — a tall caption pushes the Hero balloon down to
+   head height — the tail drove straight across the face into the nose. Fix: aim the speech tail at the
+   **nearest point on the head's silhouette** (`headEdgeTip`, `render.ts`) — the crown when the balloon is
+   above, the temple when it is to the side. This is the real fix; a comic tail touches its speaker's edge.
+2. **Overshot vertically.** `roundedSpeech` floored the tip at `max(target.y, boxBottom + 22)`, a minimum
+   tail length that on a close-up (head ~7px below the balloon) punched ~30px past the crown into the face.
+   Reduced to `boxBottom + TAIL_MIN_EXIT=2`, so the tail reaches a distant speaker the same way but stops
+   at a near one (`balloon.ts`). The crown anchor (now used only by *thought* bubbles) keeps a hairline cap.
+
+Verified across three placements in rendered PNGs: balloon-above (tail→crown/hair), balloon-beside (→temple),
+Guide two-shot (→top of tiki head, distant tail unchanged). Was invisible while the Hero used a thought
+bubble (bubble-trail dots, always wide two-shots).
+
+- **New dev tool `web/tools/render-panel.ts`** (`npm run render:panel [walkthrough.cmd] [outDir]`), on
+  `@napi-rs/canvas` (prebuilt, no system deps; added as a devDependency). Renders real panels through the
+  browser's own `renderPanel` to PNG, so balloon/tail/placement geometry can be validated headless — the
+  `web/` suite is jsdom-free and had no way to exercise a real canvas. Output dir is git-ignored (`out/`).
+
+**Wiki not rewritten this slice.** `wiki/the-hero.md` already defers the thought-vs-speech class to the
+ADRs ("not restated here"), so no edit was forced; the dual-register identity rewrite (ADR 0006
+Consequences) lands with the aside *content* in a later slice.
+
+---
+
 ## v0.17.4 — 2026-07-22 — Catalog tail cleared: `<NTH>` + string-in-statement; the rest is engine-owned by design
 
 **Date:** 2026-07-22

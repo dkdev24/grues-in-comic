@@ -226,9 +226,12 @@ function drawBalloons(
     const headH = item.figure.headHeight * item.scale;
     anchors.set(item.figure, {
       x: ax,
-      // Aim the tail at the crown rather than mid-face, so the shrinking bubbles
-      // meet the top of the head and never sit on the eyes.
-      y: item.y + headH * 0.2,
+      // The crown anchor, used by *thought* balloons (their bubbles float up to
+      // the head centre). Depth is a capped fraction of head height: `headH * 0.2`
+      // is the crown on a wide shot, but on a close-up that fraction reaches the
+      // forehead, so the cap keeps it in the hairline at any scale. Speech tails
+      // do not use this — they land on the head's edge via `headEdgeTip`.
+      y: item.y + Math.min(headH * 0.2, 16),
     });
     const halfW = headH * 0.44;
     faces.push({ left: ax - halfW, right: ax + halfW, top: item.y, bottom: item.y + headH });
@@ -248,10 +251,13 @@ function drawBalloons(
   // a one-word-per-line ribbon reads worse than a small, honest overlap.
   const heroMax = Math.min(width * 0.62, Math.max(Math.max(leftMargin, rightMargin) - 8, width * 0.3));
 
+  const heroFace = placed.length > 0 ? faces[placed.length - 1] : undefined;
+  const guideFace = placed.length > 1 ? faces[0] : undefined;
+
   const queue = [
-    { balloon: panel.caption, target: null, align: "left" as const, max: width * 0.62 },
-    { balloon: panel.guide, target: guideAnchor ?? null, align: "left" as const, max: width * 0.62 },
-    { balloon: panel.hero, target: heroAnchor ?? null, align: heroSide, max: heroMax },
+    { balloon: panel.caption, anchor: null, face: undefined, align: "left" as const, max: width * 0.62 },
+    { balloon: panel.guide, anchor: guideAnchor ?? null, face: guideFace, align: "left" as const, max: width * 0.62 },
+    { balloon: panel.hero, anchor: heroAnchor ?? null, face: heroFace, align: heroSide, max: heroMax },
   ].filter((item) => item.balloon !== null);
 
   let y = 8;
@@ -263,9 +269,37 @@ function drawBalloons(
     let x = item.align === "right" ? width - measured.width - 10 : 10;
     x = clearOfFaces(x, y, measured.width, measured.height, bulge, faces, width);
     const box: BalloonBox = { x, y, width: measured.width, height: measured.height };
-    drawBalloon(ctx, balloon, box, measured.lines, item.target);
+    // A speech tail lands on the head's *silhouette edge* nearest the balloon, so
+    // a balloon beside the head touches the temple rather than driving across the
+    // face to the anchor at its centre. A thought balloon keeps the crown anchor:
+    // its shrinking bubbles float up to the head and read right at the centre.
+    const target = balloon.balloonClass === "CBWoodringNormal" && item.face
+      ? headEdgeTip(box, item.face)
+      : item.anchor;
+    drawBalloon(ctx, balloon, box, measured.lines, target);
     y += measured.height + 8;
   }
+}
+
+interface Face { left: number; right: number; top: number; bottom: number; }
+
+/**
+ * Where a speech tail should end: the point on the head's silhouette (its face
+ * keep-out box) nearest the balloon. Aiming at the head's *centre* was the bug
+ * ADR 0006 §3's speech balloon exposed — when the balloon sits beside the head,
+ * a line to the centre crosses the face and lands on the nose. The nearest edge
+ * point is where a comic tail actually touches its speaker: the crown when the
+ * balloon is above, the temple when it is to the side.
+ */
+function headEdgeTip(box: BalloonBox, face: Face): { x: number; y: number } {
+  const headCx = (face.left + face.right) / 2;
+  // The tail root rides the balloon's bottom edge, as near the head as it fits.
+  const rootX = Math.min(Math.max(headCx, box.x), box.x + box.width);
+  const rootY = box.y + box.height;
+  return {
+    x: Math.min(Math.max(rootX, face.left), face.right),
+    y: Math.min(Math.max(rootY, face.top), face.bottom),
+  };
 }
 
 /**

@@ -1,6 +1,6 @@
 # ADR 0006 — The Dungeon Master and the Player: from Two Voices to a Table
 
-- **Status:** Proposed
+- **Status:** Accepted (building — Slice 1 landed v0.17.5)
 - **Date:** 2026-07-22
 - **Supersedes (in part):** ADR 0004 §2/§2a (the Hero's channel is a *thought* balloon), §"Not the Narrator" boundary as stated in `wiki/the-guide.md`; ADR 0005 §4 ("the Hero keeps the *thought* balloon — he does not speak")
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — still consumed, still not extended); the Guide/DM stays **presentation-only** — no game state, unaddressable by the parser, removable without moving one bit of engine behaviour or the parity harness (ADR 0004 §3); the panel stream stays a **deterministic pure function of the event stream with no engine internals**, so `replayPanels` still applies (ADR 0004 §5, ADR 0005 testing contract)
@@ -126,9 +126,11 @@ variation that would need engine state is out of scope by construction.
 
 ## Implementation slices
 
-1. **Hero speaks** (§3). Thought→speech balloon in the two-shot; interior-aside thought
-   retained. Local to the mapper + balloon class. No new memory, no reframing. Ships and is
-   judged on its own — this alone delivers most of the "comic-native" payoff.
+1. **Hero speaks** (§3). ✅ **Done (v0.17.5).** Resolved-action balloon is now speech
+   (`CBWoodringNormal`); the thought class is retained as the interior-aside register (type +
+   renderer live, content authored in a later slice). Change local to `mapper.ts`
+   (`heroBalloon`, `Balloon` doc) + `balloon.ts` header; render already class-driven, so no
+   render change. Presentation-only — no engine/IR/parity impact. 113 web tests green.
 2. **DM↔Hero dialogue pairs** (§4, without conversational memory). Beat-keyed line pairs;
    golden sequences extended to assert dialogue content.
 3. **Caption-as-read-aloud reframe + identity rewrite** (§2, wiki). Mostly authored/UI; the
