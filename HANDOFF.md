@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**1.8.1**
+**0.17.1**
 
 ---
 
@@ -26,13 +26,13 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   per-module (⚑ Gate A); OpenWiki not adopted.
 - **M4 ✅** Engine core (4.1–4.7): world runtime, parser, dispatch, save/restore, transcript harness,
   combat + thief (membership-verified). **11 walkthroughs, parity 143/143 strict.** ⚑ **Gate C
-  claimed (v1.0.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`.
+  claimed (v0.9.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`.
 - **M5 ◐** Comic Chat presentation. 5.1 ✅ art pipeline (`art/`), 5.2 ✅ browser shell (`web/`),
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
-  (v1.6.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v1.8.0).
-  - **5.5 ◐ — core exit criterion MET (v1.7.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
+  (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0).
+  - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
-    `engine/test/completion.test.ts` (seed 1234). Path built across v1.6.2–v1.7.0 (native routines →
+    `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
     exorcism IR fix → room `M-END` → magic boat → resilient completion harness); see WORKLOG.
     **Remaining 5.5 work is presentation polish + in-browser verification** — see Next Actions.
 
@@ -40,9 +40,9 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 
 ---
 
-## Last Session — Unit tests for the balloon fixes (v1.8.1)
+## Last Session — Unit tests for the balloon fixes (v0.17.1)
 
-The three prior Hero-balloon fixes (shape, face-avoidance, close-up width cap — WORKLOG "v1.8.0+")
+The three prior Hero-balloon fixes (shape, face-avoidance, close-up width cap — WORKLOG "v0.17.0+")
 were verified-in-browser but unpinned; now tested.
 
 - **`web/test/balloon.test.ts`** drives `drawBalloon` (the only path to the non-exported `cloud()`)
@@ -64,7 +64,7 @@ were verified-in-browser but unpinned; now tested.
 and verification. In rough priority:
 
 1. **In-browser visual verification of the Narrative Director + framing (Playwright).** The whole
-   ADR 0005 arc (Slices 1–5, v1.8.0) is proven by headless tests only. **The facing flip especially
+   ADR 0005 arc (Slices 1–5, v0.17.0) is proven by headless tests only. **The facing flip especially
    needs a visual check** — mirror direction was inferred from the "Hero faces away" symptom and could
    interact badly with masked-mono shading. Also unverified: Guide framing on non-`over-shoulder` shots
    now that it fires on beats (a Guide crammed into a tight `close-up`/`reaction` is possible; death is
@@ -73,11 +73,11 @@ and verification. In rough priority:
    `gallery.html`. Real endgame panels (varied rooms/emotions) beat more constant-panel work.
 
 2. **Comic pane: get the specific issue list before investigating.** Live testing reported "many
-   issues" in the comic pane; only the sub-810px panel-collapse was itemized and fixed (v1.7.4). **Ask
+   issues" in the comic pane; only the sub-810px panel-collapse was itemized and fixed (v0.16.4). **Ask
    the user for the specific list**, then re-test live per issue — these are only caught by looking at
    the running page, not by tests.
 
-3. **`SHOTS` framing table — further tuning (◐, first pass v1.7.3).** Authoring judgement sitting on
+3. **`SHOTS` framing table — further tuning (◐, first pass v0.16.3).** Authoring judgement sitting on
    top of the ADR (the ADR fixes which rung fires; these fill/reveal/backdrop numbers make each rung
    legible). `establishing`≈`wide` similarity is inherent to solo-Hero scenes and deliberately left.
 
@@ -118,19 +118,19 @@ measurement taken for one question often answers another.
 ## Open Issues
 
 **Engine / IR** (durable cautions; the completed fixes behind them are in WORKLOG v1.6.x–v1.7.x)
-- **Vehicle M-BEG dispatch fires on `<LOC WINNER>`, not `here()`** (`containerAction`, v1.6.6). ZIL's
+- **Vehicle M-BEG dispatch fires on `<LOC WINNER>`, not `here()`** (`containerAction`, v0.15.6). ZIL's
   per-turn "room" hooks fire on the player's *container*, so any vehicle/enterable with an ACTION is a
   first-class turn participant.
-- **Completion is harness-driven, not an engine correction** (v1.7.0). `12-full-game.cmd`'s fixed list
+- **Completion is harness-driven, not an engine correction** (v0.16.0). `12-full-game.cmd`'s fixed list
   is seed-1234-specific (thief thefts change which `put ... in case` lines land); `runFullGame`
   (`harness/complete.ts`) supplies combat/inventory resilience. **The engine was never tuned toward 350
   against the list.** Other seeds don't win — a property of the authored list, not the engine.
 - **The engine's native score helper and ZIL's extracted routines must agree on the same globals**
-  (v1.6.5). `addScore` advances `BASE-SCORE` in lockstep with `SCORE` because `LIVING-ROOM`'s M-END
+  (v0.15.5). `addScore` advances `BASE-SCORE` in lockstep with `SCORE` because `LIVING-ROOM`'s M-END
   recomputes `SCORE = BASE-SCORE + OTVAL-FROB`. A native builtin that maintains only half of a
   derived quantity's inputs is silent corruption the moment an extracted routine reads the other half.
 - **A dangling `,NAME` that is a room's ACTION routine resolves to that room** (`roomByActionRoutine`,
-  v1.6.3) and **the exit-scan rewrite** (ADR 0003) are the extractor's two fail-closed non-mechanical
+  v0.15.3) and **the exit-scan rewrite** (ADR 0003) are the extractor's two fail-closed non-mechanical
   transforms. Both are pattern matches against one ZIL idiom; **loosen only with a test pinning what
   they must still refuse** — widening to ambiguous names is how they'd start rewriting good references.
 - **`Room.adjacent` is derived data** (ADR 0003) — safe only because `validate.ts` re-derives it from
@@ -161,12 +161,12 @@ measurement taken for one question often answers another.
 
 **Project / M5**
 - **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run pack`
-  (cast pinned in the script). **Re-pack after any `art/` decode change** — v1.4.1 fixed the decoder
+  (cast pinned in the script). **Re-pack after any `art/` decode change** — v0.13.1 fixed the decoder
   but the committed sheets stayed inverted until regenerated.
 - **`art/` has no assertion that a rendered image *looks* like anything** beyond
   `art/test/polarity.test.ts` (which pins the pixel-code → colour mapping, not the art). The corpus
   sweep checks shape/bounds, which an inverted/mis-hued/mirrored figure satisfies — that is how an
-  inversion reached a released build (v1.4.0). **Any new colour/polarity decision needs its own pinned
+  inversion reached a released build (v0.13.0). **Any new colour/polarity decision needs its own pinned
   assertion, and looking at the output stays part of the loop.** Art statistics are not invariants
   (anna's bob is a legitimate 80% ink).
 - **Verify a regression test by reverting the fix**, not by watching it pass — done for the balloon

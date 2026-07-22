@@ -269,7 +269,7 @@ figure to lift it off a backdrop, paper → white, ink → black. Using the pale
 instead yields a dark-red and navy figure — recognisably the right *shape*, which makes it
 easy to assume the decode succeeded. The inversion is the same trap one level down: the
 shapes stay perfectly correct and only the polarity is wrong, so it survives any test that
-checks coverage rather than colour. It shipped in v1.4.0 for exactly that reason;
+checks coverage rather than colour. It shipped in v0.13.0 for exactly that reason;
 `art/test/polarity.test.ts` now pins the mapping corpus-wide.
 
 The three-DIB split is a Win32 implementation detail. A modern renderer with an alpha

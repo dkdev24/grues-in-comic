@@ -2,9 +2,52 @@
 
 Persistent project history. Append entries; do not edit past entries.
 
+**Versioning:** the project stays **0.x.x** for its entire pre-public life. **1.0.0 is reserved for
+public launch** — the day the repo goes public and the website (likely a GitHub Page) ships. The
+milestone that was briefly tagged `1.0.0` ("Gate C — engine complete") is `v0.9.0`; the whole former
+`1.x` line has been renumbered into the 0.x series (`1.M.P → 0.(M+9).P`). `CHANGELOG.md` tracks the
+same 0.x versions for public consumption.
+
 ---
 
-## v1.8.0 — 2026-07-22 — Narrative Director: Guide converses + facing two-shot — Slice 5 (subsystem complete)
+## v0.17.1 — 2026-07-22 — Hero thought-balloon fixes, now pinned by unit tests
+
+**Date:** 2026-07-22
+
+Two things in one entry: the three Hero thought-balloon fixes (landed verified-in-browser late in the
+0.17.0 work but never versioned) and the unit tests that pin them this session.
+
+**The fixes** — verified in-browser on the real "The leaflet, then." panel (take leaflet at West of
+House):
+1. **Shape (`web/src/comic/balloon.ts`, `cloud()`).** It rendered as a chain of overlapping *full*
+   circles around a visible rectangle: `cloud()` stamped a complete circle (`arc(…, 0, 2π)`) at every
+   bump *and* added the inner `rect`, then the caller stroked the lot. Rewritten as one continuous
+   closed path of outward-only scallop arcs — a single clean cloud, no interior lines.
+2. **Face-avoidance (`web/src/comic/render.ts`, `drawBalloons` + new `clearOfFaces`).** Each on-stage
+   head is a keep-out box; the Hero thought is capped to the roomier side-margin, parked in that corner
+   (`heroSide`), and any balloon whose box/scallops/tail would enter a face box is slid horizontally out
+   (`clearOfFaces`). The tail aims at the crown (`headH * 0.2`), not mid-face. On a close-up with no
+   margin it tolerates a small overlap rather than an unreadable ribbon (floor `width*0.3`).
+3. **Close-up width cap (`render.ts`, `MAX_FIGURE_WIDTH` + `fit`).** A figure is capped to `0.55 ×
+   panel width` **only when the panel carries a Guide speech or Hero thought balloon** (`widthCap` in
+   `renderPanel`, threaded into `fit`). Conditional on purpose: the game-over `reaction` rung has no
+   such balloon and stays full-frame; only `close-up` shrinks (~6%).
+
+**The tests:**
+- `web/test/balloon.test.ts` drives `drawBalloon` (the only path to the non-exported `cloud()`) through
+  a recording 2D context and asserts the thought outline is one closed path with **no interior `rect`
+  and no full-circle arc** (`|end−start| < 2π`); a `CBWoodringBox` caption is the control (still draws a
+  `rect`, no scallops).
+- `web/test/render.test.ts` covers `clearOfFaces` (slides disjoint from an overlapping face; no-op when
+  already clear; tolerates a panel-spanning head) and `fit`/`MAX_FIGURE_WIDTH` (caps a wide figure only
+  under a finite cap, uncapped at `Infinity`, no-op for narrow figures).
+- `fit`, `clearOfFaces`, and `MAX_FIGURE_WIDTH` are now `export`ed from `render.ts` for test access
+  (`renderPanel` was their only caller); `cloud()` stays private. Each assertion was confirmed to
+  **fail on the reverted bug**.
+
+**113 web tests green** (was 101); typecheck clean; graph updated.
+
+## v0.17.0 — 2026-07-22 — Narrative Director: Guide converses + facing two-shot — Slice 5 (subsystem complete)
 
 **Date:** 2026-07-22
 
@@ -51,7 +94,7 @@ action.
 
 ---
 
-## v1.7.7 — 2026-07-22 — Narrative Director: traversal collapse — Slice 4
+## v0.16.7 — 2026-07-22 — Narrative Director: traversal collapse — Slice 4
 
 **Date:** 2026-07-22
 
@@ -89,7 +132,7 @@ with the Hero and the two share a facing two-shot (the buddy-comic payoff; the l
 
 ---
 
-## v1.7.6 — 2026-07-22 — Narrative Director: beat detection + noise drop — Slice 3
+## v0.16.6 — 2026-07-22 — Narrative Director: beat detection + noise drop — Slice 3
 
 **Date:** 2026-07-22
 
@@ -128,7 +171,7 @@ Slice 5 (Guide converses + two-shot).
 
 ---
 
-## v1.7.5 — 2026-07-22 — Narrative Director: scaffolding (ADR 0005) + Hero voice — Slices 1–2
+## v0.16.5 — 2026-07-22 — Narrative Director: scaffolding (ADR 0005) + Hero voice — Slices 1–2
 
 **Date:** 2026-07-22
 
@@ -173,7 +216,7 @@ panel-sequences replace the count assertions.
 
 ---
 
-## v1.7.4 — 2026-07-22 — Two-up panel layout: columns were fitting against native width, not a shrinkable minimum
+## v0.16.4 — 2026-07-22 — Two-up panel layout: columns were fitting against native width, not a shrinkable minimum
 
 **Date:** 2026-07-22
 
@@ -208,7 +251,7 @@ See Open Issues, Project / M5.
 
 ---
 
-## v1.7.3 — stage 5.5 task 1: tune the SHOTS framing table by looking at the running page
+## v0.16.3 — stage 5.5 task 1: tune the SHOTS framing table by looking at the running page
 
 **Date:** 2026-07-21
 
@@ -241,7 +284,7 @@ in the session, not committed.
 
 ---
 
-## v1.7.2 — stage 5.5: green the web presentation baseline (two pre-existing failures)
+## v0.16.2 — stage 5.5: green the web presentation baseline (two pre-existing failures)
 
 **Date:** 2026-07-21
 
@@ -271,7 +314,7 @@ has no known failing tests. Test-only change — no source touched.
 
 ---
 
-## v1.7.1 — stage 5.5: treasure scoring emits `score-changed` (the web score climb)
+## v0.16.1 — stage 5.5: treasure scoring emits `score-changed` (the web score climb)
 
 **Date:** 2026-07-21
 
@@ -303,7 +346,7 @@ and is unrelated). Graphify regenerated.
 
 ---
 
-## v1.7.0 — stage 5.5: the game is completable — 350/350, victory at the barrow
+## v0.16.0 — stage 5.5: the game is completable — 350/350, victory at the barrow
 
 **Date:** 2026-07-21
 
@@ -314,7 +357,7 @@ and is unrelated). Graphify regenerated.
 - **New shared driver `engine/harness/complete.ts` (`runFullGame`).** The combat-resilient replay
   logic moved out of `full-run.ts` into this module so the probe and the committed test run the
   *same* code. `full-run.ts` is now a thin human-readable front end over it.
-- **Thief-and-inventory-resilient recovery.** The v1.6.6 probe stalled at 334/350 because the
+- **Thief-and-inventory-resilient recovery.** The v0.15.6 probe stalled at 334/350 because the
   engine's RNG has the thief hoard skull(t10)+torch(t6) = the 16-pt gap; both drop in his hideaway
   (TREASURE-ROOM) on death and the fixed list can't recover them past the load limit. `runFullGame`
   splits the fixed list just before the map-dependent barrow tail, then runs `recoverHoard()`: while
@@ -342,7 +385,7 @@ completable in the engine — is met.
 
 ---
 
-## v1.6.6 — stage 5.5: magic boat `LAUNCH` (vehicle M-BEG dispatch)
+## v0.15.6 — stage 5.5: magic boat `LAUNCH` (vehicle M-BEG dispatch)
 
 **Date:** 2026-07-21
 
@@ -1642,7 +1685,7 @@ randomized turns is the last step before the milestone can be claimed.
 
 ---
 
-## v1.0.0 — 2026-07-20 — ⚑ Gate C claimed: the engine is complete
+## v0.9.0 — 2026-07-20 — ⚑ Gate C claimed: the engine is complete
 
 Zork I runs end to end on the IR, in TypeScript, with no browser code and no dependencies.
 
@@ -1692,7 +1735,7 @@ the session protocol's bar on starting later milestones no longer applies. Stage
 browser shell over the event stream, is the natural next step and is the first real test of
 whether the ADR 0002 event contract is usable from outside the engine.
 
-## v1.1.0 — 2026-07-20 — Stage 5.1 complete: the art pipeline and the presentation analysis
+## v0.10.0 — 2026-07-20 — Stage 5.1 complete: the art pipeline and the presentation analysis
 
 Stage 5.1 was the standing exception in the session protocol — independent of every gate, usable
 as filler. It had been partly started at v0.5.18, which solved `.avb` decoding and left three
@@ -1805,7 +1848,7 @@ empty panel), and backdrops — 3 shipped against 110 rooms, which no algorithm 
 
 ---
 
-## v1.2.0 — 2026-07-20 — Panel grammar settled: ADR 0004 accepted
+## v0.11.0 — 2026-07-20 — Panel grammar settled: ADR 0004 accepted
 
 Design only. No engine, IR or art code changed; the deliverable is a decision record that unblocks
 stage 5.3. Two working sessions, both measurement-led: `docs/panel-grammar-discussion.md` grew from
@@ -1866,7 +1909,7 @@ Five, across the two sessions, recorded in the discussion so they are not re-pro
 - A speech balloon for the Hero, reversed on contract evidence (below).
 
 The lesson is recorded in `HANDOFF.md`: measure against the replay and the corpus before committing
-a rule. **Correction to the v1.1.0 entry above**, which is left unedited per the append-only rule:
+a rule. **Correction to the v0.10.0 entry above**, which is left unedited per the append-only rule:
 the `object-moved` count is **187**, not 189 — the §10 event census is the accurate figure.
 
 ### Amendments the same day, both from outside review
@@ -1921,7 +1964,7 @@ unblocked on design.
 
 ---
 
-## v1.3.0 — Browser Shell (Milestone 5, stage 5.2)
+## v0.12.0 — Browser Shell (Milestone 5, stage 5.2)
 
 **Date:** 2026-07-20
 
@@ -2005,7 +2048,7 @@ design (ADR 0004 Accepted) and plumbing (this shell).
 
 ---
 
-## v1.4.0 — 2026-07-20 — Stage 5.3: the comic renderer (⚑ Gate D)
+## v0.13.0 — 2026-07-20 — Stage 5.3: the comic renderer (⚑ Gate D)
 
 **Zork I now draws itself as a comic.** Every turn produces a Comic Chat panel beside the
 transcript: original `.avb` figures composited face-onto-torso, Woodring balloons, the ADR 0004
@@ -2108,7 +2151,7 @@ evidence available that §7 and §10 describe the event stream rather than a spr
 
 ---
 
-## v1.4.1 — 2026-07-21 — Masked-mono polarity: every figure was inverted
+## v0.13.1 — 2026-07-21 — Masked-mono polarity: every figure was inverted
 
 Reported from play, not from a test: the cast rendered as white linework on black
 silhouettes. Real, whole-corpus, and one constant wide.
@@ -2186,7 +2229,7 @@ test rather than to a grammar rule.
 
 ---
 
-## v1.5.0 — 2026-07-21 — Stage 5.4 (part 1): backdrop assignment and session persistence
+## v0.14.0 — 2026-07-21 — Stage 5.4 (part 1): backdrop assignment and session persistence
 
 Two units of stage 5.4, plus three shell defects found by driving the running site with
 Playwright rather than by reading it.
@@ -2215,7 +2258,7 @@ back into history is not yanked forward by a resize.
 The 5.3 stub tested `/…|HOUSE|…/` **before** `/^(WEST|NORTH|SOUTH|EAST)-OF-HOUSE$/`, so all four
 house rooms took the first branch and **the `field` backdrop never drew**. `UP-A-TREE` matched
 nothing and rendered as a cellar interior. Neither could fail a test, because the stub always
-returned *some* backdrop — the same shape as the v1.4.1 polarity bug, where the right structure
+returned *some* backdrop — the same shape as the v0.13.1 polarity bug, where the right structure
 hid the wrong content.
 
 `web/src/comic/backdrop.ts` replaces it with an explicit table, **inverted on purpose**: it names
@@ -2269,7 +2312,7 @@ and narration styling remain. Narration styling is blocked on a contract questio
 
 ---
 
-## v1.5.1 — 2026-07-21 — Stage 5.4 (part 2): narration styling, and the title that was never sent
+## v0.14.1 — 2026-07-21 — Stage 5.4 (part 2): narration styling, and the title that was never sent
 
 The transcript rendered a room's name and its description as one undifferentiated block. The
 `room-title` channel had existed in the contract since ADR 0002 and `.line.room-title` had
@@ -2333,7 +2376,7 @@ sequencing and portraits remain.
 
 ---
 
-## v1.6.0 — Stage 5.4 complete: panel sequencing and character portraits
+## v0.15.0 — Stage 5.4 complete: panel sequencing and character portraits
 
 **Date:** 2026-07-21
 
@@ -2435,7 +2478,7 @@ where backdrop scarcity is the live constraint.
 
 ---
 
-## v1.6.1 — Full-game completion oracle; engine gap measured (stage 5.5 started)
+## v0.15.1 — Full-game completion oracle; engine gap measured (stage 5.5 started)
 
 **Date:** 2026-07-21
 
@@ -2473,7 +2516,7 @@ engine does not yet win.
 
 ---
 
-## v1.6.2 — Engine driven West of House → the temple; first victory path (stage 5.5)
+## v0.15.2 — Engine driven West of House → the temple; first victory path (stage 5.5)
 
 **Date:** 2026-07-21
 
@@ -2518,7 +2561,7 @@ does not yet win the full game.
 
 ---
 
-## v1.6.3 — 2026-07-21 — Exorcism IR fix: stale room reference resolved (stage 5.5)
+## v0.15.3 — 2026-07-21 — Exorcism IR fix: stale room reference resolved (stage 5.5)
 
 **Date:** 2026-07-21
 
@@ -2556,7 +2599,7 @@ exorcism's completion and any other room whose behavior depends on `M-END`). Not
 
 ---
 
-## v1.6.4 — 2026-07-21 — 30-backdrop art pass: full-game backdrop coverage (stage 5.5, task 3)
+## v0.15.4 — 2026-07-21 — 30-backdrop art pass: full-game backdrop coverage (stage 5.5, task 3)
 
 **Date:** 2026-07-21
 
@@ -2611,17 +2654,17 @@ room now draws one that fits it.
 
 **Stage 5.5 ◐.** Presentation coverage (task 3) for backdrops is complete; the remaining 5.5 blocker
 is unchanged and lives in the **engine** — the room `M-END` end-of-turn action that gates the
-exorcism's completion (see v1.6.3 and Next Actions task 0). Backdrop polish still open but not
+exorcism's completion (see v0.15.3 and Next Actions task 0). Backdrop polish still open but not
 blocking: `render.ts` cover-fits to a hardcoded 315×315 square, so non-square crops stretch a few px.
 
 ---
 
-## v1.6.5 — 2026-07-21 — Room `M-END` end-of-turn action; the exorcism completes (stage 5.5)
+## v0.15.5 — 2026-07-21 — Room `M-END` end-of-turn action; the exorcism completes (stage 5.5)
 
 **Date:** 2026-07-21
 
 The engine now runs a room's ACTION with `M-END` at end of turn — the last frontier gap identified at
-v1.6.3. ZIL runs it every non-fatal turn (`gmain.zil:154`, order `PERFORM → room M-END → CLOCKER`),
+v0.15.3. ZIL runs it every non-fatal turn (`gmain.zil:154`, order `PERFORM → room M-END → CLOCKER`),
 and the exorcism's completion depended on it: `LLD-FLAG` is set in `LLD-ROOM`'s READ-book branch gated
 on `XC`, and `XC` is set only by that room action running with `M-END`, which the engine never did.
 With the step in place the ceremony finishes, and the full-game oracle advances from a hard stop at the
@@ -2660,166 +2703,6 @@ temple to **173/350 at DAM-BASE** — the next gap is the magic boat, not the ex
 boat:** `#212 "launch"` returns `V-LAUNCH`'s refusal ("You can't launch that by saying \"launch\"!")
 because the boat's ACTION (`RBOAT-FUNCTION`, 1actions.zil:2722) — which intercepts `LAUNCH` and drives
 the Frigid River drift via `RIVER-LAUNCH`/`GO-NEXT` — is not being reached. That blocks the entire
-river leg, so the oracle stalls at 173/350; it is an object-behaviour gap, exactly the class the v1.6.3
+river leg, so the oracle stalls at 173/350; it is an object-behaviour gap, exactly the class the v0.15.3
 handoff flagged. The committed completion test (`full-run.ts` → asserting `game-over{victory}` + 350)
 is still deferred until the engine actually reaches the barrow.
-
-## v1.6.6 — 2026-07-21 — Magic boat `LAUNCH`: vehicle M-BEG dispatch (stage 5.5)
-
-**Date:** 2026-07-21
-
-The per-turn M-BEG dispatch now targets `<LOC WINNER>` (the vehicle when aboard) via
-`containerAction(ctx)` in `engine.ts`, not always `here()`, so `RBOAT-FUNCTION` intercepts `LAUNCH`
-before `V-LAUNCH`'s refusal ("You can't launch that by saying \"launch\"!"). This unblocks the whole
-Frigid River leg and the coal-mine run; the full-game oracle advances **173 → 334/350** (misses
-104 → 4). General lesson: **ZIL's per-turn "room" hooks (M-BEG) fire on the player's *container*,** so
-any vehicle/enterable with an ACTION is a first-class turn participant — the same slot works for any
-future rideable with M-BEG behaviour. Stage 5.5 ◐; the remaining 334→350 gap was thief-RNG divergence,
-not a dispatch gap (closed in v1.7.0).
-
-## v1.7.0 — 2026-07-21 — The game is completable: 350/350, barrow, victory (stage 5.5 core exit criterion)
-
-**Date:** 2026-07-21
-
-**THE GAME IS COMPLETABLE.** The engine wins Zork I: **350/350**, ends in `STONE-BARROW`,
-`game-over{victory}`, 0 crashes/deaths. The 334→350 gap was thief-RNG divergence, not a dispatch gap.
-The resilient driver `runFullGame` (`engine/harness/complete.ts`, shared by `full-run.ts` and the test)
-splits the fixed command list before the map-gated barrow tail, runs `recoverHoard()` to ferry any
-thief-scattered / hideaway-stranded treasure back to the trophy case (multiple trips, junk dropped,
-lantern on for the dark descent), then `SCORE-UPD` reveals the MAP and the map-read → SW →
-`STONE-BARROW-FCN` tail wins. Committed `engine/test/completion.test.ts` (seed 1234) asserts
-`game-over{victory}` + score 350 + `STONE-BARROW`. **The engine was never "corrected" toward 350
-against the list** — the resilience lives in the harness, where it belongs. Other seeds don't win: the
-fixed command list is seed-1234-specific (thief thefts change which `put ... in case` lines land).
-Minor residue: `get out of boat` at SANDY-BEACH (#219) still fails — vehicle didn't follow the player
-off the river (cosmetic).
-
-## v1.7.1 — 2026-07-21 — Web UI score-event gap closed
-
-**Date:** 2026-07-21
-
-`reconcileScore` in `engine.ts` emits a corrective `score-changed` at the end of any `command()` where
-SCORE moved without an event — covering the extracted `SCORE-UPD` and the LIVING-ROOM M-END recompute,
-i.e. all treasure scoring. `web/src/status.ts` already folds the event, so the display now updates on
-take/case. Pinned by `completion.test.ts` (`eventScore === 350`; fails at 302 without the fix).
-
-## v1.7.3 — 2026-07-21 — SHOTS framing table: first tuning pass
-
-**Date:** 2026-07-21
-
-First tuning pass on the `render.ts` `SHOTS` table, done by looking at the running page: `reaction`
-backdrop 0.3 → 0.18 (the face dominates the game-over beat) and `over-shoulder` fill 1.0 → 0.86 (the
-Hero is no longer clipped in the two-shot); `medium`/`close-up`/`establishing`/`wide` left as-is. New
-dev harness `web/gallery.js` + `gallery.html` renders every preset over one constant panel for
-screenshot comparison. `establishing`≈`wide` similarity is noted and deliberately left (inherent to
-solo-Hero scenes). Further tuning wants real endgame panels in front of you, not more constant-panel
-work.
-
-## v1.7.4 — 2026-07-21 — Comic pane panel-layout fix
-
-**Date:** 2026-07-21
-
-Live testing found the comic pane collapsed to one oversized panel below ~810px viewport width;
-diagnosed and fixed. Other reported issues from that session were not itemized.
-
-## v1.7.5–v1.8.0 — 2026-07-21 — ADR 0005 Narrative Director (Slices 1–5)
-
-**Date:** 2026-07-21
-
-The comic pane read as a *play-log, not a story* — a category error against ADR 0004 (the parser
-transcript and the comic script are one artifact). Fix: **ADR 0005, the Narrative Director**
-(`web/src/comic/director.ts`), an `ingest(turn) → Panel[]` (0..N) seam between the turn stream and the
-panel stream — an *edited, past-tense retelling* — while the console pane still shows every word live.
-Supersedes 0004 §3 (Guide trigger), §6 (1 panel/turn), §2/§2a (Hero balloon = command); preserves 0002
-(contract not extended), the §7 camera ladder, §10 affect ordering, §2 captions, and the
-pure-function/parity-oracle property. Hero voice settled in `wiki/the-hero.md`, Guide in
-`wiki/the-guide.md`.
-
-Five slices, each green-tested, never one rewrite:
-- **1 — Hero balloon = resolved action.** `heroBalloon(took, dropped, names)` renders the outcome of
-  `object-moved` events ("The leaflet, then." / "The leaflet can stay."), `null` for
-  movement/look/refusal. Object names via `objectNameTable(doc.objects)`.
-- **2 — Director skeleton.** Wraps the mapper 1:1; `comic-view.ts` drives `ingest`. `director.test.ts`
-  proves byte-identical output to the mapper's panel sequence over every walkthrough.
-- **3 — Beat detection + noise drop.** Mapper tags each panel `kind`
-  (`arrival|traversal|action|terminal|refusal|ambient`, `panelKind()`); Director **drops `refusal`**
-  and passes the rest 1:1. Mapper always folds even on a drop. §6 superseded: emitted stream = full
-  fold minus refusals.
-- **4 (v1.7.7) — Traversal collapse.** The first *buffering* edit: a run of consecutive `traversal`
-  panels (backtracking) collapses to one panel at the run's destination. `pendingTraversal` holds the
-  run; flushes on a non-traversal beat or via new `Director.flush()` (view calls it after the resume
-  replay in `main.ts`). Invariant: **emitted === `edited(full fold)`** (reference reducer in
-  `director.test.ts`). Walking through *new* rooms is unaffected (each is an `arrival`).
-- **5 (v1.8.0) — Guide converses + two-shot.** (a) Beat-keyed Guide: `guideFor` consults a new
-  `BEAT_SCRIPT` (marker → line, in `comic-view.ts`) *before* the room gazetteer — the Guide replies to
-  the affect marker the Hero's action produced, under the same cooldown, still presentation-only;
-  `MapperOptions` gained `beatScript`. (b) Facing: `drawFigure` gained a `mirror` param; `render.ts`
-  mirrors the Hero (the right figure) in a two-shot so it faces the Guide (the "faces away" symptom);
-  the balloon-tail anchor flips to match. Guide kept deadpan (honors `wiki/the-guide.md`); `the-guide.md`
-  rule 6 and `the-hero.md` updated (Hero keeps the *thought* balloon).
-
-Also this milestone: the **Guide gazetteer** — `GUIDE_SCRIPT` in `comic-view.ts` is now an authored
-88-room gazetteer across the full main path (replacing 6 placeholders), keyed by real room id (fixed
-the placeholder's dead `BEHIND-HOUSE` key → `EAST-OF-HOUSE`), every key validated against
-`zork1.world.json`. Content-only; mechanism and tests unchanged.
-
-**⚠ NOT VERIFIED IN-BROWSER at the time:** the whole arc (Slices 1–5) was proven by headless tests
-only. The facing flip especially needs a Playwright visual check (mirror direction inferred from the
-"Hero faces away" symptom; could interact badly with masked-mono shading), as does Guide framing on
-non-`over-shoulder` shots now that it fires on beats. Web 101/101 green.
-
-## v1.8.0+ — 2026-07-22 — Hero thought-balloon fixes: shape, face-avoidance, width cap
-
-**Date:** 2026-07-22
-
-Three defects in the Hero thought balloon, fixed and verified in-browser on the real "The leaflet,
-then." panel (take leaflet at West of House):
-1. **Shape (`comic/balloon.ts`, `cloud()`).** It rendered as a chain of overlapping *full* circles
-   around a visible rectangle: `cloud()` stamped a complete circle (`arc(…, 0, 2π)`) at every bump *and*
-   added the inner `rect`, then the caller stroked the lot. Rewritten as one continuous closed path of
-   outward-only scallop arcs — a single clean cloud, no interior lines.
-2. **Face-avoidance (`comic/render.ts`, `drawBalloons` + new `clearOfFaces`).** Each on-stage head is a
-   keep-out box; the Hero thought is capped to the roomier side-margin, parked in that corner
-   (`heroSide`), and any balloon whose box/scallops/tail would enter a face box is slid horizontally out
-   (`clearOfFaces`). The tail now aims at the crown (`headH * 0.2`), not mid-face. On a close-up with no
-   margin it tolerates a small overlap rather than an unreadable ribbon (floor `width*0.3`).
-3. **Close-up width cap (`comic/render.ts`, `MAX_FIGURE_WIDTH` + `fit`).** To *guarantee* the balloon
-   column, a figure is capped to `0.55 × panel width` **only when the panel carries a Guide speech or
-   Hero thought balloon** (`widthCap` in `renderPanel`, threaded into `fit`). Conditional on purpose:
-   the game-over `reaction` rung has no such balloon and stays full-frame; only `close-up` shrinks (~6%).
-
-Unit tests for all three follow in v1.8.1.
-
-## v1.8.1 — 2026-07-22 — Unit tests for the Hero-balloon fixes
-
-**Date:** 2026-07-22
-
-The three Hero thought-balloon fixes (shape, face-avoidance, close-up width cap) had shipped
-verified-in-browser but unpinned. All three are pure and cheap to test; now each is covered and each
-assertion was confirmed to fail on the reverted bug.
-
-### Changes
-
-- **`web/test/balloon.test.ts` (new, 4 tests).** Drives `drawBalloon` — the only path to the
-  non-exported `cloud()` — through a recording `CanvasRenderingContext2D` that captures path ops.
-  Asserts the thought outline is **one closed path with no interior `rect` and no full-circle arc**
-  (`|end − start| < 2π` for every `arc`), pinning the fix from full-circles-plus-rect to a single
-  scallop loop. A `CBWoodringBox` caption is the control: it still draws a `rect` and no arcs.
-- **`web/test/render.test.ts` (new, 8 tests).** Covers `clearOfFaces` (slides a balloon disjoint from
-  an overlapping face; no-op when it already clears horizontally or vertically; tolerates a
-  panel-spanning head it cannot clear, only clamping to the edges; settles into the gap between two
-  heads) and `fit`/`MAX_FIGURE_WIDTH` (caps a wide figure to the balloon width under a finite cap,
-  leaves it uncapped at `Infinity`, and is a no-op for a narrow figure whose height is the binding
-  term). The multi-head assertion is scoped to a solvable gap on purpose — the pass is greedy, not a
-  global solver.
-- **`web/src/comic/render.ts` — three `export`s added:** `fit`, `clearOfFaces`, and the
-  `MAX_FIGURE_WIDTH` constant, solely so the pure helpers are reachable from the test without a canvas
-  or a cast (their only production caller is `renderPanel`). `cloud()` stays private, tested through
-  `drawBalloon`.
-- **Verified by reverting each fix.** Buggy `cloud()` (full circles + `rect`) fails the no-rect and
-  no-full-circle assertions; `fit` ignoring `widthCap` fails the cap assertion.
-
-### Status
-
-**Stage 5.5.** 113 web tests green (was 101); typecheck clean; graph updated. No behaviour change —
-tests and three exports only.

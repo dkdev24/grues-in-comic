@@ -546,7 +546,7 @@ Allow external renderers and themes.
 
 Status:
 
-⚑ **Gate C claimed at v1.0.0** — the engine is complete in the sense the gate defines, but not
+⚑ **Gate C claimed at v0.9.0** — the engine is complete in the sense the gate defines, but not
 gap-free. Known limitations carried forward:
 
 - `V-CLIMB-UP` is still stubbed (stalls on `GETPT`); no walkthrough diverges on it

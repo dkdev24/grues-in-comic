@@ -360,7 +360,7 @@ Its weaknesses:
   change, Close-up when a target is present, Over-the-Shoulder on addressed dialogue). As written
   they are a list with no consumer.
 - **§12 "Phase 1 ✅" is true but overstated — resolved.** Phase 1 covers parser + IR + engine,
-  which `HANDOFF.md` records as M1–M4 with **Gate C claimed at v1.0.0 *with known gaps***:
+  which `HANDOFF.md` records as M1–M4 with **Gate C claimed at v0.9.0 *with known gaps***:
   `V-CLIMB-UP` still stubbed on `GETPT`, and 155/161 overall against 143/143 strict. That is what
   "not complete" meant in session — not that the milestone is unmet. A bare ✅ hides the gaps from
   anyone reading only the roadmap, so §12 should carry the qualifier.

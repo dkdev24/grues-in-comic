@@ -5,13 +5,101 @@ All notable changes to **Grues in Comic** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**The project stays `0.x` until it goes public.** `1.0.0` is reserved for public launch — the repo
+going public and the website (likely a GitHub Page) shipping. (The internal milestone once tagged
+`1.0.0`, "Gate C — engine complete", is `v0.9.0`.)
+
 ---
 
 ## [Unreleased]
 
+Toward public launch (`1.0.0`): in-browser visual verification of the Narrative Director, comic-pane
+polish, and remaining stage-5.5 presentation work.
+
 ---
 
-## [v1.3.0] - 2026-07-20 — Browser Shell (stage 5.2)
+## [v0.17.1] - 2026-07-22 — Hero thought-balloon fixes, pinned by tests
+
+The Hero's thought balloon is drawn correctly and never lands on a face — and, for the first time,
+those properties are held by unit tests.
+
+### Fixed
+- **The thought balloon rendered as a chain of overlapping full circles around a visible rectangle.**
+  Its outline is now a single continuous scalloped cloud with no interior lines.
+- **Balloons could sit on a character's face.** Each on-stage head is now a keep-out box; a balloon
+  that would cover a face is slid into the panel's empty margin, and its tail points at the crown.
+- **On a tight close-up the figure could crowd out the balloon.** When a panel carries a Guide or Hero
+  balloon, the figure is capped to leave a readable column beside it; the full-frame game-over reaction
+  shot is deliberately exempt.
+
+### Added
+- `web/test/balloon.test.ts` and `web/test/render.test.ts` — 12 tests pinning the three fixes, each
+  verified to fail on the original bug. **Web tests 101 → 113.**
+
+---
+
+## [v0.17.0] - 2026-07-22 — The Narrative Director (ADR 0005)
+
+The comic pane now reads as an *edited, past-tense story* rather than a raw play-log, while the console
+pane still shows every command live.
+
+### Added
+- **A Narrative Director** (`web/src/comic/director.ts`) between the turn stream and the panel stream:
+  it drops parser refusals, collapses a run of backtracking moves into a single panel at the
+  destination, and lets the Guide reply to what the Hero just did.
+- **The Guide converses and the two characters face each other** — the Hero is mirrored in a two-shot
+  so it looks toward the Guide (was facing out of frame). An 88-room Guide gazetteer across the full
+  main path. The Guide stays deadpan (atmosphere, not hints).
+
+### Notes
+- The whole arc is proven by headless tests (web 101/101). In-browser visual verification of the
+  facing flip and Guide framing is the next step.
+
+---
+
+## [v0.16.0] - 2026-07-21 — The game is completable
+
+**Zork I can be won in the engine: 350/350, victory at the Stone Barrow, no crashes or deaths.** This
+is stage 5.5's core exit criterion.
+
+### Added
+- **A resilient completion path** — the magic-boat river leg and coal-mine run (vehicle turn-dispatch),
+  the end-of-turn room hook that completes the exorcism, and a driver that handles the thief's random
+  thefts by recovering scattered treasure to the trophy case. Locked by `engine/test/completion.test.ts`.
+- **Live score updates in the web UI** — treasure scoring now emits a `score-changed` event, so the
+  status line climbs as the case fills.
+
+### Fixed
+- Treasure scoring no longer wipes room-visit points (a score-accumulator split ZIL relies on).
+- The comic pane no longer collapses to a single oversized panel on narrow viewports.
+
+### Changed
+- First tuning pass on the camera framing table, by looking at the running page.
+
+---
+
+## [v0.15.0] - 2026-07-21 — Stage 5.4: the comic strip takes shape
+
+### Added
+- **Room backdrops** — 30 hand-styled backdrops assigned across all 110 rooms.
+- **Session persistence** — the comic strip and transcript survive a reload.
+- **Panel sequencing and character portraits** — a uniform panel grid and a cast bar, so the opening
+  area is playable in comic form.
+
+---
+
+## [v0.13.0] - 2026-07-20 — Stage 5.3: the comic renderer (⚑ Gate D)
+
+### Added
+- **The comic pane** — every turn now draws a Comic Chat panel beside the transcript: composed figures
+  from the original avatar art, Woodring-style balloons, and a camera that varies by beat.
+
+### Fixed
+- **Every figure had shipped inverted** (masked-mono polarity) — decoded and re-packed correctly.
+
+---
+
+## [v0.12.0] - 2026-07-20 — Browser Shell (stage 5.2)
 
 Zork I is playable in a browser. New package `web/` — the first consumer of the ADR 0002 event contract written **outside** the engine, which was the point of the stage.
 
@@ -35,7 +123,7 @@ Three things only become visible from outside the engine. None needs a contract 
 
 ---
 
-## [v1.0.0] - 2026-07-20 — ⚑ Gate C: Engine Complete
+## [v0.9.0] - 2026-07-20 — ⚑ Gate C: Engine Complete
 
 Zork I runs end to end on the IR, in TypeScript, with no browser code and no dependencies.
 

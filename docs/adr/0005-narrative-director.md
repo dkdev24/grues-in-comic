@@ -10,7 +10,7 @@
 
 ADR 0004 built a faithful projection of the transcript: one panel per turn, the Hero's
 command in a thought balloon, the Guide keyed to room geography, affect computed for the Hero
-alone. It works exactly as designed — and that is the problem. Tested live (v1.7.4), the comic
+alone. It works exactly as designed — and that is the problem. Tested live (v0.16.4), the comic
 reads as a **visualized play-log, not a visual story**:
 
 1. **The Hero thinks in commands.** `look`, `n`, `s` are control inputs, not thought. Nobody

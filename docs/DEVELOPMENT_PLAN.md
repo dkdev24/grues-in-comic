@@ -78,7 +78,7 @@ Goal: a platform-independent engine that executes the IR and emits structured ga
 | 4.4 | **Transcript replay harness** — feed golden-transcript commands to the engine, diff output | First golden transcript replays with acceptable diff; harness in CI-style script | ✅ |
 | 4.5 | **Systems completion** — daemons, scoring, save/load, death; iterate until transcripts pass | All golden transcripts pass ⚑ **Gate C** | ✅ |
 
-**⚑ Gate C — CLAIMED v1.0.0 (2026-07-20):** behavioral parity on captured transcripts = engine-complete milestone (major version bump).
+**⚑ Gate C — CLAIMED v0.9.0 (2026-07-20):** behavioral parity on captured transcripts = engine-complete milestone (major version bump).
 
 **Amendment (2026-07-20), on what "all golden transcripts pass" means.** As originally written the
 criterion was unsatisfiable, and not for want of engine work. Combat and the thief choose their
