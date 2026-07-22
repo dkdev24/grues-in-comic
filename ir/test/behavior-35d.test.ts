@@ -51,8 +51,9 @@ describe("stage 3.5 batch (d) extraction — daemons/timers", () => {
     // countdown goldens live in behavior-35h.test.ts.
     expect(reasons.has("I-LANTERN")).toBe(false);
     expect(reasons.has("I-CANDLES")).toBe(false);
-    // Batch (g) lowered ABS, so I-CYCLOPS advanced to the next frontier form.
-    expect(reasons.get("I-CYCLOPS")).toContain("<NTH");
+    // The <NTH> batch lowered I-CYCLOPS's wrath-message index, so it extracts;
+    // its NTH golden lives in behavior-35k.test.ts.
+    expect(reasons.has("I-CYCLOPS")).toBe(false);
     for (const [id, reason] of reasons) {
       expect(reason, `${id} must not fail on QUEUE/INT/CLOCKER`).not.toMatch(/QUEUE|CLOCKER/);
     }

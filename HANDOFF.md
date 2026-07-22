@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.3**
+**0.17.4**
 
 ---
 
@@ -37,28 +37,28 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 113 web, 139 engine, 193 IR, parity 143/143 strict.
+**Test counts:** 113 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — V-CLIMB-UP implemented + OTHER-SIDE latent-bug fix (v0.17.3)
+## Last Session — Catalog tail cleared: `<NTH>` + string-in-statement (v0.17.4)
 
-Closed the first two items of Next Action #2 (the last engine stub + its companion idiom). Both read a
-room's exit *properties* in ZIL (`<GETPT ,HERE .DIR>` / `NEXTP` walk); the IR models exits structurally,
-so both became lookups over `exitFor`/`room.exits` — the ADR 0003 substitution, done as engine builtins.
-Neither is reached by any walkthrough, so every message was pinned against the Release 119 build
-(`dfrotz -s 1234`), not reasoned from the source.
+Triaged Next Action #2's "remaining catalog tail" — five routines, five distinct idioms. Two were real
+extraction gaps and are now lowered; three are engine-owned by design and stay catalogued. Catalogued-
+complex 28 → 26; routines 360 → 362. All in `ir/src/extract-behavior.ts`; details in WORKLOG v0.17.4.
 
-- **V-CLIMB-UP** (`engine/src/builtins.ts`) is now a full builtin, not the "You can't go that way" stub.
-  As an action it takes no object → "climb up <anything>" walks any up exit (Kitchen→Attic, the case the
-  stub broke). `V-CLIMB-DOWN` passes `,PRSO`, making the object-lead / wall / tree / "can't do that"
-  branches reachable; reproduces the exact refusals incl. STAIRS-plural ("The stairs don't lead…").
-- **OTHER-SIDE** now returns the door-exit's **direction**, not `exit.to` (a room). ZIL `<RETURN .P>` is
-  a direction, and its only caller `V-THROUGH` feeds it to `<DO-WALK>`. The room-return was the
-  "total-function-wrong-answer" pattern; unexercised only because every door self-handles passage.
-- Factored `displayName`/`globalIn` helpers (`GLOBAL-IN?` delegates now).
-- **+5 engine tests** (139 total), each discriminating (revert either fix and it fails). Strict parity
-  unchanged 143/143; `graphify update engine` run.
+- **`<NTH>` → 0-based `table-get`** (unblocks **I-CYCLOPS**). NTH is 1-based; the IR is 0-based, so the
+  index shifts down one — and I-CYCLOPS's `<NTH ,CYCLOMAD <- <ABS ,CYCLOWRATH> 1>>` already subtracts one,
+  giving a double `sub`. Pinned end-to-end against the real CYCLOMAD table (wrath 2 → first message).
+- **Bare String in statement position** → a value statement (unblocks **GRATE-FUNCTION**), exactly like
+  the Number case already in `stmt()`. GRATE-FUNCTION's clause ends in `"The grating opens."` passed to
+  `OPEN-CLOSE`.
+- **GOTO / PICK-ONE / V-SAY stay catalogued — by design, not gaps.** GOTO (movement) and PICK-ONE
+  (randomness) are Group A engine builtins; V-SAY stops on the parser's **P-LEXV lex buffer** (engine-
+  owned). V-SAY's old "bare `,ONBIT`/`,ACTORBIT`" label was **stale** — flag-as-value has long been
+  extractable; that was never its blocker.
+- **+5 IR tests** (`behavior-35k.test.ts`), each discriminating (revert a fix → its routine re-catalogues,
+  4/5 fail). Two stale markers in `behavior-35d`/`-35g` updated. IR 198, parity 143/143, completion 350/350.
 
 ---
 
@@ -78,13 +78,14 @@ invariants (presentation-only Guide, no engine internals, deterministic pure fun
    top of the ADR (the ADR fixes which rung fires; these fill/reveal/backdrop numbers make each rung
    legible). `establishing`≈`wide` similarity is inherent to solo-Hero scenes and deliberately left.
 
-2. **Engine stubs / uncovered idioms** (not blocking any walkthrough, but the last known gaps):
-   - ✅ **`V-CLIMB-UP`** (last stub) and **`OTHER-SIDE`** (the `NEXTP` idiom) done in v0.17.3 — both as
-     engine builtins over the structural exit model, not extractor rewrites. See WORKLOG.
-   - **Still open, remaining catalog tail** (unrelated shapes — none is an exit scan, so ADR 0003's
-     rewrite doesn't apply; triage individually): `<NTH …>` (I-CYCLOPS — a table index),
-     String-in-statement-position (GRATE-FUNCTION, off-route), bare `,ONBIT`/`,ACTORBIT` (LIT?, V-SAY),
-     non-atom FSET? flag (GOTO), `REST` with non-literal byte count (PICK-ONE).
+2. **Engine stubs / uncovered idioms — ✅ tail closed (v0.17.3–v0.17.4).**
+   - ✅ **`V-CLIMB-UP`** (last stub) and **`OTHER-SIDE`** (the `NEXTP` idiom) done in v0.17.3 — engine
+     builtins over the structural exit model. See WORKLOG.
+   - ✅ **`<NTH …>`** (I-CYCLOPS) and **String-in-statement** (GRATE-FUNCTION) lowered in v0.17.4 —
+     extractor vocabulary, `ir/src/extract-behavior.ts`. Catalogued-complex now 26.
+   - **Catalogued by design, no action** (not idiom gaps): **GOTO** (movement) and **PICK-ONE**
+     (randomness) are Group A engine builtins; **V-SAY** stops on the parser's P-LEXV lex buffer — all
+     three engine-owned per ADR 0002. Nothing pending; the catalog tail is fully triaged.
 
 3. **Invisible-routine audit, re-run after ADR 0003.** 360/439 ROUTINE forms extracted, 28 catalogued,
    51 invisible. 45 correctly excluded by design (parser/clock/turn-loop the engine owns). Tail worth

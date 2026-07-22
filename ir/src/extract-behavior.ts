@@ -137,7 +137,7 @@ const M_FATAL = 2;
 /** Form heads that map to expressions (legal in statement position via `value`). */
 const EXPR_HEADS = new Set([
   "VERB?", "EQUAL?", "==?", "FSET?", "AND", "OR", "NOT",
-  "G?", "L?", "0?", "1?", "IN?", "LOC", "GETP", "GET",
+  "G?", "L?", "0?", "1?", "IN?", "LOC", "GETP", "GET", "NTH",
   "+", "-", "*", "/", "MOD", "MIN", "ABS", "FIRST?", "NEXT?", "REST", "APPLY",
 ]);
 
@@ -365,7 +365,10 @@ class RoutineTransformer {
     // position — an expression statement (the routine may return its value).
     if (node.type === "Atom" && node.name === "T") return { op: "value", expr: TRUE };
     // Number ending a COND clause (GO-NEXT's per-turn codes) — a value.
-    if (node.type === "Number") return { op: "value", expr: this.expr(node) };
+    // A String does the same: GRATE-FUNCTION ends a clause with a bare
+    // "The grating opens." passed as OPEN-CLOSE's message argument, so the
+    // clause's value is that string (lowered via expr, exactly like Number).
+    if (node.type === "Number" || node.type === "String") return { op: "value", expr: this.expr(node) };
     if (node.type === "GVal" || node.type === "LVal") return { op: "value", expr: this.expr(node) };
     if (node.type !== "Form") this.deny(`unexpected ${node.type} in statement position`);
     const parts = meaningful(node.elements ?? []);
@@ -671,6 +674,15 @@ class RoutineTransformer {
         return { op: "prop", entity: this.expr(rest[0]!), prop: this.propKey("GETP", rest[1]) };
       case "GET":
         return { op: "table-get", table: this.expr(rest[0]!), index: this.expr(rest[1]!) };
+      case "NTH":
+        // ZILCH's NTH is a 1-based table index; the IR's table-get is 0-based,
+        // so the index shifts down by one. I-CYCLOPS reads the wrath message
+        // `<NTH ,CYCLOMAD <- <ABS ,CYCLOWRATH> 1>>` out of the string table.
+        return {
+          op: "table-get",
+          table: this.expr(rest[0]!),
+          index: { op: "sub", a: this.expr(rest[1]!), b: { op: "const", value: 1 } },
+        };
       case "APPLY":
         // Batch (i): the target is a routine name computed at run time —
         // almost always <GETP obj ,P?ACTION>, the object's action handler.

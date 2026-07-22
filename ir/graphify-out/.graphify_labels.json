@@ -7,5 +7,9 @@
   "5": "World Builtins",
   "6": "table-globals.test.ts",
   "7": "world.ts",
+  "8": "behavior-35i.test.ts",
+  "9": "makeWorld",
+  "10": "behavior-poc.test.ts",
+  "11": "behavior-35h.test.ts",
   "15": "behavior.ts"
 }

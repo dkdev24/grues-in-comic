@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/extract-behavior.ts": {
-    "mtime": 1784612861.7202501,
-    "ast_hash": "64e8574d3c8be7605411e243f89f6812",
+    "mtime": 1784709406.6534352,
+    "ast_hash": "a17369d32e18eb0e1f65a2bb7a2acf5c",
     "semantic_hash": ""
   },
   "test/behavior-35.test.ts": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "test/behavior-35d.test.ts": {
-    "mtime": 1784459643.5350037,
-    "ast_hash": "fac2702a8a5e00445452e828dee38021",
+    "mtime": 1784709236.3184795,
+    "ast_hash": "45d7afbc5a2e1cda2037f91faeb10541",
     "semantic_hash": ""
   },
   "test/behavior-35-triage.test.ts": {
@@ -110,8 +110,8 @@
     "semantic_hash": ""
   },
   "test/behavior-35g.test.ts": {
-    "mtime": 1784463795.887619,
-    "ast_hash": "780c8d94f5825434f72cd9debf9c9db9",
+    "mtime": 1784709241.7854695,
+    "ast_hash": "e02972cc7788e03045738e23e980c1be",
     "semantic_hash": ""
   },
   "test/behavior-35h.test.ts": {
@@ -147,6 +147,11 @@
   "test/exit-scan.test.ts": {
     "mtime": 1784512468.551399,
     "ast_hash": "5307c91b3a7e0015238fe6b9cc66f614",
+    "semantic_hash": ""
+  },
+  "test/behavior-35k.test.ts": {
+    "mtime": 1784709451.456335,
+    "ast_hash": "15b8504f0a52a1c7176ecfe7166f5cba",
     "semantic_hash": ""
   }
 }

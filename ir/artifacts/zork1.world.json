@@ -192,6 +192,13 @@
       "value": false
     },
     {
+      "id": "CYCLOMAD",
+      "value": {
+        "table": "CYCLOMAD",
+        "offset": 0
+      }
+    },
+    {
       "id": "CYCLOPS-FLAG",
       "value": false
     },
@@ -749,6 +756,19 @@
         5,
         "The candles won't last long now.",
         0
+      ],
+      "pure": true
+    },
+    {
+      "id": "CYCLOMAD",
+      "kind": "table",
+      "elements": [
+        "The cyclops seems somewhat agitated.",
+        "The cyclops appears to be getting more agitated.",
+        "The cyclops is moving about the room, looking for something.",
+        "The cyclops was looking for salt and pepper. No doubt they are condiments for his upcoming snack.",
+        "The cyclops is moving toward you in an unfriendly manner.",
+        "You have two choices: 1. Leave  2. Become dinner."
       ],
       "pure": true
     },
@@ -25599,6 +25619,645 @@
       }
     },
     {
+      "id": "GRATE-FUNCTION",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "OPEN"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "KEYS"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "PERFORM",
+                  "args": [
+                    {
+                      "op": "const",
+                      "value": "UNLOCK"
+                    },
+                    {
+                      "op": "entity",
+                      "id": "GRATE"
+                    },
+                    {
+                      "op": "entity",
+                      "id": "KEYS"
+                    }
+                  ]
+                },
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "LOCK"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "HERE"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "GRATING-ROOM"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "GRUNLOCK",
+                          "value": {
+                            "op": "const",
+                            "value": false
+                          }
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The grate is locked."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "equal?",
+                        "args": [
+                          {
+                            "op": "global",
+                            "id": "HERE"
+                          },
+                          {
+                            "op": "entity",
+                            "id": "GRATING-CLEARING"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You can't lock it from this side."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "UNLOCK"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSO"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "GRATE"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "global",
+                                "id": "HERE"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "GRATING-ROOM"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "global",
+                                "id": "PRSI"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "KEYS"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "set-global",
+                          "id": "GRUNLOCK",
+                          "value": {
+                            "op": "const",
+                            "value": true
+                          }
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The grate is unlocked."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "and",
+                        "args": [
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "global",
+                                "id": "HERE"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "GRATING-CLEARING"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "equal?",
+                            "args": [
+                              {
+                                "op": "global",
+                                "id": "PRSI"
+                              },
+                              {
+                                "op": "entity",
+                                "id": "KEYS"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "You can't reach the lock from here."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "Can you unlock a grating with a "
+                            },
+                            {
+                              "name": {
+                                "op": "global",
+                                "id": "PRSI"
+                              }
+                            },
+                            {
+                              "text": "?"
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "PICK"
+                ]
+              },
+              "do": [
+                {
+                  "op": "tell",
+                  "parts": [
+                    {
+                      "text": "You can't pick the lock."
+                    },
+                    {
+                      "newline": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "verb?",
+                "verbs": [
+                  "OPEN",
+                  "CLOSE"
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "global",
+                        "id": "GRUNLOCK"
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "OPEN-CLOSE",
+                          "args": [
+                            {
+                              "op": "entity",
+                              "id": "GRATE"
+                            },
+                            {
+                              "op": "cond",
+                              "clauses": [
+                                {
+                                  "when": {
+                                    "op": "equal?",
+                                    "args": [
+                                      {
+                                        "op": "global",
+                                        "id": "HERE"
+                                      },
+                                      {
+                                        "op": "entity",
+                                        "id": "CLEARING"
+                                      }
+                                    ]
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "value",
+                                      "expr": {
+                                        "op": "const",
+                                        "value": "The grating opens."
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "when": {
+                                    "op": "const",
+                                    "value": true
+                                  },
+                                  "do": [
+                                    {
+                                      "op": "value",
+                                      "expr": {
+                                        "op": "const",
+                                        "value": "The grating opens to reveal trees above you."
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "const",
+                              "value": "The grating is closed."
+                            }
+                          ]
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "flag?",
+                                "entity": {
+                                  "op": "entity",
+                                  "id": "GRATE"
+                                },
+                                "flag": "OPENBIT"
+                              },
+                              "do": [
+                                {
+                                  "op": "cond",
+                                  "clauses": [
+                                    {
+                                      "when": {
+                                        "op": "and",
+                                        "args": [
+                                          {
+                                            "op": "not",
+                                            "arg": {
+                                              "op": "equal?",
+                                              "args": [
+                                                {
+                                                  "op": "global",
+                                                  "id": "HERE"
+                                                },
+                                                {
+                                                  "op": "entity",
+                                                  "id": "CLEARING"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          {
+                                            "op": "not",
+                                            "arg": {
+                                              "op": "global",
+                                              "id": "GRATE-REVEALED"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "do": [
+                                        {
+                                          "op": "tell",
+                                          "parts": [
+                                            {
+                                              "text": "A pile of leaves falls onto your head and to the ground."
+                                            },
+                                            {
+                                              "newline": true
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "op": "set-global",
+                                          "id": "GRATE-REVEALED",
+                                          "value": {
+                                            "op": "const",
+                                            "value": true
+                                          }
+                                        },
+                                        {
+                                          "op": "move",
+                                          "entity": {
+                                            "op": "entity",
+                                            "id": "LEAVES"
+                                          },
+                                          "to": {
+                                            "op": "global",
+                                            "id": "HERE"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "set-flag",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "GRATING-ROOM"
+                                  },
+                                  "flag": "ONBIT"
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "clear-flag",
+                                  "entity": {
+                                    "op": "entity",
+                                    "id": "GRATING-ROOM"
+                                  },
+                                  "flag": "ONBIT"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The grating is locked."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "verb?",
+                    "verbs": [
+                      "PUT"
+                    ]
+                  },
+                  {
+                    "op": "equal?",
+                    "args": [
+                      {
+                        "op": "global",
+                        "id": "PRSI"
+                      },
+                      {
+                        "op": "entity",
+                        "id": "GRATE"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "prop",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "prop": "size"
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 20
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "It won't fit through the grating."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "move",
+                          "entity": {
+                            "op": "global",
+                            "id": "PRSO"
+                          },
+                          "to": {
+                            "op": "entity",
+                            "id": "GRATING-ROOM"
+                          }
+                        },
+                        {
+                          "op": "tell",
+                          "parts": [
+                            {
+                              "text": "The "
+                            },
+                            {
+                              "name": {
+                                "op": "global",
+                                "id": "PRSO"
+                              }
+                            },
+                            {
+                              "text": " goes through the grating into the darkness below."
+                            },
+                            {
+                              "newline": true
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 850
+      }
+    },
+    {
       "id": "GRATING-EXIT",
       "body": [
         {
@@ -28057,6 +28716,257 @@
       "source": {
         "file": "1actions.zil",
         "line": 3593
+      }
+    },
+    {
+      "id": "I-CYCLOPS",
+      "body": [
+        {
+          "op": "cond",
+          "clauses": [
+            {
+              "when": {
+                "op": "or",
+                "args": [
+                  {
+                    "op": "global",
+                    "id": "CYCLOPS-FLAG"
+                  },
+                  {
+                    "op": "global",
+                    "id": "DEAD"
+                  }
+                ]
+              },
+              "do": [
+                {
+                  "op": "return",
+                  "value": {
+                    "op": "const",
+                    "value": true
+                  }
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "equal?",
+                  "args": [
+                    {
+                      "op": "global",
+                      "id": "HERE"
+                    },
+                    {
+                      "op": "entity",
+                      "id": "CYCLOPS-ROOM"
+                    }
+                  ]
+                }
+              },
+              "do": [
+                {
+                  "op": "call",
+                  "routine": "DISABLE",
+                  "args": [
+                    {
+                      "op": "call",
+                      "routine": "INT",
+                      "args": [
+                        {
+                          "op": "const",
+                          "value": "I-CYCLOPS"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": {
+                "op": "const",
+                "value": true
+              },
+              "do": [
+                {
+                  "op": "cond",
+                  "clauses": [
+                    {
+                      "when": {
+                        "op": "gt?",
+                        "a": {
+                          "op": "abs",
+                          "arg": {
+                            "op": "global",
+                            "id": "CYCLOWRATH"
+                          }
+                        },
+                        "b": {
+                          "op": "const",
+                          "value": 5
+                        }
+                      },
+                      "do": [
+                        {
+                          "op": "call",
+                          "routine": "DISABLE",
+                          "args": [
+                            {
+                              "op": "call",
+                              "routine": "INT",
+                              "args": [
+                                {
+                                  "op": "const",
+                                  "value": "I-CYCLOPS"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "call",
+                          "routine": "JIGS-UP",
+                          "args": [
+                            {
+                              "op": "const",
+                              "value": "The cyclops, tired of all of your games and trickery, grabs you firmly. As he licks his chops, he says \"Mmm. Just like Mom used to make 'em.\" It's nice to be appreciated."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "const",
+                        "value": true
+                      },
+                      "do": [
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "lt?",
+                                "a": {
+                                  "op": "global",
+                                  "id": "CYCLOWRATH"
+                                },
+                                "b": {
+                                  "op": "const",
+                                  "value": 0
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "set-global",
+                                  "id": "CYCLOWRATH",
+                                  "value": {
+                                    "op": "sub",
+                                    "a": {
+                                      "op": "global",
+                                      "id": "CYCLOWRATH"
+                                    },
+                                    "b": {
+                                      "op": "const",
+                                      "value": 1
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "when": {
+                                "op": "const",
+                                "value": true
+                              },
+                              "do": [
+                                {
+                                  "op": "set-global",
+                                  "id": "CYCLOWRATH",
+                                  "value": {
+                                    "op": "add",
+                                    "a": {
+                                      "op": "global",
+                                      "id": "CYCLOWRATH"
+                                    },
+                                    "b": {
+                                      "op": "const",
+                                      "value": 1
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "cond",
+                          "clauses": [
+                            {
+                              "when": {
+                                "op": "not",
+                                "arg": {
+                                  "op": "global",
+                                  "id": "CYCLOPS-FLAG"
+                                }
+                              },
+                              "do": [
+                                {
+                                  "op": "tell",
+                                  "parts": [
+                                    {
+                                      "expr": {
+                                        "op": "table-get",
+                                        "table": {
+                                          "op": "global",
+                                          "id": "CYCLOMAD"
+                                        },
+                                        "index": {
+                                          "op": "sub",
+                                          "a": {
+                                            "op": "sub",
+                                            "a": {
+                                              "op": "abs",
+                                              "arg": {
+                                                "op": "global",
+                                                "id": "CYCLOWRATH"
+                                              }
+                                            },
+                                            "b": {
+                                              "op": "const",
+                                              "value": 1
+                                            }
+                                          },
+                                          "b": {
+                                            "op": "const",
+                                            "value": 1
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "newline": true
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "file": "1actions.zil",
+        "line": 1596
       }
     },
     {

@@ -41,9 +41,10 @@ describe("stage 3.5 batch (g) extraction — expr-position cond + abs/mod/min", 
 
   it("the remaining batch (g) targets advance to their next real blocker", () => {
     // ABS and expr-position COND are lowered, so these stop on later frontier
-    // forms rather than on anything batch (g) owns.
-    expect(catalogReasons.get("I-CYCLOPS")).toContain("<NTH");
-    expect(catalogReasons.get("GRATE-FUNCTION")).toContain("String in statement position");
+    // forms rather than on anything batch (g) owns. The <NTH> / string-in-
+    // statement batch later cleared both entirely (see behavior-35k.test.ts).
+    expect(catalogReasons.has("I-CYCLOPS")).toBe(false);
+    expect(catalogReasons.has("GRATE-FUNCTION")).toBe(false);
     // I-THIEF stopped on `,ROOMS` here; the meta-entity batch cleared it.
     expect(catalogReasons.has("I-THIEF")).toBe(false);
     for (const [id, reason] of catalogReasons) {

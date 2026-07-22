@@ -10,6 +10,43 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.4 — 2026-07-22 — Catalog tail cleared: `<NTH>` + string-in-statement; the rest is engine-owned by design
+
+**Date:** 2026-07-22
+
+Triaged Next Action #2's "remaining catalog tail" — five routines each stalled on a distinct ZIL idiom
+(none an exit scan, so ADR 0003 did not apply). Two were genuine extraction-vocabulary gaps and are now
+lowered; the other three are engine-owned by design and stay catalogued. Catalogued-complex fell 28 → 26;
+routines extracted 360 → 362.
+
+**1. `<NTH>` → 0-based `table-get` (unblocks I-CYCLOPS).** ZILCH's NTH is a 1-based table read; the IR's
+`table-get` is 0-based, so the index shifts down by one. `I-CYCLOPS` reads its wrath message
+`<NTH ,CYCLOMAD <- <ABS ,CYCLOWRATH> 1>>` — the ZIL index already subtracts one, and NTH subtracts one
+more, so the lowered shape carries a double `sub`. Added `NTH` to `EXPR_HEADS` and one `formExpr` case
+(`ir/src/extract-behavior.ts`). Pinned end-to-end: the real extracted index driven over the real CYCLOMAD
+table returns the correct game string for a given `CYCLOWRATH` (magnitude 2 → first message, 6 → last-but-
+one) — the off-by-one is what the test discriminates.
+
+**2. Bare String in statement position → a value statement (unblocks GRATE-FUNCTION).** A String ending a
+COND clause is that clause's value, exactly like the Number/GVal/LVal cases already handled in `stmt()`
+(`expr()` already lowered String). `GRATE-FUNCTION` passes the taken clause's `"The grating opens."`
+string to `OPEN-CLOSE` as its open-message; the clause body ended in that bare String. One line in `stmt()`.
+
+**3. The remaining three stay catalogued — not idiom gaps.** `GOTO` (`FSET? flag is not an atom` — a flag
+held in a variable) and `PICK-ONE` (`REST` with a computed byte offset) are **Group A engine builtins**
+(movement, randomness; asserted by the triage test), so extracting them would shadow the engine. `V-SAY`
+stops on the parser's **P-LEXV lex buffer** (`unsupported ITABLE spec`), which is ADR 0002 engine-owned —
+its old "bare `,ONBIT`/`,ACTORBIT`" label was **stale** (flag-as-value has been extractable since the
+`resolveName` flag-name path; that was never V-SAY's blocker). HANDOFF corrected.
+
+**Verification.** +5 IR tests (`ir/test/behavior-35k.test.ts`), each discriminating — reverting either fix
+re-catalogues its routine and four of the five fail (the fifth, the engine-owned tail, stays green either
+way, confirming it was untouched). Two stale "advance-to-next-blocker" markers in `behavior-35d`/`-35g`
+updated to assert extraction. IR 193 → 198, engine 139 unchanged, strict parity 143/143, completion still
+350/350. `graphify update` run for `ir`.
+
+---
+
 ## v0.17.3 — 2026-07-22 — V-CLIMB-UP implemented; OTHER-SIDE latent-bug fix (the GETPT/NEXTP idioms)
 
 **Date:** 2026-07-22

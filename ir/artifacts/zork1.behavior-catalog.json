@@ -30,26 +30,6 @@
     ]
   },
   {
-    "id": "GRATE-FUNCTION",
-    "source": {
-      "file": "1actions.zil",
-      "line": 850
-    },
-    "reasons": [
-      "unexpected String in statement position"
-    ]
-  },
-  {
-    "id": "I-CYCLOPS",
-    "source": {
-      "file": "1actions.zil",
-      "line": 1596
-    },
-    "reasons": [
-      "unknown form <NTH …>"
-    ]
-  },
-  {
     "id": "LOUD-ROOM-FCN",
     "source": {
       "file": "1actions.zil",
