@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.8**
+**0.17.9**
 
 ---
 
@@ -80,7 +80,7 @@ and verification. In rough priority:
    floor vs `0.85` preference threshold — decide when building) and `layout.test.ts`. `render.ts`/`balloon.ts`
    keep taking a width, now (near-)constant. Also a **standing follow-up**: audit `render.ts`/`balloon.ts`
    geometry against `balloon.cpp`/`panel.cpp` and port gaps with cited source sites (v0.17.7 straddle is the
-   reference standard). MAX_COLUMNS stays 2.
+   reference standard). MAX_COLUMNS is 3 (raised from 2, v0.17.9).
 
 **New direction — `docs/adr/0006-dungeon-master-and-player.md` (Accepted, building).** Recasts the Guide
 as a Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real

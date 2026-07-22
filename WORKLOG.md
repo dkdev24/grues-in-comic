@@ -10,6 +10,16 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.9 — 2026-07-23 — MAX_COLUMNS 2 → 3
+
+`layout.ts MAX_COLUMNS` raised from 2 to 3 — three panels read better than two on a wide viewport, showing
+more of the recent exchange while keeping the newest panel within a glance (the cost the ceiling bounds).
+This resolves the "separate, later question" ADR 0007 flagged; the ADR consequence notes and its rationale
+comment are updated. `columnsFor`/`layoutStrip` already consume the constant, and `layout.test.ts:43` was
+written against `MAX_COLUMNS` (not literal 2), so no test edits were needed. **115 web tests green, tsc clean.**
+
+---
+
 ## v0.17.8 — 2026-07-23 — ADR 0007: comic-pane port boundary + fixed panels (decision only)
 
 Doc-only milestone — records two architectural decisions; no code changed (115 web tests still green from

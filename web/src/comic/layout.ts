@@ -24,17 +24,22 @@
 export const UNIT = { width: 400, height: 340 };
 
 /**
- * Comic Chat's own default (`panel.cpp:56`, `m_panelsPerRow = 2`), kept as the
- * ceiling rather than as the answer.
+ * The column ceiling on a wide viewport — a decision, not a fit result.
  *
- * The original was laying out a finished transcript, where more columns is
- * simply more comic on screen. Here the strip is *live* and the newest panel is
- * the one the player just caused, so a wide grid trades the thing the reader is
- * looking for against panels they have already read. Two is the historical
- * number and it is also the largest number that keeps the newest panel within a
- * glance of the previous one.
+ * Comic Chat's own default is two (`panel.cpp:56`, `m_panelsPerRow = 2`), but it
+ * was laying out a *finished* transcript, where more columns is simply more comic
+ * on screen. Ours is a *live* strip: the newest panel is the one the player just
+ * caused, so a wider grid trades the thing the reader is looking for against
+ * panels they have already read, and it moves the newest panel further from its
+ * predecessor.
+ *
+ * Set to **3 for now** (chosen 2026-07-23): three reads better than two on a wide
+ * screen — it shows more of the recent exchange without pushing the newest panel
+ * out of a glance, which is the cost the ceiling exists to bound. Higher counts
+ * reopen that cost and stay out. This is the `MAX_COLUMNS` ADR 0007 called a
+ * "separate, later question"; three is the answer for the MVP.
  */
-export const MAX_COLUMNS = 2;
+export const MAX_COLUMNS = 3;
 
 /**
  * The scale cap from 5.3, unchanged: this art is ~400px native, so the risk on
