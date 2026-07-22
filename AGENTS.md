@@ -52,8 +52,8 @@ Two documents maintain cross-session state. Read them at the start of every sess
 - Purpose: Persistent project history.
 - Contains: one entry per version milestone, with date, changes, and status.
 - **Do not load at session start.** Read only when version history is directly relevant to the current task.
-- **Append a new entry when a version milestone is reached.** Never edit past entries.
-- Version format: `x.x.x` — increment the patch for small changes, minor for new subsystems, major for engine-complete milestones.
+- **Add a new entry at the top (newest first) when a version milestone is reached.** Never edit past entries.
+- Version format: `0.x.y` while pre-public — patch for small changes, minor for new subsystems. **`1.0.0` is reserved for public launch** (repo goes public + website ships); do not bump into `1.x` before then. The engine-complete milestone (Gate C) is `v0.9.0`, not a major bump.
 
 ---
 
