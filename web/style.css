@@ -325,3 +325,22 @@ section {
     grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
   }
 }
+
+/* The member list is chrome, not content: it names the two roles but the panel
+   already draws them, so on a stacked portrait phone — and above all once the
+   on-screen keyboard halves the viewport — the row is height the panel needs
+   more. Hidden there so a whole panel fits without scrolling; the width query
+   keeps it on phones held upright, the height query catches the keyboard (and
+   short landscape) whichever way the device is turned. The panel itself is also
+   capped to the pane height in comic-view.ts; this simply hands it the room. */
+@media (max-width: 720px) and (orientation: portrait) {
+  .comic-cast {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) {
+  .comic-cast {
+    display: none;
+  }
+}

@@ -42,14 +42,16 @@ const THINK_INSET = 9;
 const LINE_HEIGHT = 15;
 const TAIL_DEPTH = 22;
 /**
- * How far a tail may reach. Comic Chat's balloons sit directly over their
+ * The tail reaches its speaker. Comic Chat's balloons sit directly over their
  * speaker, so its tails are short; ours stack from the top of the panel while
- * the figures stand at the bottom, which can put a speaker 300px away. An
- * unclamped tail then draws as a needle across the whole panel. A tail that
- * points *toward* its speaker reads correctly; one that spans the panel does
- * not, so the direction is kept and the length is capped.
+ * the figures stand at the bottom, so a tail capped short of that distance ends
+ * in mid-air, connected to nobody — the single-column panel, tall enough to put
+ * the head far below the balloon, made this plainly wrong. A balloon's tail is
+ * how a comic names its speaker, so it must land on the head however far that
+ * is: `target` is already the head anchor (`render.ts`), and the tail now runs
+ * to it directly. `TAIL_DEPTH` still guarantees the tail leaves the box before
+ * turning toward a speaker that sits close.
  */
-const TAIL_REACH = 72;
 
 /**
  * `AddLine`'s job, reduced to what a single-balloon-per-character panel needs:
@@ -191,7 +193,6 @@ function cloud(ctx: CanvasRenderingContext2D, box: BalloonBox): void {
  */
 function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget): void {
   const from = { x: box.x + box.width / 2, y: box.y + box.height };
-  target = clampReach(box, target);
   for (let i = 1; i <= 3; i++) {
     const t = i / 4;
     ctx.beginPath();
@@ -203,17 +204,6 @@ function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: Tai
     ctx.fill();
     ctx.stroke();
   }
-}
-
-/** Keep a tail's direction, cap its length. */
-function clampReach(box: BalloonBox, target: TailTarget): TailTarget {
-  const from = { x: box.x + box.width / 2, y: box.y + box.height };
-  const dx = target.x - from.x;
-  const dy = target.y - from.y;
-  const distance = Math.hypot(dx, dy);
-  if (distance <= TAIL_REACH || distance === 0) return target;
-  const t = TAIL_REACH / distance;
-  return { x: from.x + dx * t, y: from.y + dy * t };
 }
 
 /** A rounded speech balloon with a straight tail. */
@@ -228,7 +218,7 @@ function roundedSpeech(
 
   if (target) {
     const root = Math.min(Math.max(target.x, box.x + radius + 14), box.x + box.width - radius);
-    const tip = clampReach(box, target);
+    const tip = target;
     ctx.lineTo(root + 9, box.y + box.height);
     ctx.lineTo(tip.x, Math.max(tip.y, box.y + box.height + TAIL_DEPTH));
     ctx.lineTo(root - 9, box.y + box.height);

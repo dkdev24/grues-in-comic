@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.1**
+**0.17.2**
 
 ---
 
@@ -34,27 +34,29 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
     exorcism IR fix → room `M-END` → magic boat → resilient completion harness); see WORKLOG.
-    **Remaining 5.5 work is presentation polish + in-browser verification** — see Next Actions.
+    **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
+    5.5 work is authoring-judgement polish — see Next Actions.
 
 **Test counts:** 113 web, ~129 engine, 193 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — Unit tests for the balloon fixes (v0.17.1)
+## Last Session — Comic-pane fixes: tail connection + whole-panel fit (v0.17.2)
 
-The three prior Hero-balloon fixes (shape, face-avoidance, close-up width cap — WORKLOG "v0.17.0+")
-were verified-in-browser but unpinned; now tested.
+The two comic-pane issues from live testing (old Next Action #2), both confirmed fixed in-browser.
 
-- **`web/test/balloon.test.ts`** drives `drawBalloon` (the only path to the non-exported `cloud()`)
-  through a recording 2D context and asserts the thought outline is one closed path with **no interior
-  `rect` and no full-circle arc** (`|end−start| < 2π`); a `CBWoodringBox` caption is the control (still
-  draws a `rect`, no scallops).
-- **`web/test/render.test.ts`** covers `clearOfFaces` (slides disjoint from an overlapping face; no-op
-  when already clear; tolerates a panel-spanning head) and `fit`/`MAX_FIGURE_WIDTH` (caps a wide figure
-  only under a finite cap, uncapped at `Infinity`, no-op for narrow figures).
-- Source change is minimal: `fit`, `clearOfFaces`, `MAX_FIGURE_WIDTH` are now `export`ed from
-  `render.ts` for test access (`renderPanel` was their only caller). `cloud()` stays private.
-- Each assertion was confirmed to **fail on the reverted bug**. 113 web tests green (was 101).
+- **Balloon tail reconnected (`web/src/comic/balloon.ts`).** The tail was capped short (`TAIL_REACH`/
+  `clampReach`, 72px) and floated in mid-air because balloons stack at the panel top while figures stand
+  at the bottom — worst single-column, whose tall panel maximizes that gap. `target` is already the head
+  anchor (`render.ts`), so `roundedSpeech`/`bubbleTrail` now run the tail straight to it; `TAIL_DEPTH`
+  still clears the box first. `clampReach`/`TAIL_REACH` removed.
+- **Whole panel fits without scrolling.** `comic-view.ts` `measure()` now caps the panel to the strip's
+  visible height (`clientHeight` − padding) and derives width at the native aspect, not width alone;
+  `style.css` hides `.comic-cast` at `max-width:720px and orientation:portrait` and `max-height:560px`
+  (catches the on-screen keyboard) to hand that space to the panel.
+- **`README.md:27` reworded** — IR extraction + 143/143 strict parity, not "inspired by" (cleared the
+  matching Open Issue).
+- 113 web green; full suite unaffected (`layoutStrip` signature untouched; no test asserts tail geometry).
 
 ---
 
@@ -67,47 +69,34 @@ and verification. In rough priority:
 Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real
 exchange. Deliberately breaks ADR 0004 §2 (Hero thought-only) and ADR 0005 §4; keeps the three
 invariants (presentation-only Guide, no engine internals, deterministic pure function → parity oracle).
-5 slices, Hero-speaks first. **Gated on #1 below** — eyeball the shipped two-shot before building on it.
+5 slices, Hero-speaks first. **Its gate — visual sign-off on the shipped two-shot — is cleared**
+(v0.17.2 comic-pane confirmation); this is now the primary next build.
 
-1. **In-browser visual verification of the Narrative Director + framing (Playwright).** The whole
-   ADR 0005 arc (Slices 1–5, v0.17.0) is proven by headless tests only. **The facing flip especially
-   needs a visual check** — mirror direction was inferred from the "Hero faces away" symptom and could
-   interact badly with masked-mono shading. Also unverified: Guide framing on non-`over-shoulder` shots
-   now that it fires on beats (a Guide crammed into a tight `close-up`/`reaction` is possible; death is
-   excluded from `BEAT_SCRIPT` for this reason). Take screenshots — a take, a dropped refusal, a
-   collapsed backtrack, a Guide two-shot — then tune `SHOTS`/`cameraFor`. Reuse `web/gallery.js` +
-   `gallery.html`. Real endgame panels (varied rooms/emotions) beat more constant-panel work.
-
-2. **Comic pane: get the specific issue list before investigating.** Live testing reported "many
-   issues" in the comic pane; only the sub-810px panel-collapse was itemized and fixed (v0.16.4). **Ask
-   the user for the specific list**, then re-test live per issue — these are only caught by looking at
-   the running page, not by tests.
-
-3. **`SHOTS` framing table — further tuning (◐, first pass v0.16.3).** Authoring judgement sitting on
+1. **`SHOTS` framing table — further tuning (◐, first pass v0.16.3).** Authoring judgement sitting on
    top of the ADR (the ADR fixes which rung fires; these fill/reveal/backdrop numbers make each rung
    legible). `establishing`≈`wide` similarity is inherent to solo-Hero scenes and deliberately left.
 
-4. **Engine stubs / uncovered idioms** (not blocking any walkthrough, but the last known gaps):
+2. **Engine stubs / uncovered idioms** (not blocking any walkthrough, but the last known gaps):
    - `V-CLIMB-UP` — the last stub, stalls on `GETPT`; natural companion to `OTHER-SIDE` (same idiom).
    - Unassigned routine-catalog tail: `<NEXTP …>` (OTHER-SIDE — needs direction number + door match;
      ADR 0003 rewrote `I-SWORD`'s scan but not this), `<NTH …>` (I-CYCLOPS — a table index, not an exit
      scan), String-in-statement-position (GRATE-FUNCTION, off-route), bare `,ONBIT`/`,ACTORBIT`
      (LIT?, V-SAY), non-atom FSET? flag (GOTO), `REST` with non-literal byte count (PICK-ONE).
 
-5. **Invisible-routine audit, re-run after ADR 0003.** 360/439 ROUTINE forms extracted, 28 catalogued,
+3. **Invisible-routine audit, re-run after ADR 0003.** 360/439 ROUTINE forms extracted, 28 catalogued,
    51 invisible. 45 correctly excluded by design (parser/clock/turn-loop the engine owns). Tail worth
    triage: `BREATHE`, `MIN`, `UNTIE-FROM`, `FIND-IN`, `NO-GO-TELL`, `YES?`. **Worth making this a
    standing report, not a one-off** — the catalog names the routine that failed but never what its
    failure cost, which is exactly why combat stayed hidden for two milestones.
 
-6. **Panel grammar (ADR 0004, Accepted, amended twice at 5.3).** Amend the ADR, not the discussion doc.
+4. **Panel grammar (ADR 0004, Accepted, amended twice at 5.3).** Amend the ADR, not the discussion doc.
    Still-open authoring judgement: page composition (§5), §4a breakpoints, PDF byte size, pane-scroll
    coupling. **User wants a recommendation at the point each is needed — lead with a pick, not a
    survey.** `layout.ts`/`cellFor` is where a print/PDF page policy would go, beside the on-screen one.
    PDF export is deliberately **not** WYSIWYG (once panel width is a viewport function, WYSIWYG would
    have to canonize one reader's window).
 
-7. **Assisted input — designed, deferred to after the MVP.** SCUMM-style command picker (discussion
+5. **Assisted input — designed, deferred to after the MVP.** SCUMM-style command picker (discussion
    §15). Two constraints when it comes up: **Zork's 135-verb list is a spoiler table** (`ECHO`,
    `ODYSSEUS`, `PRAY` *are* solutions), so a fixed core verb set with puzzle verbs typed-only; and it
    **structurally removes `parser-miss`** (12.7%, the largest affect marker), flattening the comic
@@ -195,8 +184,7 @@ measurement taken for one question often answers another.
   with no error. Persistence recomputes `mix` rather than storing it. General rule: **derived state
   must not be persisted; a `Map`/`Set` in a persisted type is silent data loss on reload.**
 - Neutral branding for commercial assets (engine/IR/importer). Repo is prepared for public release but
-  not yet public; nothing blocks it. `README.md:27` still says "inspired by the original gameplay" —
-  understates the golden-transcript behavioral compatibility (minor wording).
+  not yet public; nothing blocks it.
 
 ---
 

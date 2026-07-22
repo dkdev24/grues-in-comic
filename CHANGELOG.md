@@ -13,8 +13,27 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ## [Unreleased]
 
-Toward public launch (`1.0.0`): in-browser visual verification of the Narrative Director, comic-pane
-polish, and remaining stage-5.5 presentation work.
+Toward public launch (`1.0.0`): remaining stage-5.5 presentation work.
+
+---
+
+## [v0.17.2] - 2026-07-22 — Comic pane: connected tails, whole panels on mobile
+
+The two comic-pane issues found in live testing are fixed, and every panel is now readable whole
+without scrolling on any screen.
+
+### Fixed
+- **A speech balloon's tail ended in mid-air instead of on the speaker.** The tail was capped short of
+  the figure; it now runs all the way to the head, worst-first on the single-column layout where a tall
+  panel put the speaker farthest below the balloon.
+- **On a portrait phone a single comic panel was taller than the pane and needed scrolling.** The panel
+  is now capped to the pane's visible height (width follows at the native aspect), and the Hero/Guide
+  member list is hidden on portrait and on short viewports — including when the on-screen keyboard is
+  up — to give the panel that room back.
+
+### Changed
+- `README.md` now states that the engine extracts the original's semantics into an IR and is verified
+  turn-for-turn against its transcripts (143/143 strict), rather than being "inspired by the original."
 
 ---
 

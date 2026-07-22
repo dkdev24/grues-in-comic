@@ -10,6 +10,44 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.2 — 2026-07-22 — Comic pane: tail connection + whole-panel fit on mobile
+
+**Date:** 2026-07-22
+
+The two comic-pane issues surfaced by live testing (Next Action #2), both confirmed fixed in-browser.
+
+**1. Balloon tail reconnected to the speaker (`web/src/comic/balloon.ts`).** The tail was clamped to a
+fixed `TAIL_REACH = 72`px by `clampReach`, a cap added originally to stop an "unclamped needle across
+the panel." But because balloons stack from the panel top while figures stand at the bottom, that cap
+left the tail floating in mid-air, connected to nobody — worst in the single-column layout, whose tall
+panel puts the head farthest below the balloon. The `target` passed into `drawBalloon` is already the
+head anchor (`render.ts`, crown at `headH * 0.2`), so the fix is to run the tail straight to it:
+`roundedSpeech` uses `target` as its tip and `bubbleTrail` walks its bubbles to `target`. `TAIL_DEPTH`
+still forces the tail out of the box before turning toward a close speaker. `clampReach`/`TAIL_REACH`
+removed (no test asserted tail geometry).
+
+**2. Whole panel fits without scrolling on short / portrait viewports.**
+- `web/src/comic-view.ts` (`measure()`): panel size came only from the column *width*, so height was
+  whatever the 400:340 aspect made it — on a portrait phone (more so once the keyboard halves the
+  viewport) that exceeded the strip, and one panel needed scrolling. `measure()` now also caps the
+  panel to the strip's visible height (`clientHeight` − vertical padding) and derives width from it at
+  the native aspect; the narrower row is centred by the existing `justify-content: center`. The
+  `ResizeObserver` already redraws on the height change the keyboard triggers.
+- `web/style.css`: the `.comic-cast` member list is hidden at `max-width:720px and orientation:portrait`
+  and at `max-height:560px` (the latter catches the on-screen keyboard in either orientation), handing
+  that vertical space to the panel. `§4a`'s "fully shown" is a promise about one panel, not the strip's
+  history.
+
+**Also:** `README.md:27` reworded — "inspired by the original gameplay" → extracts the original's
+semantics into an IR, verified turn-for-turn against its transcripts (143/143 strict). Cleared the
+matching Open Issue.
+
+**Tests:** 113 web green, full suite unchanged (`layoutStrip` signature untouched, so `layout.test.ts`
+is unaffected; no test asserted tail geometry). Both fixes confirmed by looking at the running page, per
+the standing "found by looking, not by tests" note.
+
+---
+
 ## v0.17.1 — 2026-07-22 — Hero thought-balloon fixes, now pinned by unit tests
 
 **Date:** 2026-07-22

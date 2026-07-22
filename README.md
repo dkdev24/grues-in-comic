@@ -24,7 +24,7 @@ Grues in Comic aims to demonstrate how AI coding agents can assist with:
 * modernizing historical software
 * creating maintainable browser-native applications
 
-Rather than building a Z-Machine emulator, Grues in Comic builds a new runtime inspired by the original gameplay.
+Rather than building a Z-Machine emulator, Grues in Comic extracts the original's semantics into an IR and executes them on a new runtime, verified turn-for-turn against the original's transcripts (143/143 strict parity).
 
 ---
 

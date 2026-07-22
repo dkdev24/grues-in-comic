@@ -19,7 +19,7 @@ import { createDirector, type Director } from "./comic/director.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
 import { renderPanel } from "./comic/render.js";
 import { backdropFor } from "./comic/backdrop.js";
-import { layoutStrip } from "./comic/layout.js";
+import { layoutStrip, UNIT } from "./comic/layout.js";
 import { drawPortrait, portraitCrop, PORTRAIT } from "./comic/portrait.js";
 
 export interface ComicView {
@@ -273,9 +273,27 @@ export async function createComicView(
       - parseFloat(style.paddingLeft || "0")
       - parseFloat(style.paddingRight || "0");
     const layout = layoutStrip(inner, { gutter: STRIP_GUTTER });
+
+    // Width is only half the fit. A panel sized to the column width alone is as
+    // tall as the aspect makes it, and on a short pane — a portrait phone, more
+    // so once the on-screen keyboard has eaten half the viewport — that height
+    // exceeds what the strip can show, so a single panel needs scrolling to be
+    // read whole. §4a's "fully shown" is a promise about *one* panel, not the
+    // strip's history, so cap the panel to the strip's visible height too and
+    // let width follow at the native aspect. The row is narrower than the column
+    // then, which `justify-content: center` (style.css) simply centres.
+    const innerHeight = strip.clientHeight
+      - parseFloat(style.paddingTop || "0")
+      - parseFloat(style.paddingBottom || "0");
+    let { panelWidth, panelHeight } = layout;
+    if (innerHeight > 0 && panelHeight > innerHeight) {
+      panelHeight = innerHeight;
+      panelWidth = Math.round((panelHeight / UNIT.height) * UNIT.width);
+    }
+
     strip.style.gap = `${STRIP_GUTTER}px`;
-    strip.style.gridTemplateColumns = `repeat(${layout.columns}, ${layout.panelWidth}px)`;
-    return { width: layout.panelWidth, height: layout.panelHeight };
+    strip.style.gridTemplateColumns = `repeat(${layout.columns}, ${panelWidth}px)`;
+    return { width: panelWidth, height: panelHeight };
   }
 
   function draw(canvas: HTMLCanvasElement, panel: Panel, size: { width: number; height: number }): void {
