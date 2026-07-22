@@ -71,12 +71,29 @@ export interface RenderOptions {
  */
 const MAX_SCALE = 1.6;
 
+/**
+ * When a panel carries a **speech or thought balloon**, no figure may grow wider
+ * than this fraction of the panel, so a balloon column always survives beside
+ * the head — even on the `close-up` rung, whose fill alone would let the Hero
+ * span most of the frame and leave a thought bubble nowhere to sit but the face.
+ *
+ * The cap is deliberately *conditional*: the game-over `reaction` rung carries no
+ * such balloon (only, at most, a caption box pinned to the top edge), and a face
+ * that fills the frame is the whole point of that beat — so it is left uncapped.
+ */
+const MAX_FIGURE_WIDTH = 0.55;
+
 export function renderPanel(
   ctx: CanvasRenderingContext2D, panel: Panel, cast: Cast,
   width: number, height: number, options: RenderOptions = {},
 ): void {
   const shot = SHOTS[panel.camera];
   const cycles = options.cycles ?? new Map<string, PoseCycle>();
+  // A speech (Guide) or thought (Hero) balloon needs a column beside the head;
+  // a caption is a top box and does not, so it never shrinks the figure.
+  const widthCap = panel.guide !== null || panel.hero !== null
+    ? width * MAX_FIGURE_WIDTH
+    : Infinity;
 
   ctx.save();
   ctx.clearRect(0, 0, width, height);
@@ -112,7 +129,7 @@ export function renderPanel(
   const placed: Array<{ figure: Figure; x: number; y: number; scale: number; mirror: boolean }> = [];
 
   if (guideFigure && guideSheet) {
-    const scale = fit(guideFigure, height, shot.fill * 0.92);
+    const scale = fit(guideFigure, height, shot.fill * 0.92, widthCap);
     // The Guide sits at the left facing right — the art's default — so it already
     // looks toward the Hero and is not mirrored.
     placed.push({
@@ -122,7 +139,7 @@ export function renderPanel(
     });
   }
   if (heroFigure && heroSheet) {
-    const scale = fit(heroFigure, height, shot.fill);
+    const scale = fit(heroFigure, height, shot.fill, widthCap);
     const solo = guideFigure === null;
     // In a two-shot the Hero is the right-hand figure; mirror it so it faces the
     // Guide instead of out of frame (ADR 0005 §4 — the "faces away" symptom). Solo,
@@ -159,8 +176,8 @@ function cycleFor(cycles: Map<string, PoseCycle>, role: string): PoseCycle {
   return cycle;
 }
 
-function fit(figure: Figure, height: number, fill: number): number {
-  return Math.min((height * fill) / figure.height, MAX_SCALE);
+function fit(figure: Figure, height: number, fill: number, widthCap = Infinity): number {
+  return Math.min((height * fill) / figure.height, MAX_SCALE, widthCap / figure.width);
 }
 
 function drawBackdrop(
@@ -198,35 +215,84 @@ function drawBalloons(
   ctx.font = '13px "Comic Sans MS", "Comic Neue", ui-rounded, cursive';
 
   const anchors = new Map<Figure, { x: number; y: number }>();
+  // Each on-stage head as a keep-out box in panel space. A thought balloon over
+  // a face is the one thing comics never do, so balloons route *around* these.
+  const faces: Array<{ left: number; right: number; top: number; bottom: number }> = [];
   for (const item of placed) {
     // A mirrored figure's face is at `width - faceX` from its left edge, so the
     // balloon tail must follow it or it would point at the back of the head.
     const faceX = item.mirror ? item.figure.width - item.figure.faceX : item.figure.faceX;
+    const ax = item.x + faceX * item.scale;
+    const headH = item.figure.headHeight * item.scale;
     anchors.set(item.figure, {
-      x: item.x + faceX * item.scale,
-      y: item.y + item.figure.headHeight * item.scale * 0.35,
+      x: ax,
+      // Aim the tail at the crown rather than mid-face, so the shrinking bubbles
+      // meet the top of the head and never sit on the eyes.
+      y: item.y + headH * 0.2,
     });
+    const halfW = headH * 0.44;
+    faces.push({ left: ax - halfW, right: ax + halfW, top: item.y, bottom: item.y + headH });
   }
   const heroAnchor = placed.length > 0 ? anchors.get(placed[placed.length - 1]!.figure) : undefined;
   const guideAnchor = placed.length > 1 ? anchors.get(placed[0]!.figure) : undefined;
 
+  // The widest head, and the empty margin left and right of it. A thought
+  // balloon is capped to whichever margin is roomier and parked in that corner,
+  // so it lives in the panel's empty side rather than over the figure.
+  const faceLeft = faces.length > 0 ? Math.min(...faces.map((f) => f.left)) : width;
+  const faceRight = faces.length > 0 ? Math.max(...faces.map((f) => f.right)) : 0;
+  const leftMargin = faceLeft - 10;
+  const rightMargin = width - 10 - faceRight;
+  const heroSide: "left" | "right" = rightMargin >= leftMargin ? "right" : "left";
+  // Never below a readable floor: on a tight close-up the margin can vanish, and
+  // a one-word-per-line ribbon reads worse than a small, honest overlap.
+  const heroMax = Math.min(width * 0.62, Math.max(Math.max(leftMargin, rightMargin) - 8, width * 0.3));
+
   const queue = [
-    { balloon: panel.caption, target: null, align: "left" as const },
-    { balloon: panel.guide, target: guideAnchor ?? null, align: "left" as const },
-    { balloon: panel.hero, target: heroAnchor ?? null, align: "right" as const },
+    { balloon: panel.caption, target: null, align: "left" as const, max: width * 0.62 },
+    { balloon: panel.guide, target: guideAnchor ?? null, align: "left" as const, max: width * 0.62 },
+    { balloon: panel.hero, target: heroAnchor ?? null, align: heroSide, max: heroMax },
   ].filter((item) => item.balloon !== null);
 
   let y = 8;
   for (const item of queue) {
     const balloon = item.balloon!;
-    const measured = measureBalloon(ctx, balloon, width * 0.62);
-    const box: BalloonBox = {
-      x: item.align === "right" ? width - measured.width - 10 : 10,
-      y,
-      width: measured.width,
-      height: measured.height,
-    };
+    const measured = measureBalloon(ctx, balloon, item.max);
+    // A thought balloon's scallops bulge outward; keep that bulge clear too.
+    const bulge = balloon.balloonClass === "CBWoodringThink" ? 14 : 0;
+    let x = item.align === "right" ? width - measured.width - 10 : 10;
+    x = clearOfFaces(x, y, measured.width, measured.height, bulge, faces, width);
+    const box: BalloonBox = { x, y, width: measured.width, height: measured.height };
     drawBalloon(ctx, balloon, box, measured.lines, item.target);
     y += measured.height + 8;
   }
+}
+
+/**
+ * Slide a box horizontally until it no longer overlaps any face box, moving it
+ * toward whichever side needs less travel and still fits the panel. When the box
+ * is too wide to clear at all (a face that spans the panel), it is left where it
+ * was — an overlap the caller has already decided to tolerate over an unreadable
+ * layout — and only nudged back inside the panel edges.
+ */
+function clearOfFaces(
+  x: number, y: number, w: number, h: number, bulge: number,
+  faces: ReadonlyArray<{ left: number; right: number; top: number; bottom: number }>,
+  width: number,
+): number {
+  for (const f of faces) {
+    const top = y - bulge;
+    const bottom = y + h + bulge + 24; // the tail can reach below the box
+    if (bottom <= f.top || top >= f.bottom) continue; // clears vertically
+    const left = x - bulge;
+    const right = x + w + bulge;
+    if (right <= f.left || left >= f.right) continue; // already clears horizontally
+    const toRight = f.right + bulge + 6 - left; // x delta to sit right of the head
+    const toLeft = f.left - bulge - 6 - right; // (negative) to sit left of it
+    const canRight = x + toRight + w + 10 <= width;
+    const canLeft = x + toLeft >= 10;
+    if (canRight && (!canLeft || toRight <= -toLeft)) x += toRight;
+    else if (canLeft) x += toLeft;
+  }
+  return Math.max(10, Math.min(x, width - w - 10));
 }

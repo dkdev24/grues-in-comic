@@ -58,7 +58,36 @@ Historical sources imported: `original-projects/zork1/` (ZIL source),
 
 ---
 
-## Last Session — Narrative Director (ADR 0005) COMPLETE: Slices 1–5 landed (v1.8.0)
+## Last Session — Hero thought balloon: shape + face-avoidance
+
+Two defects in the Hero thought balloon, both fixed and verified in-browser on the real
+"The leaflet, then." panel (take leaflet at West of House):
+
+1. **Shape (`comic/balloon.ts`, `cloud()`).** It rendered as a chain of overlapping *full* circles
+   around a visible rectangle: `cloud()` stamped a complete circle (`arc(…, 0, 2π)`) at every bump
+   *and* added the inner `rect`, then the caller stroked the lot, so every circle's inner half and
+   the box edge showed. Rewrote `cloud()` as one continuous closed path of outward-only scallop arcs
+   (top/right/bottom/left, each bump a half-arc whose endpoints touch the next) — a single clean
+   cloud, no interior lines.
+2. **Blocking the face (`comic/render.ts`, `drawBalloons` + new `clearOfFaces`).** The shape fix
+   alone did *not* clear the face — figures are tall enough that the top-down balloon stack reaches
+   the face band and the tail landed on the head. Now each on-stage head is a keep-out box; the Hero
+   thought is capped to the roomier side-margin, parked in that corner (`heroSide`), and any balloon
+   whose box/scallops/tail would enter a face box is slid horizontally out (`clearOfFaces`, pure and
+   testable). Tail now aims at the crown (`headH * 0.2`), not mid-face. On a close-up with no margin
+   it tolerates a small overlap rather than an unreadable ribbon (floor `width*0.3`).
+
+3. **Close-up limit (`comic/render.ts`, `MAX_FIGURE_WIDTH` + `fit`).** To *guarantee* the balloon
+   column rather than rely on `clearOfFaces` tolerating an overlap, a figure is capped to
+   `0.55 × panel width` **only when the panel carries a Guide speech or Hero thought balloon**
+   (`widthCap` in `renderPanel`, threaded into `fit`). Conditional on purpose: the game-over
+   `reaction` rung has no such balloon and stays full-frame. Medium/wide/establishing/over-shoulder
+   are height-driven and fall below the cap, so they are unchanged; only `close-up` shrinks (~6%).
+
+101 web tests green (no placement/shape/cap unit test yet — `clearOfFaces` and the `fit` width cap
+are both pure and worth pinning if they regress).
+
+**Prior session (ADR 0005 Narrative Director, v1.8.0) — history, full detail in WORKLOG v1.7.5/1.7.6:**
 
 The comic pane read as a *play-log, not a story* — a category error: ADR 0004 treats the parser
 transcript and the comic script as one artifact. Fix is **ADR 0005, the Narrative Director**
@@ -403,6 +432,13 @@ sat unread for two sessions before it settled the balloon class.
   rest were not itemized in the session that found them. **Next session: ask for the specific list
   before investigating further**, then re-test live in the browser per issue (this bug was only
   caught that way, not by any test).
+- ⚑ **NEXT SESSION: unit tests for the balloon fixes (this session).** The three changes — `cloud()`
+  scallop path, `clearOfFaces` face-avoidance, and the `fit` `MAX_FIGURE_WIDTH` cap — all landed
+  verified-in-browser but **unpinned**. All three are pure and cheap to test: assert `cloud()`
+  emits a closed scalloped path with no interior rect/full-circle; assert `clearOfFaces` returns a
+  box disjoint from every face rect (and is a no-op when already clear); assert `fit` caps figure
+  width to `0.55×` only when a Guide/Hero balloon is present and leaves `reaction`/caption-only
+  panels uncapped. Verify each by reverting the fix (a test written from the bug passes trivially).
 - ✅ **Backdrops — 30-backdrop art pass LANDED (v1.6.4).** `web/src/comic/backdrop.ts`
   (`ROOM_BACKDROPS`) assigns all 110 rooms an apt backdrop by id; `BackdropId` is the 30-id union;
   30 BMPs packed into `web/assets/comic/`. The old conservatory `room8bs` was dropped; the generic

@@ -145,28 +145,43 @@ export function drawBalloon(
   ctx.restore();
 }
 
-/** A scalloped outline — the thought balloon's edge. */
+/**
+ * A scalloped outline — the thought balloon's edge, drawn as one continuous
+ * closed path of outward-bulging arcs.
+ *
+ * The earlier version stamped a *full* circle at every bump and added the inner
+ * rectangle, then let the caller stroke the lot. That strokes each circle's
+ * inner half and the box edge too, so the balloon read as a chain of overlapping
+ * rings around a rectangle rather than a cloud. Here each bump contributes only
+ * its outer half-arc, and consecutive arcs share an endpoint, so fill and stroke
+ * both see a single clean scalloped loop with no interior lines.
+ */
 function cloud(ctx: CanvasRenderingContext2D, box: BalloonBox): void {
-  const bumps = Math.max(4, Math.round(box.width / 26));
+  const cols = Math.max(4, Math.round(box.width / 26));
   const rows = Math.max(2, Math.round(box.height / 24));
-  const radius = Math.max(7, box.width / (bumps * 2));
+  const rx = box.width / (cols * 2);
+  const ry = box.height / (rows * 2);
+  const { x, y, width: w, height: h } = box;
 
   ctx.beginPath();
-  const edge: Array<[number, number]> = [];
-  for (let i = 0; i < bumps; i++) edge.push([box.x + (box.width * (i + 0.5)) / bumps, box.y]);
+  ctx.moveTo(x, y);
+  // Top edge, left → right, each scallop bulging up.
+  for (let i = 0; i < cols; i++) {
+    ctx.arc(x + (w * (i + 0.5)) / cols, y, rx, Math.PI, 2 * Math.PI, false);
+  }
+  // Right edge, top → bottom, bulging right.
   for (let i = 0; i < rows; i++) {
-    edge.push([box.x + box.width, box.y + (box.height * (i + 0.5)) / rows]);
+    ctx.arc(x + w, y + (h * (i + 0.5)) / rows, ry, -Math.PI / 2, Math.PI / 2, false);
   }
-  for (let i = bumps - 1; i >= 0; i--) {
-    edge.push([box.x + (box.width * (i + 0.5)) / bumps, box.y + box.height]);
+  // Bottom edge, right → left, bulging down.
+  for (let i = cols - 1; i >= 0; i--) {
+    ctx.arc(x + (w * (i + 0.5)) / cols, y + h, rx, 0, Math.PI, false);
   }
-  for (let i = rows - 1; i >= 0; i--) edge.push([box.x, box.y + (box.height * (i + 0.5)) / rows]);
-
-  for (const [x, y] of edge) {
-    ctx.moveTo(x + radius, y);
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
+  // Left edge, bottom → top, bulging left.
+  for (let i = rows - 1; i >= 0; i--) {
+    ctx.arc(x, y + (h * (i + 0.5)) / rows, ry, Math.PI / 2, (3 * Math.PI) / 2, false);
   }
-  ctx.rect(box.x, box.y, box.width, box.height);
+  ctx.closePath();
 }
 
 /**
