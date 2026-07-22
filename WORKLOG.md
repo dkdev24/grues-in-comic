@@ -10,6 +10,60 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.7 — 2026-07-23 — Balloons straddle the speaker (Comic Chat layout)
+
+Supersedes v0.17.6's approach. Reviewing the original C++ (`balloon.cpp`, `panel.cpp`) showed Comic Chat
+**never draws a side tail**: `CBWoodringNormal::AddArrow` always roots the tail on the balloon's *bottom*
+edge (`top2.y = cbbox.Bottom`), tip at the speaker's `m_arrowX` above the head. It reads well because
+`GetCloudEstimate` (panel.cpp:776–789) places the balloon's left edge in `[headX − width, headX]`,
+"guaranteeing that it overlaps character" — the balloon **straddles the head horizontally and sits above**
+(figures own the bottom, balloons `DockAtTop`), so the tail just drops. v0.17.6 had it backwards: our
+layout parked the Hero balloon in a *side margin* and slid it off the head, forcing a beside-the-head
+balloon that then needed an (ugly) side tail.
+
+Rewrote our layout to the original's model:
+
+- **Placement (`render.ts drawBalloons`):** a speech balloon now centres on its speaker's head x and clamps
+  inside the panel (`[headX − width, headX]`'s symmetric case), instead of being pushed to a side margin by
+  `clearOfFaces`. `clearOfFaces` is retained only for a *thought aside* (floated in the roomier margin like
+  Comic Chat's clouds; asides aren't emitted yet). Captions stay pinned top-left.
+- **Headroom (`render.ts`, new `BALLOON_HEADROOM = 0.36`):** when a speech/thought balloon is present, each
+  figure is pushed down until its head-top clears the top 36% of the panel, reserving room for the balloon to
+  sit above and drop a near-vertical tail. This is the "constrain close-up framing" decision — a close-up
+  head no longer reaches the top edge. The game-over `reaction` rung has no such balloon and keeps its full face.
+- **Tail (`balloon.ts roundedSpeech`):** reverted to **bottom-edge only** (the v0.17.6 side-edge branch is
+  gone). Root slides under the head, clamped to the box; near-vertical geometry is the layout's guarantee,
+  not the drawer's.
+
+**Validated headless** across establishing / over-shoulder / close-up / `-tallcap`: balloons sit above the
+head, straddling, tail dropping to the crown — matches the reference screenshots. `balloon.test.ts` tests
+rewritten to pin *always-bottom* rooting (never a side tail) for below- and off-centre speakers. **115 web
+tests green, tsc clean.** Presentation-only; engine/IR/parity untouched.
+
+---
+
+## v0.17.6 — 2026-07-23 — Speech-tail side rooting
+
+Closes the open item from v0.17.5: a Hero speech balloon *beside* its speaker rooted its tail on the
+**bottom** edge, so the tail exited downward and cut back up to a head level with the balloon — a kink,
+not a pointer. `roundedSpeech` (`web/src/comic/balloon.ts`) now chooses the tail's **root edge** from the
+tip's direction relative to the box: head below → bottom edge (unchanged); head beside → that side edge
+(left/right). The path is built edge-by-edge so the tail notch is inserted mid-traversal on the chosen
+edge, respecting the clockwise pen direction (top→bottom on the right, right→left on the bottom,
+bottom→top on the left). `headEdgeTip` (`render.ts`) already supplied the correct tip; only the root moved.
+
+- **Presentation-only, zero engine/IR/parity impact.** `TAIL_MIN_EXIT` semantics preserved (now also
+  guarantees a side tail clears the box edge before angling). The bottom-edge case is byte-for-byte the
+  prior behaviour.
+- **Validated headless** via `npm run render:panel 01-west-of-house.cmd` — side tails on the close-up and
+  `-tallcap` variants now sprout from the balloon's right edge straight to the Hero's temple, no face
+  crossing; the below-head case still roots on the bottom.
+- **Two new tests** in `balloon.test.ts` pin the root edge (recorder now captures `lineTo` points):
+  bottom-edge root for a speaker below, side-edge root for a speaker beside, with an explicit assertion
+  that the side case does *not* fall back to a bottom-edge root. **115 web tests green, tsc clean.**
+
+---
+
 ## v0.17.5 — 2026-07-22 — ADR 0006 Slice 1: the Hero speaks
 
 **Date:** 2026-07-22

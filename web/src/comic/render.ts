@@ -73,15 +73,27 @@ const MAX_SCALE = 1.6;
 
 /**
  * When a panel carries a **speech or thought balloon**, no figure may grow wider
- * than this fraction of the panel, so a balloon column always survives beside
- * the head — even on the `close-up` rung, whose fill alone would let the Hero
- * span most of the frame and leave a thought bubble nowhere to sit but the face.
+ * than this fraction of the panel. A speech balloon straddles the head from above,
+ * so it needs to be *wider* than the head to sit over it and still read; capping
+ * the figure keeps that width available even on the `close-up` rung, whose fill
+ * alone would let the Hero span most of the frame.
  *
  * The cap is deliberately *conditional*: the game-over `reaction` rung carries no
  * such balloon (only, at most, a caption box pinned to the top edge), and a face
  * that fills the frame is the whole point of that beat — so it is left uncapped.
  */
 export const MAX_FIGURE_WIDTH = 0.55;
+
+/**
+ * Reserved band at the top of the panel for a straddling speech balloon and its
+ * tail. A speech balloon sits *above* its speaker and drops a near-vertical tail
+ * (Comic Chat's whole layout), which only works if the head is far enough down
+ * to leave room. On tight rungs (`close-up`) the head's own fill would otherwise
+ * reach the top edge, so when such a balloon is present the figure is pushed down
+ * until its head-top clears this fraction of the panel height. The game-over
+ * `reaction` rung carries no speech balloon and keeps its full, uncropped face.
+ */
+export const BALLOON_HEADROOM = 0.36;
 
 export function renderPanel(
   ctx: CanvasRenderingContext2D, panel: Panel, cast: Cast,
@@ -151,6 +163,14 @@ export function renderPanel(
         : width * 0.94 - heroFigure.width * scale,
       y: height - heroFigure.height * scale * shot.reveal,
     });
+  }
+
+  // Reserve headroom for a straddling speech balloon: push each figure down until
+  // its head-top clears the top band, so the balloon has room to sit above and
+  // drop its tail. Only when such a balloon exists (the reaction close-up has none).
+  if (panel.guide !== null || panel.hero !== null) {
+    const minHeadTop = height * BALLOON_HEADROOM;
+    for (const item of placed) item.y = Math.max(item.y, minHeadTop);
   }
 
   for (const item of placed) {
@@ -239,43 +259,48 @@ function drawBalloons(
   const heroAnchor = placed.length > 0 ? anchors.get(placed[placed.length - 1]!.figure) : undefined;
   const guideAnchor = placed.length > 1 ? anchors.get(placed[0]!.figure) : undefined;
 
-  // The widest head, and the empty margin left and right of it. A thought
-  // balloon is capped to whichever margin is roomier and parked in that corner,
-  // so it lives in the panel's empty side rather than over the figure.
-  const faceLeft = faces.length > 0 ? Math.min(...faces.map((f) => f.left)) : width;
-  const faceRight = faces.length > 0 ? Math.max(...faces.map((f) => f.right)) : 0;
-  const leftMargin = faceLeft - 10;
-  const rightMargin = width - 10 - faceRight;
-  const heroSide: "left" | "right" = rightMargin >= leftMargin ? "right" : "left";
-  // Never below a readable floor: on a tight close-up the margin can vanish, and
-  // a one-word-per-line ribbon reads worse than a small, honest overlap.
-  const heroMax = Math.min(width * 0.62, Math.max(Math.max(leftMargin, rightMargin) - 8, width * 0.3));
-
   const heroFace = placed.length > 0 ? faces[placed.length - 1] : undefined;
   const guideFace = placed.length > 1 ? faces[0] : undefined;
+  const faceCentre = (f?: { left: number; right: number }) =>
+    f ? (f.left + f.right) / 2 : null;
+
+  // Empty margins, still used to float a *thought* aside off in open space the
+  // way Comic Chat floats its clouds; a *speech* balloon straddles its speaker.
+  const faceLeft = faces.length > 0 ? Math.min(...faces.map((f) => f.left)) : width;
+  const faceRight = faces.length > 0 ? Math.max(...faces.map((f) => f.right)) : 0;
+  const asideSide: "left" | "right" = width - 10 - faceRight >= faceLeft - 10 ? "right" : "left";
 
   const queue = [
-    { balloon: panel.caption, anchor: null, face: undefined, align: "left" as const, max: width * 0.62 },
-    { balloon: panel.guide, anchor: guideAnchor ?? null, face: guideFace, align: "left" as const, max: width * 0.62 },
-    { balloon: panel.hero, anchor: heroAnchor ?? null, face: heroFace, align: heroSide, max: heroMax },
+    { balloon: panel.caption, anchor: null, face: undefined, headX: null },
+    { balloon: panel.guide, anchor: guideAnchor ?? null, face: guideFace, headX: faceCentre(guideFace) },
+    { balloon: panel.hero, anchor: heroAnchor ?? null, face: heroFace, headX: faceCentre(heroFace) },
   ].filter((item) => item.balloon !== null);
 
   let y = 8;
   for (const item of queue) {
     const balloon = item.balloon!;
-    const measured = measureBalloon(ctx, balloon, item.max);
+    const isSpeech = balloon.balloonClass === "CBWoodringNormal";
     // A thought balloon's scallops bulge outward; keep that bulge clear too.
     const bulge = balloon.balloonClass === "CBWoodringThink" ? 14 : 0;
-    let x = item.align === "right" ? width - measured.width - 10 : 10;
-    x = clearOfFaces(x, y, measured.width, measured.height, bulge, faces, width);
+    const measured = measureBalloon(ctx, balloon, width * 0.62);
+    let x: number;
+    if (isSpeech && item.headX !== null) {
+      // Straddle the speaker: the head's x sits inside the balloon's span, so the
+      // bottom tail drops straight to it. Comic Chat places the balloon's left in
+      // `[headX − width, headX]` (`GetCloudEstimate`, panel.cpp); centring on the
+      // head is the symmetric case, then clamped inside the panel.
+      x = Math.max(10, Math.min(item.headX - measured.width / 2, width - measured.width - 10));
+    } else if (balloon.balloonClass === "CBWoodringBox") {
+      x = 10; // a caption is a top box, pinned left, spoken by nobody.
+    } else {
+      // A thought aside floats in the roomier margin, clear of every face.
+      x = asideSide === "right" ? width - measured.width - 10 : 10;
+      x = clearOfFaces(x, y, measured.width, measured.height, bulge, faces, width);
+    }
     const box: BalloonBox = { x, y, width: measured.width, height: measured.height };
-    // A speech tail lands on the head's *silhouette edge* nearest the balloon, so
-    // a balloon beside the head touches the temple rather than driving across the
-    // face to the anchor at its centre. A thought balloon keeps the crown anchor:
-    // its shrinking bubbles float up to the head and read right at the centre.
-    const target = balloon.balloonClass === "CBWoodringNormal" && item.face
-      ? headEdgeTip(box, item.face)
-      : item.anchor;
+    // A speech tail lands on the head's silhouette nearest the balloon (its crown,
+    // since the balloon straddles from above); a thought aside keeps the crown anchor.
+    const target = isSpeech && item.face ? headEdgeTip(box, item.face) : item.anchor;
     drawBalloon(ctx, balloon, box, measured.lines, target);
     y += measured.height + 8;
   }

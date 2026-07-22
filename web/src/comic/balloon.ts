@@ -207,31 +207,44 @@ function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: Tai
   }
 }
 
-/** A rounded speech balloon with a straight tail. */
+/**
+ * A rounded speech balloon with a straight tail rooted on the **bottom edge**.
+ *
+ * This is the one shape Comic Chat draws for speech (`CBWoodringNormal::AddArrow`,
+ * balloon.cpp) — the tail *always* leaves the bottom, never a side. It stays
+ * legible because the layout places the balloon *above* and horizontally over its
+ * speaker (`render.ts` straddles the head), so the head is below the box and the
+ * tail drops to it. Two rules from the original keep it clean when the head sits
+ * off-centre: the root slides along the bottom to sit under the head. Keeping the
+ * tail near-vertical is the *layout's* job, not the drawer's — the balloon is
+ * placed above and over its speaker with reserved headroom (`render.ts`), so the
+ * head is below the box and the drop is tall. The tip is aimed at directly
+ * (`target`, the head anchor), never overshot, so a close-up head just below the
+ * box stops the tip at the head; `TAIL_MIN_EXIT` only guarantees the tail clears
+ * the box before angling toward a near speaker.
+ */
 function roundedSpeech(
   ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget | null,
 ): void {
   const radius = 12;
+  const { x, y, width: w, height: h } = box;
+  const right = x + w, bottom = y + h;
+
   ctx.beginPath();
-  ctx.moveTo(box.x + radius, box.y);
-  ctx.arcTo(box.x + box.width, box.y, box.x + box.width, box.y + box.height, radius);
-  ctx.arcTo(box.x + box.width, box.y + box.height, box.x, box.y + box.height, radius);
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(right, y, right, bottom, radius);
+  ctx.arcTo(right, bottom, x, bottom, radius);
 
   if (target) {
-    const root = Math.min(Math.max(target.x, box.x + radius + 14), box.x + box.width - radius);
-    // Aim the tip *at* the speaker's head anchor, guaranteeing only a small exit
-    // below the box. The earlier `max(target.y, boxBottom + 22)` forced a
-    // *minimum* tail length: fine for a distant speaker (it just reached them),
-    // but on a close-up the head sits right below the balloon, so that minimum
-    // overshot the crown and drove the tip through the face. Pointing at the
-    // anchor reaches a far speaker the same way and stops at a near one's head.
-    const tipY = Math.max(target.y, box.y + box.height + TAIL_MIN_EXIT);
-    ctx.lineTo(root + 9, box.y + box.height);
+    // Root on the bottom edge, under the head as near as the box allows.
+    const root = Math.min(Math.max(target.x, x + radius + 14), right - radius);
+    const tipY = Math.max(target.y, bottom + TAIL_MIN_EXIT);
+    ctx.lineTo(root + 9, bottom);
     ctx.lineTo(target.x, tipY);
-    ctx.lineTo(root - 9, box.y + box.height);
+    ctx.lineTo(root - 9, bottom);
   }
 
-  ctx.arcTo(box.x, box.y + box.height, box.x, box.y, radius);
-  ctx.arcTo(box.x, box.y, box.x + box.width, box.y, radius);
+  ctx.arcTo(x, bottom, x, y, radius);
+  ctx.arcTo(x, y, right, y, radius);
   ctx.closePath();
 }

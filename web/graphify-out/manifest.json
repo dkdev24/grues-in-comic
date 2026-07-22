@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/comic/balloon.ts": {
-    "mtime": 1784714347.1388695,
-    "ast_hash": "d5407d5b055620de97aff3644276570b",
+    "mtime": 1784736440.5647795,
+    "ast_hash": "a6833471ec47cab5f344f625754251fc",
     "semantic_hash": ""
   },
   "src/comic/figure.ts": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "src/comic/render.ts": {
-    "mtime": 1784715405.957634,
-    "ast_hash": "88ee5a5bdf08b2e810e6db35acf6ba0f",
+    "mtime": 1784736521.2422001,
+    "ast_hash": "672c0fda0f0edc4de8643811f62d4c51",
     "semantic_hash": ""
   },
   "src/persistence.ts": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "test/balloon.test.ts": {
-    "mtime": 1784687122.3217692,
-    "ast_hash": "26fe598e4ea67ca3ddeb8c7483700d79",
+    "mtime": 1784736461.307047,
+    "ast_hash": "ab52b35cf2846634c9d0464d4b428146",
     "semantic_hash": ""
   },
   "test/render.test.ts": {

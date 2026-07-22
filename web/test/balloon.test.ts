@@ -21,10 +21,12 @@ interface ArcCall { start: number; end: number }
 function recorder() {
   const calls: string[] = [];
   const arcs: ArcCall[] = [];
+  const lines: { x: number; y: number }[] = [];
   let beginPaths = 0;
   const ctx = {
     save() {}, restore() {}, fill() {}, stroke() {},
-    moveTo() {}, lineTo() {}, arcTo() {}, closePath() { calls.push("closePath"); },
+    moveTo() {}, lineTo(x: number, y: number) { lines.push({ x, y }); },
+    arcTo() {}, closePath() { calls.push("closePath"); },
     fillText() {},
     beginPath() { beginPaths++; calls.push("beginPath"); },
     rect() { calls.push("rect"); },
@@ -38,7 +40,7 @@ function recorder() {
     set lineWidth(_v: number) {}, set lineJoin(_v: string) {},
     set textBaseline(_v: string) {}, set font(_v: string) {},
   } as unknown as CanvasRenderingContext2D;
-  return { ctx, calls, arcs, beginPaths: () => beginPaths };
+  return { ctx, calls, arcs, lines, beginPaths: () => beginPaths };
 }
 
 const box: BalloonBox = { x: 20, y: 20, width: 160, height: 90 };
@@ -76,5 +78,44 @@ describe("cloud() — the thought balloon outline", () => {
     drawBalloon(r.ctx, caption, box, ["West of House."], null);
     expect(r.calls).toContain("rect");
     expect(r.arcs.length).toBe(0);
+  });
+});
+
+/**
+ * The speech balloon's tail *always* roots on the bottom edge — Comic Chat's one
+ * speech shape (`AddArrow`, balloon.cpp), never a side tail. Legibility is the
+ * layout's job (`render.ts` places the balloon above and over its speaker with
+ * reserved headroom), so the drawer only ever drops a tail from the bottom, its
+ * root sliding under the head. Written from the bug: an interim build grew a *side*
+ * tail for a beside-the-head speaker; reverting to that fails these — its roots
+ * would carry an x on the box's left/right edge instead of a y on the bottom.
+ */
+describe("roundedSpeech() — the tail always roots on the bottom edge", () => {
+  const speech = (text: string): Balloon => ({ channel: "hero", balloonClass: "CBWoodringNormal", text });
+  const right = box.x + box.width, bottom = box.y + box.height;
+  const rootsOnBottom = (lines: { x: number; y: number }[]) =>
+    lines.filter((p) => Math.abs(p.y - bottom) < 1e-6);
+  const rootsOnSide = (lines: { x: number; y: number }[]) =>
+    lines.filter((p) => Math.abs(p.x - right) < 1e-6 || Math.abs(p.x - box.x) < 1e-6);
+
+  it("roots on the bottom edge for a speaker below the box", () => {
+    const r = recorder();
+    drawBalloon(r.ctx, speech("The leaflet, then."), box, ["The leaflet, then."],
+      { x: box.x + box.width / 2, y: bottom + 120 });
+    expect(rootsOnBottom(r.lines).length).toBe(2);
+    expect(r.lines.some((p) => p.y > bottom)).toBe(true); // tip hangs below
+    expect(rootsOnSide(r.lines).length).toBe(0);
+  });
+
+  it("still roots on the bottom — never a side tail — for an off-centre speaker", () => {
+    const r = recorder();
+    drawBalloon(r.ctx, speech("The leaflet, then."), box, ["The leaflet, then."],
+      { x: right + 120, y: bottom + 40 });
+    expect(rootsOnBottom(r.lines).length).toBe(2);
+    expect(rootsOnSide(r.lines).length).toBe(0);
+    // The root stays under the head as far as the box allows (clamped to the edge).
+    const rootX = (rootsOnBottom(r.lines)[0]!.x + rootsOnBottom(r.lines)[1]!.x) / 2;
+    expect(rootX).toBeGreaterThan(box.x);
+    expect(rootX).toBeLessThanOrEqual(right);
   });
 });

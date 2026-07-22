@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.5**
+**0.17.7**
 
 ---
 
@@ -37,47 +37,35 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 113 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 115 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0006 Slice 1: the Hero speaks (v0.17.5)
+## Last Session — Balloons straddle the speaker, Comic Chat layout (v0.17.7)
 
-First build under ADR 0006 (Guide-as-DM, Hero-as-player). The Hero's resolved-action balloon moved from
-**thought → speech** (`heroBalloon` now returns `CBWoodringNormal`): he addresses the DM across the table
-instead of captioning his life. The **thought register is retained** for interior asides (type + renderer
-stay live; aside *content* is a later slice), so balloon class is now **per line, not per channel**. Details
-in WORKLOG v0.17.5.
+v0.17.6's side-tail was the wrong fix. Reviewing the **original C++** (`original-projects/comic-chat/
+v1.0-pre-modern/balloon.cpp`, `panel.cpp`) showed Comic Chat never draws a side tail: the tail always roots
+on the balloon's **bottom** edge (`AddArrow`), and it reads well because the balloon is placed to **straddle
+the head horizontally and sit above it** (`GetCloudEstimate` puts the left edge in `[headX − width, headX]`;
+`DockAtTop`). Our layout had it backwards — it parked the Hero balloon in a *side margin* and slid it off the
+head, creating the beside-the-head case the original never makes. Rewrote to the original's model. Details in
+WORKLOG v0.17.7.
 
-- **One-token behavioural change** in `web/src/comic/mapper.ts` (`heroBalloon`); take/drop templates and
-  ADR 0005 §1 name-resolution unchanged. Doc/contract updates: `Balloon.balloonClass` no longer "fixed per
-  channel" (`mapper.ts` + `balloon.ts` header).
-- **No render change** — `drawBalloon`/`render.ts` were already class-driven and already aim `panel.hero`'s
-  tail at the Hero's head, so a hero speech balloon reuses the Guide's `roundedSpeech` path. `CBWoodringThink`
-  stays exercised by `balloon.test.ts`.
-- **Presentation-only, zero engine/IR/parity impact** (ADR 0002 untouched, `replayPanels` still applies).
-  The old `never emits a speech balloon for the Hero` test was **inverted**. **113 web tests green, tsc clean.**
-  Engine/IR/parity not re-run — no code changed in those packages.
-- **Close-up tail bug fixed + validated headless.** The speech tail crossed the Hero's face on close-ups.
-  Two causes: (1) the tail aimed at the head's *centre* (`faceX`), so a balloon *beside* the head drove
-  across the face — fixed by aiming at the nearest point on the head silhouette (`headEdgeTip`, `render.ts`:
-  crown when above, temple when beside); (2) `roundedSpeech` floored the tip 22px below the box, overshooting
-  the crown into the face on a close-up — reduced to a 2px min exit (`balloon.ts`). **Verified in PNGs across
-  balloon-above / balloon-beside / Guide two-shot.** The crown anchor now serves only thought bubbles.
-- **New: `web/tools/render-panel.ts` PNG harness** (`npm run render:panel`), on `@napi-rs/canvas`. Renders
-  real panels through `renderPanel` headless — the way to eyeball balloon/tail/placement without launching
-  the app (the `web/` suite has no canvas). Use it to sanity-check every future comic-geometry change.
-- **Open: side-balloon tail should emanate from the balloon's *side*, not its bottom.** After the head-edge
-  fix, a Hero balloon *beside* the head still roots its tail on the **bottom edge** of the bubble (like an
-  above-head balloon), so a sideways tail exits downward and then cuts back to the temple — it reads wrong.
-  A balloon to the side of its speaker should sprout the tail from the **side boundary** facing the head
-  (left/right edge), the way Tiki's above-head balloon correctly sprouts from its bottom. Fix next session
-  in `roundedSpeech` (`web/src/comic/balloon.ts`): choose the tail's root **edge** from the tip's direction
-  relative to the box (below → bottom edge, as now; left/right → that side edge), and place the two root
-  points along that edge. `headEdgeTip` (`render.ts`) already gives the correct tip; only the *root* is
-  wrong. Reproduce with the harness's `-tallcap` variant (`npm run render:panel 01-west-of-house.cmd`).
-- **Not yet done:** the ADR 0006 Consequences wiki rewrite (deferred with aside content — `the-hero.md`
-  already defers the class to the ADRs).
+- **Placement (`render.ts drawBalloons`):** speech balloon centres on the speaker's head x, clamped to panel
+  (straddle). `clearOfFaces` retained only for a thought aside (not emitted yet). Captions pinned top-left.
+- **Headroom (`render.ts`, `BALLOON_HEADROOM = 0.36`):** with a speech/thought balloon present, figures are
+  pushed down so head-top clears the top 36% — the "constrain close-up framing" decision. `reaction` (game-over)
+  has no balloon, keeps its full face.
+- **Tail (`balloon.ts roundedSpeech`):** back to **bottom-edge only**; the v0.17.6 side branch is gone.
+- **Validated headless** across establishing/over-shoulder/close-up/`-tallcap` — balloons above the head,
+  straddling, tail to the crown, matching the reference screenshots. Tests rewritten to pin always-bottom
+  rooting. **115 web tests green, tsc clean.** Presentation-only; engine/IR/parity untouched.
+
+**Slice 1 is DONE (signed off for MVP).** Hero speaks + balloon layout accepted as good enough for MVP;
+further balloon-layout polish ideas exist but are deferred, not blocking. **Not yet done:** the ADR 0006
+Consequences wiki rewrite (deferred with aside content — `the-hero.md` already defers the class to the ADRs).
+`web/tools/render-panel.ts` (`npm run render:panel`, on `@napi-rs/canvas`) is the headless way to eyeball any
+comic-geometry change — the `web/` suite has no canvas.
 
 ---
 
@@ -91,9 +79,9 @@ as a Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns
 exchange. Deliberately breaks ADR 0004 §2 (Hero thought-only) and ADR 0005 §4; keeps the three invariants
 (presentation-only Guide, no engine internals, deterministic pure function → parity oracle). 5 slices.
 
-- ✅ **Slice 1 (Hero speaks) — done v0.17.5.** Resolved-action balloon is now speech; thought register
-  retained for asides. Presentation-only, 113 web tests green. **Wants in-browser visual sign-off** of the
-  hero speech balloon before slice 2 leans on it (render path is Guide-proven, but not yet eyeballed).
+- ✅ **Slice 1 (Hero speaks) — done, signed off for MVP (v0.17.5–v0.17.7).** Resolved-action balloon is
+  speech; thought register retained for asides. Balloon layout reworked to Comic Chat's model (straddle +
+  bottom tail + headroom, v0.17.7). Accepted as good enough for MVP; further layout-polish ideas deferred.
 - **Slice 2 (DM↔Hero dialogue pairs) — primary next build.** Beat-keyed line pairs (DM line ↔ Hero line),
   *without* conversational memory (that's slice 4). Golden panel-sequences extend to **assert dialogue
   content**, not just count/shape. The `beatScript` mechanism (marker → Guide line) already exists in
