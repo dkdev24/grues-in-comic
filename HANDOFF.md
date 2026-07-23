@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.12**
+**0.17.13**
 
 ---
 
@@ -44,30 +44,33 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 
 ---
 
-## Last Session — three C++-sourced balloon enhancements (v0.17.12)
+## Last Session — balloons redrawn hand-drawn, wider, docked close (v0.17.13)
 
-The port-backfill audit (v0.17.11) surfaced three places where the original balloon code is genuinely
-better than our simplifications, not just differently-cited. All three adopted in `web/src/comic/balloon.ts`.
-**123 web tests green (was 117; +6), tsc clean. Visually verified via `render-panel.ts`** (rippled outline +
-bowed tail + compact balloons all reading correctly; captions still clean rects).
+v0.17.12's rippled balloon still read as vector art, was capped narrow, and on a tall panel stretched the
+tail the whole drop to a far-below head. Three fixes in `web/src/comic/balloon.ts` + `web/src/comic/render.ts`,
+each a port with a named divergence. **124 web tests green (was 123; +1), tsc clean. Visually verified via
+`render-panel.ts`** across establishing/over-shoulder/close-up/tall-cap (hand-drawn wobble, short bowed ~45°
+tails, slack above the balloon, caption boxes still clean rects).
 
-1. **Area-based width goal** — new `goalWidth()`, a port of `GetCloudEstimate`/`AreaEstimate` (`panel.cpp:753`,
-   `:775`). Balloons now pick a compact target-aspect width from the text's ink area (floored by widest word,
-   capped at free width), then greedy-wrap into it. **This deletes the old line-*balancing* hack** — balancing
-   was our symptom-fix for not choosing a good width first; the original never balances (`BreakIntoLines` is
-   greedy, `balloon.cpp:96`). `TARGET_ASPECT`/`randfloat` divergence noted (ADR 0004 §5 forbids the roll, so
-   we take a fixed target aspect, not the original's random point in the range).
-2. **Rippled Woodring outline** — `roundedSpeech` edges now ripple via new `wavyEdge()` (port of `AddWavies`,
-   `balloon.cpp:406`) instead of drawing a clean rounded rect, so balloons read hand-drawn. Constants retuned
-   (`WAVE_INTERVAL=30`, `WAVE_AMP=8`) as a named divergence — small Zork balloons need a tighter interval to
-   ripple at all, and quadratic smoothing shows ~half the control offset, so amp is bumped for visibility.
-3. **Bowed tail** — the two tail sides are now `CArc`-style curves (`alt = .05·tailLen`, `balloon.cpp:305`)
-   instead of a straight triangle. The 45°-clamp divergence still stands (layout keeps the tail vertical).
+1. **Single-spline outline (hand-drawn look)** — the outline is one closed cardinal spline
+   (`strokeCardinal`, `SPLINE_TENSION=0.5`) through a ring of corners + *outward-only* edge bumps
+   (`pushWaves`), the deterministic stand-in for `CreateBalloonSpline`'s `CBeta` over `AddWavies`
+   (`balloon.cpp:1652`, `:560`). Replaces the `arcTo`-corner + in/out-quadratic rounded rect (`wavyEdge`
+   removed). `WAVE_INTERVAL 30→22`, `WAVE_AMP 8→6`. The **45° tail clamp** (`AddArrow`, `balloon.cpp:1450`)
+   is now reproduced (previously a declared divergence) — the tail is short enough for it to matter. Tail is
+   still a sharp bowed two-quad tip kept off the body spline.
+2. **Wider balloons** — `goalWidth` spreads the compact area estimate toward the free width by `WIDTH_BIAS=0.5`
+   (deterministic stand-in for `GetCloudEstimate`'s roll-toward-`maxWidth` + `+fudge`, `panel.cpp:890`,`:900`),
+   capped at the one-line width. `render.ts` cap is `width-20` when one balloon owns the panel, `width*0.66`
+   when several share it. Balloon width now scales with text length (short DM lines stay modest — the original
+   caps at `len+200` too).
+3. **Capped tail / close docking** — `render.ts` `TAIL_MAX=70` drops each tailed balloon toward its speaker so
+   the tail stays short and the vertical slack falls *above* the balloon, restoring Comic Chat's
+   grow-up-from-the-speaker feel (`MINTAILHEIGHT` is a floor with no stretch, `balloon.cpp:1439`).
 
-`wrap()` is removed (replaced by `goalWidth` + `greedyWrap`); it was defined-only, no external importers.
-`balloon.test.ts` recorder gained `quadraticCurveTo`; speech tests rewritten around the rippled outline
-(tail = lowest vertex flanked by two bottom roots, no side jut) + 4 new `goalWidth` tests.
-**Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `render-panel.ts` (`npm run render:panel`) → `tools/out`.
+`balloon.test.ts` recorder gained `bezierCurveTo`; speech tests rewritten around the spline outline (deep tip
+vs shallow bumps, `BUMP=8` tolerance, new 45°-clamp test, body = béziers not lines). `goalWidth` tests
+unaffected. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `render-panel.ts` (`npm run render:panel`) → `tools/out`.
 
 ---
 

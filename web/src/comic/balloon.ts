@@ -63,22 +63,36 @@ const TAIL_MIN_EXIT = 2;
 
 /**
  * The balloon outline ripples instead of running dead straight — `AddWavies`
- * (`balloon.cpp:406`) walks each edge and pushes alternate waypoints out along
- * the edge normal, and `CreateBalloonSpline` smooths the result into the wobbly
- * Woodring outline. `WAVE_INTERVAL` is the spacing between ripples, `WAVE_AMP`
- * their depth.
+ * (`balloon.cpp:560`) walks each edge and pushes alternate waypoints *outward*
+ * along the edge normal (bump / on-edge / bump / on-edge — never inward), and
+ * `CreateBalloonSpline` (`balloon.cpp:1652`) feeds the whole resulting ring,
+ * corners included, through one `CBeta` spline. That single-spline-through-
+ * everything is what makes the Woodring outline read hand-drawn: the corners are
+ * not circular arcs and the edges are not straight baselines, they are one
+ * continuous soft curve. We reproduce it with a closed cardinal spline
+ * ({@link strokeCardinal}) over an outward-bumped ring ({@link pushWaves}),
+ * replacing the earlier rounded-rect (hard `arcTo` corners + in/out quadratic
+ * ripples) that still read as vector art.
  *
+ * `WAVE_INTERVAL` is the spacing between bumps, `WAVE_AMP` their outward depth.
  * Both derive from the original's figure-space constants (`HWAVE/VWAVEINTERVAL =
- * 300`, `waveDiam = 70`, `balloon.cpp:426`) at our ~0.2 CSS-px scale (~60 / ~14),
- * then retuned as a named divergence for two reasons: (1) Zork balloons are
- * small, so the interval is pulled in to ~30 or a compact three-line balloon's
- * edges never reach the two-interval minimum and stay dead straight; (2) our
- * quadratic smoothing shows only ~half the control offset as visible deflection
- * (a beta-spline showed more), so `WAVE_AMP` is the control push, ~8, landing a
- * visible ripple near the faithful ~14/2 rather than an invisible one.
+ * 300`, `waveDiam = 70`, `balloon.cpp:57`) at our ~0.2 CSS-px scale, then retuned
+ * as a named divergence: Zork balloons are small, so the interval is pulled in to
+ * ~22 or a compact edge never reaches the two-interval minimum and stays dead
+ * straight (`AddWavies` bails when `nWaves < 2`, `balloon.cpp:564`). Because the
+ * cardinal spline now carries the whole ring, an outward bump shows close to its
+ * full depth, so `WAVE_AMP` returns near the faithful ~70/10.
  */
-const WAVE_INTERVAL = 30;
-const WAVE_AMP = 8;
+const WAVE_INTERVAL = 22;
+const WAVE_AMP = 6;
+
+/**
+ * Cardinal-spline tension for the outline — 0.5 is the Catmull-Rom value, the
+ * deterministic stand-in for the original's `CBeta` beta-spline
+ * (`CreateBalloonSpline`, `balloon.cpp:1685`). Higher pulls the curve tighter to
+ * its waypoints (more angular); 0.5 keeps the soft Woodring wobble.
+ */
+const SPLINE_TENSION = 0.5;
 
 /**
  * Below this one-line width, a balloon stays a single line rather than being
@@ -101,6 +115,19 @@ const ONE_LINE_THRESHOLD = 100;
 const TARGET_ASPECT = 1.9;
 /** `AreaEstimate`'s fudge factor (`balloon.cpp:775`), carried through verbatim. */
 const AREA_FUDGE = 1.3;
+/**
+ * How far the compact goal is pushed toward the free width. The original does
+ * not stop at the area estimate: `GetCloudEstimate` rolls a random point up to
+ * `maxWidth` (`panel.cpp:890`) and then fudges `+200` figure-space toward it
+ * (`panel.cpp:900`), so a balloon that owns the panel spreads across most of it
+ * and only tightens when other balloons shrink its free rect. ADR 0004 §5 forbids
+ * the roll (the panel stream is a pure function), so we take a *fixed* fraction of
+ * the compact→free gap instead of a random one — the deterministic midpoint-style
+ * stand-in already used for the horizontal straddle (`render.ts`). Never wider
+ * than the text on one line, exactly as the original caps at `len+200`
+ * (`panel.cpp:901`): past that the balloon is just air.
+ */
+const WIDTH_BIAS = 0.5;
 
 /** Widest single word, the floor a balloon may not wrap below (`WidestWord`, `balloon.cpp:778`). */
 function widestWord(ctx: CanvasRenderingContext2D, text: string): number {
@@ -129,8 +156,12 @@ export function goalWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth:
   // area ≈ ink area laid on one line; for a box of width W the height is ≈ area/W,
   // so aspect W/(area/W) = W²/area = TARGET_ASPECT ⇒ W = √(TARGET_ASPECT · area).
   const area = AREA_FUDGE * oneLine * LINE_HEIGHT;
-  const goal = Math.sqrt(TARGET_ASPECT * area);
-  return Math.min(Math.max(goal, widestWord(ctx, text)), maxWidth);
+  const compact = Math.sqrt(TARGET_ASPECT * area);
+  // Spread toward the free width (`GetCloudEstimate`'s roll-then-fudge), but never
+  // past the one-line width — beyond that the balloon is empty air (`panel.cpp:901`).
+  const ceiling = Math.min(maxWidth, oneLine);
+  const goal = compact + WIDTH_BIAS * (ceiling - compact);
+  return Math.min(Math.max(goal, widestWord(ctx, text)), ceiling);
 }
 
 /**
@@ -292,86 +323,138 @@ function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: Tai
   }
 }
 
+interface Pt { x: number; y: number }
+
 /**
- * One straight edge of the balloon, drawn as a ripple rather than a line — the
- * canvas port of `AddWavies` (`balloon.cpp:406`). It walks from `(ax,ay)` to
- * `(bx,by)` in `WAVE_INTERVAL` steps and pushes alternate control points out
- * along the outward normal `(nx,ny)` by `WAVE_AMP`, so the edge bows in and out;
- * quadratic segments between the on-edge endpoints are the smoothing the
- * original got from its beta-spline. The start point must already be the path's
- * current point (an `arcTo` corner or a prior edge leaves it there).
+ * Walk edge `a→b` and append its outward bumps to `pts` — the point-producing
+ * port of `AddWavies` (`balloon.cpp:560`). The original steps along the edge in
+ * `interval`-sized waves and emits *alternating* waypoints: a bump pushed out by
+ * `waveDiam` along the normal, then a point left on the edge, then a bump, and so
+ * on — the offset is always `+normal`, so the outline only ever bulges outward,
+ * never pinches in. `(nx,ny)` is that outward normal. The corner points that
+ * bracket each edge are pushed by the caller; here we add only the between-corner
+ * bumps, and the cardinal spline ({@link strokeCardinal}) rounds the lot.
  *
- * Below two intervals there is no ripple — a straight `lineTo` — exactly as
- * `AddWavies` bails when `nWaves < 2` (`balloon.cpp:409`).
+ * Below two intervals there are no bumps — the edge stays a straight spline
+ * chord — exactly as `AddWavies` bails when `nWaves < 2` (`balloon.cpp:564`).
  */
-function wavyEdge(
-  ctx: CanvasRenderingContext2D,
-  ax: number, ay: number, bx: number, by: number, nx: number, ny: number,
+function pushWaves(
+  pts: Pt[], ax: number, ay: number, bx: number, by: number, nx: number, ny: number,
 ): void {
   const dist = Math.hypot(bx - ax, by - ay);
   const n = Math.floor(dist / WAVE_INTERVAL);
-  if (n < 2) { ctx.lineTo(bx, by); return; }
+  if (n < 2) return;
   const ux = (bx - ax) / dist, uy = (by - ay) / dist;
   const seg = dist / n;
-  for (let i = 1; i <= n; i++) {
-    const ex = ax + ux * seg * i, ey = ay + uy * seg * i;
-    const mx = ax + ux * seg * (i - 0.5), my = ay + uy * seg * (i - 0.5);
-    const sign = i % 2 === 1 ? 1 : -1; // alternate out/in (balloon.cpp:421)
-    ctx.quadraticCurveTo(mx + nx * WAVE_AMP * sign, my + ny * WAVE_AMP * sign, ex, ey);
+  for (let i = 1; i < n; i++) {
+    const px = ax + ux * seg * i, py = ay + uy * seg * i;
+    // Odd steps bulge out, even steps stay on the edge (`!(i&1)` in AddWavies).
+    if (i % 2 === 1) pts.push({ x: px + nx * WAVE_AMP, y: py + ny * WAVE_AMP });
+    else pts.push({ x: px, y: py });
   }
 }
 
 /**
- * A speech balloon: a rippled Woodring outline with a bowed tail rooted on the
+ * Render a ring of waypoints as one smooth loop — the canvas stand-in for the
+ * original's `CBeta` spline (`CreateBalloonSpline`, `balloon.cpp:1685`). A
+ * Catmull-Rom curve is laid through every point (including the box corners), each
+ * segment converted to a cubic Bézier with control points `p ± (next−prev)·t/3`;
+ * `t = SPLINE_TENSION = 0.5` gives the standard uniform Catmull-Rom (the `/6`
+ * form). `open` leaves a gap between the last and first point (the bottom stretch
+ * the tail bridges); otherwise the loop closes on itself. Assumes the path is
+ * already open and positions the current point itself.
+ */
+function strokeCardinal(ctx: CanvasRenderingContext2D, pts: readonly Pt[], open: boolean): void {
+  const n = pts.length;
+  if (n < 2) return;
+  const f = SPLINE_TENSION / 3;
+  const at = (i: number): Pt =>
+    open ? pts[Math.min(Math.max(i, 0), n - 1)]! : pts[(i + n) % n]!;
+  ctx.moveTo(pts[0]!.x, pts[0]!.y);
+  const last = open ? n - 1 : n;
+  for (let i = 0; i < last; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    ctx.bezierCurveTo(
+      p1.x + (p2.x - p0.x) * f, p1.y + (p2.y - p0.y) * f,
+      p2.x - (p3.x - p1.x) * f, p2.y - (p3.y - p1.y) * f,
+      p2.x, p2.y,
+    );
+  }
+}
+
+/**
+ * A speech balloon: a hand-drawn Woodring outline with a bowed tail rooted on the
  * **bottom edge**.
  *
- * The outline is the wobbly closed loop of `CreateBalloonSpline`
- * (`balloon.cpp:431`) — each edge rippled by {@link wavyEdge}, corners rounded —
- * rather than the clean rounded rect we drew before. The tail follows
- * `CBWoodringNormal::AddArrow` (`balloon.cpp:238`): it *always* leaves the bottom
- * edge, never a side, its root sliding along that edge to sit under the speaker
- * (`balloon.cpp:252`), and it is bowed as two curves (`CArc`, `alt = .05·tailLen`,
- * `balloon.cpp:305`) instead of the straight triangle we drew before. It stays
- * legible because the layout places the balloon *above* and over its speaker
- * (`render.ts` straddles the head); the tip aims directly at `target`, and
- * `TAIL_MIN_EXIT` clears the box first.
+ * The outline is the single soft loop of `CreateBalloonSpline`
+ * (`balloon.cpp:1652`): the corners and the outward edge-bumps ({@link pushWaves})
+ * are gathered into one ring and drawn as a single cardinal spline
+ * ({@link strokeCardinal}) — not the rounded rect (hard `arcTo` corners + in/out
+ * ripples) we drew before, which still read as vector art. The tail follows
+ * `CBWoodringNormal::AddArrow` (`balloon.cpp:1404`): it *always* leaves the bottom
+ * edge, never a side, its root sliding along that edge to sit under the speaker,
+ * and it is bowed as two curves (`CArc`, `alt = .05·tailLen`, `balloon.cpp:1471`)
+ * with a sharp tip (kept off the body spline so the point stays crisp).
  *
- * **Remaining named divergence from `AddArrow`:** the 45°-from-vertical angle
- * clamp (`balloon.cpp:284`) is not reproduced — keeping the tail near-vertical is
- * the *layout's* job (the straddle + reserved headroom in `render.ts`), so the
- * tip can aim true.
+ * The 45°-from-vertical clamp *is* now reproduced (`balloon.cpp:1450`): with the
+ * balloon docked close above its speaker (`render.ts` caps the tail length), a
+ * head off to the side would otherwise drag the tip out past 45°, so the tip is
+ * pulled horizontally back until its run no longer exceeds its drop.
  */
 function roundedSpeech(
   ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget | null,
 ): void {
-  const radius = 12;
   const { x, y, width: w, height: h } = box;
   const right = x + w, bottom = y + h;
 
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  wavyEdge(ctx, x + radius, y, right - radius, y, 0, -1); // top, bulging up
-  ctx.arcTo(right, y, right, bottom, radius);
-  wavyEdge(ctx, right, y + radius, right, bottom - radius, 1, 0); // right, bulging right
-  ctx.arcTo(right, bottom, x, bottom, radius);
-
-  if (target) {
-    // Root on the bottom edge, under the head as near as the box allows — and far
-    // enough from a corner that the tail base (root ± 9) stays on the flat edge.
-    const root = Math.min(Math.max(target.x, x + radius + 14), right - radius - 9);
-    const rootR = root + 9, rootL = root - 9;
-    const tipY = Math.max(target.y, bottom + TAIL_MIN_EXIT);
-    const alt = 0.05 * Math.hypot(target.x - root, tipY - bottom); // CArc bow, balloon.cpp:305
-    wavyEdge(ctx, right - radius, bottom, rootR, bottom, 0, 1); // bottom, right of the tail
-    ctx.quadraticCurveTo((rootR + target.x) / 2 + alt, (bottom + tipY) / 2, target.x, tipY);
-    ctx.quadraticCurveTo((target.x + rootL) / 2 - alt, (tipY + bottom) / 2, rootL, bottom);
-    wavyEdge(ctx, rootL, bottom, x + radius, bottom, 0, 1); // bottom, left of the tail
-  } else {
-    wavyEdge(ctx, right - radius, bottom, x + radius, bottom, 0, 1); // whole bottom
+  if (!target) {
+    // No speaker: one closed ring — top, right, bottom, left — all corners and
+    // bumps splined together into the plain Woodring blob.
+    const ring: Pt[] = [];
+    ring.push({ x, y });
+    pushWaves(ring, x, y, right, y, 0, -1); // top, bulging up
+    ring.push({ x: right, y });
+    pushWaves(ring, right, y, right, bottom, 1, 0); // right, bulging right
+    ring.push({ x: right, y: bottom });
+    pushWaves(ring, right, bottom, x, bottom, 0, 1); // bottom, bulging down
+    ring.push({ x, y: bottom });
+    pushWaves(ring, x, bottom, x, y, -1, 0); // left, bulging left
+    ctx.beginPath();
+    strokeCardinal(ctx, ring, false);
+    ctx.closePath();
+    return;
   }
 
-  ctx.arcTo(x, bottom, x, y, radius);
-  wavyEdge(ctx, x, bottom - radius, x, y + radius, -1, 0); // left, bulging left
-  ctx.arcTo(x, y, right, y, radius);
+  // Tail roots ride the bottom edge under the head, far enough from a corner that
+  // both roots stay on the flat run.
+  const root = Math.min(Math.max(target.x, x + 16), right - 16);
+  const rootR = root + 9, rootL = root - 9;
+  const tipY = Math.max(target.y, bottom + TAIL_MIN_EXIT);
+  // 45° clamp (`AddArrow`, balloon.cpp:1450): the tip's horizontal run may not
+  // exceed its vertical drop, so a side speaker cannot flatten the tail.
+  const dy = tipY - bottom;
+  const tipX = Math.min(Math.max(target.x, root - dy), root + dy);
+  const alt = 0.05 * Math.hypot(tipX - root, dy); // CArc bow, balloon.cpp:1471
+
+  // Body ring, open along the bottom between the two roots: start at rootR, run
+  // the bottom out to the right corner, up and over and down, back along the
+  // bottom to rootL. The tail then bridges rootL→tip→rootR as sharp quads.
+  const ring: Pt[] = [];
+  ring.push({ x: rootR, y: bottom });
+  pushWaves(ring, rootR, bottom, right, bottom, 0, 1); // bottom, right of the tail
+  ring.push({ x: right, y: bottom });
+  pushWaves(ring, right, bottom, right, y, 1, 0); // right, bulging right
+  ring.push({ x: right, y });
+  pushWaves(ring, right, y, x, y, 0, -1); // top, bulging up
+  ring.push({ x, y });
+  pushWaves(ring, x, y, x, bottom, -1, 0); // left, bulging left
+  ring.push({ x, y: bottom });
+  pushWaves(ring, x, bottom, rootL, bottom, 0, 1); // bottom, left of the tail
+  ring.push({ x: rootL, y: bottom });
+
+  ctx.beginPath();
+  strokeCardinal(ctx, ring, true); // ends at rootL (current point)
+  ctx.quadraticCurveTo((rootL + tipX) / 2 - alt, (bottom + tipY) / 2, tipX, tipY);
+  ctx.quadraticCurveTo((tipX + rootR) / 2 + alt, (tipY + bottom) / 2, rootR, bottom);
   ctx.closePath();
 }

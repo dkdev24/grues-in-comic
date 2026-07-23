@@ -35,6 +35,14 @@ function recorder() {
       calls.push("quad");
       verts.push({ x, y });
     },
+    // The body outline is now a single cardinal spline (a chain of béziers); we
+    // track only each segment's endpoint, the on-ring waypoint it lands on.
+    bezierCurveTo(
+      _c1x: number, _c1y: number, _c2x: number, _c2y: number, x: number, y: number,
+    ) {
+      calls.push("bezier");
+      verts.push({ x, y });
+    },
     arcTo() { calls.push("arcTo"); }, closePath() { calls.push("closePath"); },
     fillText() {},
     beginPath() { beginPaths++; calls.push("beginPath"); },
@@ -96,20 +104,25 @@ describe("cloud() — the thought balloon outline", () => {
 });
 
 /**
- * The speech balloon: a rippled Woodring outline (`CreateBalloonSpline`,
- * balloon.cpp) with a bowed tail that *always* roots on the bottom edge
- * (`AddArrow`, balloon.cpp), never a side. Legibility is the layout's job
- * (`render.ts` places the balloon above and over its speaker with reserved
- * headroom), so the drawer only ever drops a tail from the bottom, its root
- * sliding under the head. The tail dips below the bottom edge as a single tip
- * flanked by two roots on it; the body edges ripple but never jut out like a
- * tail. Written from the old bug: an interim build grew a *side* tail for a
- * beside-the-head speaker — that would surface here as a vertex jutting past the
- * left/right edge, or a root off the bottom.
+ * The speech balloon: a single hand-drawn Woodring loop (`CreateBalloonSpline`,
+ * balloon.cpp) — corners and outward edge-bumps splined together — with a bowed
+ * tail that *always* roots on the bottom edge (`AddArrow`, balloon.cpp), never a
+ * side. The body is one cardinal spline (a chain of béziers whose endpoints are
+ * the on-ring waypoints); the tail is two sharp quads dropping to a single tip.
+ * Legibility is the layout's job (`render.ts` docks the balloon just above its
+ * speaker and caps the tail), so the drawer only ever drops a tail from the
+ * bottom, its root sliding under the head. The edges bump *outward* (a bottom
+ * bump nudges down by at most `WAVE_AMP`), but only the tail tip hangs far below.
+ * Written from the old bug: an interim build grew a *side* tail for a
+ * beside-the-head speaker — that would surface here as a vertex jutting far past
+ * the left/right edge, or a root off the bottom.
  */
-describe("roundedSpeech() — rippled outline, bowed tail on the bottom edge", () => {
+describe("roundedSpeech() — spline outline, bowed tail on the bottom edge", () => {
   const speech = (text: string): Balloon => ({ channel: "hero", balloonClass: "CBWoodringNormal", text });
   const right = box.x + box.width, bottom = box.y + box.height;
+  // Outward bumps nudge an edge out by up to WAVE_AMP; keep the tolerances above
+  // it so a bump is never mistaken for a tail. (WAVE_AMP is 6 in balloon.ts.)
+  const BUMP = 8;
   // The tail tip is the lowest-hanging vertex; its path neighbours are the roots.
   const tailOf = (verts: Pt[]) => {
     let tipIdx = 0;
@@ -117,32 +130,42 @@ describe("roundedSpeech() — rippled outline, bowed tail on the bottom edge", (
     return { tipIdx, tip: verts[tipIdx]!, before: verts[tipIdx - 1]!, after: verts[tipIdx + 1]! };
   };
 
-  it("drops one tip below the bottom, flanked by two roots on the bottom edge", () => {
+  it("drops one deep tip below the bottom, flanked by two roots on the bottom edge", () => {
     const r = recorder();
     drawBalloon(r.ctx, speech("The leaflet, then."), box, ["The leaflet, then."],
       { x: box.x + box.width / 2, y: bottom + 120 });
-    // Exactly one vertex hangs below the bottom edge: the tail tip.
-    expect(r.verts.filter((p) => p.y > bottom + 1)).toHaveLength(1);
+    // Only the tail tip hangs far below the bottom edge; bumps stay within WAVE_AMP.
+    expect(r.verts.filter((p) => p.y > bottom + BUMP)).toHaveLength(1);
     const t = tailOf(r.verts);
-    expect(t.tip.y).toBeGreaterThan(bottom);
+    expect(t.tip.y).toBeGreaterThan(bottom + BUMP);
     expect(Math.abs(t.before.y - bottom)).toBeLessThan(1e-6); // roots sit on the bottom
     expect(Math.abs(t.after.y - bottom)).toBeLessThan(1e-6);
   });
 
-  it("never grows a side tail — no body vertex juts past the left/right edges", () => {
+  it("never grows a side tail — no body vertex juts far past the left/right edges", () => {
     const r = recorder();
     drawBalloon(r.ctx, speech("The leaflet, then."), box, ["The leaflet, then."],
       { x: right + 120, y: bottom + 40 });
     const t = tailOf(r.verts);
     r.verts.forEach((p, i) => {
       if (i === t.tipIdx) return; // the tip alone may point toward a side speaker
-      expect(p.x).toBeGreaterThanOrEqual(box.x - 1);
-      expect(p.x).toBeLessThanOrEqual(right + 1);
+      expect(p.x).toBeGreaterThanOrEqual(box.x - BUMP);
+      expect(p.x).toBeLessThanOrEqual(right + BUMP);
     });
     // The roots stay under the head, clamped inside the box.
     const rootX = (t.before.x + t.after.x) / 2;
     expect(rootX).toBeGreaterThan(box.x);
     expect(rootX).toBeLessThanOrEqual(right);
+  });
+
+  it("holds the tail within 45° of vertical even for a side speaker", () => {
+    const r = recorder();
+    // Head far to the right, only a little below: an unclamped tail would slant
+    // well past 45°. The tip's horizontal run must not exceed its vertical drop.
+    drawBalloon(r.ctx, speech("Hello."), box, ["Hello."], { x: right + 200, y: bottom + 30 });
+    const t = tailOf(r.verts);
+    const rootX = (t.before.x + t.after.x) / 2;
+    expect(Math.abs(t.tip.x - rootX)).toBeLessThanOrEqual(t.tip.y - bottom + 1e-6);
   });
 
   it("centres the tail under a speaker directly below", () => {
@@ -151,10 +174,11 @@ describe("roundedSpeech() — rippled outline, bowed tail on the bottom edge", (
     expect(tailOf(r.verts).tip.x).toBeCloseTo(box.x + box.width / 2, 5);
   });
 
-  it("ripples the outline — quadratic edges, not straight lines", () => {
+  it("draws the body as one spline, not straight lines", () => {
     const r = recorder();
-    drawBalloon(r.ctx, speech("Hello."), box, ["Hello."], null);
-    expect(r.calls.filter((c) => c === "quad").length).toBeGreaterThan(2);
+    drawBalloon(r.ctx, speech("Hello there, traveller."), box, ["Hello there, traveller."], null);
+    expect(r.calls.filter((c) => c === "bezier").length).toBeGreaterThan(2);
+    expect(r.lines).toHaveLength(0); // no straight lineTo edges
   });
 });
 

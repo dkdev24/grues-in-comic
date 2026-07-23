@@ -10,6 +10,33 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.13 — 2026-07-23 — Balloons redrawn to read hand-drawn, wider, and docked close
+
+Follow-up to v0.17.12: the rippled-rounded-rect still read as vector art, balloons were capped narrow, and
+on a tall panel the tail stretched the full drop to a far-below head. Three fixes in `web/src/comic/balloon.ts`
++ `web/src/comic/render.ts`, all ported from Comic Chat with named divergences:
+
+1. **Single-spline outline** — the outline is now one closed cardinal spline through a ring of corners +
+   *outward-only* edge bumps (`pushWaves`/`strokeCardinal`), the deterministic stand-in for
+   `CreateBalloonSpline`'s `CBeta` over `AddWavies` points (`balloon.cpp:1652`, `:560`). Replaces the
+   `arcTo`-corner + in/out-quadratic rounded rect. `WAVE_INTERVAL 30→22`, `WAVE_AMP 8→6` retuned for the
+   spline. The **45°-from-vertical tail clamp** (`AddArrow`, `balloon.cpp:1450`) — previously a declared
+   divergence — is now reproduced, since the tail is short enough for it to matter. Tail stays a sharp bowed
+   two-quad tip off the body spline.
+2. **Wider balloons** — `goalWidth` spreads the compact area estimate toward the free width by a fixed
+   `WIDTH_BIAS` (deterministic stand-in for `GetCloudEstimate`'s roll-toward-`maxWidth` + fudge,
+   `panel.cpp:890`, `:900`), capped at the one-line width. `render.ts` lifts the cap to near-full width
+   (`width-20`) when a single balloon owns the panel, `width*0.66` when several share it.
+3. **Capped tail / close docking** — `render.ts` `TAIL_MAX=70` drops each tailed balloon toward its speaker
+   so the tail is short and the vertical slack falls *above* the balloon, restoring Comic Chat's grow-up-from-
+   the-speaker feel (its `MINTAILHEIGHT` is a floor with no stretch, `balloon.cpp:1439`).
+
+**No engine/IR impact. 124 web tests green (was 123; +1), tsc clean. Visually verified** with `render-panel.ts`
+across establishing/over-shoulder/close-up/tall-cap panels — hand-drawn wobble, short bowed ~45° tails, slack
+above, caption boxes still clean rects.
+
+---
+
 ## v0.17.12 — 2026-07-23 — Three C++-sourced balloon enhancements (ADR 0007 standing rule)
 
 The port-backfill audit (v0.17.11) surfaced three places where Comic Chat's balloon code is genuinely better

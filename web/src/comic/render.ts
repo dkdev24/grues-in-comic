@@ -276,13 +276,33 @@ function drawBalloons(
     { balloon: panel.hero, anchor: heroAnchor ?? null, face: heroFace, headX: faceCentre(heroFace) },
   ].filter((item) => item.balloon !== null);
 
+  // A balloon that owns the panel spreads across most of it; the original only
+  // tightens the free rect when *other* balloons share the width
+  // (`GetCloudEstimate`, `panel.cpp:876`). Since our balloons always stack
+  // vertically, "shares the width" reduces to "there is more than one".
+  const cap = queue.length === 1 ? width - 20 : width * 0.66;
+  // The tail is capped, not stretched: Comic Chat grows a balloon *up from* its
+  // speaker, so the tail is short and the slack falls *above* the balloon
+  // (`MINTAILHEIGHT` is a floor, `balloon.cpp:1439`, with no matching stretch —
+  // the balloon simply docks near the head). We pin balloons to the panel top,
+  // so on a tall panel the head sits far below and the tail runs the whole drop.
+  // `TAIL_MAX` restores the original feel: a tailed balloon is dropped toward its
+  // head until the tail is no longer than this, leaving the empty space above it.
+  const TAIL_MAX = 70;
+
   let y = 8;
   for (const item of queue) {
     const balloon = item.balloon!;
     const isSpeech = balloon.balloonClass === "CBWoodringNormal";
     // A thought balloon's scallops bulge outward; keep that bulge clear too.
     const bulge = balloon.balloonClass === "CBWoodringThink" ? 14 : 0;
-    const measured = measureBalloon(ctx, balloon, width * 0.62);
+    const measured = measureBalloon(ctx, balloon, cap);
+    // Drop a tailed balloon toward its speaker so the tail stays short. The head
+    // top is the face box's top for speech, the crown anchor for a thought.
+    const headTopY = item.face ? item.face.top : (item.anchor ? item.anchor.y : null);
+    if (headTopY !== null && balloon.balloonClass !== "CBWoodringBox") {
+      y = Math.max(y, headTopY - TAIL_MAX - measured.height);
+    }
     let x: number;
     if (isSpeech && item.headX !== null) {
       // Straddle the speaker: the head's x sits inside the balloon's span, so the
