@@ -10,6 +10,30 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.10 — 2026-07-23 — ADR 0007 §2 implemented: fixed panels, reflowing pane
+
+Built the deferred core of ADR 0007 §2 in `web/src/comic/layout.ts`. `layoutStrip` stops stretching a panel
+to its column share: `panelWidth = min(share, UNIT.width)`, so a panel renders at **native** (400×340) and a
+row's leftover becomes centred margin — the browser analogue of `PreparePrintDC`'s own remainder
+(`panel.cpp:1471`). This reverses ADR 0004 §4a's per-render panel width, curing the "figure/balloon space
+slides with the viewport" authoring instability. The strip-level upscale constant `MAX_PANEL_SCALE` is
+**retired** (native is the ceiling; there is nothing left to cap upward — `render.ts`'s figure-scale `MAX_SCALE`
+is untouched).
+
+`columnsFor` still fits extra columns against `MIN_PANEL_SCALE`, **retuned 0.75 → 0.85** as the single
+shrink-tolerance floor. ADR 0007 offered keeping 0.75 as a separate absolute floor; the build decision was to
+**collapse to one 0.85 floor** — the old 0.75 fit test only ever decided column count, which the 0.85
+preference floor now decides, so two constants become one. Resulting width regimes: native (common), a
+`[0.85·native, native]` shrink to earn a second column rather than maroon one native panel in margin, and a
+straight fit-down below native on phones too narrow for one native panel. `MAX_COLUMNS` unchanged at 3.
+
+`layout.test.ts` rewritten for the new behaviour (native lone panel, phone fit-down, 0.85-band two-up,
+native-capped wide viewport). `layoutStrip`'s return shape is unchanged, so `comic-view.ts` needed no edit.
+ADR 0007 status + Consequences ¶1 updated to "implemented"; port backfill (¶3) remains a tracked follow-up.
+**117 web tests green (+2 net), full suite 117 web / 139 engine / 198 IR passing, tsc clean.** `graphify update web` run.
+
+---
+
 ## v0.17.9 — 2026-07-23 — MAX_COLUMNS 2 → 3
 
 `layout.ts MAX_COLUMNS` raised from 2 to 3 — three panels read better than two on a wide viewport, showing

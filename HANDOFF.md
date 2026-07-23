@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.9**
+**0.17.10**
 
 ---
 
@@ -31,7 +31,7 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
   ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
-  Accepted, implementation pending.
+  §2 fixed-panel sizing implemented (v0.17.10); port backfill follow-up open.
   - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
@@ -39,32 +39,29 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 115 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 117 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0007 recorded: port boundary + fixed panels (v0.17.8)
+## Last Session — ADR 0007 §2 implemented: fixed panels, reflowing pane (v0.17.10)
 
-Two architectural decisions settled (doc-only; **implementation deferred**). Written up in
-`docs/adr/0007-comic-pane-port-boundary-and-fixed-panels.md`; ADR 0004 §4a annotated as superseded-in-part.
-Prompted by the v0.17.7 balloon-drift post-mortem: the comic pane was a *reimplementation* throughout, which
-was right for the chat→narration semantics but wrong for the mechanical geometry (the side-tail bug was
-re-derived instead of read from `balloon.cpp`).
+Built the deferred core of ADR 0007 §2 in `web/src/comic/layout.ts`. `layoutStrip` no longer
+stretches a panel to its column share — `panelWidth = min(share, UNIT.width)`, so a panel renders at
+**native** (400×340) and the row's leftover becomes centred margin (`PreparePrintDC`, `panel.cpp:1471`).
+The strip-level upscale `MAX_PANEL_SCALE` is **retired**. `columnsFor` still fits extra columns against
+`MIN_PANEL_SCALE`, now **retuned 0.75 → 0.85** as the single shrink-tolerance floor; the builder decision
+(recorded in the ADR) was to collapse to one 0.85 floor rather than keep 0.75 as a separate absolute floor,
+since the old 0.75 test only ever decided column count. Three width regimes result: native (common), a
+`[0.85·native, native]` shrink to earn a second column, and a fit-down below native on phones too narrow
+for one native panel. `MAX_COLUMNS` unchanged at 3.
 
-- **Decision 1 — port boundary.** The **mechanical** layer (geometry/pixels: balloon spline + arrow/tail,
-  `AddLine`, overlap/route regions, `LayoutAvatars`, the panel grid) is a **faithful port with cited source
-  sites** (`balloon.cpp`/`panel.cpp:line`), as `layout.ts` already models. The **semantic** layer (channel
-  map, emotion-from-narration, camera ladder §7, Director, cast) stays reimplemented. Test: geometry → port
-  & cite; event-meaning → ours. Standing rule: new mechanical code reads the C++ first.
-- **Decision 2 — fixed panels, reflowing pane.** Reverses ADR 0004 §4a's "panel width is a per-render input."
-  Panel renders at **native size** (`UNIT` 400×340), no strip-level stretch; the **pane** varies the *column
-  count* by width (Comic Chat's `m_unitWidth` model, `panel.cpp:1456`). **Shrink tolerance ≈ 0.85** of native
-  is allowed only to prefer an extra column; narrow phones fit-down the single column. This cures the
-  "figure/balloon space slides with the viewport" instability.
+`layout.test.ts` rewritten for the new behaviour (native lone panel, phone fit-down, 0.85-band two-up,
+native-capped wide viewport). **117 web tests green** (was 115; +2 net). tsc clean. ADR 0007 status +
+Consequences ¶1 updated to "implemented"; `graphify update web` run.
 
-**Next: implement in `layout.ts`** (see Next Actions #0). No code changed this session — 115 web tests still
-green from v0.17.7. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** Still not done: ADR 0006 Consequences
-wiki rewrite. `web/tools/render-panel.ts` (`npm run render:panel`) is the headless way to eyeball geometry.
+**Output shape of `layoutStrip` is unchanged**, so `comic-view.ts:275` needed no edit (it still applies
+its own height cap on top). **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.**
+`web/tools/render-panel.ts` (`npm run render:panel`) is the headless way to eyeball geometry.
 
 ---
 
@@ -73,14 +70,12 @@ wiki rewrite. `web/tools/render-panel.ts` (`npm run render:panel`) is the headle
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
 
-0. **Implement ADR 0007 — fixed panels, reflowing pane (Accepted 2026-07-23, not yet built).** In
-   `web/src/comic/layout.ts`: replace `layoutStrip`'s stretch-to-share (`panelWidth = share` capped at
-   `MAX_PANEL_SCALE`) with **fixed native size + ≈0.85 shrink tolerance** to prefer an extra column;
-   retire the strip-level upscale; narrow phones fit-down one column. Update `columnsFor` (the `0.75` fit
-   floor vs `0.85` preference threshold — decide when building) and `layout.test.ts`. `render.ts`/`balloon.ts`
-   keep taking a width, now (near-)constant. Also a **standing follow-up**: audit `render.ts`/`balloon.ts`
-   geometry against `balloon.cpp`/`panel.cpp` and port gaps with cited source sites (v0.17.7 straddle is the
-   reference standard). MAX_COLUMNS is 3 (raised from 2, v0.17.9).
+0. **ADR 0007 port backfill (follow-up; §2 sizing done v0.17.10).** The `layout.ts` fixed-panel change
+   is built. What remains is the **standing follow-up**: audit `render.ts`/`balloon.ts` geometry against
+   `balloon.cpp`/`panel.cpp` and port the gaps with cited source sites (v0.17.7 straddle + bottom-tail is
+   the reference standard for "ported, with a named divergence"). Opportunistic, not a rewrite — geometry
+   that already matches keeps its behaviour and gains a citation. Worth an **in-browser check** that the
+   native-sized panels compose well across viewport widths (`web/tools/render-panel.ts` for headless).
 
 **New direction — `docs/adr/0006-dungeon-master-and-player.md` (Accepted, building).** Recasts the Guide
 as a Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real

@@ -1,6 +1,6 @@
 # ADR 0007 — The Comic Pane's Port Boundary, and Fixed Panels in a Reflowing Pane
 
-- **Status:** Accepted (recorded; implementation deferred — see Consequences)
+- **Status:** Accepted — §2 fixed-panel sizing **implemented** (v0.17.10); port backfill (Consequences ¶3) tracked as follow-up
 - **Date:** 2026-07-23
 - **Supersedes (in part):** ADR 0004 §4a's clause **"Panel width becomes an input to the Layout Manager, not a constant… this is the one place the port stops being a transcription."** That clause is reversed. The rest of §4a stands (panes stay fluid, both visible on mobile; dictation; responsiveness lives in the grid and chrome, not the figures).
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — consumed, not extended); ADR 0004 §1 (Comic Chat leads on identity — this ADR is that principle applied to the *mechanical* layer); the panel stream stays a deterministic pure function of the event stream (ADR 0004 §5, ADR 0005 testing contract); figures scale as a unit, composited in figure space before any viewport scale (ADR 0004 §8).
@@ -44,7 +44,7 @@ Because panel width is now (near-)constant, the ported layout routines no longer
 
 ## Consequences
 
-- **Implementation is deferred** (this session records the decision only). The concrete change lives in `web/src/comic/layout.ts`: replace the stretch-to-share (`panelWidth = share`, capped at `MAX_PANEL_SCALE`) with fixed-native sizing plus the 0.85 shrink-tolerance column preference; the existing `MIN_PANEL_SCALE = 0.75` fit test is subsumed by the new floor (retune to 0.85, or keep 0.75 as the absolute fit floor and 0.85 as the *preference* threshold — decide when building). `MAX_COLUMNS` is **3** (raised from 2 on 2026-07-23; see `layout.ts:26`). Update `layout.test.ts` for the new width behaviour.
+- **§2 implemented** (v0.17.10) in `web/src/comic/layout.ts`: the stretch-to-share (`panelWidth = share` capped at `MAX_PANEL_SCALE`) is replaced by fixed-native sizing — `panelWidth = min(share, UNIT.width)` — with `columnsFor` fitting extra columns against a **single 0.85 `MIN_PANEL_SCALE`** floor. The builder decision (offered as a choice above) was to **retune to one 0.85 floor** rather than keep 0.75 as a separate absolute floor: the old 0.75 fit test only ever decided column count, which the 0.85 preference floor now decides, so two constants collapse to one. `MAX_PANEL_SCALE` is retired. `MAX_COLUMNS` stays **3** (`layout.ts:26`). `layout.test.ts` updated for the new width behaviour (native lone panel, phone fit-down, 0.85-band two-up, native-capped wide viewport).
 
 - **Very large viewports** land on up to three native panels (`MAX_COLUMNS`), centred, with wide margins rather than blown-up panels. This is the intended trade for stable composition and matches `PreparePrintDC`. The ceiling of 3 is the chosen "for now" value (`layout.ts:26`): three shows more of the recent exchange while keeping the newest panel within a glance; raising it further reopens the "newest panel out of a glance" cost §5/`layout.ts:26` weighed and stays out.
 

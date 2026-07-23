@@ -42,31 +42,31 @@ export const UNIT = { width: 400, height: 340 };
 export const MAX_COLUMNS = 3;
 
 /**
- * The scale cap from 5.3, unchanged: this art is ~400px native, so the risk on
- * a large viewport is blowing a figure up into its own pixels.
+ * Shrink tolerance: the floor a panel may shrink to *in order to earn another
+ * column* (ADR 0007 §2).
  *
- * Named `MAX_PANEL_SCALE` rather than `MAX_SCALE` because `render.ts` already
- * owns a `MAX_SCALE` and it caps a *different* thing — a figure's scale inside
- * a panel, not a panel's scale inside the strip. They happen to hold the same
- * number for the same reason, and that is exactly why one name for both would
- * eventually get one of them changed on the other's evidence.
- */
-export const MAX_PANEL_SCALE = 1.6;
-
-/**
- * The shrink-side counterpart to {@link MAX_PANEL_SCALE}.
+ * A panel renders at its native size (`UNIT.width`). It never stretches above
+ * native — that free stretch is exactly what ADR 0007 reverses in ADR 0004 §4a,
+ * because a figure that composes differently at every viewport width is an
+ * authoring instability. The one departure from strict-native is downward and
+ * bounded: a width that cannot hold two *native* panels but can hold two at
+ * ≥ 0.85 native shows the two, rather than marooning one native panel in
+ * margin. That is the whole reason columns are fit against 0.85 of the unit
+ * rather than the unit itself.
  *
- * `columnsFor` used to require a full native-width (`UNIT.width`) panel per
- * column, so a viewport just under the two-column threshold (roughly
- * 810px of strip width) fell back to *one* panel stretched up toward
- * `MAX_PANEL_SCALE` — the opposite of what a reader wants from a two-up
- * layout at a merely-average width. §4a already settles this direction:
- * responsiveness outranks retro fidelity, and stretching was already treated
- * as a parameter rather than a constant on the grow side. This is the same
- * ruling applied to the shrink side, so two columns are preferred whenever
- * both panels can still shrink to something legible.
+ * This is the *preference* floor — it governs whether a column is worth adding.
+ * It is not a floor on a lone panel: a phone too narrow for even one native
+ * panel gets a straight fit-down (see {@link layoutStrip}), which can go below
+ * 0.85. ADR 0007 offered keeping the old 0.75 as a separate absolute fit floor;
+ * a single 0.85 preference floor subsumes it (the old 0.75 fit test only ever
+ * decided column count, which is precisely what this now decides), so there is
+ * one constant, not two.
+ *
+ * Replaces the retired `MAX_PANEL_SCALE`: with native as the ceiling there is
+ * no strip-level upscale to cap. `render.ts`'s own `MAX_SCALE` (a figure's
+ * scale *inside* a panel) is a different cap and is unaffected.
  */
-export const MIN_PANEL_SCALE = 0.75;
+export const MIN_PANEL_SCALE = 0.85;
 
 export interface StripLayout {
   /** Panels per row. Always at least 1. */
@@ -106,9 +106,10 @@ export interface LayoutOptions {
  *
  * The original fits columns against the native unit width. This port fits
  * against `MIN_PANEL_SCALE` of it instead — the smallest a panel may shrink
- * to — so a width that cannot hold two *native* panels but can hold two
- * *shrunk* ones still gets the two-up layout (`layoutStrip` fills in the
- * actual, larger share width afterward).
+ * to in order to earn a column (ADR 0007 §2) — so a width that cannot hold two
+ * *native* panels but can hold two at ≥ 0.85 native still gets the two-up
+ * layout (`layoutStrip` fills in the actual share width, which is between
+ * `0.85·UNIT.width` and `UNIT.width`, afterward).
  */
 export function columnsFor(available: number, gutter: number, maxColumns = MAX_COLUMNS): number {
   const minWidth = UNIT.width * MIN_PANEL_SCALE;
@@ -119,16 +120,27 @@ export function columnsFor(available: number, gutter: number, maxColumns = MAX_C
 /**
  * The strip's geometry at a given container width.
  *
- * Two things happen to the leftover space, and which one happens is §4a's
- * ruling rather than a fallback:
+ * ADR 0007 §2 restores Comic Chat's fixed panel: `m_unitWidth` is held
+ * constant and the *column count* reflows, not the panel. A panel is never
+ * stretched above native — the leftover of a row that cannot be filled with
+ * another native panel becomes gutter and centred margin, which is exactly what
+ * `PreparePrintDC` does with its own remainder (`panel.cpp:1471`). So the wide
+ * viewport lands on the original's behaviour rather than away from it.
  *
- * - Below the cap, panels **stretch** to fill the row. The original held
- *   `m_unitWidth` fixed; §4a is explicit that where responsiveness and retro
- *   fidelity conflict, the constant becomes a parameter, and that is already
- *   what 5.3 did per panel.
- * - At the cap, panels stop growing and the row is **centred**, which is what
- *   `PreparePrintDC` does with its own leftover (`panel.cpp:1471`). So the wide
- *   viewport lands back on the original's behaviour, not away from it.
+ * The panel width is therefore `min(share, UNIT.width)`, which resolves to one
+ * of three cases:
+ *
+ * - **Native.** `share ≥ UNIT.width`: the panel sits at native and the row is
+ *   centred in its leftover. The common case at every width above one column's
+ *   worth of space.
+ * - **Shrink-to-earn-a-column.** `0.85·UNIT.width ≤ share < UNIT.width`: this
+ *   only arises because `columnsFor` fit the extra column against
+ *   {@link MIN_PANEL_SCALE}; the panels shrink to the share so both fit,
+ *   staying inside the `[0.85·native, native]` band §2 tuned §7 and §2a against.
+ * - **Fit-down.** One column on a phone narrower than a native panel: `share`
+ *   is the whole viewport and below native, so the lone panel scales down to
+ *   fit rather than overflow. This is the only case that may drop below 0.85,
+ *   and §2 sanctions it ("a straight fit-down on the narrowest phones").
  */
 export function layoutStrip(available: number, options: LayoutOptions = {}): StripLayout {
   const gutter = options.gutter ?? 10;
@@ -137,7 +149,9 @@ export function layoutStrip(available: number, options: LayoutOptions = {}): Str
   const width = available > 0 ? available : UNIT.width;
   const columns = columnsFor(width, gutter, options.maxColumns);
   const share = (width - (columns - 1) * gutter) / columns;
-  const panelWidth = Math.max(1, Math.min(share, UNIT.width * MAX_PANEL_SCALE));
+  // Native is the ceiling — never a free stretch (ADR 0007 §2). The strip-level
+  // upscale (retired `MAX_PANEL_SCALE`) is gone with it.
+  const panelWidth = Math.max(1, Math.min(share, UNIT.width));
   return {
     columns,
     panelWidth,

@@ -12,7 +12,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  cellFor, columnsFor, layoutStrip, MAX_COLUMNS, MAX_PANEL_SCALE, MIN_PANEL_SCALE, UNIT,
+  cellFor, columnsFor, layoutStrip, MAX_COLUMNS, MIN_PANEL_SCALE, UNIT,
 } from "../src/comic/layout.js";
 
 const GUTTER = 10;
@@ -21,8 +21,8 @@ const MIN_WIDTH = UNIT.width * MIN_PANEL_SCALE;
 describe("columnsFor — panel.cpp:1456", () => {
   it("fits n shrunk-to-minimum panels, and not one pixel sooner", () => {
     // Unlike the original, the fit is against MIN_PANEL_SCALE of the unit, not
-    // the full unit — a panel can shrink before the strip gives up a column.
-    // Two columns need 300 + 10 + 300 = 610.
+    // the full unit — a panel can shrink to the 0.85 floor before the strip
+    // gives up a column (ADR 0007 §2). Two columns need 340 + 10 + 340 = 690.
     expect(columnsFor(2 * MIN_WIDTH + GUTTER - 1, GUTTER)).toBe(1);
     expect(columnsFor(2 * MIN_WIDTH + GUTTER, GUTTER)).toBe(2);
   });
@@ -46,11 +46,22 @@ describe("columnsFor — panel.cpp:1456", () => {
 });
 
 describe("layoutStrip", () => {
-  it("stretches panels to fill the row below the cap", () => {
-    // One column at 500px: the panel takes the width, larger than native.
+  it("holds a lone panel at native and leaves the rest as margin", () => {
+    // One column at 500px: the panel sits at native (ADR 0007 §2 — no free
+    // stretch), and the 100px leftover becomes centred margin.
     expect(layoutStrip(500, { gutter: GUTTER })).toEqual({
-      columns: 1, panelWidth: 500, panelHeight: 425,
+      columns: 1, panelWidth: UNIT.width, panelHeight: UNIT.height,
     });
+  });
+
+  it("fits a phone narrower than one native panel down, not off the edge", () => {
+    // The only case that goes below native: a single column on a viewport too
+    // narrow to hold a native panel scales down to the width (§2's fit-down),
+    // so it never overflows the strip.
+    const layout = layoutStrip(320, { gutter: GUTTER });
+    expect(layout.columns).toBe(1);
+    expect(layout.panelWidth).toBe(320);
+    expect(layout.panelHeight).toBe(Math.round((320 / UNIT.width) * UNIT.height));
   });
 
   it("divides the row evenly once a second column fits", () => {
@@ -62,13 +73,25 @@ describe("layoutStrip", () => {
     expect(layout.panelWidth * 2 + GUTTER).toBe(810);
   });
 
-  it("stops growing at the scale cap and leaves the rest as margin", () => {
-    // 2000px over two columns would give 995 each — 2.5x native. The cap holds
-    // it at 640, and the leftover becomes centring, which is what
-    // `PreparePrintDC` does with its own.
+  it("shrinks two panels into the 0.85 band rather than maroon one native", () => {
+    // 780px cannot hold two native panels (810 needed) but holds two at ≥0.85,
+    // so it prefers two shrunk columns over one native panel adrift in margin
+    // (ADR 0007 §2). The share stays inside [0.85·native, native].
+    const layout = layoutStrip(780, { gutter: GUTTER });
+    expect(layout.columns).toBe(2);
+    expect(layout.panelWidth).toBe((780 - GUTTER) / 2); // 385
+    expect(layout.panelWidth).toBeGreaterThanOrEqual(UNIT.width * MIN_PANEL_SCALE);
+    expect(layout.panelWidth).toBeLessThan(UNIT.width);
+  });
+
+  it("caps panels at native on a wide viewport and centres the rest", () => {
+    // 2000px over three columns (MAX_COLUMNS) would give ~660 each. Native is
+    // the ceiling now, so the panels stay at 400 and the leftover becomes
+    // centring, which is what `PreparePrintDC` does with its own.
     const layout = layoutStrip(2000, { gutter: GUTTER });
-    expect(layout.panelWidth).toBe(UNIT.width * MAX_PANEL_SCALE);
-    expect(layout.panelWidth).toBeLessThan((2000 - GUTTER) / 2);
+    expect(layout.columns).toBe(MAX_COLUMNS);
+    expect(layout.panelWidth).toBe(UNIT.width);
+    expect(layout.panelWidth).toBeLessThan((2000 - 2 * GUTTER) / MAX_COLUMNS);
   });
 
   it("keeps the native aspect at every width", () => {
