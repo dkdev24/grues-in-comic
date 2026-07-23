@@ -10,6 +10,41 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.11 — 2026-07-23 — ADR 0007 port backfill: geometry audit + cited source sites
+
+Completed ADR 0007 Consequences ¶3 (the tracked port-backfill follow-up): audited `web/src/comic/balloon.ts`
+and `web/src/comic/render.ts` mechanical geometry against `balloon.cpp`/`panel.cpp` and made every ported
+routine either cite its source site or state a **named divergence with a reason** — the standard the v0.17.7
+straddle/bottom-tail work set. **Documentation only; no behaviour changed. 117 web tests green, tsc clean.**
+
+The headline finding is the ADR-0007-class bug the ADR was written to catch: `wrap()` claimed "Comic Chat
+balanced line lengths," but `BreakIntoLines` (`balloon.cpp:96`) is a plain greedy wrap. A Woodring balloon
+reads as a *shape* because of the permuted spline outline (`CreateBalloonSpline`/`PermutePt`, `balloon.cpp:159`;
+`ShiftLines` jitter is disabled in v1.0, `MAXCENTERSHIFT=0`), not the line breaks. The balancing is now stated
+as **our** substitute for the wobbly outline we don't draw — a deliberate deviation, not the original's
+behaviour — rather than misattributed to the source.
+
+Citations/divergences added:
+- `greedyWrap` → `balloon.cpp:96`; widest-word clamp is a named divergence (we clamp to the native panel per
+  ADR 0007 §2; the original grows the box, `balloon.cpp:115`).
+- `roundedSpeech` → `AddArrow` (`balloon.cpp:238`), with two divergences: straight triangle vs the original's
+  two bowed `CArc`s (`:305`), and no 45°-from-vertical clamp (`:284`) since the layout straddle keeps the tail
+  vertical for us.
+- `TAIL_MIN_EXIT` → `MINTAILHEIGHT=100` (`balloon.cpp:235`); ours is 2px because the balloon docks at the panel
+  top while the speaker stands at the bottom, so the drop is already tall.
+- `cloud`/`bubbleTrail` → `CBWoodringThink::Draw` (`balloon.cpp:648`): reimplementations (the original has no
+  standalone scallop/bubble routine — the cloud is the same permuted spline), so the source fixes the *look*
+  only; bubble count/sizing are ours.
+- `render.ts` balloon straddle → sharpened `GetCloudEstimate` citation to `panel.cpp:781`, and noted our
+  deterministic midpoint placement vs the original's `randfloat` (ADR 0004 §5 forbids the roll).
+- Fixed a stale `balloon.ts` header comment still citing ADR 0004 §4a's reversed "port stops being a
+  transcription" clause; now points to ADR 0007 §2 (width is (near-)constant again).
+
+All cited C++ sites were verified to exist (no phantom citations). ADR 0007 status updated: Consequences ¶3
+marked done; the remaining open item is an in-browser visual check of both v0.17.10 and v0.17.11.
+
+---
+
 ## v0.17.10 — 2026-07-23 — ADR 0007 §2 implemented: fixed panels, reflowing pane
 
 Built the deferred core of ADR 0007 §2 in `web/src/comic/layout.ts`. `layoutStrip` stops stretching a panel

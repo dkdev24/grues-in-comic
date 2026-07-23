@@ -1,6 +1,6 @@
 # ADR 0007 — The Comic Pane's Port Boundary, and Fixed Panels in a Reflowing Pane
 
-- **Status:** Accepted — §2 fixed-panel sizing **implemented** (v0.17.10); port backfill (Consequences ¶3) tracked as follow-up
+- **Status:** Accepted — §2 fixed-panel sizing **implemented** (v0.17.10); port backfill (Consequences ¶3) **done** (v0.17.11, audit + cited source sites); in-browser visual check outstanding
 - **Date:** 2026-07-23
 - **Supersedes (in part):** ADR 0004 §4a's clause **"Panel width becomes an input to the Layout Manager, not a constant… this is the one place the port stops being a transcription."** That clause is reversed. The rest of §4a stands (panes stay fluid, both visible on mobile; dictation; responsiveness lives in the grid and chrome, not the figures).
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — consumed, not extended); ADR 0004 §1 (Comic Chat leads on identity — this ADR is that principle applied to the *mechanical* layer); the panel stream stays a deterministic pure function of the event stream (ADR 0004 §5, ADR 0005 testing contract); figures scale as a unit, composited in figure space before any viewport scale (ADR 0004 §8).
@@ -48,6 +48,6 @@ Because panel width is now (near-)constant, the ported layout routines no longer
 
 - **Very large viewports** land on up to three native panels (`MAX_COLUMNS`), centred, with wide margins rather than blown-up panels. This is the intended trade for stable composition and matches `PreparePrintDC`. The ceiling of 3 is the chosen "for now" value (`layout.ts:26`): three shows more of the recent exchange while keeping the newest panel within a glance; raising it further reopens the "newest panel out of a glance" cost §5/`layout.ts:26` weighed and stays out.
 
-- **Port backfill is a tracked follow-up.** Audit `render.ts`/`balloon.ts` geometry against `balloon.cpp`/`panel.cpp` and port the gaps with cited source sites; the v0.17.7 straddle + bottom-tail work is the reference standard for what "ported, with a named divergence" looks like. This is opportunistic, not a rewrite — existing geometry that already matches the original keeps its behaviour and gains a citation.
+- **Port backfill — done (v0.17.11).** Audited `render.ts`/`balloon.ts` geometry against `balloon.cpp`/`panel.cpp`; every ported routine now cites its source site or states a named divergence (the v0.17.7 straddle + bottom-tail work was the reference standard). Documentation only, no behaviour change. Headline fix: `wrap()`'s line-balancing was misattributed to Comic Chat, whose `BreakIntoLines` (`balloon.cpp:96`) is a plain greedy wrap — the balloon's shape comes from the permuted spline outline, not the line breaks; balancing is now stated as our own substitute. The permuted-spline *outline* itself stays a deliberate non-port (we draw rounded rects). One open item remains: an in-browser visual check of the §2 sizing and the backfilled geometry.
 
 - **Standing rule going forward:** new mechanical-layer code reads the C++ first and cites it; only semantic-layer code is authored fresh. This is the process fix for the class of bug that produced the side tail.

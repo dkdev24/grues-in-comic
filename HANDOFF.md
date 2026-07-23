@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.10**
+**0.17.11**
 
 ---
 
@@ -43,25 +43,30 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 
 ---
 
-## Last Session — ADR 0007 §2 implemented: fixed panels, reflowing pane (v0.17.10)
+## Last Session — ADR 0007 port backfill: geometry audit + cited source sites (v0.17.11)
 
-Built the deferred core of ADR 0007 §2 in `web/src/comic/layout.ts`. `layoutStrip` no longer
-stretches a panel to its column share — `panelWidth = min(share, UNIT.width)`, so a panel renders at
-**native** (400×340) and the row's leftover becomes centred margin (`PreparePrintDC`, `panel.cpp:1471`).
-The strip-level upscale `MAX_PANEL_SCALE` is **retired**. `columnsFor` still fits extra columns against
-`MIN_PANEL_SCALE`, now **retuned 0.75 → 0.85** as the single shrink-tolerance floor; the builder decision
-(recorded in the ADR) was to collapse to one 0.85 floor rather than keep 0.75 as a separate absolute floor,
-since the old 0.75 test only ever decided column count. Three width regimes result: native (common), a
-`[0.85·native, native]` shrink to earn a second column, and a fit-down below native on phones too narrow
-for one native panel. `MAX_COLUMNS` unchanged at 3.
+Audited `balloon.ts`/`render.ts` mechanical geometry against `balloon.cpp`/`panel.cpp` (ADR 0007
+Consequences ¶3) and made every ported routine cite its source or state a named divergence.
+**Documentation only — no behaviour changed; 117 web tests still green, tsc clean.**
 
-`layout.test.ts` rewritten for the new behaviour (native lone panel, phone fit-down, 0.85-band two-up,
-native-capped wide viewport). **117 web tests green** (was 115; +2 net). tsc clean. ADR 0007 status +
-Consequences ¶1 updated to "implemented"; `graphify update web` run.
+- **Key ADR-0007-class finding & fix.** `balloon.ts wrap()` claimed "Comic Chat balanced line lengths."
+  The source contradicts it: `BreakIntoLines` (`balloon.cpp:96`) is a *plain greedy wrap*. A Woodring
+  balloon reads as a shape because of the **permuted spline outline** (`CreateBalloonSpline`/`PermutePt`,
+  `balloon.cpp:159`), not the line breaks (`ShiftLines` jitter is off in v1.0, `MAXCENTERSHIFT=0`). Our
+  balancing is now stated as **our** substitute for the wobbly outline we don't draw, not the original's
+  behaviour — the exact misattribution class that produced the v0.17.7 side-tail bug.
+- **Citations/divergences added:** `greedyWrap` → `balloon.cpp:96` (+ widest-word clamp divergence, we
+  clamp to native panel vs original growing the box); `roundedSpeech` → `AddArrow` `balloon.cpp:238`
+  (two divergences: straight triangle vs two `CArc`s `:305`; no 45° clamp `:284`, layout keeps it vertical);
+  `TAIL_MIN_EXIT` → `MINTAILHEIGHT=100` `balloon.cpp:235`; `cloud`/`bubbleTrail` → `CBWoodringThink::Draw`
+  `balloon.cpp:648` (reimplementations, source fixes look only); `render.ts:290` balloon straddle → sharpened
+  to `GetCloudEstimate` `panel.cpp:781` + noted our deterministic midpoint vs the original's `randfloat`.
+- **Stale comment fixed:** `balloon.ts` header still cited ADR 0004 §4a's "port stops being a transcription";
+  updated to ADR 0007 §2 (width is (near-)constant again).
 
-**Output shape of `layoutStrip` is unchanged**, so `comic-view.ts:275` needed no edit (it still applies
-its own height cap on top). **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.**
-`web/tools/render-panel.ts` (`npm run render:panel`) is the headless way to eyeball geometry.
+**Verified all cited C++ sites exist** (`GetCloudEstimate` panel.cpp:753, `LayoutAvatars` :528, etc.) — no
+phantom citations. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `web/tools/render-panel.ts`
+(`npm run render:panel`) is the headless way to eyeball geometry.
 
 ---
 
@@ -70,12 +75,14 @@ its own height cap on top). **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.**
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
 
-0. **ADR 0007 port backfill (follow-up; §2 sizing done v0.17.10).** The `layout.ts` fixed-panel change
-   is built. What remains is the **standing follow-up**: audit `render.ts`/`balloon.ts` geometry against
-   `balloon.cpp`/`panel.cpp` and port the gaps with cited source sites (v0.17.7 straddle + bottom-tail is
-   the reference standard for "ported, with a named divergence"). Opportunistic, not a rewrite — geometry
-   that already matches keeps its behaviour and gains a citation. Worth an **in-browser check** that the
-   native-sized panels compose well across viewport widths (`web/tools/render-panel.ts` for headless).
+0. **In-browser visual check of ADR 0007 (§2 sizing v0.17.10 + backfill v0.17.11 done).** The `layout.ts`
+   fixed-panel change and the `balloon.ts`/`render.ts` citation audit are both complete and green in tests,
+   but neither has been eyeballed in the browser at real viewport widths. Confirm native-sized panels compose
+   well across widths (native lone panel, 0.85-band two-up ~780px, three-up wide) and that balloons still
+   straddle/tail correctly now that panel width is stable (`web/tools/render-panel.ts` for headless frames).
+   **Standing rule now in force** (ADR 0007): new mechanical-layer code reads the C++ first and cites it.
+   The permuted-spline balloon *outline* remains a deliberate non-port (we draw rounded rects); revisit only
+   if balloons read as text boxes in the browser check.
 
 **New direction — `docs/adr/0006-dungeon-master-and-player.md` (Accepted, building).** Recasts the Guide
 as a Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real

@@ -1,11 +1,12 @@
 /**
  * Balloons — the three Woodring classes of ADR 0004 §2, drawn.
  *
- * Comic Chat's Layout Manager laid balloons out against a **known** window
- * width. Ours is not known: §4a makes panel width an input evaluated per render
- * rather than a constant, which is the one place the port stops being a
- * transcription. Everything here therefore takes a width and measures at that
- * width; nothing caches a break.
+ * Comic Chat's Layout Manager laid balloons out against a **known, fixed**
+ * window width. ADR 0007 §2 restores that: the panel is native-sized, so the
+ * width these routines receive is (near-)constant again — the ADR 0004 §4a
+ * caveat that "the port stops being a transcription" here is withdrawn. Every
+ * function still *takes* a width and measures at it (nothing caches a break),
+ * it simply receives a stable one now.
  *
  * The caption and Guide classes are fixed per channel; the Hero's is now chosen
  * per line (ADR 0006 §3), so class is a property of the balloon, not the drawer:
@@ -51,17 +52,32 @@ const LINE_HEIGHT = 15;
  * directly — never *past* it, which on a close-up (head right below the balloon)
  * would punch the tip through the face. `TAIL_MIN_EXIT` only guarantees the tail
  * clears the box before angling toward a speaker that sits close.
+ *
+ * This is a named divergence from the original's `MINTAILHEIGHT = 100`
+ * (`balloon.cpp:235`, enforced at `:273`), which forces the *tail itself* to a
+ * minimum length by pushing the balloon up off the speaker. Our balloon docks
+ * at the panel top and the speaker stands at the bottom (`render.ts`), so the
+ * drop is already tall; we need only the 2px exit, not the original's 100.
  */
 const TAIL_MIN_EXIT = 2;
 
 /**
- * `AddLine`'s job, reduced to what a single-balloon-per-character panel needs:
- * break text to a width, and report the box it wants.
+ * Break text to a width and report the box it wants — the job `BreakIntoLines`
+ * (`balloon.cpp:96`) does in the original, reduced to a single-balloon panel.
  *
- * Comic Chat balanced line lengths so a balloon read as a shape rather than a
- * ragged block. That is reproduced here by measuring the natural greedy wrap and
- * then re-wrapping at `total / lines`, which is the cheap version of the same
- * idea and the visible difference between a comic balloon and a text box.
+ * **Named divergence (line balancing).** The original `BreakIntoLines` is a
+ * *plain greedy wrap* — it packs each line to the width and stops; there is no
+ * balancing pass (`balloon.cpp:96`). A Comic Chat balloon still reads as a
+ * *shape* rather than a ragged block, but that comes from the **permuted spline
+ * outline** its `CreateBalloonSpline`/`PermutePt` wraps around the text
+ * (`balloon.cpp:165`, `XPERMUTE`/`YPERMUTE`/`XBORDER`/`YBORDER` at `:159`), not
+ * from the line breaks — `ShiftLines`'s per-line jitter is off in v1.0
+ * (`MAXCENTERSHIFT`/`MAXLEFTSHIFT = 0`, `balloon.cpp:135`). We draw a clean
+ * rounded rect ({@link roundedSpeech}), not that wobbly spline, so greedy text
+ * inside it would read as a text box. Balancing the lines is **our** substitute
+ * for the outline we don't draw — a deliberate deviation, not the original's
+ * behaviour — so it is stated here rather than attributed to Comic Chat. It
+ * measures the greedy wrap, then re-wraps at `total / lines`.
  */
 export function wrap(
   ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
@@ -74,6 +90,16 @@ export function wrap(
   return balanced.length === greedy.length ? balanced : greedy;
 }
 
+/**
+ * The greedy fit itself, ported from `BreakIntoLines` (`balloon.cpp:96`): pack
+ * words onto a line until the next would overflow, then break. Like the original
+ * (`balloon.cpp:115`, "the first word alone is wider than the text area") a word
+ * longer than the whole width is kept intact on its own line rather than split
+ * mid-character — the guard is `line !== ""`, which only breaks *between* words.
+ * The original then lets the balloon grow to that word; we instead clamp the box
+ * to `maxWidth` in {@link measureBalloon} so a stray long token cannot push a
+ * balloon past its native panel — a named divergence forced by §2's fixed panel.
+ */
 function greedyWrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   let line = "";
@@ -152,6 +178,13 @@ export function drawBalloon(
  * A scalloped outline — the thought balloon's edge, drawn as one continuous
  * closed path of outward-bulging arcs.
  *
+ * **Reimplementation, not a port.** The original gets its cloud from the same
+ * permuted `CreateBalloonSpline` as the speech balloon, rendered with the
+ * Woodring pen (`CBWoodringThink::Draw`, `balloon.cpp:648`, "will draw the cloud
+ * properly") — there is no standalone scallop routine to transcribe. We generate
+ * the scallops directly instead, so this is ours by necessity; the source only
+ * fixes the *look* (an outward-bulging closed loop), not the arithmetic.
+ *
  * The earlier version stamped a *full* circle at every bump and added the inner
  * rectangle, then let the caller stroke the lot. That strokes each circle's
  * inner half and the box edge too, so the balloon read as a chain of overlapping
@@ -188,9 +221,18 @@ function cloud(ctx: CanvasRenderingContext2D, box: BalloonBox): void {
 }
 
 /**
- * The thought balloon's tail: shrinking bubbles rather than an arrow. It is the
- * mark that says *interior*, and it is why the class change in §2a is visible
- * at a glance rather than a technicality.
+ * The thought balloon's tail: a line of bubbles rather than an arrow, ported in
+ * spirit from `CBWoodringThink::Draw` (`balloon.cpp:648`) — the original walks a
+ * chain of ellipses from the speaker up to the balloon, small near the speaker
+ * and widening toward the cloud. It is the mark that says *interior*, and it is
+ * why the class change in §2a is visible at a glance rather than a technicality.
+ *
+ * **Named divergences.** The original derives the bubble *count* from the gap
+ * (`nBubbles`, `balloon.cpp:660`) and spaces them across it (`balloon.cpp:669`);
+ * we draw a fixed three at even `t`, since our tail height is stable (§2) and
+ * three reads as a trail at panel scale. Sizing is ours too (radius `6 - i·1.4`
+ * vs the original's `BUBBLEHEIGHT`→`ENDBUBBLEWIDTH` ramp), but the direction
+ * matches: smallest bubble nearest the speaker.
  */
 function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget): void {
   const from = { x: box.x + box.width / 2, y: box.y + box.height };
@@ -210,18 +252,24 @@ function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: Tai
 /**
  * A rounded speech balloon with a straight tail rooted on the **bottom edge**.
  *
- * This is the one shape Comic Chat draws for speech (`CBWoodringNormal::AddArrow`,
- * balloon.cpp) — the tail *always* leaves the bottom, never a side. It stays
- * legible because the layout places the balloon *above* and horizontally over its
- * speaker (`render.ts` straddles the head), so the head is below the box and the
- * tail drops to it. Two rules from the original keep it clean when the head sits
- * off-centre: the root slides along the bottom to sit under the head. Keeping the
- * tail near-vertical is the *layout's* job, not the drawer's — the balloon is
- * placed above and over its speaker with reserved headroom (`render.ts`), so the
- * head is below the box and the drop is tall. The tip is aimed at directly
- * (`target`, the head anchor), never overshot, so a close-up head just below the
- * box stops the tip at the head; `TAIL_MIN_EXIT` only guarantees the tail clears
- * the box before angling toward a near speaker.
+ * The tail follows `CBWoodringNormal::AddArrow` (`balloon.cpp:238`): it *always*
+ * leaves the bottom edge, never a side, and its root slides along that edge to
+ * sit under the speaker (`balloon.cpp:252`, the route-region midpoint clamped
+ * toward the head). It stays legible because the layout places the balloon
+ * *above* and horizontally over its speaker (`render.ts` straddles the head), so
+ * the head is below the box and the tail drops to it. The tip is aimed directly
+ * at `target` (the head anchor), never overshot, so a close-up head just below
+ * the box stops the tip at the head; `TAIL_MIN_EXIT` clears the box first.
+ *
+ * **Two named divergences from `AddArrow`:**
+ * - *Shape.* The original builds the tail as two curved arcs (`CArc`, bowed by
+ *   `alt = .05 * tailLen`, `balloon.cpp:305`); we draw a straight triangle. The
+ *   curve is a hand-drawn flourish the rounded-rect balloon does not invite.
+ * - *Angle clamp.* `AddArrow` limits the tail to 45° from vertical, walking the
+ *   break point back toward the speaker when it would exceed that
+ *   (`balloon.cpp:284`). We do not clamp in the drawer — keeping the tail
+ *   near-vertical is the *layout's* job (the straddle + reserved headroom in
+ *   `render.ts` keep the head roughly under the box), so the tip can aim true.
  */
 function roundedSpeech(
   ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget | null,

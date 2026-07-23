@@ -287,8 +287,11 @@ function drawBalloons(
     if (isSpeech && item.headX !== null) {
       // Straddle the speaker: the head's x sits inside the balloon's span, so the
       // bottom tail drops straight to it. Comic Chat places the balloon's left in
-      // `[headX − width, headX]` (`GetCloudEstimate`, panel.cpp); centring on the
-      // head is the symmetric case, then clamped inside the panel.
+      // `[headX − width, headX]` (`GetCloudEstimate`, `panel.cpp:781`) and picks a
+      // point in that range at *random* (`randfloat`, `:784`). We cannot: ADR 0004
+      // §5 makes the panel stream a deterministic pure function, so we take the
+      // range's midpoint (`headX − width/2`) — the symmetric straddle — instead of
+      // a roll, then clamp inside the panel as the original clamps into freeRect.
       x = Math.max(10, Math.min(item.headX - measured.width / 2, width - measured.width - 10));
     } else if (balloon.balloonClass === "CBWoodringBox") {
       x = 10; // a caption is a top box, pinned left, spoken by nobody.
