@@ -1,6 +1,6 @@
 # ADR 0007 — The Comic Pane's Port Boundary, and Fixed Panels in a Reflowing Pane
 
-- **Status:** Accepted — §2 fixed-panel sizing **implemented** (v0.17.10); port backfill (Consequences ¶3) **done** (v0.17.11, audit + cited source sites); in-browser visual check outstanding
+- **Status:** Accepted — **fully built.** §2 fixed-panel sizing (v0.17.10); port backfill + cited source sites (v0.17.11); three C++-sourced balloon enhancements — area-based width goal, rippled outline, bowed tail (v0.17.12). Visual checks done (layout in-browser; balloons via `render-panel.ts`).
 - **Date:** 2026-07-23
 - **Supersedes (in part):** ADR 0004 §4a's clause **"Panel width becomes an input to the Layout Manager, not a constant… this is the one place the port stops being a transcription."** That clause is reversed. The rest of §4a stands (panes stay fluid, both visible on mobile; dictation; responsiveness lives in the grid and chrome, not the figures).
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — consumed, not extended); ADR 0004 §1 (Comic Chat leads on identity — this ADR is that principle applied to the *mechanical* layer); the panel stream stays a deterministic pure function of the event stream (ADR 0004 §5, ADR 0005 testing contract); figures scale as a unit, composited in figure space before any viewport scale (ADR 0004 §8).

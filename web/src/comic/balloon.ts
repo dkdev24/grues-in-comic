@@ -62,32 +62,75 @@ const LINE_HEIGHT = 15;
 const TAIL_MIN_EXIT = 2;
 
 /**
- * Break text to a width and report the box it wants — the job `BreakIntoLines`
- * (`balloon.cpp:96`) does in the original, reduced to a single-balloon panel.
+ * The balloon outline ripples instead of running dead straight — `AddWavies`
+ * (`balloon.cpp:406`) walks each edge and pushes alternate waypoints out along
+ * the edge normal, and `CreateBalloonSpline` smooths the result into the wobbly
+ * Woodring outline. `WAVE_INTERVAL` is the spacing between ripples, `WAVE_AMP`
+ * their depth.
  *
- * **Named divergence (line balancing).** The original `BreakIntoLines` is a
- * *plain greedy wrap* — it packs each line to the width and stops; there is no
- * balancing pass (`balloon.cpp:96`). A Comic Chat balloon still reads as a
- * *shape* rather than a ragged block, but that comes from the **permuted spline
- * outline** its `CreateBalloonSpline`/`PermutePt` wraps around the text
- * (`balloon.cpp:165`, `XPERMUTE`/`YPERMUTE`/`XBORDER`/`YBORDER` at `:159`), not
- * from the line breaks — `ShiftLines`'s per-line jitter is off in v1.0
- * (`MAXCENTERSHIFT`/`MAXLEFTSHIFT = 0`, `balloon.cpp:135`). We draw a clean
- * rounded rect ({@link roundedSpeech}), not that wobbly spline, so greedy text
- * inside it would read as a text box. Balancing the lines is **our** substitute
- * for the outline we don't draw — a deliberate deviation, not the original's
- * behaviour — so it is stated here rather than attributed to Comic Chat. It
- * measures the greedy wrap, then re-wraps at `total / lines`.
+ * Both derive from the original's figure-space constants (`HWAVE/VWAVEINTERVAL =
+ * 300`, `waveDiam = 70`, `balloon.cpp:426`) at our ~0.2 CSS-px scale (~60 / ~14),
+ * then retuned as a named divergence for two reasons: (1) Zork balloons are
+ * small, so the interval is pulled in to ~30 or a compact three-line balloon's
+ * edges never reach the two-interval minimum and stay dead straight; (2) our
+ * quadratic smoothing shows only ~half the control offset as visible deflection
+ * (a beta-spline showed more), so `WAVE_AMP` is the control push, ~8, landing a
+ * visible ripple near the faithful ~14/2 rather than an invisible one.
  */
-export function wrap(
-  ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
-): string[] {
-  const greedy = greedyWrap(ctx, text, maxWidth);
-  if (greedy.length < 2) return greedy;
-  const widest = Math.max(...greedy.map((line) => ctx.measureText(line).width));
-  const balanced = greedyWrap(ctx, text, Math.max(widest / greedy.length, widest * 0.72));
-  // Re-wrapping narrower can spill an extra line; keep it only if it did not.
-  return balanced.length === greedy.length ? balanced : greedy;
+const WAVE_INTERVAL = 30;
+const WAVE_AMP = 8;
+
+/**
+ * Below this one-line width, a balloon stays a single line rather than being
+ * wrapped for shape (`ONELINETHRESHOLD = 500`, `panel.cpp:751`, `:761`). Our
+ * unit is CSS px against a native 400px panel where the original's is figure
+ * space (`m_unitWidth` in the low thousands), so the constant is scaled by the
+ * ~0.2 ratio those `~×5` panel widths imply — a named unit conversion, applied
+ * to every ported figure-space length in this file.
+ */
+const ONE_LINE_THRESHOLD = 100;
+/**
+ * The width:height a wrapped balloon trends toward. This is the deterministic
+ * stand-in for `GetCloudEstimate`'s goal width (`panel.cpp:753`): the original
+ * derives width from `area / available-height` and then rolls a random point in
+ * `[minWidth, maxWidth]` (`panel.cpp:767`), which ADR 0004 §5 forbids (the panel
+ * stream must be a pure function). We instead pick the width that gives a fixed
+ * target aspect for the text's area — square-ish but a touch wide, as a speech
+ * balloon reads — which needs no roll and no coupling to stacking order.
+ */
+const TARGET_ASPECT = 1.9;
+/** `AreaEstimate`'s fudge factor (`balloon.cpp:775`), carried through verbatim. */
+const AREA_FUDGE = 1.3;
+
+/** Widest single word, the floor a balloon may not wrap below (`WidestWord`, `balloon.cpp:778`). */
+function widestWord(ctx: CanvasRenderingContext2D, text: string): number {
+  const words = text.split(/\s+/).filter((w) => w.length > 0);
+  return words.length === 0 ? 0 : Math.max(...words.map((w) => ctx.measureText(w).width));
+}
+
+/**
+ * The width a balloon *wants* to wrap at — a port of `GetCloudEstimate`
+ * (`panel.cpp:753`) reduced to what a deterministic single-balloon panel needs.
+ *
+ * This replaces the old line-*balancing* hack. The hack existed because the
+ * original's balloons read as shapes and ours (plain greedy-wrapped into a box)
+ * read as text blocks — but the original never balances lines (`BreakIntoLines`
+ * is a plain greedy wrap, `balloon.cpp:96`). It gets its shape from choosing a
+ * good *width goal* first, then greedy-wrapping into it: short text stays one
+ * line (`panel.cpp:761`); longer text is sized from its ink area so the balloon
+ * is compact rather than a wide flat strip (`AreaEstimate`, `balloon.cpp:775`),
+ * floored by the widest word (`panel.cpp:766`) and capped at the free width
+ * (`panel.cpp:777`). Wrapping at this width is what makes a balloon a balloon;
+ * balancing was a symptom-fix for not doing it.
+ */
+export function goalWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): number {
+  const oneLine = ctx.measureText(text).width;
+  if (oneLine <= ONE_LINE_THRESHOLD) return Math.min(oneLine, maxWidth);
+  // area ≈ ink area laid on one line; for a box of width W the height is ≈ area/W,
+  // so aspect W/(area/W) = W²/area = TARGET_ASPECT ⇒ W = √(TARGET_ASPECT · area).
+  const area = AREA_FUDGE * oneLine * LINE_HEIGHT;
+  const goal = Math.sqrt(TARGET_ASPECT * area);
+  return Math.min(Math.max(goal, widestWord(ctx, text)), maxWidth);
 }
 
 /**
@@ -120,7 +163,7 @@ export function measureBalloon(
   ctx: CanvasRenderingContext2D, balloon: Balloon, maxWidth: number,
 ): { lines: string[]; width: number; height: number } {
   const pad = PADDING + (balloon.balloonClass === "CBWoodringThink" ? THINK_INSET : 0);
-  const lines = wrap(ctx, balloon.text, maxWidth - pad * 2);
+  const lines = greedyWrap(ctx, balloon.text, goalWidth(ctx, balloon.text, maxWidth - pad * 2));
   const width = Math.min(
     maxWidth,
     Math.max(...lines.map((line) => ctx.measureText(line).width)) + pad * 2,
@@ -250,26 +293,53 @@ function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: Tai
 }
 
 /**
- * A rounded speech balloon with a straight tail rooted on the **bottom edge**.
+ * One straight edge of the balloon, drawn as a ripple rather than a line — the
+ * canvas port of `AddWavies` (`balloon.cpp:406`). It walks from `(ax,ay)` to
+ * `(bx,by)` in `WAVE_INTERVAL` steps and pushes alternate control points out
+ * along the outward normal `(nx,ny)` by `WAVE_AMP`, so the edge bows in and out;
+ * quadratic segments between the on-edge endpoints are the smoothing the
+ * original got from its beta-spline. The start point must already be the path's
+ * current point (an `arcTo` corner or a prior edge leaves it there).
  *
- * The tail follows `CBWoodringNormal::AddArrow` (`balloon.cpp:238`): it *always*
- * leaves the bottom edge, never a side, and its root slides along that edge to
- * sit under the speaker (`balloon.cpp:252`, the route-region midpoint clamped
- * toward the head). It stays legible because the layout places the balloon
- * *above* and horizontally over its speaker (`render.ts` straddles the head), so
- * the head is below the box and the tail drops to it. The tip is aimed directly
- * at `target` (the head anchor), never overshot, so a close-up head just below
- * the box stops the tip at the head; `TAIL_MIN_EXIT` clears the box first.
+ * Below two intervals there is no ripple — a straight `lineTo` — exactly as
+ * `AddWavies` bails when `nWaves < 2` (`balloon.cpp:409`).
+ */
+function wavyEdge(
+  ctx: CanvasRenderingContext2D,
+  ax: number, ay: number, bx: number, by: number, nx: number, ny: number,
+): void {
+  const dist = Math.hypot(bx - ax, by - ay);
+  const n = Math.floor(dist / WAVE_INTERVAL);
+  if (n < 2) { ctx.lineTo(bx, by); return; }
+  const ux = (bx - ax) / dist, uy = (by - ay) / dist;
+  const seg = dist / n;
+  for (let i = 1; i <= n; i++) {
+    const ex = ax + ux * seg * i, ey = ay + uy * seg * i;
+    const mx = ax + ux * seg * (i - 0.5), my = ay + uy * seg * (i - 0.5);
+    const sign = i % 2 === 1 ? 1 : -1; // alternate out/in (balloon.cpp:421)
+    ctx.quadraticCurveTo(mx + nx * WAVE_AMP * sign, my + ny * WAVE_AMP * sign, ex, ey);
+  }
+}
+
+/**
+ * A speech balloon: a rippled Woodring outline with a bowed tail rooted on the
+ * **bottom edge**.
  *
- * **Two named divergences from `AddArrow`:**
- * - *Shape.* The original builds the tail as two curved arcs (`CArc`, bowed by
- *   `alt = .05 * tailLen`, `balloon.cpp:305`); we draw a straight triangle. The
- *   curve is a hand-drawn flourish the rounded-rect balloon does not invite.
- * - *Angle clamp.* `AddArrow` limits the tail to 45° from vertical, walking the
- *   break point back toward the speaker when it would exceed that
- *   (`balloon.cpp:284`). We do not clamp in the drawer — keeping the tail
- *   near-vertical is the *layout's* job (the straddle + reserved headroom in
- *   `render.ts` keep the head roughly under the box), so the tip can aim true.
+ * The outline is the wobbly closed loop of `CreateBalloonSpline`
+ * (`balloon.cpp:431`) — each edge rippled by {@link wavyEdge}, corners rounded —
+ * rather than the clean rounded rect we drew before. The tail follows
+ * `CBWoodringNormal::AddArrow` (`balloon.cpp:238`): it *always* leaves the bottom
+ * edge, never a side, its root sliding along that edge to sit under the speaker
+ * (`balloon.cpp:252`), and it is bowed as two curves (`CArc`, `alt = .05·tailLen`,
+ * `balloon.cpp:305`) instead of the straight triangle we drew before. It stays
+ * legible because the layout places the balloon *above* and over its speaker
+ * (`render.ts` straddles the head); the tip aims directly at `target`, and
+ * `TAIL_MIN_EXIT` clears the box first.
+ *
+ * **Remaining named divergence from `AddArrow`:** the 45°-from-vertical angle
+ * clamp (`balloon.cpp:284`) is not reproduced — keeping the tail near-vertical is
+ * the *layout's* job (the straddle + reserved headroom in `render.ts`), so the
+ * tip can aim true.
  */
 function roundedSpeech(
   ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget | null,
@@ -280,19 +350,28 @@ function roundedSpeech(
 
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
+  wavyEdge(ctx, x + radius, y, right - radius, y, 0, -1); // top, bulging up
   ctx.arcTo(right, y, right, bottom, radius);
+  wavyEdge(ctx, right, y + radius, right, bottom - radius, 1, 0); // right, bulging right
   ctx.arcTo(right, bottom, x, bottom, radius);
 
   if (target) {
-    // Root on the bottom edge, under the head as near as the box allows.
-    const root = Math.min(Math.max(target.x, x + radius + 14), right - radius);
+    // Root on the bottom edge, under the head as near as the box allows — and far
+    // enough from a corner that the tail base (root ± 9) stays on the flat edge.
+    const root = Math.min(Math.max(target.x, x + radius + 14), right - radius - 9);
+    const rootR = root + 9, rootL = root - 9;
     const tipY = Math.max(target.y, bottom + TAIL_MIN_EXIT);
-    ctx.lineTo(root + 9, bottom);
-    ctx.lineTo(target.x, tipY);
-    ctx.lineTo(root - 9, bottom);
+    const alt = 0.05 * Math.hypot(target.x - root, tipY - bottom); // CArc bow, balloon.cpp:305
+    wavyEdge(ctx, right - radius, bottom, rootR, bottom, 0, 1); // bottom, right of the tail
+    ctx.quadraticCurveTo((rootR + target.x) / 2 + alt, (bottom + tipY) / 2, target.x, tipY);
+    ctx.quadraticCurveTo((target.x + rootL) / 2 - alt, (tipY + bottom) / 2, rootL, bottom);
+    wavyEdge(ctx, rootL, bottom, x + radius, bottom, 0, 1); // bottom, left of the tail
+  } else {
+    wavyEdge(ctx, right - radius, bottom, x + radius, bottom, 0, 1); // whole bottom
   }
 
   ctx.arcTo(x, bottom, x, y, radius);
+  wavyEdge(ctx, x, bottom - radius, x, y + radius, -1, 0); // left, bulging left
   ctx.arcTo(x, y, right, y, radius);
   ctx.closePath();
 }

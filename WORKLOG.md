@@ -10,6 +10,40 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.17.12 — 2026-07-23 — Three C++-sourced balloon enhancements (ADR 0007 standing rule)
+
+The port-backfill audit (v0.17.11) surfaced three places where Comic Chat's balloon code is genuinely better
+than our simplifications. All adopted in `web/src/comic/balloon.ts`, each a port with a named divergence per
+the ADR 0007 standing rule. **No engine/IR impact. 123 web tests green (was 117; +6), tsc clean. Visually
+verified** with `render-panel.ts` (rippled outline + bowed tail + compact balloons all reading correctly;
+caption boxes still clean rects).
+
+1. **Area-based width goal** — new exported `goalWidth()`, a deterministic port of `GetCloudEstimate` +
+   `AreaEstimate` (`panel.cpp:753`, `:775`). A balloon now chooses a compact target-aspect width from the
+   text's ink area — floored by the widest word (`panel.cpp:766`), capped at the free width (`panel.cpp:777`),
+   with short text kept to one line (`panel.cpp:761`) — then greedy-wraps into it. **This removed the old
+   line-*balancing* hack** (`wrap()` is deleted): balancing was a symptom-fix for not choosing a good width
+   first, and the original never balances (`BreakIntoLines` is a plain greedy wrap, `balloon.cpp:96`). Named
+   divergence: `GetCloudEstimate` rolls a random point in `[minWidth, maxWidth]`, which ADR 0004 §5 forbids, so
+   we take a fixed `TARGET_ASPECT` (1.9) instead of the roll.
+2. **Rippled Woodring outline** — `roundedSpeech` edges ripple through a new `wavyEdge()` (port of `AddWavies`,
+   `balloon.cpp:406`) rather than drawing a clean rounded rect, so balloons read hand-drawn. The original's
+   beta-spline smoothing is approximated with quadratic segments; corners stay `arcTo`-rounded. Constants
+   (`WAVE_INTERVAL=30`, `WAVE_AMP=8`) are a named divergence from the scaled figure-space values (~60/~14):
+   small Zork balloons need a tighter interval to reach the two-interval ripple minimum at all, and quadratic
+   smoothing shows only ~half the control offset, so amplitude is bumped for visibility.
+3. **Bowed tail** — the two tail sides are `CArc`-style quadratic curves bowed by `alt = .05·tailLen`
+   (`balloon.cpp:305`) instead of a straight triangle. The 45°-angle-clamp divergence (`balloon.cpp:284`)
+   still stands — the layout straddle keeps the tail vertical, so the drawer needs no clamp.
+
+Tests: `balloon.test.ts` recorder gained `quadraticCurveTo`; the speech-balloon tests were rewritten around
+the rippled outline (the tail is the lowest vertex, flanked by two roots on the bottom edge, with no body
+vertex jutting past the side edges) and four `goalWidth` tests were added. ADR 0007 is now fully built;
+`HANDOFF` Next Actions #0 records two further candidates (fuller permuted spline, route-region collision)
+as considered-and-deferred.
+
+---
+
 ## v0.17.11 — 2026-07-23 — ADR 0007 port backfill: geometry audit + cited source sites
 
 Completed ADR 0007 Consequences ¶3 (the tracked port-backfill follow-up): audited `web/src/comic/balloon.ts`

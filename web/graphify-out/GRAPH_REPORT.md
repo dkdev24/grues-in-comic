@@ -1,16 +1,16 @@
 # Graph Report - web  (2026-07-23)
 
 ## Corpus Check
-- 32 files · ~36,204 words
+- 32 files · ~37,395 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 280 nodes · 498 edges · 12 communities
+- 284 nodes · 505 edges · 12 communities
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.75)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `610a3c52`
+- Built from commit: `6705e845`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -58,20 +58,20 @@
 ## Communities (12 total, 0 thin omitted)
 
 ### Community 0 - "inspector-view.ts"
-Cohesion: 0.08
-Nodes (24): ConsoleView, createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, createMixTracker() (+16 more)
+Cohesion: 0.07
+Nodes (26): ConsoleView, createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, createMixTracker() (+18 more)
 
 ### Community 1 - "status.ts"
 Cohesion: 0.11
-Nodes (13): Session, SessionOptions, ADR-0004, createStatusTracker(), roomNameTable(), Status, StatusTracker, ADR-0002 (+5 more)
+Nodes (13): SessionOptions, ADR-0004, createStatusTracker(), roomNameTable(), StatusTracker, ADR-0002, ADR-0004, ADR-0005 (+5 more)
 
 ### Community 2 - "session.ts"
 Cohesion: 0.06
-Nodes (36): Affect, AFFECT_MARKERS, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, sentences() (+28 more)
+Nodes (41): sentences(), Director, DirectorOptions, ADR-0004, ADR-0005, BalloonClass, captionFor(), createMapper() (+33 more)
 
 ### Community 3 - "main.ts"
-Cohesion: 0.11
-Nodes (15): Director, DirectorOptions, ADR-0004, ADR-0005, Mapper, MapperOptions, Panel, objectNameTable() (+7 more)
+Cohesion: 0.13
+Nodes (12): Affect, AFFECT_MARKERS, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, ADR-0002 (+4 more)
 
 ### Community 4 - "Turn"
 Cohesion: 0.10
@@ -94,35 +94,35 @@ Cohesion: 0.24
 Nodes (10): ADR-0007, cellFor(), columnsFor(), LayoutOptions, layoutStrip(), StripLayout, ADR-0004, ADR-0007 (+2 more)
 
 ### Community 9 - "balloon.ts"
-Cohesion: 0.15
-Nodes (16): BalloonBox, bubbleTrail(), cloud(), drawBalloon(), greedyWrap(), measureBalloon(), roundedSpeech(), TailTarget (+8 more)
+Cohesion: 0.13
+Nodes (20): BalloonBox, bubbleTrail(), cloud(), drawBalloon(), goalWidth(), greedyWrap(), measureBalloon(), roundedSpeech() (+12 more)
 
 ### Community 10 - "inspector-view.ts"
 Cohesion: 0.13
 Nodes (14): ALL_EVENT_KINDS, describeEvent(), EventKind, EventMix, MixTracker, summarize(), ADR-0002, ADR-0004 (+6 more)
 
 ### Community 11 - "backdrop.ts"
-Cohesion: 0.12
-Nodes (18): backdropFor(), BackdropId, ROOM_BACKDROPS, ADR-0004, loadImage(), createSession(), here, roomIds (+10 more)
+Cohesion: 0.16
+Nodes (14): backdropFor(), BackdropId, ROOM_BACKDROPS, ADR-0004, loadImage(), here, roomIds, world (+6 more)
 
 ## Knowledge Gaps
-- **105 isolated node(s):** `status`, `grid`, `PRESETS`, `SIZES`, `GUIDE_SCRIPT` (+100 more)
+- **107 isolated node(s):** `status`, `grid`, `PRESETS`, `SIZES`, `GUIDE_SCRIPT` (+102 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Turn` connect `inspector-view.ts` to `status.ts`, `session.ts`, `main.ts`, `console-view.ts`, `inspector-view.ts`?**
-  _High betweenness centrality (0.094) - this node is a cross-community bridge._
-- **Why does `Panel` connect `main.ts` to `session.ts`, `backdrop.ts`, `Turn`, `console-view.ts`?**
+- **Why does `Turn` connect `inspector-view.ts` to `status.ts`, `session.ts`, `inspector-view.ts`, `console-view.ts`?**
+  _High betweenness centrality (0.095) - this node is a cross-community bridge._
+- **Why does `Panel` connect `session.ts` to `backdrop.ts`, `Turn`, `console-view.ts`?**
   _High betweenness centrality (0.025) - this node is a cross-community bridge._
-- **Why does `Session` connect `status.ts` to `inspector-view.ts`, `backdrop.ts`?**
+- **Why does `Session` connect `inspector-view.ts` to `status.ts`, `session.ts`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **What connects `status`, `grid`, `PRESETS` to the rest of the system?**
-  _105 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _107 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `inspector-view.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.08108108108108109 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06976744186046512 - nodes in this community are weakly interconnected._
 - **Should `status.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.10869565217391304 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11255411255411256 - nodes in this community are weakly interconnected._
 - **Should `session.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06183574879227053 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05878084179970972 - nodes in this community are weakly interconnected._

@@ -241,8 +241,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_comic_affect",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "affect.ts"
     },
     {
@@ -252,8 +252,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "src_comic_affect_emotion",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "emotion()"
     },
     {
@@ -263,8 +263,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "src_comic_affect_affectinput",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "affectinput"
     },
     {
@@ -274,8 +274,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "src_comic_affect_affectmarker",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "affectmarker"
     },
     {
@@ -285,8 +285,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "src_comic_affect_affectmarker_fires",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": ".fires()"
     },
     {
@@ -296,8 +296,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_comic_affect_prose",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "prose()"
     },
     {
@@ -307,8 +307,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "src_comic_affect_affect_markers",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "affect_markers"
     },
     {
@@ -318,8 +318,8 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "src_comic_affect_affect",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "affect"
     },
     {
@@ -329,8 +329,8 @@
       "source_location": "L156",
       "_origin": "ast",
       "id": "src_comic_affect_neutral",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "neutral"
     },
     {
@@ -340,8 +340,8 @@
       "source_location": "L158",
       "_origin": "ast",
       "id": "src_comic_affect_affectfor",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "affectfor()"
     },
     {
@@ -351,8 +351,8 @@
       "source_location": "L171",
       "_origin": "ast",
       "id": "src_comic_affect_matchedsentence",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "matchedsentence()"
     },
     {
@@ -373,8 +373,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "src_comic_affect_ts_docref_adr_0004",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "adr-0004"
     },
     {
@@ -384,8 +384,8 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "src_comic_affect_ts_docref_adr_0002",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "adr-0002"
     },
     {
@@ -477,21 +477,32 @@
       "norm_label": "tailtarget"
     },
     {
-      "label": "wrap()",
+      "label": "widestWord()",
       "file_type": "code",
       "source_file": "web/src/comic/balloon.ts",
-      "source_location": "L82",
+      "source_location": "L106",
       "_origin": "ast",
-      "id": "src_comic_balloon_wrap",
+      "id": "src_comic_balloon_widestword",
       "community": 9,
       "community_name": "balloon.ts",
-      "norm_label": "wrap()"
+      "norm_label": "widestword()"
+    },
+    {
+      "label": "goalWidth()",
+      "file_type": "code",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L126",
+      "_origin": "ast",
+      "id": "src_comic_balloon_goalwidth",
+      "community": 9,
+      "community_name": "balloon.ts",
+      "norm_label": "goalwidth()"
     },
     {
       "label": "greedyWrap()",
       "file_type": "code",
       "source_file": "web/src/comic/balloon.ts",
-      "source_location": "L103",
+      "source_location": "L146",
       "_origin": "ast",
       "id": "src_comic_balloon_greedywrap",
       "community": 9,
@@ -502,7 +513,7 @@
       "label": "measureBalloon()",
       "file_type": "code",
       "source_file": "web/src/comic/balloon.ts",
-      "source_location": "L119",
+      "source_location": "L162",
       "_origin": "ast",
       "id": "src_comic_balloon_measureballoon",
       "community": 9,
@@ -513,7 +524,7 @@
       "label": "drawBalloon()",
       "file_type": "code",
       "source_file": "web/src/comic/balloon.ts",
-      "source_location": "L135",
+      "source_location": "L178",
       "_origin": "ast",
       "id": "src_comic_balloon_drawballoon",
       "community": 9,
@@ -524,7 +535,7 @@
       "label": "cloud()",
       "file_type": "code",
       "source_file": "web/src/comic/balloon.ts",
-      "source_location": "L195",
+      "source_location": "L238",
       "_origin": "ast",
       "id": "src_comic_balloon_cloud",
       "community": 9,
@@ -535,7 +546,7 @@
       "label": "bubbleTrail()",
       "file_type": "code",
       "source_file": "web/src/comic/balloon.ts",
-      "source_location": "L237",
+      "source_location": "L280",
       "_origin": "ast",
       "id": "src_comic_balloon_bubbletrail",
       "community": 9,
@@ -543,10 +554,21 @@
       "norm_label": "bubbletrail()"
     },
     {
+      "label": "wavyEdge()",
+      "file_type": "code",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L307",
+      "_origin": "ast",
+      "id": "src_comic_balloon_wavyedge",
+      "community": 9,
+      "community_name": "balloon.ts",
+      "norm_label": "wavyedge()"
+    },
+    {
       "label": "roundedSpeech()",
       "file_type": "code",
       "source_file": "web/src/comic/balloon.ts",
-      "source_location": "L274",
+      "source_location": "L344",
       "_origin": "ast",
       "id": "src_comic_balloon_roundedspeech",
       "community": 9,
@@ -593,8 +615,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_comic_director",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "director.ts"
     },
     {
@@ -604,8 +626,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_comic_director_directoroptions",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "directoroptions"
     },
     {
@@ -615,8 +637,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_comic_director_director",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "director"
     },
     {
@@ -626,8 +648,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "src_comic_director_director_ingest",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": ".ingest()"
     },
     {
@@ -637,8 +659,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "src_comic_director_director_flush",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": ".flush()"
     },
     {
@@ -659,8 +681,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "src_comic_director_ts_docref_adr_0005",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "adr-0005"
     },
     {
@@ -670,8 +692,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "src_comic_director_ts_docref_adr_0004",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "adr-0004"
     },
     {
@@ -967,8 +989,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "src_comic_mapper_panel",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "panel"
     },
     {
@@ -989,8 +1011,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "src_comic_mapper_mapperoptions",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "mapperoptions"
     },
     {
@@ -1000,8 +1022,8 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "src_comic_mapper_mapper",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "mapper"
     },
     {
@@ -1011,8 +1033,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "src_comic_mapper_mapper_panel",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": ".panel()"
     },
     {
@@ -1429,8 +1451,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_console_view_consoleview_setstatus",
-      "community": 1,
-      "community_name": "status.ts",
+      "community": 0,
+      "community_name": "inspector-view.ts",
       "norm_label": ".setstatus()"
     },
     {
@@ -1990,8 +2012,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_session_session",
-      "community": 1,
-      "community_name": "status.ts",
+      "community": 0,
+      "community_name": "inspector-view.ts",
       "norm_label": "session"
     },
     {
@@ -2001,8 +2023,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "src_session_session_start",
-      "community": 1,
-      "community_name": "status.ts",
+      "community": 0,
+      "community_name": "inspector-view.ts",
       "norm_label": ".start()"
     },
     {
@@ -2012,8 +2034,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "src_session_session_command",
-      "community": 11,
-      "community_name": "backdrop.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": ".command()"
     },
     {
@@ -2023,8 +2045,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "src_session_session_save",
-      "community": 1,
-      "community_name": "status.ts",
+      "community": 0,
+      "community_name": "inspector-view.ts",
       "norm_label": ".save()"
     },
     {
@@ -2034,8 +2056,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_session_session_load",
-      "community": 1,
-      "community_name": "status.ts",
+      "community": 0,
+      "community_name": "inspector-view.ts",
       "norm_label": ".load()"
     },
     {
@@ -2056,8 +2078,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "src_session_createsession",
-      "community": 11,
-      "community_name": "backdrop.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "createsession()"
     },
     {
@@ -2100,8 +2122,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_status_status",
-      "community": 1,
-      "community_name": "status.ts",
+      "community": 0,
+      "community_name": "inspector-view.ts",
       "norm_label": "status"
     },
     {
@@ -2177,8 +2199,8 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "src_status_objectnametable",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "objectnametable()"
     },
     {
@@ -2281,10 +2303,21 @@
       "norm_label": "arccall"
     },
     {
+      "label": "Pt",
+      "file_type": "code",
+      "source_file": "web/test/balloon.test.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "test_balloon_test_pt",
+      "community": 9,
+      "community_name": "balloon.ts",
+      "norm_label": "pt"
+    },
+    {
       "label": "recorder()",
       "file_type": "code",
       "source_file": "web/test/balloon.test.ts",
-      "source_location": "L21",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "test_balloon_test_recorder",
       "community": 9,
@@ -2292,10 +2325,21 @@
       "norm_label": "recorder()"
     },
     {
+      "label": "measurer",
+      "file_type": "code",
+      "source_file": "web/test/balloon.test.ts",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "test_balloon_test_measurer",
+      "community": 9,
+      "community_name": "balloon.ts",
+      "norm_label": "measurer"
+    },
+    {
       "label": "box",
       "file_type": "code",
       "source_file": "web/test/balloon.test.ts",
-      "source_location": "L46",
+      "source_location": "L60",
       "_origin": "ast",
       "id": "test_balloon_test_box",
       "community": 9,
@@ -2306,7 +2350,7 @@
       "label": "think",
       "file_type": "code",
       "source_file": "web/test/balloon.test.ts",
-      "source_location": "L47",
+      "source_location": "L61",
       "_origin": "ast",
       "id": "test_balloon_test_think",
       "community": 9,
@@ -2320,8 +2364,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_director_test",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "director.test.ts"
     },
     {
@@ -2331,8 +2375,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "test_director_test_root",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "root"
     },
     {
@@ -2342,8 +2386,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "test_director_test_walkthroughs",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "walkthroughs"
     },
     {
@@ -2353,8 +2397,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "test_director_test_world",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "world"
     },
     {
@@ -2364,8 +2408,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "test_director_test_commandsof",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "commandsof()"
     },
     {
@@ -2375,8 +2419,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "test_director_test_cmdfiles",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "cmdfiles()"
     },
     {
@@ -2386,8 +2430,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "test_director_test_options",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "options()"
     },
     {
@@ -2397,8 +2441,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "test_director_test_edited",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "edited()"
     },
     {
@@ -2408,8 +2452,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "test_director_test_ts_docref_adr_0005",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "adr-0005"
     },
     {
@@ -2419,8 +2463,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "test_director_test_ts_docref_adr_0004",
-      "community": 3,
-      "community_name": "main.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "adr-0004"
     },
     {
@@ -2430,8 +2474,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_figure_test",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "figure.test.ts"
     },
     {
@@ -2441,8 +2485,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "test_figure_test_corpus",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "corpus"
     },
     {
@@ -2452,8 +2496,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "test_figure_test_cast",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "cast"
     },
     {
@@ -2463,8 +2507,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "test_figure_test_load",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "load()"
     },
     {
@@ -2485,8 +2529,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "test_figure_test_ts_docref_adr_0004",
-      "community": 2,
-      "community_name": "session.ts",
+      "community": 3,
+      "community_name": "main.ts",
       "norm_label": "adr-0004"
     },
     {
@@ -2804,8 +2848,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_session_test",
-      "community": 11,
-      "community_name": "backdrop.ts",
+      "community": 1,
+      "community_name": "status.ts",
       "norm_label": "session.test.ts"
     },
     {
@@ -2815,8 +2859,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "test_session_test_world",
-      "community": 11,
-      "community_name": "backdrop.ts",
+      "community": 1,
+      "community_name": "status.ts",
       "norm_label": "world"
     },
     {
@@ -2826,8 +2870,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "test_session_test_text",
-      "community": 11,
-      "community_name": "backdrop.ts",
+      "community": 1,
+      "community_name": "status.ts",
       "norm_label": "text()"
     },
     {
@@ -2837,8 +2881,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "test_session_test_ts_docref_adr_0004",
-      "community": 11,
-      "community_name": "backdrop.ts",
+      "community": 1,
+      "community_name": "status.ts",
       "norm_label": "adr-0004"
     },
     {
@@ -2958,8 +3002,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "tools_render_panel_panels",
-      "community": 11,
-      "community_name": "backdrop.ts",
+      "community": 2,
+      "community_name": "session.ts",
       "norm_label": "panels()"
     },
     {
@@ -4164,6 +4208,17 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L126",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_comic_balloon",
+      "target": "src_comic_balloon_goalwidth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/comic/balloon.ts",
       "source_location": "L77",
       "weight": 1.0,
@@ -4241,13 +4296,24 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/comic/balloon.ts",
-      "source_location": "L66",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L307",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "src_comic_balloon",
-      "target": "src_comic_balloon_wrap"
+      "target": "src_comic_balloon_wavyedge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L106",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_comic_balloon",
+      "target": "src_comic_balloon_widestword",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -4325,25 +4391,49 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "src/comic/balloon.ts",
-      "source_location": "L97",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L133",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "src_comic_balloon_measureballoon",
-      "target": "src_comic_balloon_wrap"
+      "source": "src_comic_balloon_goalwidth",
+      "target": "src_comic_balloon_widestword",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "src/comic/balloon.ts",
-      "source_location": "L69",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L166",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "src_comic_balloon_wrap",
-      "target": "src_comic_balloon_greedywrap"
+      "source": "src_comic_balloon_measureballoon",
+      "target": "src_comic_balloon_goalwidth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "web/test/balloon.test.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_balloon_test",
+      "target": "src_comic_balloon_goalwidth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L166",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_comic_balloon_measureballoon",
+      "target": "src_comic_balloon_greedywrap",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -4440,6 +4530,18 @@
       "confidence_score": 1.0,
       "source": "test_balloon_test",
       "target": "src_comic_balloon_drawballoon"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "web/src/comic/balloon.ts",
+      "source_location": "L353",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_comic_balloon_roundedspeech",
+      "target": "src_comic_balloon_wavyedge",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8095,6 +8197,28 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "web/test/balloon.test.ts",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_balloon_test",
+      "target": "test_balloon_test_measurer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "web/test/balloon.test.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "test_balloon_test",
+      "target": "test_balloon_test_pt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "test/balloon.test.ts",
       "source_location": "L21",
       "weight": 1.0,
@@ -8814,5 +8938,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "610a3c521072e65342d849dce414c98b3e7911b3"
+  "built_at_commit": "6705e8456f915038ef08bdcb214804e655d7b814"
 }

@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.11**
+**0.17.12**
 
 ---
 
@@ -31,7 +31,8 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
   ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
-  §2 fixed-panel sizing implemented (v0.17.10); port backfill follow-up open.
+  §2 fixed-panel sizing (v0.17.10), port backfill/citations (v0.17.11), and three C++-sourced balloon
+  enhancements (v0.17.12) all done — ADR 0007 fully built.
   - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
@@ -39,34 +40,34 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 117 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 123 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0007 port backfill: geometry audit + cited source sites (v0.17.11)
+## Last Session — three C++-sourced balloon enhancements (v0.17.12)
 
-Audited `balloon.ts`/`render.ts` mechanical geometry against `balloon.cpp`/`panel.cpp` (ADR 0007
-Consequences ¶3) and made every ported routine cite its source or state a named divergence.
-**Documentation only — no behaviour changed; 117 web tests still green, tsc clean.**
+The port-backfill audit (v0.17.11) surfaced three places where the original balloon code is genuinely
+better than our simplifications, not just differently-cited. All three adopted in `web/src/comic/balloon.ts`.
+**123 web tests green (was 117; +6), tsc clean. Visually verified via `render-panel.ts`** (rippled outline +
+bowed tail + compact balloons all reading correctly; captions still clean rects).
 
-- **Key ADR-0007-class finding & fix.** `balloon.ts wrap()` claimed "Comic Chat balanced line lengths."
-  The source contradicts it: `BreakIntoLines` (`balloon.cpp:96`) is a *plain greedy wrap*. A Woodring
-  balloon reads as a shape because of the **permuted spline outline** (`CreateBalloonSpline`/`PermutePt`,
-  `balloon.cpp:159`), not the line breaks (`ShiftLines` jitter is off in v1.0, `MAXCENTERSHIFT=0`). Our
-  balancing is now stated as **our** substitute for the wobbly outline we don't draw, not the original's
-  behaviour — the exact misattribution class that produced the v0.17.7 side-tail bug.
-- **Citations/divergences added:** `greedyWrap` → `balloon.cpp:96` (+ widest-word clamp divergence, we
-  clamp to native panel vs original growing the box); `roundedSpeech` → `AddArrow` `balloon.cpp:238`
-  (two divergences: straight triangle vs two `CArc`s `:305`; no 45° clamp `:284`, layout keeps it vertical);
-  `TAIL_MIN_EXIT` → `MINTAILHEIGHT=100` `balloon.cpp:235`; `cloud`/`bubbleTrail` → `CBWoodringThink::Draw`
-  `balloon.cpp:648` (reimplementations, source fixes look only); `render.ts:290` balloon straddle → sharpened
-  to `GetCloudEstimate` `panel.cpp:781` + noted our deterministic midpoint vs the original's `randfloat`.
-- **Stale comment fixed:** `balloon.ts` header still cited ADR 0004 §4a's "port stops being a transcription";
-  updated to ADR 0007 §2 (width is (near-)constant again).
+1. **Area-based width goal** — new `goalWidth()`, a port of `GetCloudEstimate`/`AreaEstimate` (`panel.cpp:753`,
+   `:775`). Balloons now pick a compact target-aspect width from the text's ink area (floored by widest word,
+   capped at free width), then greedy-wrap into it. **This deletes the old line-*balancing* hack** — balancing
+   was our symptom-fix for not choosing a good width first; the original never balances (`BreakIntoLines` is
+   greedy, `balloon.cpp:96`). `TARGET_ASPECT`/`randfloat` divergence noted (ADR 0004 §5 forbids the roll, so
+   we take a fixed target aspect, not the original's random point in the range).
+2. **Rippled Woodring outline** — `roundedSpeech` edges now ripple via new `wavyEdge()` (port of `AddWavies`,
+   `balloon.cpp:406`) instead of drawing a clean rounded rect, so balloons read hand-drawn. Constants retuned
+   (`WAVE_INTERVAL=30`, `WAVE_AMP=8`) as a named divergence — small Zork balloons need a tighter interval to
+   ripple at all, and quadratic smoothing shows ~half the control offset, so amp is bumped for visibility.
+3. **Bowed tail** — the two tail sides are now `CArc`-style curves (`alt = .05·tailLen`, `balloon.cpp:305`)
+   instead of a straight triangle. The 45°-clamp divergence still stands (layout keeps the tail vertical).
 
-**Verified all cited C++ sites exist** (`GetCloudEstimate` panel.cpp:753, `LayoutAvatars` :528, etc.) — no
-phantom citations. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `web/tools/render-panel.ts`
-(`npm run render:panel`) is the headless way to eyeball geometry.
+`wrap()` is removed (replaced by `goalWidth` + `greedyWrap`); it was defined-only, no external importers.
+`balloon.test.ts` recorder gained `quadraticCurveTo`; speech tests rewritten around the rippled outline
+(tail = lowest vertex flanked by two bottom roots, no side jut) + 4 new `goalWidth` tests.
+**Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `render-panel.ts` (`npm run render:panel`) → `tools/out`.
 
 ---
 
@@ -75,14 +76,12 @@ phantom citations. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `web/tool
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
 
-0. **In-browser visual check of ADR 0007 (§2 sizing v0.17.10 + backfill v0.17.11 done).** The `layout.ts`
-   fixed-panel change and the `balloon.ts`/`render.ts` citation audit are both complete and green in tests,
-   but neither has been eyeballed in the browser at real viewport widths. Confirm native-sized panels compose
-   well across widths (native lone panel, 0.85-band two-up ~780px, three-up wide) and that balloons still
-   straddle/tail correctly now that panel width is stable (`web/tools/render-panel.ts` for headless frames).
-   **Standing rule now in force** (ADR 0007): new mechanical-layer code reads the C++ first and cites it.
-   The permuted-spline balloon *outline* remains a deliberate non-port (we draw rounded rects); revisit only
-   if balloons read as text boxes in the browser check.
+0. **ADR 0007 fully built and verified (v0.17.10–v0.17.12).** §2 sizing, the citation backfill, and the three
+   balloon enhancements are all done; the fixed-panel layout was in-browser checked, and the balloon changes
+   were eyeballed via `render-panel.ts`. Nothing outstanding on ADR 0007. **Standing rule now in force:** new
+   mechanical-layer code reads the C++ first and cites it. Two enhancement candidates were *considered and
+   deferred* as larger/optional: a fuller permuted-spline outline (we ship a lighter `wavyEdge` ripple), and
+   route-region multi-balloon collision (our panels are 1–2 balloons). Revisit only if a real need appears.
 
 **New direction — `docs/adr/0006-dungeon-master-and-player.md` (Accepted, building).** Recasts the Guide
 as a Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real
