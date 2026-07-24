@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.17.13**
+**0.18.0**
 
 ---
 
@@ -31,8 +31,9 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
   ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
-  §2 fixed-panel sizing (v0.17.10), port backfill/citations (v0.17.11), and three C++-sourced balloon
-  enhancements (v0.17.12) all done — ADR 0007 fully built.
+  fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — building:
+  seam generalized to `speakers: Line[]` and N-body `LayoutAvatars` ported (v0.18.0); panelization port
+  (`page.ts`) still to build.**
   - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
@@ -40,37 +41,38 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 123 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 124 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — balloons redrawn hand-drawn, wider, docked close (v0.17.13)
+## Last Session — ADR 0008: renderer rewritten to an N-participant port (v0.18.0)
 
-v0.17.12's rippled balloon still read as vector art, was capped narrow, and on a tall panel stretched the
-tail the whole drop to a far-below head. Three fixes in `web/src/comic/balloon.ts` + `web/src/comic/render.ts`,
-each a port with a named divergence. **124 web tests green (was 123; +1), tsc clean. Visually verified via
-`render-panel.ts`** across establishing/over-shoulder/close-up/tall-cap (hand-drawn wobble, short bowed ~45°
-tails, slack above the balloon, caption boxes still clean rects).
+Started the **complete rewrite of the comic renderer as a faithful Comic Chat port** (user-directed; ADR 0006's
+DM recast + **Grues/mobs as chat participants** dissolves the reason the mechanical layer was reimplemented).
+Wrote **ADR 0008** and did the renderer + seam halves. Panelization port (`page.ts`) is the next movement and
+is gated on two decisions (below). **124 web tests green, tsc clean, `render:panel` PNGs reviewed** (solo DM +
+Hero close-up/tall-cap: figures placed & scaled, captions clean, speech balloons straddle from above).
 
-1. **Single-spline outline (hand-drawn look)** — the outline is one closed cardinal spline
-   (`strokeCardinal`, `SPLINE_TENSION=0.5`) through a ring of corners + *outward-only* edge bumps
-   (`pushWaves`), the deterministic stand-in for `CreateBalloonSpline`'s `CBeta` over `AddWavies`
-   (`balloon.cpp:1652`, `:560`). Replaces the `arcTo`-corner + in/out-quadratic rounded rect (`wavyEdge`
-   removed). `WAVE_INTERVAL 30→22`, `WAVE_AMP 8→6`. The **45° tail clamp** (`AddArrow`, `balloon.cpp:1450`)
-   is now reproduced (previously a declared divergence) — the tail is short enough for it to matter. Tail is
-   still a sharp bowed two-quad tip kept off the body spline.
-2. **Wider balloons** — `goalWidth` spreads the compact area estimate toward the free width by `WIDTH_BIAS=0.5`
-   (deterministic stand-in for `GetCloudEstimate`'s roll-toward-`maxWidth` + `+fudge`, `panel.cpp:890`,`:900`),
-   capped at the one-line width. `render.ts` cap is `width-20` when one balloon owns the panel, `width*0.66`
-   when several share it. Balloon width now scales with text length (short DM lines stay modest — the original
-   caps at `len+200` too).
-3. **Capped tail / close docking** — `render.ts` `TAIL_MAX=70` drops each tailed balloon toward its speaker so
-   the tail stays short and the vertical slack falls *above* the balloon, restoring Comic Chat's
-   grow-up-from-the-speaker feel (`MINTAILHEIGHT` is a floor with no stretch, `balloon.cpp:1439`).
+- **Seam (`mapper.ts`).** `Panel` lost its `hero`/`guide`/`caption` slots + panel `emotion`; now Comic Chat's
+  own two lists (ADR 0008 §2): **`bodies: Body[]`** (`m_bodies` — on stage, each `{ speaker, emotion }`: DM
+  when it speaks, **Hero always**, `panel.cpp:623`) and **`speakers: Line[]`** (`m_elements` — balloons,
+  `Line = { speaker; balloonClass; text }`). The split restores the Hero on every panel (posing to the reply
+  on silent turns). `Balloon` lost `channel`. Added `HERO`/`GUIDE`/`CAPTION` ids + `lineOf(panel, id)`.
+- **N-body layout (`render.ts`).** New `layoutAvatars()` ports `CUnitPanel::LayoutAvatars` (`panel.cpp:528`)
+  over `panel.bodies`: scale to camera fill, shrink-to-fit the row (`:577`), equal edge margins (`:607-616`),
+  mirror bodies past centre to face inward. Replaces Guide-left/Hero-right; `drawBalloons` keys anchors/faces
+  by speaker id off `panel.speakers`. Cited divergences: `shot.fill` ↔ `maxBodyHeight`/`normHeight`; `zoomIn`
+  branch dropped (ladder + `MAX_SCALE` choose size). Visually re-verified: establishing shot now shows DM
+  (left, speaking) + Hero (right, on stage, inward-facing) — the two-shot, restored.
+- Consumers moved to the new seam: `comic-view.ts` (N-speaker alt-text), `render-panel.ts`, `balloon.test.ts`,
+  `mapper.test.ts` (via `lineOf` helpers). `figure.test.ts` join parity vs `art/composite.ts` unchanged.
 
-`balloon.test.ts` recorder gained `bezierCurveTo`; speech tests rewritten around the spline outline (deep tip
-vs shallow bumps, `BUMP=8` tolerance, new 45°-clamp test, body = béziers not lines). `goalWidth` tests
-unaffected. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `render-panel.ts` (`npm run render:panel`) → `tools/out`.
+**Panelization port decided, measured, deferred.** The two gating decisions were made — caption rides with its
+panel; full cross-turn packing (a merged panel takes its primary/last-speaking turn's scene). Then a measure
+over the corpus (606 turns): **captions on 96.7% of turns**, so — a repeat caption starting a new panel — only
+the **3.3% caption-less turns are cross-turn-mergeable**. `AddLine` packing is thus a **~3% no-op today** while
+it would force re-deriving 30 turn-indexed oracle tests. Its real value (5-element cap, packing) is **latent
+until mobs speak** (multi-line turns). **Decision: build `page.ts` with the mob-dialogue slice, not now.**
 
 ---
 
@@ -78,6 +80,18 @@ unaffected. **Slice 1 (ADR 0006) remains DONE/MVP-signed-off.** `render-panel.ts
 
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
+
+00. **ADR 0008 — renderer + seam done (v0.18.0); panelization deferred with mobs.** The renderer is a full
+    N-body port and the seam is Comic Chat's `bodies`/`speakers` split. Remaining ADR 0008 work:
+    **(a) `page.ts` panelization** (`CUnitPanelPage::AddLine`, `panel.cpp:362`) — decisions locked (caption
+    rides; full cross-turn packing, primary-turn scene) but **build it with the mob-dialogue slice**: measured
+    ~3% no-op on the DM↔Hero stream (96.7% captioned) vs a 30-test oracle re-derivation; its value is latent
+    until multi-line mob turns exist. Rules to port then: 5-element cap, clone-append, speaker-repeat→new,
+    caption-repeat→new (our divergence from `SM_ACTION`), overflow-split; `page.test.ts` alongside.
+    **(b) mob participant** — add a mob sheet (reuse an existing `.avb`) + a mapper slice that appends a mob
+    `Body`+`Line`; the renderer already lays out N. **(c) pixel-parity gate** — commit `render:panel` PNGs
+    (seed 1234) with a byte/diff check (none today). Deferred as ADR 0007 deferred route-region collision:
+    a full `RearrangeBalloons` port (vertical balloon stack kept).
 
 0. **ADR 0007 fully built and verified (v0.17.10–v0.17.12).** §2 sizing, the citation backfill, and the three
    balloon enhancements are all done; the fixed-panel layout was in-browser checked, and the balloon changes

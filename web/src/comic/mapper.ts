@@ -51,15 +51,53 @@ export type PanelKind =
   | "refusal"    // the parser said no and nothing happened (noise — Slice 3 drops it)
   | "ambient";   // narration only, no change — look/examine/read (kept in Slice 3)
 
+/**
+ * Cast/avatar ids used as {@link Line.speaker} keys — the DM, the Hero, and the
+ * bodiless caption channel. They index `Cast.manifest.cast` (ADR 0008 §2), so a
+ * mob would join as a fourth id with its own sheet; nothing in the mechanical
+ * layer names `hero`/`guide` any more.
+ */
+export const HERO = "hero";
+export const GUIDE = "guide";
+/** The read-aloud box channel (ADR 0006 §2): a line with no speaking body. */
+export const CAPTION = "caption";
+
+/** The DM's own emotion set: it reacts to nothing, it comments (neutral pose). */
+const GUIDE_EMOTION: readonly EmotionOption[] = [{ angle: 0, intensity: 0, priority: 1 }];
+
 export interface Balloon {
-  channel: "hero" | "caption" | "guide";
   /**
-   * Fixed per channel for `caption` (box) and `guide` (speech). The `hero`
-   * channel chooses per line (ADR 0006 §3): speech when he addresses the DM,
-   * thought for an interior aside — no longer a per-channel constant.
+   * Fixed for `caption` (box) and the DM (speech). The Hero's is chosen per line
+   * (ADR 0006 §3): speech when he addresses the DM, thought for an interior aside.
    */
   balloonClass: BalloonClass;
   text: string;
+}
+
+/**
+ * One utterance in a panel: a speaker and their balloon (ADR 0008 §2) — the port
+ * of Comic Chat's `AddLine(id, words, mode)` triple, held in the panel's element
+ * list (`m_elements`, `panel.cpp:397`; `MakeBalloon` `:335`). Emotion lives on the
+ * speaker's {@link Body}, not here, because a body can be on stage (and posed)
+ * without saying anything this panel — the Hero, mostly.
+ */
+export interface Line extends Balloon {
+  /** Cast/avatar id. {@link CAPTION} marks a bodiless box (`SM_ACTION`, `panel.cpp:367`). */
+  speaker: string;
+}
+
+/**
+ * A participant on stage in a panel (Comic Chat's `m_bodies`, `panel.cpp:305`,
+ * laid out by `LayoutAvatars`). Separate from the balloon list because presence
+ * and speech are independent: the Hero is always requested on stage (`avatar.cpp`
+ * `m_requested`, `panel.cpp:623`) and poses to the world's reply even on a silent
+ * turn; the DM and mobs join only when they have a line.
+ */
+export interface Body {
+  /** Cast/avatar id, indexing `Cast.manifest.cast`. */
+  speaker: string;
+  /** Priority-descending `CEmotionOpts` set driving this body's pose (§10). */
+  emotion: readonly EmotionOption[];
 }
 
 export interface Panel {
@@ -72,18 +110,26 @@ export interface Panel {
   room: string;
   /** Object id rung 4 focused on, when the camera is a close-up. */
   focus: string | null;
-  /** The Hero's spoken line to the DM (ADR 0006 §3). Absent on the opening turn. */
-  hero: Balloon | null;
-  /** A verbatim pull-quote from the turn's narration. */
-  caption: Balloon | null;
-  /** The only authored text in the system. */
-  guide: Balloon | null;
-  /** Priority-descending `CEmotionOpts` set for the Hero (§10). */
-  emotion: readonly EmotionOption[];
+  /**
+   * On-stage participants in left-to-right order (`m_bodies`): the DM (when it
+   * speaks) then the Hero (always). The renderer's N-body layout reads this.
+   */
+  bodies: readonly Body[];
+  /**
+   * The panel's utterances in draw order: caption (box, no body), then the DM,
+   * then the Hero, then any mobs. Canonical balloon seam (ADR 0008 §2) — the
+   * balloon stack reads this; {@link lineOf} names a speaker.
+   */
+  speakers: readonly Line[];
   /** Which §10 marker fired, or `null` — the correct answer ~51% of the time. */
   marker: string | null;
   /** ADR 0005 §2 classification, for the Director's edit decisions. */
   kind: PanelKind;
+}
+
+/** The line a given speaker says in this panel, or `null` — semantic-test convenience. */
+export function lineOf(panel: Panel, speaker: string): Line | null {
+  return panel.speakers.find((line) => line.speaker === speaker) ?? null;
 }
 
 /**
@@ -217,18 +263,34 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const guideLine = guideFor(firstVisit, room, affect.marker, turn.status.moves);
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
 
+      // Assemble the panel's utterances in draw order (ADR 0008 §2): the caption
+      // frames the panel, the DM reads into it, the Hero answers. `MakeBalloon`
+      // (`panel.cpp:335`) — the element list the balloon stack draws.
+      const caption = captionFor(text, affect.matched);
+      const hero = heroBalloon(took, dropped, names);
+      const speakers: Line[] = [];
+      if (caption) speakers.push({ ...caption, speaker: CAPTION });
+      if (guideLine !== null) {
+        speakers.push({ speaker: GUIDE, balloonClass: "CBWoodringNormal", text: guideLine });
+      }
+      if (hero) speakers.push({ ...hero, speaker: HERO });
+
+      // On-stage bodies, left→right (`m_bodies`, laid out by `LayoutAvatars`): the
+      // DM stands left *when it speaks* (`panel.cpp:623` requested-or-speaker), the
+      // Hero is always present (his adventure) and poses to the world's reply — the
+      // §9 flow, his affect derived from the reply, never from his own balloon.
+      const bodies: Body[] = [];
+      if (guideLine !== null) bodies.push({ speaker: GUIDE, emotion: GUIDE_EMOTION });
+      bodies.push({ speaker: HERO, emotion: affect.options });
+
       const panel: Panel = {
         turn: turn.status.moves,
         camera,
         emphatic: camera === "establishing" && scoreDelta > 0,
         room,
         focus: camera === "close-up" ? (salientMove?.object ?? null) : null,
-        hero: heroBalloon(took, dropped, names),
-        caption: captionFor(text, affect.matched),
-        guide: guideLine === null
-          ? null
-          : { channel: "guide", balloonClass: "CBWoodringNormal", text: guideLine },
-        emotion: affect.options,
+        bodies,
+        speakers,
         marker: affect.marker,
         kind: panelKind({
           gameOver, moved, firstVisit, took, dropped, salientMove,
@@ -355,7 +417,7 @@ export function heroBalloon(
   if (id === null) return null;
   const name = names.get(id) ?? id;
   const text = took !== null ? `The ${name}, then.` : `The ${name} can stay.`;
-  return { channel: "hero", balloonClass: "CBWoodringNormal", text };
+  return { balloonClass: "CBWoodringNormal", text };
 }
 
 /**
@@ -375,7 +437,7 @@ const CAPTION_MAX = 180;
 export function captionFor(text: string, matched: string | null): Balloon | null {
   const candidate = matched ?? sentences(text)[0] ?? null;
   if (candidate === null || candidate.length > CAPTION_MAX) return null;
-  return { channel: "caption", balloonClass: "CBWoodringBox", text: candidate };
+  return { balloonClass: "CBWoodringBox", text: candidate };
 }
 
 /** Player-visible text for the turn, on the same definition the harness uses. */

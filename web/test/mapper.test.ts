@@ -25,9 +25,17 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { PLAYER_ID } from "../../engine/src/state.js";
 import { createSession } from "../src/session.js";
-import { captionFor, createMapper, heroBalloon, panelKind, salient, type Panel } from "../src/comic/mapper.js";
+import {
+  CAPTION, GUIDE, HERO, captionFor, createMapper, heroBalloon, lineOf, panelKind, salient,
+  type Line, type Panel,
+} from "../src/comic/mapper.js";
 import { objectNameTable } from "../src/status.js";
 import { AFFECT_MARKERS, affectFor } from "../src/comic/affect.js";
+
+/** Name a panel's speaker line by role — the seam generalized to N (ADR 0008 §2). */
+const hero = (p?: Panel): Line | null => (p ? lineOf(p, HERO) : null);
+const guide = (p?: Panel): Line | null => (p ? lineOf(p, GUIDE) : null);
+const caption = (p?: Panel): Line | null => (p ? lineOf(p, CAPTION) : null);
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const WALKTHROUGHS = join(ROOT, "verification", "walkthroughs");
@@ -97,7 +105,7 @@ describe("panel stream", () => {
     const [first] = replayPanels("01-west-of-house.cmd");
     expect(first?.camera).toBe("establishing");
     expect(first?.room).toBe("WEST-OF-HOUSE");
-    expect(first?.hero).toBeNull();
+    expect(hero(first)).toBeNull();
   });
 
   it("renders the Hero balloon as the resolved action, never the command (ADR 0005 §1)", () => {
@@ -112,17 +120,18 @@ describe("panel stream", () => {
       panels.push(mapper.panel(session.command(command)));
     }
 
-    expect(panels[4]?.hero).toEqual({
-      channel: "hero", balloonClass: "CBWoodringNormal", text: "The leaflet, then.",
+    expect(hero(panels[4])).toMatchObject({
+      speaker: HERO, balloonClass: "CBWoodringNormal", text: "The leaflet, then.",
     });
-    expect(panels[6]?.hero?.text).toBe("The leaflet can stay.");
-    expect(panels[1]?.hero).toBeNull(); // `look` — no action, no balloon
-    expect(panels[2]?.hero).toBeNull(); // `examine mailbox`
+    expect(hero(panels[6])?.text).toBe("The leaflet can stay.");
+    expect(hero(panels[1])).toBeNull(); // `look` — no action, no balloon
+    expect(hero(panels[2])).toBeNull(); // `examine mailbox`
     // The regression this file used to *pin*: the balloon must never be the
     // typed command. No panel's Hero text is any command the player typed.
     const commands = new Set(commandsOf("01-west-of-house.cmd"));
     for (const panel of panels) {
-      if (panel.hero) expect(commands.has(panel.hero.text)).toBe(false);
+      const line = hero(panel);
+      if (line) expect(commands.has(line.text)).toBe(false);
     }
   });
 
@@ -174,7 +183,7 @@ describe("panel stream", () => {
       panel = mapper.panel(session.command(command));
     }
     expect(panel?.marker).toBe("reveal");
-    expect(panel?.guide?.text).toBe("It was waiting to be found.");
+    expect(guide(panel)?.text).toBe("It was waiting to be found.");
   });
 
   it("still fires the room gazetteer on first entry when no beat reacts (ADR 0005 §4)", () => {
@@ -183,13 +192,13 @@ describe("panel stream", () => {
     const guideScript = new Map([["WEST-OF-HOUSE", "Boarded front door."]]);
     const session = createSession(doc, { seed: SEED });
     const mapper = createMapper({ guideScript, guideCooldown: 0 });
-    expect(mapper.panel(session.start()).guide?.text).toBe("Boarded front door.");
+    expect(guide(mapper.panel(session.start()))?.text).toBe("Boarded front door.");
   });
 
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
     const names = new Map([["LAMP", "brass lantern"]]);
     expect(heroBalloon("LAMP", null, names)).toEqual({
-      channel: "hero", balloonClass: "CBWoodringNormal", text: "The brass lantern, then.",
+      balloonClass: "CBWoodringNormal", text: "The brass lantern, then.",
     });
     expect(heroBalloon(null, "LAMP", names)?.text).toBe("The brass lantern can stay.");
     // Take wins when a turn did both (one balloon per panel).
@@ -206,9 +215,10 @@ describe("panel stream", () => {
     // across the walkthroughs every Hero balloon that appears is speech.
     let seen = 0;
     for (const panel of allPanels()) {
-      if (panel.hero === null) continue;
+      const line = hero(panel);
+      if (line === null) continue;
       seen++;
-      expect(panel.hero.balloonClass).toBe("CBWoodringNormal");
+      expect(line.balloonClass).toBe("CBWoodringNormal");
     }
     expect(seen).toBeGreaterThan(0); // guard: the assertion actually ran
   });
@@ -217,18 +227,19 @@ describe("panel stream", () => {
     const session = createSession(doc, { seed: SEED });
     const mapper = createMapper();
     let turn = mapper.panel(session.start());
-    expect(turn.caption?.text).toBeTruthy();
+    expect(caption(turn)?.text).toBeTruthy();
 
     for (const command of commandsOf("02-house-entry.cmd")) {
       const result = session.command(command);
       const panel = mapper.panel(result);
-      if (panel.caption === null) continue;
+      const line = caption(panel);
+      if (line === null) continue;
       const narration = result.events
         .filter((e) => e.type === "narration" || e.type === "question" || e.type === "game-over")
         .map((e) => e.text)
         .join("");
-      expect(narration).toContain(panel.caption.text);
-      expect(panel.caption.balloonClass).toBe("CBWoodringBox");
+      expect(narration).toContain(line.text);
+      expect(line.balloonClass).toBe("CBWoodringBox");
     }
   });
 });
@@ -417,7 +428,7 @@ describe("the Guide is presentation-only (§3)", () => {
     })();
     const without = replayPanels("02-house-entry.cmd");
 
-    expect(withGuide.some((p) => p.guide !== null)).toBe(true);
+    expect(withGuide.some((p) => guide(p) !== null)).toBe(true);
     expect(withGuide.length).toBe(without.length);
     for (const [i, panel] of withGuide.entries()) {
       const bare = without[i]!;
@@ -425,9 +436,9 @@ describe("the Guide is presentation-only (§3)", () => {
       // and only on the panels that carry a Guide balloon.
       expect(panel.marker).toBe(bare.marker);
       expect(panel.room).toBe(bare.room);
-      expect(panel.hero).toEqual(bare.hero);
-      expect(panel.caption).toEqual(bare.caption);
-      if (panel.guide === null) expect(panel.camera).toBe(bare.camera);
+      expect(hero(panel)).toEqual(hero(bare));
+      expect(caption(panel)).toEqual(caption(bare));
+      if (guide(panel) === null) expect(panel.camera).toBe(bare.camera);
     }
   });
 
@@ -442,6 +453,6 @@ describe("the Guide is presentation-only (§3)", () => {
     for (const c of commandsOf("02-house-entry.cmd")) mapper.panel(session.command(c));
     // The Guide is the only thing on the panel not derived from what the player
     // just did, so it is the only thing that can wear out.
-    expect(mapper.panels.filter((p) => p.guide !== null)).toHaveLength(1);
+    expect(mapper.panels.filter((p) => guide(p) !== null)).toHaveLength(1);
   });
 });

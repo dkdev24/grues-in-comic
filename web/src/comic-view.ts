@@ -14,7 +14,7 @@
  */
 
 import type { Turn } from "./session.js";
-import { type Panel } from "./comic/mapper.js";
+import { CAPTION, GUIDE, HERO, lineOf, type Panel } from "./comic/mapper.js";
 import { createDirector, type Director } from "./comic/director.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
 import { renderPanel } from "./comic/render.js";
@@ -398,9 +398,20 @@ function drawCastBar(bar: HTMLElement, cast: Cast): void {
 /** Alt text: the comic must be describable, not only viewable. */
 function describe(panel: Panel): string {
   const parts = [`${panel.camera} shot`];
-  if (panel.hero) parts.push(`the Hero thinks "${panel.hero.text}"`);
-  if (panel.caption) parts.push(`caption: ${panel.caption.text}`);
-  if (panel.guide) parts.push(`the Guide says "${panel.guide.text}"`);
+  const caption = lineOf(panel, CAPTION);
+  const guide = lineOf(panel, GUIDE);
+  const hero = lineOf(panel, HERO);
+  if (caption) parts.push(`caption: ${caption.text}`);
+  if (guide) parts.push(`the Guide says "${guide.text}"`);
+  if (hero) {
+    const verb = hero.balloonClass === "CBWoodringThink" ? "thinks" : "says";
+    parts.push(`the Hero ${verb} "${hero.text}"`);
+  }
+  // Any further participants (mobs) — described generically, in draw order.
+  for (const line of panel.speakers) {
+    if (line.speaker === CAPTION || line.speaker === GUIDE || line.speaker === HERO) continue;
+    parts.push(`${line.speaker} says "${line.text}"`);
+  }
   return `${parts.join("; ")}.`;
 }
 

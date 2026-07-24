@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { createSession } from "../src/session.js";
-import { createMapper, type Panel } from "../src/comic/mapper.js";
+import { CAPTION, GUIDE, HERO, createMapper, lineOf, type Line, type Panel } from "../src/comic/mapper.js";
 import { objectNameTable } from "../src/status.js";
 import { backdropFor } from "../src/comic/backdrop.js";
 import { renderPanel } from "../src/comic/render.js";
@@ -80,13 +80,17 @@ async function main(): Promise<void> {
   let n = 0;
   const variants: Array<{ suffix: string; panel: Panel }> = [];
   for (const [i, panel] of all.entries()) {
-    if (panel.hero === null && panel.guide === null) continue; // balloons under test
+    const hero = lineOf(panel, HERO);
+    if (hero === null && lineOf(panel, GUIDE) === null) continue; // balloons under test
     variants.push({ suffix: `p${String(i).padStart(2, "0")}-${panel.camera}`, panel });
     // For close-up Hero panels, also render a beside-head variant.
-    if (panel.hero !== null && panel.camera === "close-up") {
+    if (hero !== null && panel.camera === "close-up") {
+      const tallCap: Line = { speaker: CAPTION, balloonClass: "CBWoodringBox", text: TALL_CAPTION };
+      // Prepend the caption (draw order: box first), replacing any existing one.
+      const speakers = [tallCap, ...panel.speakers.filter((l) => l.speaker !== CAPTION)];
       variants.push({
         suffix: `p${String(i).padStart(2, "0")}-${panel.camera}-tallcap`,
-        panel: { ...panel, caption: { channel: "caption", balloonClass: "CBWoodringBox", text: TALL_CAPTION } },
+        panel: { ...panel, speakers },
       });
     }
   }
@@ -96,10 +100,12 @@ async function main(): Promise<void> {
     renderPanel(ctx, panel, cast, PANEL_W, PANEL_H, { backdrop: backdropFor(panel.room) });
     const name = `${file.replace(/\.cmd$/, "")}-${suffix}.png`;
     writeFileSync(join(outDir, name), canvas.toBuffer("image/png"));
+    const heroLine = lineOf(panel, HERO);
+    const guideLine = lineOf(panel, GUIDE);
     console.log(
       `${name}  camera=${panel.camera}` +
-      `${panel.hero ? ` hero="${panel.hero.text}" (${panel.hero.balloonClass})` : ""}` +
-      `${panel.guide ? ` guide="${panel.guide.text}"` : ""}`,
+      `${heroLine ? ` hero="${heroLine.text}" (${heroLine.balloonClass})` : ""}` +
+      `${guideLine ? ` guide="${guideLine.text}"` : ""}`,
     );
     n++;
   }

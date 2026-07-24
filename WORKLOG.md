@@ -10,6 +10,52 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.0 — 2026-07-24 — ADR 0008: the renderer becomes an N-participant port (seam + LayoutAvatars)
+
+The comic renderer's mechanical layer was a *reimplementation from analysis* for two routines ADR 0007
+left un-ported: figure placement (hardcoded Guide-left/Hero-right) and panelization. ADR 0006's DM recast —
+now with **Grues/mobs as chat participants** — dissolves the reason those stayed reimplementations, so this
+milestone begins the full port. **124 web tests green (was 124; one balloon literal + mapper assertions
+reshaped, none dropped), tsc clean, `render:panel` PNGs reviewed** (solo DM, Hero close-up + tall caption:
+figures placed/scaled, captions clean, speech balloons straddle from above with a short tail).
+
+- **ADR 0008** (`docs/adr/0008-full-mechanical-port-and-multi-participant-chat.md`, Accepted — building):
+  extends ADR 0007's port boundary through panelization and N-body avatar layout; the semantic layer shrinks
+  to "Turn → chat lines + scene context"; figure geometry ported but `art/` assets kept (full avatar-sheet
+  port deferred); the 2-speaker Panel-slot model is superseded. Records the Grue-dialogue scope boundary
+  (the port makes the pane N-capable; authoring mob lines is a later semantic slice).
+
+- **Seam generalized (`mapper.ts`).** `Panel`'s fixed `hero`/`guide`/`caption` slots + single panel `emotion`
+  are replaced by Comic Chat's own two lists (ADR 0008 §2): **`bodies: Body[]`** (`m_bodies` — who's on stage,
+  each with its own emotion: the DM when it speaks, the Hero always, `panel.cpp:623` requested-or-speaker) and
+  **`speakers: Line[]`** (`m_elements` — the balloons, `Line = { speaker, balloonClass, text }`). Splitting
+  presence from speech restores the Hero on every panel (he poses to the world's reply on silent turns) while
+  giving each participant its own pose. `Balloon` drops `channel`; new `HERO`/`GUIDE`/`CAPTION` ids +
+  `lineOf(panel, id)` keep the semantic tests readable.
+
+- **N-body avatar layout ported (`render.ts`).** New `layoutAvatars()` is the port of
+  `CUnitPanel::LayoutAvatars` (`panel.cpp:528`): bodies (Comic Chat's `IsSpeaker`, `:622` — every line with a
+  cast body; the caption is bodiless) are scaled to the camera fill height, the row is shrunk to fit when it
+  overruns (`:577`), then spread with **equal margins including the edges** (`:607-616`); a body past panel
+  centre is mirrored to face inward. Replaces the Guide-left/Hero-right hardcode. `drawBalloons` now keys
+  anchors/faces by speaker id off `panel.speakers`. Divergences cited in-code: `shot.fill` stands in for
+  `maxBodyHeight`/`normHeight` (our art carries no per-avatar norm height); the `zoomIn` branch is dropped
+  (the §7 ladder + `MAX_SCALE` choose size).
+
+- **Consumers updated:** `comic-view.ts` alt-text describes N speakers; `render-panel.ts` and
+  `balloon.test.ts`/`mapper.test.ts` moved to `speakers`/`lineOf`; `figure.test.ts` join parity vs
+  `art/composite.ts` unchanged and green.
+
+**Measurement — panelization port deferred, not skipped.** The two gating decisions were made (caption rides
+with its panel; full cross-turn packing). Then a measure over the walkthrough corpus (606 turns) found
+**captions on 96.7% of turns**, and — since a repeat caption starts a new panel — only the **3.3% caption-less
+turns are cross-turn-mergeable**. So `CUnitPanelPage::AddLine` packing is a **~3% no-op on the current DM↔Hero
+stream** while it would force re-deriving 30 turn-indexed oracle tests. Its real value (the 5-element cap,
+packing discipline) is **latent**: it pays off when **mobs produce multi-line turns** (the deferred semantic
+slice). Decision: build `page.ts` **together with mob dialogue**, not against a stream where it changes almost
+nothing. The two decisions + this finding are recorded for that time. Also deferred (as ADR 0007 deferred
+route-region collision): a full `RearrangeBalloons` port — the vertical balloon stack is retained.
+
 ## v0.17.13 — 2026-07-23 — Balloons redrawn to read hand-drawn, wider, and docked close
 
 Follow-up to v0.17.12: the rippled-rounded-rect still read as vector art, balloons were capped narrow, and

@@ -9,7 +9,7 @@
  * like at the current panel size, which §4a makes a per-render question.
  */
 
-import type { CameraPreset, Panel } from "./mapper.js";
+import { CAPTION, type Body, type CameraPreset, type Panel } from "./mapper.js";
 import { drawFigure, figureFor, newCycle, type Cast, type Figure, type PoseCycle } from "./figure.js";
 import { drawBalloon, measureBalloon, type BalloonBox } from "./balloon.js";
 
@@ -48,9 +48,6 @@ const SHOTS: Record<CameraPreset, Shot> = {
   "over-shoulder": { fill: 0.86, reveal: 0.78, backdrop: 0.6 },
   medium: { fill: 0.78, reveal: 0.95, backdrop: 0.75 },
 };
-
-/** The Guide's own emotion set. It reacts to nothing; it comments. */
-const GUIDE_EMOTION = [{ angle: 0, intensity: 0, priority: 1 }];
 
 export interface RenderOptions {
   /**
@@ -95,17 +92,26 @@ export const MAX_FIGURE_WIDTH = 0.55;
  */
 export const BALLOON_HEADROOM = 0.36;
 
+/** A laid-out body: its speaker id, figure, and placement in panel space. */
+export interface PlacedBody {
+  speaker: string;
+  figure: Figure;
+  x: number;
+  y: number;
+  scale: number;
+  mirror: boolean;
+}
+
 export function renderPanel(
   ctx: CanvasRenderingContext2D, panel: Panel, cast: Cast,
   width: number, height: number, options: RenderOptions = {},
 ): void {
   const shot = SHOTS[panel.camera];
   const cycles = options.cycles ?? new Map<string, PoseCycle>();
-  // A speech (Guide) or thought (Hero) balloon needs a column beside the head;
-  // a caption is a top box and does not, so it never shrinks the figure.
-  const widthCap = panel.guide !== null || panel.hero !== null
-    ? width * MAX_FIGURE_WIDTH
-    : Infinity;
+  // A speech or thought balloon needs a column beside the head; a caption is a
+  // top box and does not, so a caption-only panel never shrinks its figures.
+  const hasColumnBalloon = panel.speakers.some((line) => line.balloonClass !== "CBWoodringBox");
+  const widthCap = hasColumnBalloon ? width * MAX_FIGURE_WIDTH : Infinity;
 
   ctx.save();
   ctx.clearRect(0, 0, width, height);
@@ -115,66 +121,31 @@ export function renderPanel(
 
   drawBackdrop(ctx, cast, width, height, shot, options.backdrop);
 
-  const hero = cast.manifest.cast["hero"];
-  const guide = cast.manifest.cast["guide"];
-  const heroSheet = cast.sheets.get("hero");
-  const guideSheet = cast.sheets.get("guide");
-
-  // The Hero's emotion is the panel's, which is derived from the world's reply
-  // and never from the Hero's own balloon (§9). Getting this backwards — the
-  // Comic Chat data flow, read from the speaker's text — is the single most
-  // likely implementation error in this milestone, and it would look almost
-  // right: a Hero permanently flat, because `take lamp` has no affect.
-  const heroFigure = hero
-    ? figureFor(hero, panel.emotion, cycleFor(cycles, "hero"))
-    : null;
-  // **The Guide is on stage exactly when it speaks**, whatever the rung. It is
-  // tempting to make this a property of the preset — a "two-shot" flag — but a
-  // Guide balloon drawn over an empty stage is a speech balloon with no
-  // speaker, which is precisely the misattribution §2a spent three paragraphs
-  // avoiding. §7 rung 5 is about when the Guide's presence *changes the shot*,
-  // not about whether it is drawn.
-  const guideFigure = guide && panel.guide !== null
-    ? figureFor(guide, GUIDE_EMOTION, cycleFor(cycles, "guide"))
-    : null;
-
-  const placed: Array<{ figure: Figure; x: number; y: number; scale: number; mirror: boolean }> = [];
-
-  if (guideFigure && guideSheet) {
-    const scale = fit(guideFigure, height, shot.fill * 0.92, widthCap);
-    // The Guide sits at the left facing right — the art's default — so it already
-    // looks toward the Hero and is not mirrored.
-    placed.push({
-      figure: guideFigure, scale, mirror: false,
-      x: width * 0.06,
-      y: height - guideFigure.height * scale * shot.reveal,
-    });
+  // The bodies to lay out are the panel's on-stage participants (`m_bodies`,
+  // `panel.cpp:528`): the DM when it speaks, the Hero always. Each figure's pose
+  // comes from its **own** body's emotion (ADR 0008 §2) — the DM's neutral set, the
+  // Hero's world-derived affect — so N participants pose independently, never
+  // sharing one panel emotion. Unknown speaker ids (no sheet) are skipped.
+  const bodies: Array<{ body: Body; figure: Figure }> = [];
+  for (const body of panel.bodies) {
+    const avatar = cast.manifest.cast[body.speaker];
+    if (!avatar || !cast.sheets.get(body.speaker)) continue;
+    const figure = figureFor(avatar, body.emotion, cycleFor(cycles, body.speaker));
+    if (figure) bodies.push({ body, figure });
   }
-  if (heroFigure && heroSheet) {
-    const scale = fit(heroFigure, height, shot.fill, widthCap);
-    const solo = guideFigure === null;
-    // In a two-shot the Hero is the right-hand figure; mirror it so it faces the
-    // Guide instead of out of frame (ADR 0005 §4 — the "faces away" symptom). Solo,
-    // it keeps the art's default facing.
-    placed.push({
-      figure: heroFigure, scale, mirror: !solo,
-      x: solo
-        ? (width - heroFigure.width * scale) / 2
-        : width * 0.94 - heroFigure.width * scale,
-      y: height - heroFigure.height * scale * shot.reveal,
-    });
-  }
+
+  const placed = layoutAvatars(bodies, width, height, shot, widthCap);
 
   // Reserve headroom for a straddling speech balloon: push each figure down until
   // its head-top clears the top band, so the balloon has room to sit above and
   // drop its tail. Only when such a balloon exists (the reaction close-up has none).
-  if (panel.guide !== null || panel.hero !== null) {
+  if (hasColumnBalloon) {
     const minHeadTop = height * BALLOON_HEADROOM;
     for (const item of placed) item.y = Math.max(item.y, minHeadTop);
   }
 
   for (const item of placed) {
-    const sheet = cast.sheets.get(item.figure.avatar === hero ? "hero" : "guide");
+    const sheet = cast.sheets.get(item.speaker);
     if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale, item.mirror);
   }
 
@@ -185,6 +156,62 @@ export function renderPanel(
   ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, width - 2, height - 2);
   ctx.restore();
+}
+
+/**
+ * Place N bodies across the panel floor — the port of `CUnitPanel::LayoutAvatars`
+ * (`panel.cpp:528`).
+ *
+ * Each body is scaled to the camera's fill height (our `shot.fill` stands in for
+ * the original's `maxBodyHeight = unitHeight/1.9`; the §7 ladder chooses it, which
+ * is the one deliberate divergence — our art carries no per-avatar `normHeight`,
+ * so all bodies normalize to a common target instead of by `normHeight/maxNorm`,
+ * `panel.cpp:561-570`). Their widths are summed; if the row overruns the panel the
+ * whole set is reduced to fit (`panel.cpp:575-585`). Bodies are then spread with
+ * **equal margins**, including the two edges (`margin = (unitWidth − Σw)/(n+1)`,
+ * `panel.cpp:607-616`). A body past the panel's centre is mirrored so it faces
+ * inward — the N-body generalization of the two-shot's "Hero faces the Guide"
+ * (ADR 0005 §4); the leftmost keeps the art's rightward default.
+ *
+ * We do **not** port the `zoomIn` branch (`panel.cpp:586-600`): the camera ladder
+ * already chooses figure size per rung, and `MAX_SCALE`/`fit` cap it (§7).
+ */
+export function layoutAvatars(
+  bodies: ReadonlyArray<{ body: Body; figure: Figure }>,
+  width: number, height: number, shot: Shot, widthCap = Infinity,
+): PlacedBody[] {
+  const n = bodies.length;
+  if (n === 0) return [];
+
+  const scales = bodies.map((b) => fit(b.figure, height, shot.fill, widthCap));
+  const widths = bodies.map((b, i) => b.figure.width * scales[i]!);
+  const sumWidth = widths.reduce((a, w) => a + w, 0);
+
+  // Shrink the whole row to fit when it overruns the panel (`panel.cpp:577`).
+  if (sumWidth > width) {
+    const reduction = width / sumWidth;
+    for (let i = 0; i < n; i++) {
+      scales[i]! *= reduction;
+      widths[i]! *= reduction;
+    }
+  }
+
+  const bodyWidth = widths.reduce((a, w) => a + w, 0);
+  const margin = (width - bodyWidth) / (n + 1);
+  const placed: PlacedBody[] = [];
+  let x = margin;
+  for (let i = 0; i < n; i++) {
+    const { body, figure } = bodies[i]!;
+    const scale = scales[i]!;
+    const w = widths[i]!;
+    placed.push({
+      speaker: body.speaker, figure, scale, x,
+      y: height - figure.height * scale * shot.reveal,
+      mirror: x + w / 2 > width / 2,
+    });
+    x += w + margin;
+  }
+  return placed;
 }
 
 function cycleFor(cycles: Map<string, PoseCycle>, role: string): PoseCycle {
@@ -230,13 +257,15 @@ function drawBackdrop(
  */
 function drawBalloons(
   ctx: CanvasRenderingContext2D, panel: Panel, width: number,
-  placed: ReadonlyArray<{ figure: Figure; x: number; y: number; scale: number; mirror: boolean }>,
+  placed: ReadonlyArray<PlacedBody>,
 ): void {
   ctx.font = '13px "Comic Sans MS", "Comic Neue", ui-rounded, cursive';
 
-  const anchors = new Map<Figure, { x: number; y: number }>();
-  // Each on-stage head as a keep-out box in panel space. A thought balloon over
-  // a face is the one thing comics never do, so balloons route *around* these.
+  // Each on-stage head, keyed by speaker id, as an anchor + keep-out box in panel
+  // space. A balloon over a face is the one thing comics never do, so balloons
+  // route *around* these; a speech tail lands on the box's near edge.
+  const anchors = new Map<string, { x: number; y: number }>();
+  const faceBox = new Map<string, { left: number; right: number; top: number; bottom: number }>();
   const faces: Array<{ left: number; right: number; top: number; bottom: number }> = [];
   for (const item of placed) {
     // A mirrored figure's face is at `width - faceX` from its left edge, so the
@@ -244,7 +273,7 @@ function drawBalloons(
     const faceX = item.mirror ? item.figure.width - item.figure.faceX : item.figure.faceX;
     const ax = item.x + faceX * item.scale;
     const headH = item.figure.headHeight * item.scale;
-    anchors.set(item.figure, {
+    anchors.set(item.speaker, {
       x: ax,
       // The crown anchor, used by *thought* balloons (their bubbles float up to
       // the head centre). Depth is a capped fraction of head height: `headH * 0.2`
@@ -254,13 +283,10 @@ function drawBalloons(
       y: item.y + Math.min(headH * 0.2, 16),
     });
     const halfW = headH * 0.44;
-    faces.push({ left: ax - halfW, right: ax + halfW, top: item.y, bottom: item.y + headH });
+    const box = { left: ax - halfW, right: ax + halfW, top: item.y, bottom: item.y + headH };
+    faceBox.set(item.speaker, box);
+    faces.push(box);
   }
-  const heroAnchor = placed.length > 0 ? anchors.get(placed[placed.length - 1]!.figure) : undefined;
-  const guideAnchor = placed.length > 1 ? anchors.get(placed[0]!.figure) : undefined;
-
-  const heroFace = placed.length > 0 ? faces[placed.length - 1] : undefined;
-  const guideFace = placed.length > 1 ? faces[0] : undefined;
   const faceCentre = (f?: { left: number; right: number }) =>
     f ? (f.left + f.right) / 2 : null;
 
@@ -270,11 +296,14 @@ function drawBalloons(
   const faceRight = faces.length > 0 ? Math.max(...faces.map((f) => f.right)) : 0;
   const asideSide: "left" | "right" = width - 10 - faceRight >= faceLeft - 10 ? "right" : "left";
 
-  const queue = [
-    { balloon: panel.caption, anchor: null, face: undefined, headX: null },
-    { balloon: panel.guide, anchor: guideAnchor ?? null, face: guideFace, headX: faceCentre(guideFace) },
-    { balloon: panel.hero, anchor: heroAnchor ?? null, face: heroFace, headX: faceCentre(heroFace) },
-  ].filter((item) => item.balloon !== null);
+  // The panel's balloons in draw order, each bound to its speaker's head (ADR 0008
+  // §2): the caption and any bodiless speaker route with no anchor, the rest
+  // straddle. This is Comic Chat's element list, `panel.cpp:397`.
+  const queue = panel.speakers.map((balloon) => {
+    const face = balloon.speaker === CAPTION ? undefined : faceBox.get(balloon.speaker);
+    const anchor = balloon.speaker === CAPTION ? null : (anchors.get(balloon.speaker) ?? null);
+    return { balloon, anchor, face, headX: faceCentre(face) };
+  });
 
   // A balloon that owns the panel spreads across most of it; the original only
   // tightens the free rect when *other* balloons share the width
@@ -292,7 +321,7 @@ function drawBalloons(
 
   let y = 8;
   for (const item of queue) {
-    const balloon = item.balloon!;
+    const balloon = item.balloon;
     const isSpeech = balloon.balloonClass === "CBWoodringNormal";
     // A thought balloon's scallops bulge outward; keep that bulge clear too.
     const bulge = balloon.balloonClass === "CBWoodringThink" ? 14 : 0;

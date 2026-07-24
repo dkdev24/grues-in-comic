@@ -66,7 +66,7 @@ const measurer = {
 } as unknown as CanvasRenderingContext2D;
 
 const box: BalloonBox = { x: 20, y: 20, width: 160, height: 90 };
-const think: Balloon = { channel: "hero", balloonClass: "CBWoodringThink", text: "I should look inside." };
+const think: Balloon = { balloonClass: "CBWoodringThink", text: "I should look inside." };
 
 const TWO_PI = Math.PI * 2;
 
@@ -96,7 +96,7 @@ describe("cloud() — the thought balloon outline", () => {
 
   it("caption boxes still draw a rect, not scallops", () => {
     const r = recorder();
-    const caption: Balloon = { channel: "caption", balloonClass: "CBWoodringBox", text: "West of House." };
+    const caption: Balloon = { balloonClass: "CBWoodringBox", text: "West of House." };
     drawBalloon(r.ctx, caption, box, ["West of House."], null);
     expect(r.calls).toContain("rect");
     expect(r.arcs.length).toBe(0);
@@ -118,7 +118,7 @@ describe("cloud() — the thought balloon outline", () => {
  * the left/right edge, or a root off the bottom.
  */
 describe("roundedSpeech() — spline outline, bowed tail on the bottom edge", () => {
-  const speech = (text: string): Balloon => ({ channel: "hero", balloonClass: "CBWoodringNormal", text });
+  const speech = (text: string): Balloon => ({ balloonClass: "CBWoodringNormal", text });
   const right = box.x + box.width, bottom = box.y + box.height;
   // Outward bumps nudge an edge out by up to WAVE_AMP; keep the tolerances above
   // it so a bump is never mistaken for a tail. (WAVE_AMP is 6 in balloon.ts.)
