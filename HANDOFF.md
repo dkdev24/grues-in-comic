@@ -31,9 +31,12 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
   ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
-  fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — building:
-  seam generalized to `speakers: Line[]` and N-body `LayoutAvatars` ported (v0.18.0); panelization port
-  (`page.ts`) still to build.**
+  fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — building.
+  Re-scoped 2026-07-24 to a full faithful port vs **v2.5-beta-1 (modern variant)** (was v1.0-pre; the comic
+  pane is now a multi-party GM+NPC comic, not solo-Hero). Source: `original-projects/comic-chat/v2.5-beta-1-modern/`
+  (tracked; line-identical to raw `v2.5-beta-1/`), navigated via the offline C++ graph at
+  `reference/comic-chat-v2.5-beta-1-modern/graphify-out/`. Seam + N-body layout landed v0.18.0; Phases 1–3
+  (LayoutAvatars, page.ts panelization, multi-balloon layout, pixel gate) not started — see Next Actions 00.**
   - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
@@ -45,34 +48,36 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 
 ---
 
-## Last Session — ADR 0008: renderer rewritten to an N-participant port (v0.18.0)
+## Last Session — ADR 0008 re-scoped: full faithful port, un-deferred (docs only, no code)
 
-Started the **complete rewrite of the comic renderer as a faithful Comic Chat port** (user-directed; ADR 0006's
-DM recast + **Grues/mobs as chat participants** dissolves the reason the mechanical layer was reimplemented).
-Wrote **ADR 0008** and did the renderer + seam halves. Panelization port (`page.ts`) is the next movement and
-is gated on two decisions (below). **124 web tests green, tsc clean, `render:panel` PNGs reviewed** (solo DM +
-Hero close-up/tall-cap: figures placed & scaled, captions clean, speech balloons straddle from above).
+**No code changed this session; `docs/adr/0008-*.md` was amended (uncommitted).** User rejected the incremental
+refactor path: v0.18.0 was a *structural refactor* of figure placement, not the "complete rewrite" the prior
+handoff claimed — proven pixel-identical in solo-Hero panels (N=1 `layoutAvatars` collapses to the old solo
+branch), so it was always going to look the same in normal play. Decision: **stop refactoring, do a faithful
+port** — and, crucially, **the comic pane is no longer a solo-Hero adventure**: it becomes a true multi-party
+comic (GM = former Guide + NPCs = mobs). That makes Comic Chat's multi-speaker machinery the *target*, not a
+mismatch, and it flips every earlier "defer until mobs" call to "build now."
 
-- **Seam (`mapper.ts`).** `Panel` lost its `hero`/`guide`/`caption` slots + panel `emotion`; now Comic Chat's
-  own two lists (ADR 0008 §2): **`bodies: Body[]`** (`m_bodies` — on stage, each `{ speaker, emotion }`: DM
-  when it speaks, **Hero always**, `panel.cpp:623`) and **`speakers: Line[]`** (`m_elements` — balloons,
-  `Line = { speaker; balloonClass; text }`). The split restores the Hero on every panel (posing to the reply
-  on silent turns). `Balloon` lost `channel`. Added `HERO`/`GUIDE`/`CAPTION` ids + `lineOf(panel, id)`.
-- **N-body layout (`render.ts`).** New `layoutAvatars()` ports `CUnitPanel::LayoutAvatars` (`panel.cpp:528`)
-  over `panel.bodies`: scale to camera fill, shrink-to-fit the row (`:577`), equal edge margins (`:607-616`),
-  mirror bodies past centre to face inward. Replaces Guide-left/Hero-right; `drawBalloons` keys anchors/faces
-  by speaker id off `panel.speakers`. Cited divergences: `shot.fill` ↔ `maxBodyHeight`/`normHeight`; `zoomIn`
-  branch dropped (ladder + `MAX_SCALE` choose size). Visually re-verified: establishing shot now shows DM
-  (left, speaking) + Hero (right, on stage, inward-facing) — the two-shot, restored.
-- Consumers moved to the new seam: `comic-view.ts` (N-speaker alt-text), `render-panel.ts`, `balloon.test.ts`,
-  `mapper.test.ts` (via `lineOf` helpers). `figure.test.ts` join parity vs `art/composite.ts` unchanged.
+**Canonical source re-pinned to the modern v2.5-beta-1 variant** — tracked at
+`original-projects/comic-chat/v2.5-beta-1-modern/`, navigated via the offline C++ graph at
+`reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (was v1.0-pre; all prior ADR citations were from the
+wrong tree and are re-anchored in the amendment's table; modern is line-identical to raw `v2.5-beta-1/`). Three findings from the later
+source *remove* scope: **`normHeight` is hardcoded `100`** (avatar.cpp:64,110) → common-height `shot.fill` is
+already faithful, don't add it; **`RearrangeBalloons` is an empty stub** (panel.cpp:959) → nothing to port;
+**`BM_ACTION` captions unconditionally start a new panel** (panel.cpp:1064) → faithful rule, retires the old
+"caption rides" divergence.
 
-**Panelization port decided, measured, deferred.** The two gating decisions were made — caption rides with its
-panel; full cross-turn packing (a merged panel takes its primary/last-speaking turn's scene). Then a measure
-over the corpus (606 turns): **captions on 96.7% of turns**, so — a repeat caption starting a new panel — only
-the **3.3% caption-less turns are cross-turn-mergeable**. `AddLine` packing is thus a **~3% no-op today** while
-it would force re-deriving 30 turn-indexed oracle tests. Its real value (5-element cap, packing) is **latent
-until mobs speak** (multi-line turns). **Decision: build `page.ts` with the mob-dialogue slice, not now.**
+**A full-pipeline coverage audit was run** (panel.cpp/balloon.cpp/avatar.cpp + headers, table in ADR amendment)
+so the port has no silent gaps. It found **two real gaps** hidden by the old "1–2 balloons per panel" assumption
+that multi-party kills: (1) the **multi-balloon layout driver** `LayoutBalloons`/`GetCloudEstimate`/`LayoutBalloon`
++ collision (`GetInterveningBBox`, `AdjustRouteRgns`) — we currently vertical-stack; (2) **overflow-split**
+`ForceFitBalloon`/`SplitHeight` — absent, but `AddLine`'s overflow recursion needs it. Both fold into this port.
+
+**Decisions locked this session:** histeresis (`OrderAvatars`/`UpdateHistoresis`) stubbed stable-by-insertion-order
+now, full with mobs; adopt faithful `BM_ACTION`→new-panel; multi-balloon layout folded into this port (Phase 2b);
+balloon placement uses a **seeded reproducible roll** (organic Comic-Chat scatter, still deterministic via a
+per-panel deterministic seed — NOT the old deterministic-midpoint; byte-match to the 1996 binary is unattainable
+since our font metrics differ, so we port the *algorithm*, not the pixels).
 
 ---
 
@@ -81,17 +86,36 @@ until mobs speak** (multi-line turns). **Decision: build `page.ts` with the mob-
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
 
-00. **ADR 0008 — renderer + seam done (v0.18.0); panelization deferred with mobs.** The renderer is a full
-    N-body port and the seam is Comic Chat's `bodies`/`speakers` split. Remaining ADR 0008 work:
-    **(a) `page.ts` panelization** (`CUnitPanelPage::AddLine`, `panel.cpp:362`) — decisions locked (caption
-    rides; full cross-turn packing, primary-turn scene) but **build it with the mob-dialogue slice**: measured
-    ~3% no-op on the DM↔Hero stream (96.7% captioned) vs a 30-test oracle re-derivation; its value is latent
-    until multi-line mob turns exist. Rules to port then: 5-element cap, clone-append, speaker-repeat→new,
-    caption-repeat→new (our divergence from `SM_ACTION`), overflow-split; `page.test.ts` alongside.
-    **(b) mob participant** — add a mob sheet (reuse an existing `.avb`) + a mapper slice that appends a mob
-    `Body`+`Line`; the renderer already lays out N. **(c) pixel-parity gate** — commit `render:panel` PNGs
-    (seed 1234) with a byte/diff check (none today). Deferred as ADR 0007 deferred route-region collision:
-    a full `RearrangeBalloons` port (vertical balloon stack kept).
+00. **ADR 0008 — full faithful port of the layout stack against v2.5-beta-1. Build plan (all folded into one
+    port, no longer deferred). START HERE next session at Phase 0.** Boundary preserved: camera ladder (SHOTS,
+    semantic/ours) and ADR 0007 fixed-panel + reflowing pane + column-count-by-viewport stay; figure compositing
+    (`figure.ts`/`composite.ts`/`pose.ts`) stays — already a verified port.
+    - **Phase 0 — multi-body fixtures.** Load 2–4 real `.avb` avatars via `art/` into a `Cast` so Phases 1–2b
+      verify with N bodies now, decoupled from mob authoring. (Likely first task of next session.)
+    - **C++ navigation graph — BUILT.** Offline graph of the modern v2.5-beta-1 source lives at
+      `reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (`graph.json` 6.4 MB, `GRAPH_REPORT.md`, queryable;
+      indexes `panel/balloon/avatar/…`). Use it to navigate the C++ call graph during Phases 1–2b:
+      `graphify query "…" --graph reference/comic-chat-v2.5-beta-1-modern/graphify-out/graph.json` (also
+      `path`/`explain`/`affected`). **Offline build command** (regenerate after edits): `graphify extract .
+      --code-only --no-label` (AST-only, no LLM — plain `graphify .` errors on Bedrock via the semantic pass).
+      **Gotchas for future sessions:** `reference/` is gitignored (`.gitignore:62`) and graphify merges
+      `.gitignore` from the git root, so building *in-repo* finds 0 files — this graph was built in the modern
+      copy and lives there, gitignored/local (AGENTS.md forbids committing raw-C++ graphs; the tracked
+      `original-projects/comic-chat/v2.5-beta-1-modern/` is the durable, line-identical fallback source).
+    - **Phase 1 — `LayoutAvatars` port** (`render.ts`, `panel.cpp:726`): keep equal-margin (`:807`)/shrink-to-fit
+      (`:777`); add `IsSpeaker` gating (`:822`); DELETE `normHeight` (faithful common-height = `shot.fill`); STUB
+      stable slots by insertion-order (full `OrderAvatars`/`UpdateHistoresis` `:753,818` with mobs); verify our
+      `mirror`-past-centre vs where C++ sets `m_flip`. Gate: N-body PNGs.
+    - **Phase 2 — `page.ts` panelization** (`AddLine`, `panel.cpp:1058`): 5-elem cap, `<2`-panel, `AvatarInPanel`
+      →new, **`BM_ACTION`→new panel** (faithful), clone-append, overflow recursion; `AddReaction:1142`,
+      `MakeBalloon:1036` taxonomy. Mapper → line stream `{avatarId,text,mode,emotion}`; re-derive ~30 oracle tests.
+    - **Phase 2b — multi-balloon layout** (the audit gap): port `LayoutBalloons:855`/`GetCloudEstimate:885`/
+      `LayoutBalloon:925` + `GetInterveningBBox`/`AdjustRouteRgns` collision + `ForceFitBalloon:877`/`SplitHeight`
+      overflow, replacing the vertical stack. **Seeded reproducible roll** (per-panel deterministic seed).
+    - **Phase 3 — pixel-parity gate:** commit `render:panel` PNGs (seed 1234) incl. a 3-body/multi-balloon
+      fixture; byte-diff regression (none exists today).
+    - **Out of scope → ADR 0006 slice:** mapper authoring of *when/what* a mob speaks (this port only makes the
+      pane N-capable; a test injecting a mob line proves it).
 
 0. **ADR 0007 fully built and verified (v0.17.10–v0.17.12).** §2 sizing, the citation backfill, and the three
    balloon enhancements are all done; the fixed-panel layout was in-browser checked, and the balloon changes

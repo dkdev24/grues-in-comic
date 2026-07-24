@@ -5,7 +5,49 @@
 - **Supersedes (in part):** ADR 0004 §Context's generalization that "the pane is a reimplementation" (already narrowed by ADR 0007 §1; this ADR retires it for the *whole* mechanical layer); ADR 0004's implicit **two-speaker Panel-slot model** (fixed `hero`/`guide`/`caption` balloons, one panel per Turn) — the `Panel` seam becomes an N-participant line list; ADR 0004 §7's treatment of **panelization** (when a new panel starts) as semantic — it is ported.
 - **Extends:** ADR 0007 §1 (the mechanical-layer port boundary) and §"Standing rule" (read the C++ first, cite it). ADR 0007 declared the *balloon* a port; this ADR carries the same boundary through **panel-forming** (`CUnitPanelPage::AddLine`) and **N-body avatar layout** (`CUnitPanel::LayoutAvatars`), the two mechanical routines ADR 0007 left as reimplementations.
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — consumed, not extended); ADR 0006's three invariants (Guide/DM presentation-only and removable; no engine internals in the panel stream; the panel stream is a **deterministic pure function of the event stream** so `replayPanels` still applies); ADR 0007 §2 fixed-panel sizing (`layout.ts` unchanged); figures scale as a unit in figure space before any viewport scale (ADR 0004 §8).
-- **Related:** ADR 0006 (the recast that unblocks this), ADR 0007 (the boundary this extends), `original-projects/comic-chat/v1.0-pre-modern/{panel.cpp,balloon.cpp,avatar.cpp}` (source of truth), `web/src/comic/{mapper,render,figure,balloon,page}.ts`, `wiki/comic-chat-presentation.md`.
+- **Related:** ADR 0006 (the recast that unblocks this), ADR 0007 (the boundary this extends), `web/src/comic/{mapper,render,figure,balloon,page}.ts`, `wiki/comic-chat-presentation.md`.
+- **Port source of truth (re-pinned, see Amendment 2026-07-24b):** the **modern variant of v2.5-beta-1** (consistent with this ADR's earlier use of the `-modern` convention for v1.0-pre-modern).
+  - **Tracked/durable source (cite against this):** `original-projects/comic-chat/v2.5-beta-1-modern/{panel,balloon,avatar,avatario,spline,format}.{cpp,h}` — version-controlled, survives clones. Line-identical to the raw `v2.5-beta-1/` for the pipeline files, so the anchor table below is valid against both.
+  - **Local graphed working copy (navigation aid):** `reference/comic-chat-v2.5-beta-1-modern/` with its offline knowledge graph at `reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (`graph.json`, `GRAPH_REPORT.md`). Use `graphify query/path/explain --graph reference/comic-chat-v2.5-beta-1-modern/graphify-out/graph.json` to navigate the C++ call graph during the port. This tree is **gitignored** (local, not committed — AGENTS.md forbids committing graphs of raw historical C++); regenerate with `graphify extract . --code-only --no-label` (offline, no LLM). If lost, the tracked source above is the fallback.
+
+## Amendment — 2026-07-24b (canonical version re-pinned to v2.5-beta-1; panelization un-deferred)
+
+The original text of this ADR cited `v1.0-pre-modern`. We re-pin the port's source of truth to the **later v2.5-beta-1 (modern variant)** — tracked at `original-projects/comic-chat/v2.5-beta-1-modern/`, with an offline navigation graph over a local copy at `reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (see the source-of-truth pointers above). **Every `panel.cpp`/`avatar.cpp` line number in the sections below predates this re-pin and is superseded by the anchor table here** (the modern variant is line-identical to the raw `v2.5-beta-1/` for the pipeline files — verified 2026-07-24b). Four factual findings from the later source, three of which *remove* scope:
+
+| Routine | v2.5-beta-1 anchor | Note |
+|---|---|---|
+| `CUnitPanel::LayoutAvatars` | `panel.cpp:726` | N-body placement — the port target |
+| `maxBodyHeight = unitHeight/1.9` | `panel.cpp:738` | the single fill target |
+| shrink-to-fit (row overrun) | `panel.cpp:777` | already ported |
+| equal margins `(w−Σw)/(n+1)` | `panel.cpp:807` | already ported |
+| `bZoomIn` close-up branch | `panel.cpp:788` | camera; owned by our SHOTS ladder |
+| `OrderAvatars`/`UpdateHistoresis` | `panel.cpp:753,818` | **stable cross-panel slots — not yet ported** |
+| `IsSpeaker` on-stage gating | `panel.cpp:743,822` | who is drawn = speakers + `m_requested` |
+| `CBody*::GetDimInfo` | `avatar.cpp:55,77` | dimensions |
+| `CUnitPanelPage::AddLine` | `panel.cpp:1058` | panelization — the port target |
+| `BM_ACTION → StartNewPanel` | `panel.cpp:1064` | captions force a new panel |
+| 5-cap / `<2` / `AvatarInPanel` | `panel.cpp:1079` | clone-append vs new-panel test |
+| `MakeBalloon` (balloon taxonomy) | `panel.cpp:1036` | SAY/WHISPER/THINK/ACTION → Woodring class |
+| `AddReaction` (`<Chr>`) | `panel.cpp:1142` | body-only reaction line |
+| `RearrangeBalloons` | `panel.cpp:959` | **empty `{ }` — no port target** |
+
+1. **`normHeight` is disabled in v2.5-beta-1** — hardcoded `100` (`avatar.cpp:64,110`: *"we're assuming characters are the same height … Fix?!"*), so `newHeight = maxBodyHeight·(normHeight/maxNorm)` (`panel.cpp:765`) collapses to `maxBodyHeight` for every body. **Our common-height `shot.fill` target is therefore the faithful behavior, not a divergence.** §3/§Context's "per-body `GetDimInfo`, normalize" is retired; we do **not** add a per-avatar `normHeight` to the manifest.
+2. **`RearrangeBalloons` is an empty stub** (`panel.cpp:959`). The "full `RearrangeBalloons` port" listed as deferred elsewhere in the project docs targets nothing and is dropped.
+3. **Faithful caption rule: `BM_ACTION` unconditionally starts a new panel** (`panel.cpp:1064`). This **retires the "caption rides with its panel" divergence** recorded in §5 below. Captions get their own panel, as in Comic Chat.
+4. **Panelization is un-deferred and built now.** §5's decision to sequence `page.ts` "with the mob-dialogue slice" is **superseded**. Rationale: (a) the comic pane is deliberately a *multi-party* comic (GM + NPCs as participants — the whole premise of this ADR), so packing is the **target** architecture, not a DM↔Hero edge case; (b) the panel/layout stack is a **pure function of `(bodies, speakers)`**, so it is built and **pixel-verified now against real `.avb` avatar fixtures** (2–4 bodies), fully decoupled from *when* the mapper begins authoring mob lines. The accepted cost — re-deriving the ~30 turn-indexed oracle tests to the line-stream contract — is paid here rather than deferred.
+
+**Preserved unchanged by this amendment:** the **camera ladder** (SHOTS table, ADR 0004 §7) stays *ours* — it is semantic (chosen from event meaning), and it feeds the ported layout the fill/framing to execute; ADR 0007 §2 **fixed-panel sizing, the reflowing pane, and column count as a function of viewport width** stay as-is (confirmed 2026-07-24). The port replaces the hardcoded 2-body placement and adds panelization; it does **not** touch the pane/column model or the camera ladder.
+
+### Coverage audit — full v2.5-beta-1 render pipeline (2026-07-24b)
+
+A whole-pipeline enumeration (`panel.cpp`, `balloon.cpp`, `avatar.cpp`, headers) was run so the port has no silent gaps. Classification:
+
+- **To port — panelization (`page.ts`, Phase 2):** `AddLine:1058`, `AddReaction:1142`, `MakeBalloon:1036`, `StartNewPanel`(panel.h:91), `FetchSpeaker:606`, `ReplaceBody:626`, `AvatarInPanel:655`, `Clone:562`, `RemoveLastPanel:993`, `AddPanel:1029` (append only — repaint is out of scope).
+- **To port — avatar layout (`render.ts`, Phase 1):** `LayoutAvatars:726`, `IsSpeaker:822`. `OrderAvatars`/`UpdateHistoresis:753,818` stubbed stable-by-insertion-order now, ported in full with mobs.
+- **Already ported (verified):** emotion→pose selection — `GetBodyFromEmotion:222,252,354,386`, `GetHeadAndBodyFromEmotion:298`, `CEmotionOpts::Add:725`, `SetNeutral` (`pose.ts` wheel + `figure.ts` join, parity vs `art/composite.ts`); single-balloon geometry — `DockAtTop`, `QueryRouteRgn`, `Overlap`, `ComputeCloudBBox`, spline/arrow (ADR 0007). `GetDimInfo`(avatar.cpp:55,77) = our `Figure` dims.
+- **⚠ GAPS FOUND — fold into this port (Phase 2b), not defer:** the **multi-balloon layout driver** `LayoutBalloons:855`/`GetCloudEstimate:885`/`LayoutBalloon:925` and its helpers `GetInterveningBBox`, `AdjustRouteRgns`, `LowestPreviousBottom` (our code vertical-stacks and deferred collision, `render.ts:252,310`); and **overflow-split** `ForceFitBalloon:877`/`SplitHeight`(balloon.cpp:777,1533), absent today (`AddLine`'s overflow recursion depends on it). Both were safe to omit only under the "1–2 balloons per panel" assumption, which multi-party retires — so they are load-bearing here.
+- **Named divergence:** `LayoutBalloons` seeds layout with `srand(m_seed):867`. We port the *structure* (tail-anchor to `m_arrowX`, `GetInterveningBBox` collision, shrinking `freeRect`, overflow-split) but keep a **deterministic seeded roll** rather than reproduce Comic Chat's RNG stream — the parity oracle needs determinism, and matching a 1996 chat's exact balloon pixels carries no value.
+- **Out of scope (reason):** `AdjustArtToCoord:948`/`bZoomIn:788` (backdrop-zoom; camera is our SHOTS); all `Draw(CDC*)` GDI blitting (→ canvas `drawImage`), `Refresh*`/`GetScrollPage` (repaint/scroll), `OnClickHotLink`/`OnLButtonDown`/`bURLHit` (chat URL interactivity), `AddTitle`/`UpdateTitle`/`ShowInfo`/`AddStars` (chat chrome), `PageSizeInPanels`/`PreparePrintDC`/`GetPhysicalPageCount` (Windows printing; our PDF export is a separate ADR), `avatario.cpp`/`avatardl.cpp` (avatar file IO + network download), `CPose` decode/`IndexAvatar`/`CAvatarDIB` (avatar-sheet decode → this project's `art/` pipeline, §3 deferred).
 
 ## Context
 
