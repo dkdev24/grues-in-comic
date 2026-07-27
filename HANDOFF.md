@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.18.0**
+**0.18.1**
 
 ---
 
@@ -32,6 +32,7 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
   ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
   fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — building.
+  Phase 0 (multi-body fixtures) done v0.18.1; Phase 1 is next.
   Re-scoped 2026-07-24 to a full faithful port vs **v2.5-beta-1 (modern variant)** (was v1.0-pre; the comic
   pane is now a multi-party GM+NPC comic, not solo-Hero). Source: `original-projects/comic-chat/v2.5-beta-1-modern/`
   (tracked; line-identical to raw `v2.5-beta-1/`), navigated via the offline C++ graph at
@@ -44,40 +45,51 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 124 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 149 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0008 re-scoped: full faithful port, un-deferred (docs only, no code)
+## Last Session — ADR 0008 Phase 0 done: multi-body fixtures + first N≥3 gate (v0.18.1)
 
-**No code changed this session; `docs/adr/0008-*.md` was amended (uncommitted).** User rejected the incremental
-refactor path: v0.18.0 was a *structural refactor* of figure placement, not the "complete rewrite" the prior
-handoff claimed — proven pixel-identical in solo-Hero panels (N=1 `layoutAvatars` collapses to the old solo
-branch), so it was always going to look the same in normal play. Decision: **stop refactoring, do a faithful
-port** — and, crucially, **the comic pane is no longer a solo-Hero adventure**: it becomes a true multi-party
-comic (GM = former Guide + NPCs = mobs). That makes Comic Chat's multi-speaker machinery the *target*, not a
-mismatch, and it flips every earlier "defer until mobs" call to "build now."
+**Phase 0 is complete; next session starts at Phase 1 (`LayoutAvatars` port).** Three new files, all
+dev-only — no production/browser code and no shipped-asset change:
 
-**Canonical source re-pinned to the modern v2.5-beta-1 variant** — tracked at
-`original-projects/comic-chat/v2.5-beta-1-modern/`, navigated via the offline C++ graph at
-`reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (was v1.0-pre; all prior ADR citations were from the
-wrong tree and are re-anchored in the amendment's table; modern is line-identical to raw `v2.5-beta-1/`). Three findings from the later
-source *remove* scope: **`normHeight` is hardcoded `100`** (avatar.cpp:64,110) → common-height `shot.fill` is
-already faithful, don't add it; **`RearrangeBalloons` is an empty stub** (panel.cpp:959) → nothing to port;
-**`BM_ACTION` captions unconditionally start a new panel** (panel.cpp:1064) → faithful rule, retires the old
-"caption rides" divergence.
+- **`web/tools/cast-fixture.ts`** — packs 2–4 real `.avb` avatars in memory via `art/`'s own
+  `parseAvatar`→`packAvatar`, from the tracked corpus. `packFixtureCast`/`stubCast` are pure and
+  canvas-free (geometry tests); `loadFixtureCast` decodes sheets via `@napi-rs/canvas` and reuses the
+  committed backdrops from `web/assets/comic/`. Roles: `hero`=dan, `guide`=tiki (production casting),
+  `mob-a`=bolo, `mob-b`=xeno — generic ids on purpose, since mob casting is a later ADR 0006 slice.
+- **`web/test/bodies.test.ts`** (25 tests) — `layoutAvatars` at N=1..4 over real corpus geometry, pinned
+  as properties not coordinates: equal margins incl. edges, uniform shrink-to-fit, insertion order, no
+  overlap, inward mirror past centre, shared floor, per-body width cap.
+- **`web/tools/render-bodies.ts`** (`npm run render:bodies`) — 21 PNGs, 1–4 bodies × 3 rungs ×
+  {one speaker, all speaking}, through the real `renderPanel`. Reviewed: four bodies stage correctly and
+  the four-speaker images show Phase 2b's gap plainly (balloons still vertical-stack).
 
-**A full-pipeline coverage audit was run** (panel.cpp/balloon.cpp/avatar.cpp + headers, table in ADR amendment)
-so the port has no silent gaps. It found **two real gaps** hidden by the old "1–2 balloons per panel" assumption
-that multi-party kills: (1) the **multi-balloon layout driver** `LayoutBalloons`/`GetCloudEstimate`/`LayoutBalloon`
-+ collision (`GetInterveningBBox`, `AdjustRouteRgns`) — we currently vertical-stack; (2) **overflow-split**
-`ForceFitBalloon`/`SplitHeight` — absent, but `AddLine`'s overflow recursion needs it. Both fold into this port.
+**Test counts moved: web 124 → 149.** `tsc --noEmit`, `npm run build`, and the full web suite are clean;
+`graphify update .` re-run in `web/` (324 nodes). Output PNGs land in the gitignored `web/tools/out/`.
 
-**Decisions locked this session:** histeresis (`OrderAvatars`/`UpdateHistoresis`) stubbed stable-by-insertion-order
-now, full with mobs; adopt faithful `BM_ACTION`→new-panel; multi-balloon layout folded into this port (Phase 2b);
-balloon placement uses a **seeded reproducible roll** (organic Comic-Chat scatter, still deterministic via a
-per-panel deterministic seed — NOT the old deterministic-midpoint; byte-match to the 1996 binary is unattainable
-since our font metrics differ, so we port the *algorithm*, not the pixels).
+**Note for the next session:** the previous handoff claimed the ADR 0008 amendment was uncommitted — it is
+committed (`bc8c1f1`). The working tree's `AGENTS.md` edit and untracked `original-projects/CLAUDE.md` are
+pre-existing and were left alone.
+
+---
+
+## Still-live decisions (ADR 0008 re-scope, 2026-07-24)
+
+Full narrative in `WORKLOG.md` v0.18.1; the binding text is `docs/adr/0008-*.md`. Carried here only
+because the port reads them every phase:
+
+- **Canonical source** is `original-projects/comic-chat/v2.5-beta-1-modern/` (tracked, line-identical to
+  raw `v2.5-beta-1/`); all ADR citations are re-anchored to it. Pre-amendment v1.0-pre citations are wrong.
+- **Scope removed by the later source:** `normHeight` is hardcoded `100` (avatar.cpp:64,110) — our
+  common-height `shot.fill` is already faithful, do not add it; `RearrangeBalloons` is an empty stub
+  (panel.cpp:959) — nothing to port; `BM_ACTION` captions unconditionally start a new panel
+  (panel.cpp:1064) — faithful, and it retires the old "caption rides" divergence.
+- **Scope added by the coverage audit:** the multi-balloon layout driver and overflow-split (Phase 2b).
+- **Locked:** histeresis stubbed stable-by-insertion-order now, full with mobs; balloon placement by a
+  seeded reproducible roll — we port the *algorithm*, not the pixels (font metrics differ, so a byte-match
+  to the 1996 binary is unattainable).
 
 ---
 
@@ -87,11 +99,13 @@ since our font metrics differ, so we port the *algorithm*, not the pixels).
 and verification. In rough priority:
 
 00. **ADR 0008 — full faithful port of the layout stack against v2.5-beta-1. Build plan (all folded into one
-    port, no longer deferred). START HERE next session at Phase 0.** Boundary preserved: camera ladder (SHOTS,
+    port, no longer deferred). START HERE next session at Phase 1.** Boundary preserved: camera ladder (SHOTS,
     semantic/ours) and ADR 0007 fixed-panel + reflowing pane + column-count-by-viewport stay; figure compositing
     (`figure.ts`/`composite.ts`/`pose.ts`) stays — already a verified port.
-    - **Phase 0 — multi-body fixtures.** Load 2–4 real `.avb` avatars via `art/` into a `Cast` so Phases 1–2b
-      verify with N bodies now, decoupled from mob authoring. (Likely first task of next session.)
+    - **Phase 0 — multi-body fixtures. ✅ DONE (v0.18.1).** `web/tools/cast-fixture.ts` packs 2–4 real `.avb`
+      avatars in memory (`packFixtureCast`/`stubCast` canvas-free; `loadFixtureCast` decodes sheets);
+      `web/test/bodies.test.ts` gates `layoutAvatars` at N=1..4; `npm run render:bodies` writes 21 N-body PNGs.
+      Use these for every Phase 1–2b change — they are the only N≥3 coverage that exists.
     - **C++ navigation graph — BUILT.** Offline graph of the modern v2.5-beta-1 source lives at
       `reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (`graph.json` 6.4 MB, `GRAPH_REPORT.md`, queryable;
       indexes `panel/balloon/avatar/…`). Use it to navigate the C++ call graph during Phases 1–2b:
@@ -296,6 +310,7 @@ Hard-won rules that outlive any one session.
 | `verification/` | `walkthroughs/*.cmd` + `golden/*.txt`; `run-transcripts.sh` captures goldens from dfrotz |
 | `web/` | **Browser shell (5.2+).** `npm --prefix web run dev` → localhost:8080. `src/session.ts` is DOM-free; `src/comic/` is the renderer + Narrative Director. No bundler, by decision — see `web/README.md` |
 | `web/gallery.html` + `gallery.js` | Dev harness: every camera preset over one constant panel, for framing screenshots |
+| `web/tools/cast-fixture.ts` | **ADR 0008 Phase 0.** Packs 2–4 real `.avb` avatars in memory — the only source of N≥3 bodies. Feeds `test/bodies.test.ts` and `npm run render:bodies` |
 | `art/` | Comic Chat art tooling (decode, pose, pack) |
 | `docs/AVB_FORMAT.md` | **Normative** `.avb` format spec + the five silent-failure gotchas. Read before touching `art/` |
 | `docs/adr/` | ADRs: 0001–0005 (0005 = Narrative Director) |

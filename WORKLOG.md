@@ -10,6 +10,55 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.1 — 2026-07-27 — ADR 0008 Phase 0: multi-body fixtures, and the first N≥3 gate
+
+`layoutAvatars` shipped in v0.18.0 as an N-participant routine that nothing could hand more than two
+bodies: the packed cast (`web/assets/comic/cast.json`) holds exactly `hero` and `guide`, so every N≥3
+path was asserted nowhere — and at N=1 the routine collapses to the old solo branch, so normal play
+could not have caught a regression either. ADR 0008 §2 requires the port to be "pixel-verified now
+against real `.avb` avatar fixtures (2–4 bodies)", decoupled from mob authoring; this milestone builds
+that input, ahead of the Phase 1 `LayoutAvatars` port. **149 web tests green (was 124, +25), tsc and
+`npm run build` clean, 21 N-body PNGs reviewed.**
+
+- **`web/tools/cast-fixture.ts`** — packs 2–4 avatars in memory with `art/`'s own
+  `parseAvatar`→`packAvatar` pipeline over the tracked corpus. Nothing is committed and the shipped
+  bundle is untouched: mob *casting* is a later ADR 0006 slice (ADR 0008 §4 puts it out of scope), and
+  `art`'s `pack` script cannot be re-run from a clean checkout anyway (its backdrops come from the
+  gitignored `reference/` tree). Two entry points, because the callers differ: `packFixtureCast` +
+  `stubCast` are pure and canvas-free for geometry tests, `loadFixtureCast` decodes sheets through
+  `@napi-rs/canvas` for PNG harnesses. Fixture roles are `hero`/`guide` (production casting, so a
+  fixture panel stays comparable with `render:panel`) plus generic `mob-a`/`mob-b` — bolo and xeno,
+  picked for contrasting silhouette and full emotion coverage, deliberately *not* named troll/thief.
+- **`web/test/bodies.test.ts`** (25 tests) — `layoutAvatars` at N=1..4 over real corpus geometry,
+  pinned as *properties*, not coordinates (pixels are Phase 3's job; duplicating them here would make
+  every framing tweak a two-file edit): equal margins including both edges (`panel.cpp:607-616`),
+  uniform shrink-to-fit on overrun (`:575-585`), insertion order left-to-right, no neighbour overlap,
+  inward mirroring past centre, a shared floor, and the per-body width cap.
+- **`web/tools/render-bodies.ts`** (`npm run render:bodies`) — 21 synthetic panels, 1–4 bodies ×
+  3 camera rungs × {one speaker, all speaking}, through the same `renderPanel` the browser calls.
+  Both ends of the speaking range are rendered because Phase 1's `IsSpeaker` gating changes who is
+  *staged*. The four-speaker images also make Phase 2b's gap visible: balloons still vertical-stack.
+
+**Also recorded here: the docs-only ADR 0008 re-scope that preceded this work** (commit `bc8c1f1`, no code
+changed). The incremental-refactor path was rejected — v0.18.0 was a *structural refactor* of figure
+placement, not a rewrite, and was proven pixel-identical in solo-Hero panels (N=1 `layoutAvatars` collapses
+to the old solo branch), so it was always going to look the same in normal play. Decision: **stop
+refactoring, do a faithful port**, and treat the comic pane as a true multi-party comic (GM = former Guide,
+NPCs = mobs) rather than a solo-Hero adventure — which turns Comic Chat's multi-speaker machinery into the
+*target* and flips every earlier "defer until mobs" call to "build now". The canonical source was re-pinned
+to `original-projects/comic-chat/v2.5-beta-1-modern/` (was v1.0-pre; all prior ADR citations re-anchored in
+the amendment's table), navigated via an offline, gitignored C++ graph at
+`reference/comic-chat-v2.5-beta-1-modern/graphify-out/`. Three findings from the later source *remove*
+scope — `normHeight` is hardcoded `100` (avatar.cpp:64,110), `RearrangeBalloons` is an empty stub
+(panel.cpp:959), `BM_ACTION` captions unconditionally start a new panel (panel.cpp:1064, retiring the old
+"caption rides" divergence) — while a full-pipeline coverage audit found two real gaps the old "1–2
+balloons per panel" assumption had hidden: the multi-balloon layout driver and overflow-split. Locked:
+histeresis stubbed stable-by-insertion-order now (full with mobs); faithful `BM_ACTION`→new-panel; balloon
+placement by **seeded reproducible roll** (we port the algorithm, not the pixels — font metrics differ, so
+byte-match to the 1996 binary is unattainable).
+
+---
+
 ## v0.18.0 — 2026-07-24 — ADR 0008: the renderer becomes an N-participant port (seam + LayoutAvatars)
 
 The comic renderer's mechanical layer was a *reimplementation from analysis* for two routines ADR 0007

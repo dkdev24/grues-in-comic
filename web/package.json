@@ -11,7 +11,8 @@
     "build": "tsc -p tsconfig.build.json",
     "serve": "tsx tools/serve.ts",
     "dev": "npm run build && npm run serve",
-    "render:panel": "tsx tools/render-panel.ts"
+    "render:panel": "tsx tools/render-panel.ts",
+    "render:bodies": "tsx tools/render-bodies.ts"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.2",
