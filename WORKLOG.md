@@ -10,6 +10,44 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.2 — 2026-07-27 — ADR 0008 Phase 1: `LayoutAvatars` ported (speaker gate, adjacency facing)
+
+The three Phase 1 items, against `original-projects/comic-chat/v2.5-beta-1-modern/panel.cpp`. **157 web
+tests green (was 149, +8), tsc and build clean.** Two byte-diff checks back the claim that play is
+unchanged: the production `render:panel` panels are **byte-identical** to the same panels rendered from
+`HEAD`, and the N=1/N=2 fixture PNGs are byte-identical to their v0.18.1 renders. Only N≥3 moves.
+
+- **`IsSpeaker` gate ported** (`panel.cpp:822`, applied at `:741-749`). A body is staged when it is
+  `m_requested` or carries a balloon in this panel; the rest are dropped *before* any dimension is read,
+  as the original reclaims them ahead of `GetDimInfo`. `Body` gains `requested?: boolean` (`avatar.h:87`)
+  and the mapper sets it on the Hero — he is the panel's subject and poses on silent turns; the DM and
+  mobs earn the stage by speaking. Nothing changes today (the mapper stages the DM only when it speaks);
+  it is the rule that stops a Grue in the room from being a Grue in the frame once mobs exist.
+- **`normHeight` divergence retired** (`avatar.cpp:64,110`). `render.ts` claimed common-height scaling as
+  "the one deliberate divergence" from `maxBodyHeight · normHeight/maxNorm` (`panel.cpp:765`). The
+  shipped source hardcodes `normHeight = 100` for every body — both sites carry an `XXX ... we're
+  assuming characters are the same height` — so the ratio is 1 and our behaviour was already faithful.
+  Comment corrected and cited; no code change, and none needed.
+- **Facing ported from adjacency, superseding the geometric rule** (`OrderAvatars` `:424`, `EvalPair`
+  `:279`). `m_flip` is settled in `OrderAvatars` *before* any coordinate exists, so "mirror when past the
+  panel's centre" was structurally wrong even where it agreed. The no-talk-to branch of `EvalPair`
+  (`:293-297`) is complete on its own — 4 for not facing a neighbour, 2 for a neighbour not facing you —
+  and reduces over a fixed row to "face the side holding more bodies", ties keeping `m_lastDir`
+  (`:396-398`), stubbed to its initial `FALSE` (`avatar.cpp:894`). At N≤2 this is identical to the old
+  rule, which is why the two-shot is untouched; at N=3 it is the middle body that differs, and a
+  coordinate rule had to invent an answer there where the port has one.
+- **Stubbed, deliberately: seating.** `DoGreedyOrdering` (`:403`) picks seats by `EvalPlacement`, which
+  is driven by the talk-to graph (`AddTalkTos` `:316`) and histeresis (`UpdateHistoresis` `:435`). With
+  no mob dialogue authored, no body addresses another; the greedy then degenerates — ratings tie and the
+  seat is an artefact of the tie-break, not the scene. Fabricating a talk-to graph to feed it would be
+  inventing semantics in the mechanical layer, which ADR 0008 forbids. Order stays stable-by-insertion
+  until the mob-dialogue slice supplies the input, as the ADR planned.
+- **Fixtures extended:** `fixtureBodies` marks bodies requested by default (a layout fixture must stage
+  what it is given, or the gate silently shrinks an N-body case), with a flag to exercise the gate;
+  `render:bodies` now writes 30 PNGs including `-gated` variants where the silent bodies are reclaimed.
+
+---
+
 ## v0.18.1 — 2026-07-27 — ADR 0008 Phase 0: multi-body fixtures, and the first N≥3 gate
 
 `layoutAvatars` shipped in v0.18.0 as an N-participant routine that nothing could hand more than two

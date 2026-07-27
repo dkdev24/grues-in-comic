@@ -25,8 +25,8 @@
 
 import { describe, expect, it } from "vitest";
 import { figureFor, newCycle, type Figure } from "../src/comic/figure.js";
-import { layoutAvatars } from "../src/comic/render.js";
-import type { Body } from "../src/comic/mapper.js";
+import { isSpeaker, layoutAvatars, orderBodies } from "../src/comic/render.js";
+import { CAPTION, type Body, type Line } from "../src/comic/mapper.js";
 import {
   FIXTURE_ROLES, NEUTRAL, fixtureBodies, packFixtureCast, stubCast,
 } from "../tools/cast-fixture.js";
@@ -113,13 +113,16 @@ describe("layoutAvatars, N = 1..4", () => {
         for (const gap of gaps) expect(gap).toBeCloseTo(gaps[0]!, 6);
       });
 
-      it("mirrors the bodies past centre so the row faces inward", () => {
-        for (const p of placed) {
-          const centre = p.x + (p.figure.width * p.scale) / 2;
-          expect(p.mirror).toBe(centre > PANEL_W / 2);
+      it("turns the row inward, by adjacency rather than by coordinate", () => {
+        // `EvalPair`'s no-talk-to branch reduced over a fixed row: each body faces
+        // whichever side holds more bodies, ties keeping `m_lastDir` (`false`).
+        for (const [i, p] of placed.entries()) {
+          expect(p.mirror).toBe(n - 1 - i < i);
         }
-        // The leftmost keeps the art's rightward default at every N.
+        // The leftmost keeps the art's rightward default at every N; the rightmost
+        // turns to face the room. At N=2 that is the two-shot, unchanged.
         expect(placed[0]!.mirror).toBe(false);
+        if (n > 1) expect(placed[n - 1]!.mirror).toBe(true);
       });
 
       it("stands every body on the same floor", () => {
@@ -157,5 +160,56 @@ describe("layoutAvatars, N = 1..4", () => {
 
   it("returns nothing for an empty stage", () => {
     expect(layoutAvatars([], PANEL_W, PANEL_H, MEDIUM)).toEqual([]);
+  });
+});
+
+describe("isSpeaker (panel.cpp:822)", () => {
+  const line = (speaker: string): Line =>
+    ({ speaker, balloonClass: "CBWoodringNormal", text: "…" });
+  const body = (speaker: string, requested = false): Body =>
+    ({ speaker, emotion: NEUTRAL, requested });
+
+  it("stages a requested body that says nothing — the Hero on a silent turn", () => {
+    expect(isSpeaker(body("hero", true), [])).toBe(true);
+  });
+
+  it("stages an unrequested body that carries a balloon — the DM, a mob", () => {
+    expect(isSpeaker(body("mob-a"), [line("mob-a")])).toBe(true);
+  });
+
+  it("drops an unrequested body with nothing to say", () => {
+    // The gate that matters once mobs exist: a Grue in the room is not a Grue in
+    // the frame. Before this port every staged body was drawn unconditionally.
+    expect(isSpeaker(body("mob-a"), [line("hero"), line("guide")])).toBe(false);
+  });
+
+  it("does not let a caption stage anybody", () => {
+    const caption: Line = { speaker: CAPTION, balloonClass: "CBWoodringBox", text: "Dark." };
+    expect(isSpeaker(body("mob-a"), [caption])).toBe(false);
+  });
+});
+
+describe("orderBodies (OrderAvatars stub, panel.cpp:424)", () => {
+  const ids = (n: number) => Array.from({ length: n }, (_, i) => `b${i}`);
+
+  it("keeps insertion order — seating is stubbed until mobs supply talk-tos", () => {
+    const ordered = orderBodies(ids(4));
+    expect(ordered.map((o) => o.body)).toEqual(ids(4));
+  });
+
+  it("leaves a lone body unflipped", () => {
+    expect(orderBodies(ids(1)).map((o) => o.flip)).toEqual([false]);
+  });
+
+  it("faces the middle body of an odd row by `m_lastDir`, not by geometry", () => {
+    // 3 bodies: the middle has one neighbour each side, so `EvalPair` ties and the
+    // original falls back to the avatar's last direction (`panel.cpp:396-398`),
+    // initialised FALSE (`avatar.cpp:894`). A coordinate rule would have had to
+    // invent an answer here.
+    expect(orderBodies(ids(3)).map((o) => o.flip)).toEqual([false, false, true]);
+  });
+
+  it("turns each body toward the larger side", () => {
+    expect(orderBodies(ids(5)).map((o) => o.flip)).toEqual([false, false, false, true, true]);
   });
 });

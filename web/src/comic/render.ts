@@ -9,7 +9,7 @@
  * like at the current panel size, which §4a makes a per-render question.
  */
 
-import { CAPTION, type Body, type CameraPreset, type Panel } from "./mapper.js";
+import { CAPTION, type Body, type CameraPreset, type Line, type Panel } from "./mapper.js";
 import { drawFigure, figureFor, newCycle, type Cast, type Figure, type PoseCycle } from "./figure.js";
 import { drawBalloon, measureBalloon, type BalloonBox } from "./balloon.js";
 
@@ -122,12 +122,15 @@ export function renderPanel(
   drawBackdrop(ctx, cast, width, height, shot, options.backdrop);
 
   // The bodies to lay out are the panel's on-stage participants (`m_bodies`,
-  // `panel.cpp:528`): the DM when it speaks, the Hero always. Each figure's pose
-  // comes from its **own** body's emotion (ADR 0008 §2) — the DM's neutral set, the
-  // Hero's world-derived affect — so N participants pose independently, never
-  // sharing one panel emotion. Unknown speaker ids (no sheet) are skipped.
+  // `panel.cpp:734`), filtered to those that earn the stage — `IsSpeaker`, applied
+  // before any dimension is read, exactly as the original discards non-speakers
+  // ahead of `GetDimInfo` (`panel.cpp:741-749`). Each figure's pose comes from its
+  // **own** body's emotion (ADR 0008 §2) — the DM's neutral set, the Hero's
+  // world-derived affect — so N participants pose independently, never sharing one
+  // panel emotion. Unknown speaker ids (no sheet) are skipped.
   const bodies: Array<{ body: Body; figure: Figure }> = [];
   for (const body of panel.bodies) {
+    if (!isSpeaker(body, panel.speakers)) continue;
     const avatar = cast.manifest.cast[body.speaker];
     if (!avatar || !cast.sheets.get(body.speaker)) continue;
     const figure = figureFor(avatar, body.emotion, cycleFor(cycles, body.speaker));
@@ -159,21 +162,80 @@ export function renderPanel(
 }
 
 /**
+ * A body earns the stage — the port of `CUnitPanel::IsSpeaker` (`panel.cpp:822`).
+ *
+ * Requested first (`m_requested`, `:823` — "sort of makes them a speaker"), then a
+ * scan of the panel's balloons for one this body speaks (`:826-833`). Everything
+ * else is dropped before layout, which is what keeps a silent, unrequested
+ * participant from standing mutely in the frame once mobs can join a panel.
+ */
+export function isSpeaker(body: Body, speakers: readonly Line[]): boolean {
+  if (body.requested) return true;
+  return speakers.some((line) => line.speaker === body.speaker);
+}
+
+/**
+ * Stage order and facing — the stubbed port of `OrderAvatars` (`panel.cpp:424`,
+ * called from `LayoutAvatars` `:753`) and `UpdateHistoresis` (`:435`).
+ *
+ * The original decides both at once, and both from data we do not have yet. Order
+ * comes from `DoGreedyOrdering` (`:403`), which inserts each body at the seat
+ * minimising `EvalPlacement` (`:358`); facing (`m_flip`) falls out of the same
+ * scoring. The score is driven by the **talk-to graph** (`AddTalkTos`, `:316` —
+ * who is addressing whom) and by **histeresis** (`m_lastLeft`/`m_lastRight`/
+ * `m_lastDir`, `:435`, which keep a participant in the seat they held last panel).
+ * We have neither: nothing authors mob dialogue yet, so no body addresses another,
+ * and with an empty talk-to graph the greedy degenerates — every rating ties and
+ * the seat chosen is an artefact of the tie-break, not of the scene. Fabricating a
+ * talk-to graph to feed it would be inventing semantics in the mechanical layer,
+ * exactly what ADR 0008 forbids. So order is **stable by insertion** until the
+ * mob-dialogue slice supplies the missing input, and this returns facings only.
+ *
+ * Facing *is* ported, because the no-talk-to branch of `EvalPair` (`:293-297`) is
+ * complete on its own: a body is charged 4 when it does not face a neighbour and 2
+ * when a neighbour does not face it, summed over pairs. Reduced over a fixed row,
+ * every left-hand neighbour costs 6 to face away from and every right-hand one the
+ * same, so each body faces its **larger side** — the leftmost faces right, the
+ * rightmost faces left, and the row turns inward. An exact tie (the middle of an
+ * odd row) is `EvalPlacement`'s `m_lastDir` case (`:396-398`); with histeresis
+ * stubbed that is the avatar's initial `m_lastDir = FALSE` (`avatar.cpp:894`) —
+ * the art's rightward default.
+ *
+ * This supersedes the geometric "past the panel's centre" rule: the original
+ * settles facing from adjacency in `OrderAvatars`, *before* any coordinate exists.
+ * At N≤2 the two rules agree, which is why nothing in play changes.
+ */
+export function orderBodies<T>(bodies: readonly T[]): Array<{ body: T; flip: boolean }> {
+  const n = bodies.length;
+  return bodies.map((body, i) => {
+    const left = i;
+    const right = n - 1 - i;
+    // Facing right costs 6 per body on the left, facing left 6 per body on the
+    // right; the cheaper wins, and a tie keeps `m_lastDir` (stubbed FALSE).
+    return { body, flip: right < left };
+  });
+}
+
+/**
  * Place N bodies across the panel floor — the port of `CUnitPanel::LayoutAvatars`
- * (`panel.cpp:528`).
+ * (`panel.cpp:726`).
  *
- * Each body is scaled to the camera's fill height (our `shot.fill` stands in for
- * the original's `maxBodyHeight = unitHeight/1.9`; the §7 ladder chooses it, which
- * is the one deliberate divergence — our art carries no per-avatar `normHeight`,
- * so all bodies normalize to a common target instead of by `normHeight/maxNorm`,
- * `panel.cpp:561-570`). Their widths are summed; if the row overruns the panel the
- * whole set is reduced to fit (`panel.cpp:575-585`). Bodies are then spread with
- * **equal margins**, including the two edges (`margin = (unitWidth − Σw)/(n+1)`,
- * `panel.cpp:607-616`). A body past the panel's centre is mirrored so it faces
- * inward — the N-body generalization of the two-shot's "Hero faces the Guide"
- * (ADR 0005 §4); the leftmost keeps the art's rightward default.
+ * Each body is scaled to the camera's fill height — our `shot.fill` stands in for
+ * the original's `maxBodyHeight = unitHeight/1.9`, the §7 ladder choosing it. That
+ * common height is **faithful, not a divergence**: the scale is
+ * `maxBodyHeight · normHeight/maxNorm` (`panel.cpp:765`), and `normHeight` is
+ * hardcoded to `100` for every body in the shipped source (`avatar.cpp:64,110`,
+ * both marked `XXX ... we're assuming characters are the same height`), so the
+ * ratio is 1 and every body normalizes to the same target. Our art carries no
+ * per-avatar `normHeight` either, and now it does not need one.
  *
- * We do **not** port the `zoomIn` branch (`panel.cpp:586-600`): the camera ladder
+ * Widths are summed; if the row overruns the panel the whole set is reduced by one
+ * factor (`panel.cpp:777-786`). Bodies are then spread with **equal margins**,
+ * including the two edges (`margin = (unitWidth − Σw)/(n+1)`, `panel.cpp:807-816`).
+ * Facing comes from {@link orderBodies}, as `m_flip` comes from `OrderAvatars`
+ * (`:753`) — adjacency, not coordinates.
+ *
+ * We do **not** port the `zoomIn` branch (`panel.cpp:788-804`): the camera ladder
  * already chooses figure size per rung, and `MAX_SCALE`/`fit` cap it (§7).
  */
 export function layoutAvatars(
@@ -183,6 +245,7 @@ export function layoutAvatars(
   const n = bodies.length;
   if (n === 0) return [];
 
+  const ordered = orderBodies(bodies);
   const scales = bodies.map((b) => fit(b.figure, height, shot.fill, widthCap));
   const widths = bodies.map((b, i) => b.figure.width * scales[i]!);
   const sumWidth = widths.reduce((a, w) => a + w, 0);
@@ -207,7 +270,7 @@ export function layoutAvatars(
     placed.push({
       speaker: body.speaker, figure, scale, x,
       y: height - figure.height * scale * shot.reveal,
-      mirror: x + w / 2 > width / 2,
+      mirror: ordered[i]!.flip,
     });
     x += w + margin;
   }

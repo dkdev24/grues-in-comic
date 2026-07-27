@@ -98,6 +98,14 @@ export interface Body {
   speaker: string;
   /** Priority-descending `CEmotionOpts` set driving this body's pose (§10). */
   emotion: readonly EmotionOption[];
+  /**
+   * `m_requested` (`avatar.h:87`): stage this body even on a turn it says nothing.
+   * `IsSpeaker` (`panel.cpp:822`) admits a body that is requested **or** carries a
+   * balloon, and drops the rest — so an unrequested, silent body is not drawn.
+   * The Hero is requested (he is the panel's subject); the DM and mobs earn the
+   * stage by speaking.
+   */
+  requested?: boolean;
 }
 
 export interface Panel {
@@ -281,7 +289,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // §9 flow, his affect derived from the reply, never from his own balloon.
       const bodies: Body[] = [];
       if (guideLine !== null) bodies.push({ speaker: GUIDE, emotion: GUIDE_EMOTION });
-      bodies.push({ speaker: HERO, emotion: affect.options });
+      bodies.push({ speaker: HERO, emotion: affect.options, requested: true });
 
       const panel: Panel = {
         turn: turn.status.moves,

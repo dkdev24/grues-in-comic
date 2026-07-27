@@ -35,7 +35,12 @@ const LINES: Record<string, string> = {
   "mob-b": "Something moves in the dark behind you.",
 };
 
-function panel(n: number, camera: CameraPreset, speaking: number): Panel {
+/**
+ * `gated` drops `m_requested` from the silent bodies, so `IsSpeaker`
+ * (`panel.cpp:822`) reclaims them and the panel stages only the speakers — the
+ * Phase 1 behaviour that has no equivalent in a two-role cast.
+ */
+function panel(n: number, camera: CameraPreset, speaking: number, gated = false): Panel {
   const roles = ROLES.slice(0, n);
   return {
     turn: n,
@@ -43,7 +48,12 @@ function panel(n: number, camera: CameraPreset, speaking: number): Panel {
     emphatic: false,
     room: "TROLL-ROOM",
     focus: null,
-    bodies: fixtureBodies(roles, NEUTRAL),
+    bodies: gated
+      ? [
+          ...fixtureBodies(roles.slice(0, speaking), NEUTRAL),
+          ...fixtureBodies(roles.slice(speaking), NEUTRAL, false),
+        ]
+      : fixtureBodies(roles, NEUTRAL),
     speakers: [
       { speaker: CAPTION, balloonClass: "CBWoodringBox", text: "The troll room, lit by a failing lamp." },
       ...roles.slice(0, speaking).map((speaker) => ({
@@ -69,13 +79,19 @@ async function main(): Promise<void> {
       // Silent bodies matter as much as speaking ones: Phase 1's `IsSpeaker`
       // gating changes who is *staged*, so both ends of that range get an image.
       for (const speaking of new Set([1, n])) {
-        const canvas = createCanvas(PANEL_W, PANEL_H);
-        const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
-        renderPanel(ctx, panel(n, camera, speaking), cast, PANEL_W, PANEL_H, { backdrop: BACKDROP });
-        const name = `n${n}-${camera}-speak${speaking}.png`;
-        writeFileSync(join(outDir, name), canvas.toBuffer("image/png"));
-        console.log(`${name}  bodies=${n} speaking=${speaking}`);
-        count++;
+        // Ungated, then — where it differs — the same panel with the silent bodies
+        // unrequested, which is the `IsSpeaker` reclaim.
+        for (const gated of speaking === n ? [false] : [false, true]) {
+          const canvas = createCanvas(PANEL_W, PANEL_H);
+          const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+          renderPanel(
+            ctx, panel(n, camera, speaking, gated), cast, PANEL_W, PANEL_H, { backdrop: BACKDROP },
+          );
+          const name = `n${n}-${camera}-speak${speaking}${gated ? "-gated" : ""}.png`;
+          writeFileSync(join(outDir, name), canvas.toBuffer("image/png"));
+          console.log(`${name}  bodies=${n} speaking=${speaking}${gated ? " (gated)" : ""}`);
+          count++;
+        }
       }
     }
   }

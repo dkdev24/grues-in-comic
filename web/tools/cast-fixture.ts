@@ -110,11 +110,19 @@ export function stubCast(packed: PackedFixture): Cast {
   return { manifest: packed.manifest, sheets, backdrops: new Map() };
 }
 
-/** On-stage bodies for `roles`, in insertion order — Phase 1's stable slot order. */
+/**
+ * On-stage bodies for `roles`, in insertion order — the stable slot order
+ * `orderBodies` stubs.
+ *
+ * `requested` defaults to true because a layout fixture exists to *stage what it
+ * is given*: `IsSpeaker` (`panel.cpp:822`) would otherwise drop every silent body
+ * and quietly turn an N-body case into a smaller one. Pass `false` to exercise the
+ * gate itself.
+ */
 export function fixtureBodies(
-  roles: readonly string[], emotion: Body["emotion"] = NEUTRAL,
+  roles: readonly string[], emotion: Body["emotion"] = NEUTRAL, requested = true,
 ): Body[] {
-  return roles.map((speaker) => ({ speaker, emotion }));
+  return roles.map((speaker) => ({ speaker, emotion, requested }));
 }
 
 /**
