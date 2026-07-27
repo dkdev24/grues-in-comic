@@ -18,6 +18,7 @@ import { CAPTION, GUIDE, HERO, lineOf, type Panel } from "./comic/mapper.js";
 import { createDirector, type Director } from "./comic/director.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
 import { renderPanel } from "./comic/render.js";
+import type { PanelDelta } from "./comic/page.js";
 import { backdropFor } from "./comic/backdrop.js";
 import { layoutStrip, UNIT } from "./comic/layout.js";
 import { drawPortrait, portraitCrop, PORTRAIT } from "./comic/portrait.js";
@@ -241,8 +242,21 @@ export async function createComicView(
     fail,
   };
 
-  /** Draw a batch of emitted panels and follow the strip to the newest. */
-  function render(panels: readonly Panel[]): void {
+  /**
+   * Draw a batch of emitted panels and follow the strip to the newest.
+   *
+   * `replacedLast` is panelization's clone-append (ADR 0008 Phase 2): the line
+   * grew the panel already on screen rather than starting a new one, so that
+   * panel's canvas is dropped and redrawn from the grown copy. This is our stand-in
+   * for `RemoveLastPanel`/`RefreshLastPanel` (`panel.cpp:993,1031`) — the strip is
+   * incremental, so without it the reader would see the same panel twice.
+   */
+  function render(delta: PanelDelta): void {
+    if (delta.replacedLast) {
+      const stale = drawn.pop();
+      stale?.canvas.remove();
+    }
+    const panels = delta.appended;
     if (panels.length === 0) return;
     for (const panel of panels) {
       const canvas = document.createElement("canvas");

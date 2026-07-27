@@ -22,6 +22,7 @@ import { CAPTION, GUIDE, HERO, createMapper, lineOf, type Line, type Panel } fro
 import { objectNameTable } from "../src/status.js";
 import { backdropFor } from "../src/comic/backdrop.js";
 import { renderPanel } from "../src/comic/render.js";
+import { addScript, createPage } from "../src/comic/page.js";
 import type { Cast } from "../src/comic/figure.js";
 import type { CastManifest } from "../../art/src/cast-manifest.js";
 
@@ -58,11 +59,12 @@ function panels(file: string): Panel[] {
   const mapper = createMapper({
     names: objectNameTable(doc.objects), guideScript, beatScript, guideCooldown: 0,
   });
-  mapper.panel(session.start());
+  const page = createPage();
+  addScript(page, mapper.read(session.start()));
   const commands = readFileSync(join(WALKTHROUGHS, file), "utf8")
     .split("\n").map((l) => l.trim()).filter((l) => l.length > 0 && !l.startsWith("#"));
-  for (const command of commands) mapper.panel(session.command(command));
-  return [...mapper.panels];
+  for (const command of commands) addScript(page, mapper.read(session.command(command)));
+  return [...page.panels];
 }
 
 async function main(): Promise<void> {

@@ -10,5 +10,7 @@
   "8": "backdrop.ts",
   "9": "balloon.ts",
   "10": "inspector-view.ts",
-  "11": "backdrop.ts"
+  "11": "backdrop.ts",
+  "12": "status.ts",
+  "13": "session.ts"
 }

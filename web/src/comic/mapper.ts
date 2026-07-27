@@ -18,6 +18,7 @@ import type { EngineEvent } from "../../../engine/src/events.js";
 import { PLAYER_ID } from "../../../engine/src/state.js";
 import type { EmotionOption } from "../../../art/src/pose.js";
 import { affectFor, sentences } from "./affect.js";
+import { BM_ACTION, BM_SAY, type BalloonModes, type PageLine, type PanelContext } from "./page.js";
 import type { Turn } from "../session.js";
 
 /**
@@ -71,6 +72,17 @@ export interface Balloon {
    * (ADR 0006 §3): speech when he addresses the DM, thought for an interior aside.
    */
   balloonClass: BalloonClass;
+  text: string;
+}
+
+/**
+ * An utterance before panelization: the register the mapper chose, as Comic Chat's
+ * `uModes` mask. `page.ts` turns it into a {@link BalloonClass} via `MakeBalloon`
+ * (`panel.cpp:1036`), so the mapper never names a Woodring class — that mapping is
+ * the port's, not ours.
+ */
+export interface Utterance {
+  modes: BalloonModes;
   text: string;
 }
 
@@ -178,11 +190,28 @@ export interface MapperOptions {
   beatScript?: ReadonlyMap<string, string>;
 }
 
+/**
+ * A turn, read as utterances (ADR 0008 Phase 2). The mapper no longer builds a
+ * panel: it says *what is said, by whom, in what register*, and `page.ts` decides
+ * which panel that lands in — the split ADR 0008 §Context asks for, semantic here
+ * and mechanical there.
+ */
+export interface TurnScript {
+  /** Panel-level facts that are ours, not Comic Chat's — see {@link PanelContext}. */
+  context: PanelContext;
+  /** The turn's utterances in draw order: caption, then the DM, then the Hero. */
+  lines: readonly PageLine[];
+  /**
+   * Bodies to stage with no balloon — `AddReaction` (`panel.cpp:1142`). The Hero
+   * on a silent turn: he poses to the world's reply and says nothing, which is
+   * most turns.
+   */
+  reactions: readonly { speaker: string; emotion: readonly EmotionOption[] }[];
+}
+
 export interface Mapper {
-  /** Fold one turn in and get its panel. ~1 panel per turn (§6). */
-  panel(turn: Turn): Panel;
-  /** Every panel produced so far — the canonical stream of §5. */
-  readonly panels: readonly Panel[];
+  /** Fold one turn in and read off its utterances. */
+  read(turn: Turn): TurnScript;
 }
 
 export function createMapper(options: MapperOptions = {}): Mapper {
@@ -193,13 +222,11 @@ export function createMapper(options: MapperOptions = {}): Mapper {
 
   const visited = new Set<string>();
   const inventory = new Set<string>();
-  const panels: Panel[] = [];
   let room = "";
   let lastGuideTurn = -Infinity;
 
   return {
-    panels,
-    panel(turn: Turn): Panel {
+    read(turn: Turn): TurnScript {
       const text = panelText(turn.events);
       // Read off the channel, not out of the prose (ADR 0002's actual purpose).
       const systemChannel = turn.events.some(
@@ -271,42 +298,46 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const guideLine = guideFor(firstVisit, room, affect.marker, turn.status.moves);
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
 
-      // Assemble the panel's utterances in draw order (ADR 0008 §2): the caption
-      // frames the panel, the DM reads into it, the Hero answers. `MakeBalloon`
-      // (`panel.cpp:335`) — the element list the balloon stack draws.
+      // The turn's utterances in draw order (ADR 0008 §2): the caption frames the
+      // panel, the DM reads into it, the Hero answers. Each is one `AddLine`
+      // (`panel.cpp:1058`) — whether they land in one panel or three is `page.ts`'s
+      // decision now, not this module's.
       const caption = captionFor(text, affect.matched);
       const hero = heroBalloon(took, dropped, names);
-      const speakers: Line[] = [];
-      if (caption) speakers.push({ ...caption, speaker: CAPTION });
-      if (guideLine !== null) {
-        speakers.push({ speaker: GUIDE, balloonClass: "CBWoodringNormal", text: guideLine });
+      const lines: PageLine[] = [];
+      if (caption) {
+        // Bodiless: the caption is narration, and `BM_ACTION` alone is what makes
+        // it break the panel (`panel.cpp:1064`).
+        lines.push({ ...caption, speaker: CAPTION, emotion: [], bodiless: true });
       }
-      if (hero) speakers.push({ ...hero, speaker: HERO });
+      if (guideLine !== null) {
+        lines.push({ speaker: GUIDE, modes: BM_SAY, text: guideLine, emotion: GUIDE_EMOTION });
+      }
+      if (hero) lines.push({ ...hero, speaker: HERO, emotion: affect.options });
 
-      // On-stage bodies, left→right (`m_bodies`, laid out by `LayoutAvatars`): the
-      // DM stands left *when it speaks* (`panel.cpp:623` requested-or-speaker), the
-      // Hero is always present (his adventure) and poses to the world's reply — the
-      // §9 flow, his affect derived from the reply, never from his own balloon.
-      const bodies: Body[] = [];
-      if (guideLine !== null) bodies.push({ speaker: GUIDE, emotion: GUIDE_EMOTION });
-      bodies.push({ speaker: HERO, emotion: affect.options, requested: true });
+      // The Hero is always on stage — it is his adventure — and poses to the
+      // world's reply (§9: his affect comes from the reply, never from his own
+      // balloon). A line stages him; on a turn he says nothing, that staging is a
+      // reaction (`AddReaction`, `panel.cpp:1142`). The DM and mobs earn the stage
+      // by speaking, so they need no entry here.
+      const reactions = hero === null ? [{ speaker: HERO, emotion: affect.options }] : [];
 
-      const panel: Panel = {
-        turn: turn.status.moves,
-        camera,
-        emphatic: camera === "establishing" && scoreDelta > 0,
-        room,
-        focus: camera === "close-up" ? (salientMove?.object ?? null) : null,
-        bodies,
-        speakers,
-        marker: affect.marker,
-        kind: panelKind({
-          gameOver, moved, firstVisit, took, dropped, salientMove,
-          scoreDelta, marker: affect.marker,
-        }),
+      return {
+        lines,
+        reactions,
+        context: {
+          turn: turn.status.moves,
+          camera,
+          emphatic: camera === "establishing" && scoreDelta > 0,
+          room,
+          focus: camera === "close-up" ? (salientMove?.object ?? null) : null,
+          marker: affect.marker,
+          kind: panelKind({
+            gameOver, moved, firstVisit, took, dropped, salientMove,
+            scoreDelta, marker: affect.marker,
+          }),
+        },
       };
-      panels.push(panel);
-      return panel;
     },
   };
 
@@ -420,12 +451,12 @@ export function salient(
  */
 export function heroBalloon(
   took: string | null, dropped: string | null, names: ReadonlyMap<string, string>,
-): Balloon | null {
+): Utterance | null {
   const id = took ?? dropped;
   if (id === null) return null;
   const name = names.get(id) ?? id;
   const text = took !== null ? `The ${name}, then.` : `The ${name} can stay.`;
-  return { balloonClass: "CBWoodringNormal", text };
+  return { modes: BM_SAY, text };
 }
 
 /**
@@ -442,10 +473,10 @@ export function heroBalloon(
  */
 const CAPTION_MAX = 180;
 
-export function captionFor(text: string, matched: string | null): Balloon | null {
+export function captionFor(text: string, matched: string | null): Utterance | null {
   const candidate = matched ?? sentences(text)[0] ?? null;
   if (candidate === null || candidate.length > CAPTION_MAX) return null;
-  return { balloonClass: "CBWoodringBox", text: candidate };
+  return { modes: BM_ACTION, text: candidate };
 }
 
 /** Player-visible text for the turn, on the same definition the harness uses. */

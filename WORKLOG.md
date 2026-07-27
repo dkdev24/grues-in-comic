@@ -10,6 +10,48 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.3 — 2026-07-27 — ADR 0008 Phase 2: panelization ported (`page.ts`)
+
+`web/src/comic/page.ts` is the cited port of `CUnitPanelPage` against
+`original-projects/comic-chat/v2.5-beta-1-modern/panel.cpp` — the routine ADR 0007 left as a
+reimplementation and ADR 0004 §7 had called semantic. **178 web tests green (was 157, +21), 139 engine,
+198 IR, tsc and build clean.**
+
+- **`AddLine:1058` ported whole**, with `AddReaction:1142`, `MakeBalloon:1036` (a `BM_*` bitmask per
+  `defines.h:63`, so the `uModes == BM_ACTION` exact-mask test at `:1064` is a literal port),
+  `StartNewPanel`(panel.h:91), `FetchSpeaker:606`, `ReplaceBody:626`, `AvatarInPanel:655`, `Clone:562`,
+  `RemoveLastPanel:993`, `AddPanel:1029`. The `<Brk>`/`<Chr>` sentinels are ported too.
+- **The pipeline re-ordered to mapper → Director → page.** The Director's edits are semantic and now
+  apply to the *utterance* stream; panelization runs last on what survives. Editing panels afterwards
+  would mean dropping a panel that had already absorbed a kept line by clone-append. So
+  `Mapper.panel(turn): Panel` became `Mapper.read(turn): TurnScript` (`{context, lines, reactions}`),
+  and `Director.ingest`/`flush` return a `PanelDelta` (`{replacedLast, appended}`).
+- **`PanelDelta.replacedLast` is the repaint seam.** Clone-append replaces the previous panel with a
+  grown copy, so `comic-view.ts` drops and redraws its last canvas — our stand-in for
+  `RemoveLastPanel`/`RefreshLastPanel`, without which the reader would see the same panel twice.
+- **`LayoutBalloons` injected, not stubbed away.** `AddLine`'s overflow recursion and leftover re-add
+  (`:1110-1135`) are ported behind a `FitTest` seam; Phase 2b supplies the real driver
+  (`LayoutBalloons:855`/`ForceFitBalloon:877`). The default `ALWAYS_FITS` reproduces today's behaviour,
+  and the recursion guard is the original's own commented-out `:1112` line — a lone balloon that fits
+  nowhere is kept rather than recursed on forever.
+- **One behavioural change, and it is faithful:** `m_panels.GetCount() < 2` (`:1079`, `:1148`) refuses
+  clone-append while the page holds fewer than two panels, so the *opening* turn's caption takes panel 0
+  and the Hero's body panel 1. Comic Chat never noticed — its page opens with a title panel (`AddTitle`,
+  out of scope). Every later turn is unchanged. **5 of the 6 production `render:panel` panels are
+  byte-identical to their `HEAD` renders**; the sixth is that opening panel.
+- **Oracle tests re-derived, not weakened.** `mapper.test.ts` gained a `strip()` (mapper + page) and a
+  `Shot` (the panels a turn drew, plus *its own* lines — a clone-append lands them in a panel holding an
+  earlier turn's lines, so scanning the panel would misattribute them). `director.test.ts`'s golden
+  reducer now edits scripts and panelizes the survivors through the same port. The §6 "one panel per
+  turn" count became a derived bound: panels ≤ turns on every walkthrough, never more (406/406 on the
+  full game, 12/14 on `09-take-all-surface`).
+- **New:** `web/test/page.test.ts`, 20 rule tests, one per branch of `:1058-1139`, each cited.
+
+**Next:** Phase 2b (multi-balloon layout + overflow split, behind the `FitTest` seam), then Phase 3
+(pixel-parity gate).
+
+---
+
 ## v0.18.2 — 2026-07-27 — ADR 0008 Phase 1: `LayoutAvatars` ported (speaker gate, adjacency facing)
 
 The three Phase 1 items, against `original-projects/comic-chat/v2.5-beta-1-modern/panel.cpp`. **157 web

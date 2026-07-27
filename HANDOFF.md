@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.18.2**
+**0.18.3**
 
 ---
 
@@ -32,12 +32,13 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
   ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
   fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — building.
-  Phases 0-1 done (v0.18.1-v0.18.2); Phase 2 (`page.ts` panelization) is next.
+  Phases 0-2 done (v0.18.1-v0.18.3); Phase 2b (multi-balloon layout) is next.
   Re-scoped 2026-07-24 to a full faithful port vs **v2.5-beta-1 (modern variant)** (was v1.0-pre; the comic
   pane is now a multi-party GM+NPC comic, not solo-Hero). Source: `original-projects/comic-chat/v2.5-beta-1-modern/`
   (tracked; line-identical to raw `v2.5-beta-1/`), navigated via the offline C++ graph at
-  `reference/comic-chat-v2.5-beta-1-modern/graphify-out/`. Seam + N-body layout landed v0.18.0; Phases 1–3
-  (LayoutAvatars, page.ts panelization, multi-balloon layout, pixel gate) not started — see Next Actions 00.**
+  `reference/comic-chat-v2.5-beta-1-modern/graphify-out/`. Seam + N-body layout landed v0.18.0; `LayoutAvatars`
+  (Phase 1) and `page.ts` panelization (Phase 2) are done — Phase 2b (multi-balloon layout) and Phase 3
+  (pixel gate) remain; see Next Actions 00.**
   - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
@@ -45,36 +46,34 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 157 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 178 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0008 Phase 1 done: `LayoutAvatars` ported (v0.18.2)
+## Last Session — ADR 0008 Phase 2 done: panelization ported (`page.ts`, v0.18.3)
 
-**Phases 0 and 1 are complete; next session starts at Phase 2 (`page.ts` panelization).**
+**Phases 0–2 are complete; next session starts at Phase 2b (multi-balloon layout).** Full narrative in
+`WORKLOG.md` v0.18.3; ADR 0008 has a "Phase 2 built" section. What the next session must know:
 
-Phase 0 (v0.18.1) built the multi-body fixtures — `web/tools/cast-fixture.ts` packs 2–4 real `.avb`
-avatars in memory, `web/test/bodies.test.ts` gates `layoutAvatars` at N=1..4, `npm run render:bodies`
-writes the N-body PNGs. They are the only N≥3 coverage that exists; use them for every port change.
+- **`web/src/comic/page.ts`** is the cited port of `CUnitPanelPage` (`AddLine:1058`, `AddReaction:1142`,
+  `MakeBalloon:1036` as a `BM_*` bitmask, plus `FetchSpeaker`/`ReplaceBody`/`AvatarInPanel`/`Clone`/
+  `RemoveLastPanel`/`AddPanel`/`StartNewPanel`). `web/test/page.test.ts` has 20 rule tests, one per branch.
+- **The pipeline is now mapper → Director → page.** `Mapper.panel(turn): Panel` is gone; it is
+  `Mapper.read(turn): TurnScript` (`{context, lines, reactions}`). `Director.ingest`/`flush` return a
+  `PanelDelta` (`{replacedLast, appended}`), not `Panel[]`. Panelization runs *after* the Director's
+  semantic edits, so a dropped turn can never take a kept line with it.
+- **`replacedLast` is the repaint seam** (clone-append replaces the previous panel): `comic-view.ts`
+  drops and redraws its last canvas. Any new panel consumer must handle it or it will double-draw.
+- **The `FitTest` seam is where Phase 2b plugs in.** `createPage({ fit })` — `{fits, leftover}` — with
+  `ALWAYS_FITS` as today's stand-in. `AddLine`'s overflow recursion and leftover re-add are already
+  ported around it, so Phase 2b supplies `LayoutBalloons:855`/`ForceFitBalloon:877` and nothing in
+  `page.ts` needs to change.
+- **One behavioural change, faithful and pinned:** `m_panels.GetCount() < 2` (`:1079`, `:1148`) splits
+  the *opening* turn — caption in panel 0, Hero's body in panel 1. Later turns are unchanged (caption
+  opens a panel via `BM_ACTION`, Hero clone-appends in). 5 of 6 production `render:panel` panels are
+  byte-identical to `HEAD`; the sixth is that opening panel.
 
-Phase 1 (v0.18.2) ported the three `LayoutAvatars` items against
-`original-projects/comic-chat/v2.5-beta-1-modern/panel.cpp`:
-
-- **`IsSpeaker` gate** (`:822`, applied `:741-749`) — staged when `m_requested` or carrying a balloon,
-  others dropped before dimensions are read. `Body.requested` added (`avatar.h:87`); the mapper sets it
-  on the Hero. No change in play today; it is what keeps a silent mob out of the frame later.
-- **`normHeight` divergence retired** — hardcoded `100` in the shipped source (`avatar.cpp:64,110`), so
-  our common-height `shot.fill` was already faithful. Comment corrected, no code change.
-- **Facing from adjacency** (`OrderAvatars` `:424` / `EvalPair` `:279`), replacing "mirror past panel
-  centre": `m_flip` is settled before any coordinate exists. Reduces to "face the side holding more
-  bodies", ties keeping `m_lastDir` (stubbed `FALSE`, `avatar.cpp:894`). Identical at N≤2.
-- **Seating stays stubbed stable-by-insertion** — `DoGreedyOrdering` needs the talk-to graph and
-  histeresis; with no mob dialogue every rating ties, so the seat would be a tie-break artefact.
-  Un-stub with the mob-dialogue slice.
-
-**Verified:** 157 web tests (was 149), tsc + build clean, and two byte-diff checks — production
-`render:panel` panels are byte-identical to the same panels rendered from `HEAD`, and the N=1/N=2 fixture
-PNGs are byte-identical to their v0.18.1 renders. Only N≥3 output moved. `graphify update .` re-run in
+**Verified:** 178 web (was 157), 139 engine, 198 IR, tsc + build clean, `graphify update .` re-run in
 `web/`. The working tree's `AGENTS.md` edit and untracked `original-projects/CLAUDE.md` are pre-existing
 and were left alone.
 
@@ -104,7 +103,7 @@ because the port reads them every phase:
 and verification. In rough priority:
 
 00. **ADR 0008 — full faithful port of the layout stack against v2.5-beta-1. Build plan (all folded into one
-    port, no longer deferred). START HERE next session at Phase 2.** Boundary preserved: camera ladder (SHOTS,
+    port, no longer deferred). START HERE next session at Phase 2b.** Boundary preserved: camera ladder (SHOTS,
     semantic/ours) and ADR 0007 fixed-panel + reflowing pane + column-count-by-viewport stay; figure compositing
     (`figure.ts`/`composite.ts`/`pose.ts`) stays — already a verified port.
     - **Phase 0 — multi-body fixtures. ✅ DONE (v0.18.1).** `web/tools/cast-fixture.ts` packs 2–4 real `.avb`
@@ -127,10 +126,15 @@ and verification. In rough priority:
       `EvalPair` `:279`) in `orderBodies`, replacing the geometric past-centre rule. **Still stubbed:** seating
       order (stable-by-insertion) and histeresis — `DoGreedyOrdering` `:403` needs the talk-to graph, so un-stub
       with the mob-dialogue slice. Production panels byte-identical; only N≥3 moved.
-    - **Phase 2 — `page.ts` panelization** (`AddLine`, `panel.cpp:1058`): 5-elem cap, `<2`-panel, `AvatarInPanel`
-      →new, **`BM_ACTION`→new panel** (faithful), clone-append, overflow recursion; `AddReaction:1142`,
-      `MakeBalloon:1036` taxonomy. Mapper → line stream `{avatarId,text,mode,emotion}`; re-derive ~30 oracle tests.
-    - **Phase 2b — multi-balloon layout** (the audit gap): port `LayoutBalloons:855`/`GetCloudEstimate:885`/
+    - **Phase 2 — `page.ts` panelization. ✅ DONE (v0.18.3).** `AddLine:1058` whole (5-elem cap, `<2`-panel,
+      `AvatarInPanel`→new, `BM_ACTION`→new panel, clone-append, overflow recursion + leftover re-add), with
+      `AddReaction:1142`, `MakeBalloon:1036` (a `BM_*` bitmask), `FetchSpeaker`/`ReplaceBody`/`Clone`/
+      `RemoveLastPanel`/`AddPanel`/`StartNewPanel`, and the `<Brk>`/`<Chr>` sentinels. Mapper now emits
+      `TurnScript`; Director edits scripts and returns a `PanelDelta`; the ~30 oracle tests were re-derived and
+      `page.test.ts` (20 rule tests) added. Only the opening turn's output moved — see Last Session.
+    - **Phase 2b — multi-balloon layout — NEXT** (the audit gap). Plugs into the `FitTest` seam
+      `createPage({ fit })` already ported in Phase 2 (`{fits, leftover}`; `ALWAYS_FITS` today), so `AddLine`
+      needs no change. Port `LayoutBalloons:855`/`GetCloudEstimate:885`/
       `LayoutBalloon:925` + `GetInterveningBBox`/`AdjustRouteRgns` collision + `ForceFitBalloon:877`/`SplitHeight`
       overflow, replacing the vertical stack. **Seeded reproducible roll** (per-panel deterministic seed).
     - **Phase 3 — pixel-parity gate:** commit `render:panel` PNGs (seed 1234) incl. a 3-body/multi-balloon

@@ -158,10 +158,13 @@ drift apart.
 
 ## 5. Panel breaks and camera zoom
 
-**Breaks.** In the shipped `AddLine` (`panel.cpp:1033`) a new panel starts when: the
-balloon layout fails; five elements are already in the panel; the speaker already appears
-in it (Comic Chat draws at most one balloon per character per panel); or the line is an
-action/caption box. The paper adds a fifth rule — break with 15% probability when the
+**Breaks.** In the shipped `AddLine` (`panel.cpp:1058` in v2.5-beta-1, the version this
+project ports) a new panel starts when: the balloon layout fails; five elements are
+already in the panel; the speaker already appears in it (Comic Chat draws at most one
+balloon per character per panel); the page holds fewer than two panels; or the line is an
+action/caption box. **This is ported, in `web/src/comic/page.ts`** (ADR 0008 Phase 2,
+v0.18.3) — the rules below are live behaviour here, not just history. The paper adds a
+sixth rule — break with 15% probability when the
 panel's first utterance ran long, so that single-character panels happen sometimes — but
 **there is no such probability in `AddLine`**; the panel-break path calls no RNG at all.
 
@@ -266,6 +269,14 @@ The mismatch is in its *panel policy*. A box arrives via `SM_ACTION` — the IRC
 emote — and the very first thing `AddLine` does with one is `StartNewPanel()`. A caption
 is treated as a rare interruption that gets a panel to itself. In Zork, captions are 100%
 of turns. Inherit Comic Chat's caption *geometry*; invert its caption *cadence*.
+
+**Resolved by the port (ADR 0008 Amendment 2026-07-24b, built v0.18.3): keep the cadence
+too, and it costs nothing.** The caption does start its own panel, exactly as `:1064`
+says — and then the Hero's line *clone-appends back into it*, because he is not yet in
+that panel. A caption on every turn therefore yields one panel per turn, which is the
+cadence this section wanted, without inverting anything. The one exception is the opening
+turn, where `m_panels.GetCount() < 2` (`:1079`) refuses the append; Comic Chat never saw
+it because its page opens with a title panel.
 
 **"Who is on screen when nobody speaks" has no default answer.** Comic Chat's rule —
 always show the speaker — yields an empty panel. And the obvious fix, show the player,

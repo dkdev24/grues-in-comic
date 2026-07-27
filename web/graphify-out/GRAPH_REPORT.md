@@ -1,16 +1,16 @@
 # Graph Report - web  (2026-07-27)
 
 ## Corpus Check
-- 35 files · ~42,834 words
+- 37 files · ~47,092 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 325 nodes · 602 edges · 12 communities
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.76)
+- 369 nodes · 713 edges · 14 communities
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 9 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b184426e`
+- Built from commit: `ff310898`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,55 +27,57 @@
 - balloon.ts
 - inspector-view.ts
 - backdrop.ts
+- status.ts
+- session.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `Turn` - 18 edges
-2. `renderPanel()` - 13 edges
-3. `createSession()` - 13 edges
-4. `Panel` - 11 edges
-5. `main()` - 11 edges
-6. `lineOf()` - 9 edges
-7. `createComicView()` - 8 edges
-8. `figureFor()` - 8 edges
-9. `createMapper()` - 8 edges
-10. `objectNameTable()` - 8 edges
+1. `Turn` - 19 edges
+2. `Panel` - 13 edges
+3. `renderPanel()` - 13 edges
+4. `createSession()` - 13 edges
+5. `addScript()` - 12 edges
+6. `createPage()` - 11 edges
+7. `main()` - 11 edges
+8. `createComicView()` - 8 edges
+9. `drawBalloon()` - 8 edges
+10. `figureFor()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `main()` --calls--> `backdropFor()`  [EXTRACTED]
-  tools/render-panel.ts → src/comic/backdrop.ts
-- `loadCastFromDisk()` --calls--> `loadImage()`  [EXTRACTED]
-  tools/render-panel.ts → src/comic/figure.ts
-- `figures()` --calls--> `newCycle()`  [EXTRACTED]
-  test/bodies.test.ts → src/comic/figure.ts
-- `figures()` --calls--> `figureFor()`  [EXTRACTED]
-  test/bodies.test.ts → src/comic/figure.ts
-- `joinOnly()` --calls--> `figureFor()`  [EXTRACTED]
-  test/figure.test.ts → src/comic/figure.ts
+- `addScript()` --indirect_call--> `line()`  [INFERRED]
+  src/comic/page.ts → test/page.test.ts
+- `options()` --calls--> `objectNameTable()`  [EXTRACTED]
+  test/director.test.ts → src/status.ts
+- `measureBalloon()` --indirect_call--> `line()`  [INFERRED]
+  src/comic/balloon.ts → test/page.test.ts
+- `drawBalloon()` --indirect_call--> `line()`  [INFERRED]
+  src/comic/balloon.ts → test/page.test.ts
+- `loadFixtureCast()` --calls--> `loadImage()`  [EXTRACTED]
+  tools/cast-fixture.ts → src/comic/figure.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (12 total, 0 thin omitted)
+## Communities (14 total, 0 thin omitted)
 
 ### Community 0 - "inspector-view.ts"
-Cohesion: 0.08
-Nodes (20): Mapper, ConsoleView, createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004 (+12 more)
+Cohesion: 0.12
+Nodes (9): createMixTracker(), PersistedSession, PersistedTurn, rehydrate(), SessionStore, StorageFullError, ADR-0002, save (+1 more)
 
 ### Community 1 - "status.ts"
-Cohesion: 0.07
-Nodes (30): fetchWorld(), main(), message(), requireEl(), ADR-0002, ADR-0005, createSessionStore(), createSession() (+22 more)
+Cohesion: 0.21
+Nodes (11): fetchWorld(), main(), message(), requireEl(), ADR-0002, ADR-0005, createSessionStore(), createSession() (+3 more)
 
 ### Community 2 - "session.ts"
-Cohesion: 0.06
-Nodes (42): Affect, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, sentences(), ADR-0002 (+34 more)
+Cohesion: 0.05
+Nodes (45): Affect, affectFor(), AffectInput, AffectMarker, matchedSentence(), NEUTRAL, sentences(), ADR-0002 (+37 more)
 
 ### Community 3 - "main.ts"
-Cohesion: 0.09
-Nodes (30): loadImage(), Body, CameraPreset, isSpeaker(), cast, figures(), MEDIUM, packed (+22 more)
+Cohesion: 0.18
+Nodes (10): ConsoleView, createConsoleView(), renderEvent(), required(), trimTrailingNewline(), ADR-0002, ADR-0004, InspectorView (+2 more)
 
 ### Community 4 - "Turn"
-Cohesion: 0.08
-Nodes (38): AFFECT_MARKERS, Cast, drawFigure(), Figure, figureFor(), newCycle(), PoseCycle, rotate() (+30 more)
+Cohesion: 0.05
+Nodes (60): AFFECT_MARKERS, Cast, drawFigure(), Figure, figureFor(), newCycle(), PoseCycle, rotate() (+52 more)
 
 ### Community 5 - "serve.ts"
 Cohesion: 0.22
@@ -83,46 +85,54 @@ Nodes (7): CONTENT_TYPES, PORT, REPO_ROOT, server, ADR-0002, WEB_ROOT, WORLD_ROO
 
 ### Community 6 - "console-view.ts"
 Cohesion: 0.08
-Nodes (27): createDirector(), loadCast(), cellFor(), columnsFor(), LayoutOptions, layoutStrip(), StripLayout, ADR-0004 (+19 more)
+Nodes (28): createDirector(), loadCast(), cellFor(), columnsFor(), LayoutOptions, layoutStrip(), StripLayout, ADR-0004 (+20 more)
 
 ### Community 7 - "MixTracker"
 Cohesion: 0.33
 Nodes (4): grid, PRESETS, SIZES, status
 
 ### Community 8 - "backdrop.ts"
-Cohesion: 0.31
-Nodes (7): backdropFor(), BackdropId, ROOM_BACKDROPS, ADR-0004, here, roomIds, world
+Cohesion: 0.15
+Nodes (16): backdropFor(), BackdropId, ROOM_BACKDROPS, ADR-0004, loadImage(), lineOf(), describe(), here (+8 more)
 
 ### Community 9 - "balloon.ts"
-Cohesion: 0.12
-Nodes (21): BalloonBox, bubbleTrail(), cloud(), drawBalloon(), goalWidth(), greedyWrap(), measureBalloon(), Pt (+13 more)
+Cohesion: 0.11
+Nodes (23): BalloonBox, bubbleTrail(), cloud(), drawBalloon(), goalWidth(), greedyWrap(), measureBalloon(), Pt (+15 more)
 
 ### Community 10 - "inspector-view.ts"
-Cohesion: 0.13
-Nodes (14): ALL_EVENT_KINDS, describeEvent(), EventKind, EventMix, MixTracker, summarize(), ADR-0002, ADR-0004 (+6 more)
+Cohesion: 0.19
+Nodes (12): ALL_EVENT_KINDS, describeEvent(), EventKind, EventMix, summarize(), ADR-0002, ADR-0004, createInspectorView() (+4 more)
 
 ### Community 11 - "backdrop.ts"
-Cohesion: 0.31
-Nodes (6): Director, DirectorOptions, ADR-0004, ADR-0005, MapperOptions, Panel
+Cohesion: 0.06
+Nodes (39): Director, DirectorOptions, ADR-0004, ADR-0005, ADR-0008, BalloonClass, CameraPreset, MapperOptions (+31 more)
+
+### Community 12 - "status.ts"
+Cohesion: 0.16
+Nodes (9): createStatusTracker(), roomNameTable(), StatusTracker, ADR-0002, ADR-0004, ADR-0005, names, ADR-0002 (+1 more)
+
+### Community 13 - "session.ts"
+Cohesion: 0.18
+Nodes (5): MixTracker, SessionOptions, ADR-0004, ADR-0004, WORLD
 
 ## Knowledge Gaps
-- **125 isolated node(s):** `status`, `grid`, `PRESETS`, `SIZES`, `GUIDE_SCRIPT` (+120 more)
+- **137 isolated node(s):** `status`, `grid`, `PRESETS`, `SIZES`, `GUIDE_SCRIPT` (+132 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Turn` connect `inspector-view.ts` to `status.ts`, `session.ts`, `console-view.ts`, `inspector-view.ts`, `backdrop.ts`?**
-  _High betweenness centrality (0.090) - this node is a cross-community bridge._
-- **Why does `Panel` connect `backdrop.ts` to `status.ts`, `session.ts`, `main.ts`, `Turn`, `console-view.ts`?**
+- **Why does `Turn` connect `main.ts` to `inspector-view.ts`, `status.ts`, `session.ts`, `console-view.ts`, `inspector-view.ts`, `backdrop.ts`, `session.ts`?**
+  _High betweenness centrality (0.093) - this node is a cross-community bridge._
+- **Why does `Panel` connect `backdrop.ts` to `backdrop.ts`, `session.ts`, `Turn`, `console-view.ts`?**
   _High betweenness centrality (0.025) - this node is a cross-community bridge._
-- **Why does `Session` connect `status.ts` to `inspector-view.ts`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `Session` connect `status.ts` to `main.ts`, `session.ts`?**
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **What connects `status`, `grid`, `PRESETS` to the rest of the system?**
-  _125 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _137 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `inspector-view.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07563025210084033 - nodes in this community are weakly interconnected._
-- **Should `status.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.0666049953746531 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12280701754385964 - nodes in this community are weakly interconnected._
 - **Should `session.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05877551020408163 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0531986531986532 - nodes in this community are weakly interconnected._
+- **Should `Turn` be split into smaller, more focused modules?**
+  _Cohesion score 0.05456095481670929 - nodes in this community are weakly interconnected._

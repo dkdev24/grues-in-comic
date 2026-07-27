@@ -2,15 +2,22 @@
  * The Narrative Director (ADR 0005): the seam between the turn stream and the
  * panel stream.
  *
- * Where the {@link Mapper} is `panel(turn) -> Panel` (exactly one), the Director
- * is `ingest(turn) -> Panel[]` (**zero to many**). That arity is the whole point:
- * it lets the comic become an *edited retelling* — dropping noise turns, collapsing
- * traversal, buffering until a beat resolves — rather than a one-panel-per-turn
- * mirror of the transcript.
+ * Where the {@link Mapper} is `read(turn) -> TurnScript` (exactly one script per
+ * turn), the Director is `ingest(turn) -> PanelDelta` (**zero to many panels**).
+ * That arity is the whole point: it lets the comic become an *edited retelling* —
+ * dropping noise turns, collapsing traversal, buffering until a beat resolves —
+ * rather than a one-panel-per-turn mirror of the transcript.
+ *
+ * **Order of the two edits (ADR 0008 Phase 2).** The Director now edits the
+ * *utterance* stream and hands what survives to {@link Page}, which panelizes it.
+ * That ordering is deliberate: which turns are worth showing is semantic and ours;
+ * how surviving lines pack into panels is mechanical and Comic Chat's. Running the
+ * port first and editing panels afterwards would mean dropping a panel that had
+ * already absorbed a kept line by clone-append.
  *
  * **Slice 3 — noise drop.** The Director drops turns the mapper tagged `refusal`
  * (ADR 0005 §2/§3): the parser said no and nothing happened, the try-and-error the
- * play-log rendered verbatim. `ingest` returns `[]` for those.
+ * play-log rendered verbatim. `ingest` emits no panels for those.
  *
  * **Slice 4 — traversal collapse (this file's buffering).** A *run* of consecutive
  * `traversal` panels — moves through rooms already seen, i.e. backtracking — is
@@ -39,59 +46,69 @@
  */
 
 import type { Turn } from "../session.js";
-import { createMapper, type MapperOptions, type Panel } from "./mapper.js";
+import { createMapper, type MapperOptions, type Panel, type TurnScript } from "./mapper.js";
+import { addScript, createPage, mergeDelta, type FitTest, type Page, type PanelDelta } from "./page.js";
 
-export type DirectorOptions = MapperOptions;
+export interface DirectorOptions extends MapperOptions {
+  /** Balloon-layout seam handed to the {@link Page}; see `page.ts`. */
+  fit?: FitTest;
+}
+
+/** Nothing was emitted this call. A fresh object each time — deltas are merged into. */
+const noPanels = (): PanelDelta => ({ replacedLast: false, appended: [] });
 
 export interface Director {
-  /** Fold one turn in; get the panels it emitted — `[]` when dropped or buffered. */
-  ingest(turn: Turn): Panel[];
+  /**
+   * Fold one turn in; get what it did to the panel list — no panels when the turn
+   * was dropped or buffered, and `replacedLast` when a line clone-appended into
+   * the panel already on screen.
+   */
+  ingest(turn: Turn): PanelDelta;
   /** Emit any buffered traversal run. Call at end of input; a no-op if none pends. */
-  flush(): Panel[];
+  flush(): PanelDelta;
   /** Every panel *emitted* so far — the edited stream the view draws (ADR 0005). */
   readonly panels: readonly Panel[];
 }
 
 export function createDirector(options: DirectorOptions = {}): Director {
   const mapper = createMapper(options);
-  const emitted: Panel[] = [];
-  // The run collapses to its latest panel — the destination reached so far. `null`
-  // when no traversal run is open.
-  let pendingTraversal: Panel | null = null;
+  const page: Page = createPage(options.fit ? { fit: options.fit } : {});
+  // The run collapses to its latest script — the destination reached so far.
+  // `null` when no traversal run is open.
+  let pendingTraversal: TurnScript | null = null;
 
-  /** Emit the buffered run's one panel, if any, and clear the buffer. */
-  function flushPending(): Panel[] {
-    if (pendingTraversal === null) return [];
-    const panel = pendingTraversal;
+  /** Panelize the buffered run's one script, if any, and clear the buffer. */
+  function flushPending(): PanelDelta {
+    if (pendingTraversal === null) return noPanels();
+    const script = pendingTraversal;
     pendingTraversal = null;
-    emitted.push(panel);
-    return [panel];
+    return addScript(page, script);
   }
 
   return {
     get panels() {
-      return emitted;
+      return page.panels;
     },
-    flush(): Panel[] {
+    flush(): PanelDelta {
       return flushPending();
     },
-    ingest(turn: Turn): Panel[] {
+    ingest(turn: Turn): PanelDelta {
       // Always fold — the mapper's stream state must stay whole even when the
-      // panel is dropped or buffered (see the module note).
-      const panel = mapper.panel(turn);
+      // turn is dropped or buffered (see the module note).
+      const script = mapper.read(turn);
       // Slice 3: drop refusals. A refusal never interrupts a walk, so an open
       // traversal run keeps buffering across it.
-      if (panel.kind === "refusal") return [];
+      if (script.context.kind === "refusal") return noPanels();
       // Slice 4: hold a traversal, keeping only the latest — the run's destination.
-      if (panel.kind === "traversal") {
-        pendingTraversal = panel;
-        return [];
+      if (script.context.kind === "traversal") {
+        pendingTraversal = script;
+        return noPanels();
       }
-      // Any other beat ends the run: flush it first, then emit this panel.
+      // Any other beat ends the run: flush it first, then emit this turn.
       const out = flushPending();
-      emitted.push(panel);
-      out.push(panel);
+      mergeDelta(out, addScript(page, script));
       return out;
     },
   };
 }
+

@@ -27,15 +27,44 @@ import { PLAYER_ID } from "../../engine/src/state.js";
 import { createSession } from "../src/session.js";
 import {
   CAPTION, GUIDE, HERO, captionFor, createMapper, heroBalloon, lineOf, panelKind, salient,
-  type Line, type Panel,
+  type Line, type MapperOptions, type Panel,
 } from "../src/comic/mapper.js";
+import { BM_SAY, addScript, createPage, makeBalloonClass } from "../src/comic/page.js";
+import type { Turn } from "../src/session.js";
 import { objectNameTable } from "../src/status.js";
 import { AFFECT_MARKERS, affectFor } from "../src/comic/affect.js";
 
-/** Name a panel's speaker line by role — the seam generalized to N (ADR 0008 §2). */
-const hero = (p?: Panel): Line | null => (p ? lineOf(p, HERO) : null);
-const guide = (p?: Panel): Line | null => (p ? lineOf(p, GUIDE) : null);
-const caption = (p?: Panel): Line | null => (p ? lineOf(p, CAPTION) : null);
+/**
+ * Name a speaker's line by role — the seam generalized to N (ADR 0008 §2).
+ *
+ * A {@link Shot} (what one turn drew) is 1..N panels since panelization landed, so
+ * the lookup scans the shot: `AddLine` may have opened a panel for the caption and
+ * put the Hero's answer in the next one. Passing a single `Panel` still works, for
+ * the tests that assert over the flat page.
+ */
+interface Shot {
+  /** The panels this turn drew — 1..N, and the first may be one it grew. */
+  panels: readonly Panel[];
+  /** The balloons *this turn* added, in draw order. */
+  lines: readonly Line[];
+}
+
+function lineIn(target: Shot | Panel | undefined, speaker: string): Line | null {
+  if (!target) return null;
+  if ("lines" in target) return target.lines.find((l) => l.speaker === speaker) ?? null;
+  return lineOf(target, speaker);
+}
+
+const hero = (p?: Shot | Panel): Line | null => lineIn(p, HERO);
+const guide = (p?: Shot | Panel): Line | null => lineIn(p, GUIDE);
+const caption = (p?: Shot | Panel): Line | null => lineIn(p, CAPTION);
+
+/**
+ * The panel a shot ends on. Panel-level context (camera, room, kind) is the same
+ * across every panel a single turn drew — they share one {@link PanelContext} — so
+ * any of them answers; the last is the one left on screen.
+ */
+const frame = (s?: Shot): Panel | undefined => s?.panels[s.panels.length - 1];
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const WALKTHROUGHS = join(ROOT, "verification", "walkthroughs");
@@ -47,6 +76,38 @@ beforeAll(() => {
   doc = JSON.parse(readFileSync(WORLD, "utf8")) as WorldDocument;
 });
 
+/**
+ * Mapper + page, the pair that replaced `mapper.panel(turn)` in ADR 0008 Phase 2.
+ * `turn()` returns the panel the turn's last line **landed in** — which, when the
+ * line clone-appended, is a panel an earlier turn opened. That is the port's whole
+ * point, so these tests assert on the panel a turn produced, not on a 1:1 index.
+ */
+function strip(options: MapperOptions = {}) {
+  const mapper = createMapper(options);
+  const page = createPage();
+  return {
+    /**
+     * Fold a turn in and return what it drew. The turn's own balloons are read
+     * off the script rather than off the panels: a clone-append lands them in a
+     * panel that already holds an *earlier* turn's lines, so scanning the panel
+     * would attribute those to this turn.
+     */
+    turn(t: Turn): Shot {
+      const script = mapper.read(t);
+      const delta = addScript(page, script);
+      return {
+        panels: delta.appended,
+        lines: script.lines.map((l) => ({
+          speaker: l.speaker, balloonClass: makeBalloonClass(l.modes), text: l.text,
+        })),
+      };
+    },
+    get panels(): readonly Panel[] {
+      return page.panels;
+    },
+  };
+}
+
 function commandsOf(file: string): string[] {
   return readFileSync(join(WALKTHROUGHS, file), "utf8")
     .split("\n")
@@ -56,10 +117,10 @@ function commandsOf(file: string): string[] {
 
 function replayPanels(file: string): Panel[] {
   const session = createSession(doc, { seed: SEED });
-  const mapper = createMapper();
-  mapper.panel(session.start());
-  for (const command of commandsOf(file)) mapper.panel(session.command(command));
-  return [...mapper.panels];
+  const page = strip();
+  page.turn(session.start());
+  for (const command of commandsOf(file)) page.turn(session.command(command));
+  return [...page.panels];
 }
 
 function allPanels(): Panel[] {
@@ -88,13 +149,20 @@ function scenePanels(): Panel[] {
 describe("panel stream", () => {
   it("draws about one panel per turn (§6)", () => {
     const session = createSession(doc, { seed: SEED });
-    const mapper = createMapper();
+    const page = strip();
     const commands = commandsOf("01-west-of-house.cmd");
-    mapper.panel(session.start());
-    for (const command of commands) mapper.panel(session.command(command));
-    // Derived from `AddLine`'s one-balloon-per-character rule, not chosen — so
-    // it is exact, and a mapper that started splitting turns would fail here.
-    expect(mapper.panels.length).toBe(commands.length + 1);
+    page.turn(session.start());
+    for (const command of commands) page.turn(session.command(command));
+    const turns = commands.length + 1;
+    // Since panelization (ADR 0008 Phase 2) this is a *derived* budget, not a
+    // structural one: nearly every turn carries a caption, `BM_ACTION` breaks the
+    // panel (`panel.cpp:1064`), and the Hero's answer then clone-appends into it —
+    // so a turn opens one panel and packs the rest of its lines in. A turn whose
+    // caption was dropped (over-long, §2) opens none and rides with the previous
+    // panel, which is the only reason the count can come in under the turn count.
+    // It can never come in over: nothing here splits a turn across two panels.
+    expect(page.panels.length).toBeLessThanOrEqual(turns);
+    expect(page.panels.length).toBeGreaterThan(turns - 3);
   });
 
   it("opens on an establishing shot of West of House", () => {
@@ -108,16 +176,34 @@ describe("panel stream", () => {
     expect(hero(first)).toBeNull();
   });
 
+  it("splits the opening turn, and only the opening turn (`m_panels.GetCount() < 2`)", () => {
+    // The one place panelization changes today's single-participant output. Comic
+    // Chat refuses to clone-append while the page holds fewer than two panels
+    // (`panel.cpp:1079`, and the same test in `AddReaction` at `:1148`), so the
+    // opening turn's caption takes panel 0 and the Hero's body is staged in panel
+    // 1. From the second turn on the caption opens a panel (`BM_ACTION`, `:1064`)
+    // and the Hero clone-appends into it — one panel per turn, as before.
+    const panels = replayPanels("01-west-of-house.cmd");
+    expect(panels[0]!.bodies).toHaveLength(0); // caption alone
+    expect(caption(panels[0]!)).not.toBeNull();
+    expect(panels[1]!.bodies.map((b) => b.speaker)).toEqual([HERO]);
+    expect(caption(panels[1]!)).toBeNull();
+    // Steady state: every later panel carries both.
+    for (const panel of panels.slice(2)) {
+      expect(panel.bodies.length).toBeGreaterThan(0);
+    }
+  });
+
   it("renders the Hero balloon as the resolved action, never the command (ADR 0005 §1)", () => {
     // 01-west-of-house.cmd: [start, look, examine mailbox, open mailbox,
     // take leaflet, read leaflet, drop leaflet, look, quit, y]. The take/drop
     // turns get an action line; every other turn — movement, examination, the
     // parser echo — gets no balloon, which is the play-log tell being removed.
     const session = createSession(doc, { seed: SEED });
-    const mapper = createMapper({ names: objectNameTable(doc.objects) });
-    const panels = [mapper.panel(session.start())];
+    const page = strip({ names: objectNameTable(doc.objects) });
+    const panels = [page.turn(session.start())];
     for (const command of commandsOf("01-west-of-house.cmd")) {
-      panels.push(mapper.panel(session.command(command)));
+      panels.push(page.turn(session.command(command)));
     }
 
     expect(hero(panels[4])).toMatchObject({
@@ -157,15 +243,15 @@ describe("panel stream", () => {
 
   it("tags real turns: arrival on the opening, action on take/drop, ambient on look (ADR 0005 §2)", () => {
     const session = createSession(doc, { seed: SEED });
-    const mapper = createMapper({ names: objectNameTable(doc.objects) });
-    const panels = [mapper.panel(session.start())];
+    const page = strip({ names: objectNameTable(doc.objects) });
+    const panels = [page.turn(session.start())];
     for (const command of commandsOf("01-west-of-house.cmd")) {
-      panels.push(mapper.panel(session.command(command)));
+      panels.push(page.turn(session.command(command)));
     }
-    expect(panels[0]?.kind).toBe("arrival"); // opening placement at West of House
-    expect(panels[1]?.kind).toBe("ambient"); // look
-    expect(panels[4]?.kind).toBe("action");  // take leaflet
-    expect(panels[6]?.kind).toBe("action");  // drop leaflet
+    expect(frame(panels[0])?.kind).toBe("arrival"); // opening placement at West of House
+    expect(frame(panels[1])?.kind).toBe("ambient"); // look
+    expect(frame(panels[4])?.kind).toBe("action");  // take leaflet
+    expect(frame(panels[6])?.kind).toBe("action");  // drop leaflet
   });
 
   it("the Guide reacts to the beat the Hero caused, not only to a room (ADR 0005 §4)", () => {
@@ -174,15 +260,15 @@ describe("panel stream", () => {
     // so a line here can only have come from the beat reaction, not the gazetteer.
     const beatScript = new Map([["reveal", "It was waiting to be found."]]);
     const session = createSession(doc, { seed: SEED });
-    const mapper = createMapper({
+    const page = strip({
       names: objectNameTable(doc.objects), beatScript, guideCooldown: 0,
     });
-    mapper.panel(session.start());
+    page.turn(session.start());
     let panel;
     for (const command of ["look", "examine mailbox", "open mailbox"]) {
-      panel = mapper.panel(session.command(command));
+      panel = page.turn(session.command(command));
     }
-    expect(panel?.marker).toBe("reveal");
+    expect(frame(panel)?.marker).toBe("reveal");
     expect(guide(panel)?.text).toBe("It was waiting to be found.");
   });
 
@@ -191,14 +277,14 @@ describe("panel stream", () => {
     // produce the gazetteer line — the broadened trigger is additive, not a swap.
     const guideScript = new Map([["WEST-OF-HOUSE", "Boarded front door."]]);
     const session = createSession(doc, { seed: SEED });
-    const mapper = createMapper({ guideScript, guideCooldown: 0 });
-    expect(guide(mapper.panel(session.start()))?.text).toBe("Boarded front door.");
+    const page = strip({ guideScript, guideCooldown: 0 });
+    expect(guide(page.turn(session.start()))?.text).toBe("Boarded front door.");
   });
 
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
     const names = new Map([["LAMP", "brass lantern"]]);
     expect(heroBalloon("LAMP", null, names)).toEqual({
-      balloonClass: "CBWoodringNormal", text: "The brass lantern, then.",
+      modes: BM_SAY, text: "The brass lantern, then.",
     });
     expect(heroBalloon(null, "LAMP", names)?.text).toBe("The brass lantern can stay.");
     // Take wins when a turn did both (one balloon per panel).
@@ -225,13 +311,13 @@ describe("panel stream", () => {
 
   it("quotes narration verbatim and never paraphrases it (§2)", () => {
     const session = createSession(doc, { seed: SEED });
-    const mapper = createMapper();
-    let turn = mapper.panel(session.start());
+    const page = strip();
+    let turn = page.turn(session.start());
     expect(caption(turn)?.text).toBeTruthy();
 
     for (const command of commandsOf("02-house-entry.cmd")) {
       const result = session.command(command);
-      const panel = mapper.panel(result);
+      const panel = page.turn(result);
       const line = caption(panel);
       if (line === null) continue;
       const narration = result.events
@@ -421,10 +507,10 @@ describe("the Guide is presentation-only (§3)", () => {
     const script = new Map([["NORTH-OF-HOUSE", "Mind the boards."]]);
     const withGuide = (() => {
       const session = createSession(doc, { seed: SEED });
-      const mapper = createMapper({ guideScript: script, guideCooldown: 0 });
-      mapper.panel(session.start());
-      for (const c of commandsOf("02-house-entry.cmd")) mapper.panel(session.command(c));
-      return [...mapper.panels];
+      const page = strip({ guideScript: script, guideCooldown: 0 });
+      page.turn(session.start());
+      for (const c of commandsOf("02-house-entry.cmd")) page.turn(session.command(c));
+      return [...page.panels];
     })();
     const without = replayPanels("02-house-entry.cmd");
 
@@ -448,11 +534,11 @@ describe("the Guide is presentation-only (§3)", () => {
         .map((room) => [room, `A word about ${room}.`] as const),
     );
     const session = createSession(doc, { seed: SEED });
-    const mapper = createMapper({ guideScript: script, guideCooldown: 1000 });
-    mapper.panel(session.start());
-    for (const c of commandsOf("02-house-entry.cmd")) mapper.panel(session.command(c));
+    const page = strip({ guideScript: script, guideCooldown: 1000 });
+    page.turn(session.start());
+    for (const c of commandsOf("02-house-entry.cmd")) page.turn(session.command(c));
     // The Guide is the only thing on the panel not derived from what the player
     // just did, so it is the only thing that can wear out.
-    expect(mapper.panels.filter((p) => guide(p) !== null)).toHaveLength(1);
+    expect(page.panels.filter((p) => guide(p) !== null)).toHaveLength(1);
   });
 });
