@@ -12,5 +12,7 @@
   "10": "inspector-view.ts",
   "11": "backdrop.ts",
   "12": "status.ts",
-  "13": "session.ts"
+  "13": "session.ts",
+  "14": "fit.ts",
+  "15": "director.test.ts"
 }

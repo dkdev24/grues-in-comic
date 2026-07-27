@@ -16,6 +16,7 @@
 import type { Turn } from "./session.js";
 import { CAPTION, GUIDE, HERO, lineOf, type Panel } from "./comic/mapper.js";
 import { createDirector, type Director } from "./comic/director.js";
+import { createFitTest } from "./comic/fit.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
 import { renderPanel } from "./comic/render.js";
 import type { PanelDelta } from "./comic/page.js";
@@ -193,8 +194,15 @@ export async function createComicView(
 ): Promise<ComicView> {
   const strip = requireChild(root, ".comic-strip");
   const castBar = root.querySelector<HTMLElement>(".comic-cast");
+  // Panelization needs to measure text, and it must measure it at the panel's
+  // *native* size rather than the viewport's (ADR 0007 §2 / `fit.ts`), so it
+  // gets an offscreen canvas of its own rather than a strip canvas. Without a 2D
+  // context we fall back to `page.ts`'s "everything fits", which is how the pane
+  // behaved before Phase 2b.
+  const measurer = document.createElement("canvas").getContext("2d");
   const director: Director = createDirector({
     guideScript: GUIDE_SCRIPT, beatScript: BEAT_SCRIPT, guideCooldown: 3, names,
+    ...(measurer ? { fit: createFitTest(measurer) } : {}),
   });
   // Cycles live with the *view*, not with a panel: a panel re-drawn on resize
   // must not advance the round-robin, or the whole strip would change bodies

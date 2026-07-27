@@ -111,6 +111,14 @@ export interface FitResult {
   fits: boolean;
   /** The remainder to re-add as a fresh line, when the balloon was split. */
   leftover?: string | null;
+  /**
+   * The part that stayed, when the balloon was split. `ForceFitBalloon` splits
+   * *in place* — `SplitHeight` frees the balloon's string and replaces it with
+   * the truncated one (`balloon.cpp:826`) before `AddLine` re-adds the rest
+   * (`panel.cpp:1130`) — so the panel that keeps the line must keep the
+   * shortened text, or the leftover panel would repeat it.
+   */
+  kept?: string | null;
 }
 
 export type FitTest = (panel: Panel) => FitResult;
@@ -278,6 +286,10 @@ export function createPage(options: PageOptions = {}): Page {
       addLine(line, context, delta);
       return;
     }
+
+    // The split happened inside the fit test, on a copy; carry its truncated
+    // text back onto the balloon we are about to commit (`balloon.cpp:826`).
+    if (result.kept != null && result.kept !== "") balloon.text = result.kept;
 
     commit(candidate, replaceLast, delta);
     if (result.leftover != null && result.leftover !== "") { // `:1128-1135`

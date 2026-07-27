@@ -33,6 +33,14 @@ export interface TailTarget {
   y: number;
 }
 
+/**
+ * The one font every balloon is measured and drawn in. It is exported because
+ * measurement now happens in two places — the renderer, and the panelization
+ * fit test (`fit.ts`), which must break lines exactly as the renderer will or
+ * `AddLine` would refuse panels the renderer then draws comfortably.
+ */
+export const BALLOON_FONT = '13px "Comic Sans MS", "Comic Neue", ui-rounded, cursive';
+
 const PADDING = 10;
 /**
  * A thought balloon's scallops bulge *outward from* its text box, so the text
@@ -40,7 +48,7 @@ const PADDING = 10;
  * cloud's own outline. A speech balloon and a caption need no such allowance.
  */
 const THINK_INSET = 9;
-const LINE_HEIGHT = 15;
+export const LINE_HEIGHT = 15;
 /**
  * The tail reaches its speaker. Comic Chat's balloons sit directly over their
  * speaker, so its tails are short; ours stack from the top of the panel while
@@ -102,7 +110,7 @@ const SPLINE_TENSION = 0.5;
  * ~0.2 ratio those `~×5` panel widths imply — a named unit conversion, applied
  * to every ported figure-space length in this file.
  */
-const ONE_LINE_THRESHOLD = 100;
+export const ONE_LINE_THRESHOLD = 100;
 /**
  * The width:height a wrapped balloon trends toward. This is the deterministic
  * stand-in for `GetCloudEstimate`'s goal width (`panel.cpp:753`): the original
@@ -114,7 +122,7 @@ const ONE_LINE_THRESHOLD = 100;
  */
 const TARGET_ASPECT = 1.9;
 /** `AreaEstimate`'s fudge factor (`balloon.cpp:775`), carried through verbatim. */
-const AREA_FUDGE = 1.3;
+export const AREA_FUDGE = 1.3;
 /**
  * How far the compact goal is pushed toward the free width. The original does
  * not stop at the area estimate: `GetCloudEstimate` rolls a random point up to
@@ -130,7 +138,7 @@ const AREA_FUDGE = 1.3;
 const WIDTH_BIAS = 0.5;
 
 /** Widest single word, the floor a balloon may not wrap below (`WidestWord`, `balloon.cpp:778`). */
-function widestWord(ctx: CanvasRenderingContext2D, text: string): number {
+export function widestWord(ctx: CanvasRenderingContext2D, text: string): number {
   const words = text.split(/\s+/).filter((w) => w.length > 0);
   return words.length === 0 ? 0 : Math.max(...words.map((w) => ctx.measureText(w).width));
 }
@@ -200,6 +208,105 @@ export function measureBalloon(
     Math.max(...lines.map((line) => ctx.measureText(line).width)) + pad * 2,
   );
   return { lines, width, height: lines.length * LINE_HEIGHT + pad * 2 };
+}
+
+/**
+ * The chrome a class puts between its outline and its text, each side — what
+ * separates the balloon's *box* width from the width its lines may occupy.
+ */
+export function chromeFor(balloon: Balloon): number {
+  return PADDING + (balloon.balloonClass === "CBWoodringThink" ? THINK_INSET : 0);
+}
+
+/**
+ * Wrap and measure at a width the *caller* chose, rather than at the width
+ * {@link goalWidth} would pick.
+ *
+ * This is the entry point the ported layout driver needs (`balloon-layout.ts`).
+ * `CBalloon::SetBBox` (`balloon.cpp:1396`) is handed a left and a right by
+ * `LayoutBalloon` and reflows the text into exactly that span — the width goal
+ * is `GetCloudEstimate`'s job, one level up, and by the time a balloon is
+ * measured the free rect and the intervening route regions may have narrowed it
+ * further. {@link measureBalloon} keeps the older "choose your own width" path
+ * for the renderer's fallback stack.
+ *
+ * `SetBBox` returns FALSE when `ComputeInternals` cannot build the balloon that
+ * narrow (`:1407`); our caller makes that test itself against
+ * {@link widestWord}, since our greedy wrap always produces *something*.
+ */
+export function measureAtWidth(
+  ctx: CanvasRenderingContext2D, balloon: Balloon, boxWidth: number,
+): { lines: string[]; width: number; height: number } {
+  const pad = chromeFor(balloon);
+  const inner = Math.max(1, boxWidth - pad * 2);
+  const lines = greedyWrap(ctx, balloon.text, inner);
+  const width = Math.min(
+    boxWidth,
+    Math.max(...lines.map((line) => ctx.measureText(line).width)) + pad * 2,
+  );
+  return { lines, width, height: lines.length * LINE_HEIGHT + pad * 2 };
+}
+
+/**
+ * What Comic Chat appends to the part that fit, and prepends to the part that
+ * did not — `szContinuationStr1`/`szContinuationStr2`, both `"..."`
+ * (`balloon.cpp:93`).
+ */
+export const CONTINUATION = "...";
+
+/**
+ * Port of `CLabel::SplitHeight` (`balloon.cpp:777`): reflow the text at
+ * `boxWidth`, keep as many lines as `boxHeight` holds, and hand the rest back
+ * for the caller to re-add as a fresh line. This is the routine that lets a
+ * balloon too tall for its panel *continue* into the next one instead of being
+ * refused, and it is what `AddLine`'s leftover re-add (`page.ts`) consumes.
+ *
+ * Faithful details worth naming, because each looks like a bug in isolation:
+ *
+ * - The line budget is `iHeight / lineHeight` against the *whole* box height
+ *   (`:796`), padding included — the original does not subtract its own borders
+ *   here, so a split balloon runs a line closer to the edge than a measured one.
+ * - The test is `nLines < iMaxLines` (`:805`), not `<=`: a balloon whose lines
+ *   exactly fill the budget still splits. Kept verbatim.
+ * - The last kept line is re-broken at `width − continuationWidth`
+ *   (`FindFurthestLineBreak`, `:810`) so the `"..."` has somewhere to sit. We
+ *   break on word boundaries where the original may break mid-word; our
+ *   {@link greedyWrap} is word-granular throughout, so this is the same
+ *   divergence already carried there.
+ *
+ * One addition of ours: at least one word is always kept. The original can
+ * return the whole string as "rest" when even one word overflows, which for us
+ * would hand `AddLine` a leftover identical to its input and spin the recursion
+ * forever; the panel is finite, so a word that fits nowhere is drawn clipped.
+ */
+export function splitHeight(
+  ctx: CanvasRenderingContext2D, balloon: Balloon, boxWidth: number, boxHeight: number,
+): { text: string; rest: string | null } {
+  const pad = chromeFor(balloon);
+  const inner = Math.max(1, boxWidth - pad * 2);
+  const lines = greedyWrap(ctx, balloon.text, inner);
+  const maxLines = Math.max(1, Math.floor(boxHeight / LINE_HEIGHT));
+  if (lines.length < maxLines) return { text: balloon.text, rest: null };
+
+  const words = balloon.text.split(/\s+/).filter((w) => w.length > 0);
+  // Whole lines above the one being broken (`rgszStarts[iMaxLines - 1]`, `:808`).
+  let kept = lines.slice(0, maxLines - 1)
+    .reduce((n, line) => n + line.split(/\s+/).filter((w) => w.length > 0).length, 0);
+  // …then as much of that line as fits beside the continuation mark.
+  const room = inner - ctx.measureText(CONTINUATION).width;
+  let line = "";
+  for (const word of lines[maxLines - 1]?.split(/\s+/).filter((w) => w.length > 0) ?? []) {
+    const candidate = line === "" ? word : `${line} ${word}`;
+    if (line !== "" && ctx.measureText(candidate).width > room) break;
+    line = candidate;
+    kept += 1;
+  }
+  kept = Math.max(1, Math.min(kept, words.length));
+  if (kept >= words.length) return { text: balloon.text, rest: null };
+  return {
+    text: `${words.slice(0, kept).join(" ")}${CONTINUATION}`,
+    rest: `${CONTINUATION}${words.slice(kept).join(" ")}`,
+  };
 }
 
 /**

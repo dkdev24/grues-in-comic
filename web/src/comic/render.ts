@@ -11,7 +11,10 @@
 
 import { CAPTION, type Body, type CameraPreset, type Line, type Panel } from "./mapper.js";
 import { drawFigure, figureFor, newCycle, type Cast, type Figure, type PoseCycle } from "./figure.js";
-import { drawBalloon, measureBalloon, type BalloonBox } from "./balloon.js";
+import { BALLOON_FONT, drawBalloon, measureBalloon, type BalloonBox } from "./balloon.js";
+import {
+  canvasMetrics, layoutBalloons, type BalloonInput, type Rect,
+} from "./balloon-layout.js";
 
 /** A camera preset, as the numbers a render needs. */
 interface Shot {
@@ -152,7 +155,7 @@ export function renderPanel(
     if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale, item.mirror);
   }
 
-  drawBalloons(ctx, panel, width, placed);
+  drawBalloons(ctx, panel, width, height, placed);
 
   // The panel border last, so nothing overdraws it.
   ctx.strokeStyle = "#000";
@@ -312,18 +315,82 @@ function drawBackdrop(
 }
 
 /**
- * Balloons stack from the top; the figures own the bottom. That is Comic Chat's
- * own arrangement and it is also what keeps a tail short enough to read.
+ * Balloons live in the top band; the figures own the bottom. That is Comic
+ * Chat's own arrangement (`GetBalloonRect`, `panel.cpp:840`, reserves the top
+ * half of the panel) and it is also what keeps a tail short enough to read.
  *
- * Order is caption, Guide, Hero — narration frames the panel, the Guide speaks
- * into it, and the Hero's thought sits closest to the Hero.
+ * Placement inside that band is the ported driver's (`balloon-layout.ts`, ADR
+ * 0008 Phase 2b): each balloon goes over its own speaker and is squeezed out of
+ * the corridors its predecessors reserved. {@link stackBalloons} remains as the
+ * fallback for the one case the driver has no answer for — a panel it refuses.
+ * `page.ts` runs the same driver through its `FitTest` seam before a panel is
+ * ever built, so in production that fallback should not fire; it exists because
+ * a renderer that drew *nothing* would be a worse failure than one that stacks.
  */
 function drawBalloons(
-  ctx: CanvasRenderingContext2D, panel: Panel, width: number,
+  ctx: CanvasRenderingContext2D, panel: Panel, width: number, height: number,
   placed: ReadonlyArray<PlacedBody>,
 ): void {
-  ctx.font = '13px "Comic Sans MS", "Comic Neue", ui-rounded, cursive';
+  ctx.font = BALLOON_FONT;
+  const heads = headGeometry(placed);
+  const free = balloonRect(width, height);
 
+  const inputs: BalloonInput[] = panel.speakers.map((balloon) => ({
+    speaker: balloon.speaker,
+    isBox: balloon.balloonClass === "CBWoodringBox",
+    // A caption points at nobody; so does a line whose speaker has no body on
+    // stage. Both are placed at the free rect's left edge and block no route.
+    arrowX: balloon.speaker === CAPTION
+      ? null
+      : (heads.anchors.get(balloon.speaker)?.x ?? null),
+    text: balloon.text,
+    metrics: canvasMetrics(ctx, balloon),
+  }));
+
+  const laid = layoutBalloons(inputs, free);
+  if (!laid.fits) {
+    stackBalloons(ctx, panel, width, heads);
+    return;
+  }
+
+  for (const [i, item] of laid.balloons.entries()) {
+    const balloon = panel.speakers[i]!;
+    // Force-fit may have shortened the text; draw the lines the driver measured.
+    const face = balloon.speaker === CAPTION ? undefined : heads.faceBox.get(balloon.speaker);
+    const isSpeech = balloon.balloonClass === "CBWoodringNormal";
+    const target = isSpeech && face
+      ? headEdgeTip(item.box, face)
+      : (heads.anchors.get(balloon.speaker) ?? null);
+    drawBalloon(ctx, balloon, item.box, item.lines, target);
+  }
+}
+
+/**
+ * The band balloons may occupy — our `CUnitPanel::GetBalloonRect`
+ * (`panel.cpp:840`). The original reserves the panel's top half; ours stops at
+ * {@link BALLOON_HEADROOM}, the same band `renderPanel` pushes heads below, so
+ * the driver's `MINHOOKHEIGHT` check is measured against the real head tops.
+ */
+export function balloonRect(width: number, height: number): Rect {
+  return {
+    left: BALLOON_MARGIN,
+    top: BALLOON_MARGIN,
+    right: width - BALLOON_MARGIN,
+    bottom: height * BALLOON_HEADROOM,
+  };
+}
+
+/** The inset from the panel border, standing in for the original's `m_borderWidth`. */
+export const BALLOON_MARGIN = 10;
+
+interface HeadGeometry {
+  anchors: Map<string, { x: number; y: number }>;
+  faceBox: Map<string, Face>;
+  faces: Face[];
+}
+
+/** Each on-stage head as a tail anchor and a keep-out box, in panel space. */
+function headGeometry(placed: ReadonlyArray<PlacedBody>): HeadGeometry {
   // Each on-stage head, keyed by speaker id, as an anchor + keep-out box in panel
   // space. A balloon over a face is the one thing comics never do, so balloons
   // route *around* these; a speech tail lands on the box's near edge.
@@ -350,6 +417,19 @@ function drawBalloons(
     faceBox.set(item.speaker, box);
     faces.push(box);
   }
+  return { anchors, faceBox, faces };
+}
+
+/**
+ * The pre-Phase-2b vertical stack, kept as {@link drawBalloons}'s fallback for a
+ * panel the ported driver refuses. It is *not* a port — it was the
+ * reimplementation ADR 0008 replaces — and nothing but the fallback path calls
+ * it. See {@link drawBalloons} for why it is still here.
+ */
+function stackBalloons(
+  ctx: CanvasRenderingContext2D, panel: Panel, width: number, heads: HeadGeometry,
+): void {
+  const { anchors, faceBox, faces } = heads;
   const faceCentre = (f?: { left: number; right: number }) =>
     f ? (f.left + f.right) / 2 : null;
 

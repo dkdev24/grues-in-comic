@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "src/comic-view.ts": {
-    "mtime": 1785162305.4001439,
-    "ast_hash": "c227c496b5f27c990663ddf0c3743795",
+    "mtime": 1785164276.868797,
+    "ast_hash": "737083e10ad918de52451962c56a7276",
     "semantic_hash": ""
   },
   "src/comic/affect.ts": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/comic/balloon.ts": {
-    "mtime": 1784770621.7354243,
-    "ast_hash": "b8783275cd24591968ec40b4846f39e7",
+    "mtime": 1785164021.191454,
+    "ast_hash": "d4b69d9776d9d4eed6a76ec67a65a18d",
     "semantic_hash": ""
   },
   "src/comic/figure.ts": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "src/comic/render.ts": {
-    "mtime": 1785161320.5947003,
-    "ast_hash": "e9b2776026d27ecedccfd83ae7a4a764",
+    "mtime": 1785164973.7341857,
+    "ast_hash": "d59e3c75397d100b0effedf0d0c5da71",
     "semantic_hash": ""
   },
   "src/persistence.ts": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "test/balloon.test.ts": {
-    "mtime": 1784870732.9101646,
-    "ast_hash": "9c8a91014e85d7dcc17705168ea917a8",
+    "mtime": 1785164533.962837,
+    "ast_hash": "1df75036b5ffcc5f28353de59b9527ed",
     "semantic_hash": ""
   },
   "test/render.test.ts": {
@@ -185,13 +185,33 @@
     "semantic_hash": ""
   },
   "src/comic/page.ts": {
-    "mtime": 1785162255.5472784,
-    "ast_hash": "59c2d343e6bbec32d71f5c4e94deda5a",
+    "mtime": 1785164598.20457,
+    "ast_hash": "24bf1b05bb5f6e3159720ba820f91c64",
     "semantic_hash": ""
   },
   "test/page.test.ts": {
     "mtime": 1785162367.442682,
     "ast_hash": "c01e51dda52f5e004ed4f72c38d790c8",
+    "semantic_hash": ""
+  },
+  "src/comic/balloon-layout.ts": {
+    "mtime": 1785164865.8712485,
+    "ast_hash": "655a5472ce1b3f9416c0abecd0c43882",
+    "semantic_hash": ""
+  },
+  "src/comic/fit.ts": {
+    "mtime": 1785164603.2074828,
+    "ast_hash": "2b1de43cd983d75d23941b97e8e577e1",
+    "semantic_hash": ""
+  },
+  "test/balloon-layout.test.ts": {
+    "mtime": 1785165156.3367586,
+    "ast_hash": "372fc5c1493eb851151a8e75faacc339",
+    "semantic_hash": ""
+  },
+  "test/fit.test.ts": {
+    "mtime": 1785164557.1647193,
+    "ast_hash": "b956a14599cc5d969d2a41138179c8d5",
     "semantic_hash": ""
   }
 }

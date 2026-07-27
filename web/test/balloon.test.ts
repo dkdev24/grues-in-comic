@@ -12,7 +12,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { drawBalloon, goalWidth, type BalloonBox } from "../src/comic/balloon.js";
+import {
+  CONTINUATION, drawBalloon, goalWidth, measureAtWidth, splitHeight, type BalloonBox,
+} from "../src/comic/balloon.js";
 import type { Balloon } from "../src/comic/mapper.js";
 
 interface ArcCall { start: number; end: number }
@@ -209,5 +211,57 @@ describe("goalWidth() — GetCloudEstimate", () => {
   it("is capped at the free width it is given", () => {
     const text = "one two three four five six seven eight nine ten eleven twelve";
     expect(goalWidth(measurer, text, 50)).toBe(50);
+  });
+});
+
+/**
+ * `measureAtWidth` / `splitHeight` — the two entry points the ported layout
+ * driver needs (ADR 0008 Phase 2b). The first reflows at a width the *caller*
+ * chose (`CBalloon::SetBBox`), the second is `CLabel::SplitHeight`: what fits in
+ * the box, and the remainder `AddLine` re-adds as a fresh line.
+ */
+describe("measureAtWidth() — SetBBox", () => {
+  const say: Balloon = {
+    balloonClass: "CBWoodringNormal",
+    text: "one two three four five six seven eight",
+  };
+
+  it("wraps into exactly the box width it is handed, chrome included", () => {
+    const measured = measureAtWidth(measurer, say, 100);
+    expect(measured.width).toBeLessThanOrEqual(100);
+    for (const line of measured.lines) expect(line.length * 7).toBeLessThanOrEqual(80);
+    expect(measured.lines.length).toBeGreaterThan(1);
+  });
+
+  it("gives a wide box a single line", () => {
+    expect(measureAtWidth(measurer, say, 1000).lines).toHaveLength(1);
+  });
+});
+
+describe("splitHeight() — CLabel::SplitHeight", () => {
+  const long: Balloon = {
+    balloonClass: "CBWoodringNormal",
+    text: "one two three four five six seven eight nine ten eleven twelve thirteen",
+  };
+
+  it("returns the whole text and no rest when it comfortably fits", () => {
+    expect(splitHeight(measurer, long, 400, 200)).toEqual({ text: long.text, rest: null });
+  });
+
+  it("splits at the line budget, marking both halves with the continuation", () => {
+    const split = splitHeight(measurer, long, 120, 60);
+    expect(split.rest).not.toBeNull();
+    expect(split.text.endsWith(CONTINUATION)).toBe(true);
+    expect(split.rest!.startsWith(CONTINUATION)).toBe(true);
+    // Nothing is lost and nothing is repeated: the two halves are the original.
+    const words = (s: string) => s.replaceAll(CONTINUATION, " ").split(/\s+/).filter(Boolean);
+    expect([...words(split.text), ...words(split.rest!)]).toEqual(words(long.text));
+  });
+
+  it("always keeps at least one word, so the leftover cannot be the input", () => {
+    const split = splitHeight(measurer, long, 40, 15);
+    expect(split.rest).not.toBeNull();
+    expect(split.rest).not.toBe(long.text);
+    expect(split.text.replace(CONTINUATION, "").trim()).not.toBe("");
   });
 });

@@ -10,6 +10,43 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.4 — 2026-07-28 — ADR 0008 Phase 2b: the multi-balloon layout driver ported
+
+`web/src/comic/balloon-layout.ts` is the cited port of Comic Chat's balloon layout driver, and
+`web/src/comic/fit.ts` runs it behind `page.ts`'s `FitTest` seam, so `AddLine`'s overflow recursion —
+ported but stubbed in Phase 2 — is live. This closes the last gap the v2.5-beta-1 coverage audit found.
+**204 web tests green (was 178, +26), 139 engine, 198 IR, tsc and build clean.**
+
+- **Ported:** `LayoutBalloons:855`, `GetCloudEstimate:885`, `LayoutBalloon:925`, `GetInterveningBBox:167`,
+  `LowestPreviousBottom:213`, `AdjustRouteRgns:247`, `ForceFitBalloon:153`, `QueryRouteRgn`/`SetRouteRgn`
+  (`balloon.cpp:1358,1375`), and `CLabel::SplitHeight` (`balloon.cpp:777`, into `balloon.ts` beside a new
+  `measureAtWidth` = `SetBBox`'s reflow-at-a-given-width). `render.ts`'s vertical stack is retired to a
+  draw-time fallback.
+- **Balloons now go over their own speaker and are squeezed out of the corridors** (`m_routeRgn`) their
+  predecessors reserved, instead of stacking down the left. Visible immediately: the caption and the
+  Hero's balloon sit **side by side** in the production panels where they used to stack, and the N=2
+  fixture puts each speaker's balloon over their own head with their own tail.
+- **Two constants had to be re-derived rather than transcribed** — `Dock`'s 90-unit lift is 0 here
+  (our box excludes the tail/wave overhang it exists to subtract) and `DockAtTop`'s `-250` becomes the
+  rule it encodes ("dock only a balloon nothing pushed down"), because our text is proportionally
+  smaller against the panel than the original's. Carried literally, each one stacks balloons back on top
+  of each other; both are argued in full at their definitions and in ADR 0008 §"Phase 2b built".
+- **The roll is deterministic:** `srand(m_seed)` becomes a mulberry32 seeded by an FNV-1a hash of the
+  panel's own speakers and text, so a panel always lays out the same way *and* the panel stream stays a
+  pure function of the event stream (ADR 0006's third invariant, `replayPanels`).
+- **`FitResult` gained `kept`.** `ForceFitBalloon` splits in place — it replaces the balloon's own string
+  before `AddLine` re-adds the remainder — so without the kept half the first panel would repeat the
+  whole line the continuation panel carries.
+- **The fit test measures at `UNIT`, never the viewport**, with arrow positions estimated as even stage
+  slots (the cast is async; the Director must not wait on it). It decides *whether* a panel splits, never
+  where a balloon lands.
+- **New tests:** `balloon-layout.test.ts` (15, one per ported branch — straddle, caption pin, dock,
+  corridors, tuck-alongside vs drop-below, hook room, force-fit split, refusal), `fit.test.ts` (6,
+  through `page.addLine` so the recursion and leftover re-add are exercised), plus `splitHeight` and
+  `measureAtWidth` in `balloon.test.ts`.
+
+---
+
 ## v0.18.3 — 2026-07-27 — ADR 0008 Phase 2: panelization ported (`page.ts`)
 
 `web/src/comic/page.ts` is the cited port of `CUnitPanelPage` against
