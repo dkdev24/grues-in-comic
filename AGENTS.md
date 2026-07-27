@@ -86,29 +86,9 @@ Operational rules:
 
 ---
 
-## Working with ZIL
-
-The Zork repository contains ZIL source code. Do not treat ZIL as plain text. Instead, perform semantic analysis.
-Identify concepts such as:
-
-* ROOM
-* OBJECT
-* ROUTINE
-* ACTION
-* GLOBAL
-* TABLE
-
-Convert these concepts into the Intermediate Representation whenever practical. Avoid introducing browser-specific behavior into imported historical source files.
-
----
-
 ## Repository Organization
 
-```
-original-projects/
-```
-
-Contains imported historical source code. These directories are reference implementations. They are version-controlled as part of this repository.
+`original-projects/` contains imported historical source code. These directories are reference implementations. They are version-controlled as part of this repository.
 
 Do not create nested Git repositories. Do not use Git submodules.
 
