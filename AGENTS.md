@@ -57,6 +57,19 @@ Two documents maintain cross-session state. Read them at the start of every sess
 
 ---
 
+### docs/FUTURE_WORK.md
+
+- Purpose: the **non-critical backlog** — good-to-have work that is deliberately unscheduled — plus the
+  pre-`1.0.0` improvement-iteration protocol.
+- **Do not load at session start.** Read it when deferring something, or when the user defines an iteration.
+- **Deferred work goes here, never into `HANDOFF.md`.** HANDOFF holds what the *next* session needs; an
+  item nobody will act on next session belongs in FUTURE_WORK. Every entry records **why it was deferred**
+  — without that, the item cannot be judged later and gets re-proposed or re-litigated.
+- **It is not a work queue.** Nothing in it is scheduled until the user names it in an iteration; do not
+  start a backlog item without asking.
+
+---
+
 ## AI Development Workflow
 
 For any substantial task:

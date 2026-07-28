@@ -70,8 +70,9 @@ grues-in-comic/
 ├── docs/                  ADRs, plans, decision records
 ├── reference/             third-party reference material (gitignored)
 │
-├── engine/                planned — IR runtime (Milestone 4)
-└── web/                   planned — text UI, then comic renderer (Milestone 5)
+├── engine/                IR runtime — the game is completable (Milestone 4)
+├── art/                   Comic Chat art tooling: decode, pose, pack
+└── web/                   browser shell + comic renderer (Milestone 5)
 ```
 
 Each TypeScript module carries its own Graphify knowledge graph in

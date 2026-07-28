@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.18.9**
+**0.18.12**
 
 **Development platform: macOS only** (user's decision, 2026-07-28). See Open Issues → the pixel gate.
 
@@ -29,53 +29,57 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 - **M4 ✅** Engine core (4.1–4.7): world runtime, parser, dispatch, save/restore, transcript harness,
   combat + thief (membership-verified). **11 walkthroughs, parity 143/143 strict.** ⚑ **Gate C
   claimed (v0.9.0)** — criterion amended in `docs/DEVELOPMENT_PLAN.md`.
-- **M5 ◐** Comic Chat presentation. 5.1 ✅ art pipeline (`art/`), 5.2 ✅ browser shell (`web/`),
-  5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
-  (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
-  ADR 0006 (DM & player) Slices 1–4 done (v0.17.7–v0.18.8; only the Slice 5 export remains);
-  ADR 0007 (comic-pane port boundary + fixed panels)
-  fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — ✅ COMPLETE.
-  Phases 0–3 done (v0.18.1–v0.18.5); the layout stack is a cited port with a pixel gate.
-  Re-scoped 2026-07-24 to a full faithful port vs **v2.5-beta-1 (modern variant)** (was v1.0-pre; the comic
-  pane is now a multi-party GM+NPC comic, not solo-Hero). Source: `original-projects/comic-chat/v2.5-beta-1-modern/`
-  (tracked; line-identical to raw `v2.5-beta-1/`), navigated via the offline C++ graph at
-  `reference/comic-chat-v2.5-beta-1-modern/graphify-out/`. Seam + N-body layout landed v0.18.0; `LayoutAvatars`
-  (Phase 1), `page.ts` panelization (Phase 2), the multi-balloon layout driver (Phase 2b) and the pixel
-  gate (Phase 3) are all done. **What ADR 0008 leaves open is only what it scoped out: mob *authoring*
-  (an ADR 0006 slice) and the `OrderAvatars`/histeresis stubs that need the talk-to graph mobs bring.**
-  - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
-    **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
-    `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
-    exorcism IR fix → room `M-END` → magic boat → resilient completion harness); see WORKLOG.
-    **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
-    5.5 work is authoring-judgement polish — see Next Actions.
+- **M5 ✅ (closed 2026-07-28)** Comic Chat presentation, 5.1–5.5 all met their exit criteria.
+  Art pipeline (`art/`), browser shell (`web/`), comic renderer (⚑ Gate D cleared), backdrops/
+  persistence/sequencing/portraits, and the full-game pass. **5.5's criterion — the game is
+  completable in the browser — was met at v0.16.0:** engine wins Zork I **350/350**, ends in
+  `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by `engine/test/completion.test.ts`
+  (seed 1234); in-browser visual verification done and the comic-pane issue list cleared (v0.17.2).
+  ADRs: 0004 Accepted, 0005 implemented (v0.17.0), 0006 Slices 1–4 done (Slice 5 open), 0007 fully
+  built (v0.17.10–12), 0008 **complete** (Phases 0–3, v0.18.1–v0.18.5 — a cited port of the layout
+  stack with a pixel gate, against **v2.5-beta-1 (modern variant)**).
+  **The presentation polish formerly tracked here is now `docs/FUTURE_WORK.md` §2** — unscheduled by
+  design, drawn from by M6.1.
+- **M6 ◐ — the road to 1.0.0**, iteration I1 drafted from the user's first three items: **6.1 the
+  comic pane becomes a cartoon** (the headline item), 6.2 save/load/restart, 6.3 landing page,
+  6.4 asset separation & neutral branding, 6.5 public release → tag `1.0.0`. All ☐. The list is
+  **open** — more items land as I1 proceeds. See `docs/DEVELOPMENT_PLAN.md` M6 and
+  `docs/FUTURE_WORK.md` §1.
 
 **Test counts:** 255 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — dev server 404 on Windows; macOS named as the platform (v0.18.9)
+## Last Session — M6 drafted, then decided (v0.18.10–v0.18.12)
 
-Full narrative in `WORKLOG.md` v0.18.9. Short session, two durable outcomes:
+Documentation-only, three doc versions. No code changed; 255 web / 139 engine / 198 IR, parity
+143/143 strict. Full narrative in `WORKLOG.md` v0.18.10–v0.18.12.
 
-- **`web/tools/serve.ts` matched its mounts on an already-normalized path.** `path.normalize` is
-  platform-native, so on Windows `/world/x` became `\world\x`, the `/world` mount never matched, and
-  the shell 404'd on the world document before booting (`/` → `\` missed the `index.html` case the
-  same way). Fixed by matching the mount on the **raw URL path** and normalizing only the remainder;
-  the traversal guard still runs after normalization. **Rule: a URL path is not a filesystem path —
-  route in URL space, use `path.*` only after the routing decision.**
-- **The pixel gate is a macOS gate, by decision.** See Open Issues.
-
-**Where ADR work stands is unchanged from v0.18.8** — Slice 4 done, Slice 5 (PDF export) the only ADR
-0006 slice left, ADR 0008 complete. Test counts unchanged: 255 web, 139 engine, 198 IR, parity 143/143.
-
-**Still-live finding from Slice 2 (unfixed by design):** an exchange renders as **shot/reverse-shot,
-not a two-shot**
-  — caption + DM + Hero is three balloons, the fit test refuses them in the band at `UNIT`, and
-  `AddLine` splits. Reads well and is the ported mechanism deciding, but ADR 0005 §4's "both figures
-  facing each other" panel is now rare (96.7% of turns carry a caption). Levers if it is ever wanted:
-  the balloon-band height (`BALLOON_HEADROOM`) or dropping the caption on exchange turns. **Both are
-  authoring/layout decisions — take them to the user, not to the port.**
+- **v0.18.10 moved the non-critical backlog out** to the new `docs/FUTURE_WORK.md`, closed M5 on its
+  written exit criterion, and turned M6 from "stages to be defined" into real stages.
+- **v0.18.11 drafted M6 from the user's first three items** — landing page, save/load/restart, and
+  the cartoon — and diagnosed the third. **Read `docs/DEVELOPMENT_PLAN.md` §6.1 before touching the
+  pane:** four decisions compound to keep the DM and Hero from conversing (the `action ?? reply`
+  exclusion, cooldown 3 shared with the gazetteer, 7 scripted markers with `parser-miss` excluded,
+  and the three-balloon split). Measured: **~5.8% of turns carry a spoken beat.**
+- **Direction decided by the user, and it supersedes this session's own recommendation.** The
+  top-left box becomes the **location name** (panel metadata drawn from `context.room`, never a
+  script line) and **the DM speaks the room description**. Note the premise that was wrong in the
+  asking: that box is *not* the location name today — `captionFor` puts the first sentence of
+  narration there and drops it past 180 chars; the room name is only in the status bar. Taking the
+  box out of the line stream is what fixes the split, because a `BM_ACTION` caption
+  **unconditionally starts a new panel** (`panel.cpp:1064`) and one fires on 96.7% of turns.
+  → **ADR 0009**, slice 6.1b.
+- **v0.18.12: the user answered every open question.** D1–D5 in the plan's §6.1 decision table, plus
+  three named save slots (browser storage only) and a small static site (landing, about, public
+  changelog) rather than one page. **D1 governs: the goal outranks the mechanism, and a large
+  authored dialogue corpus is an accepted cost.**
+- **"Pre-generated" means authored at build time and committed as data** — the mapper stays a
+  deterministic pure function because it is the parity oracle. A runtime model call is out of scope
+  for 1.0.0 (non-deterministic, breaks the oracle, needs a paid API there is no budget for).
+- **Start at 6.1a, not at the fix.** The authored tables are stuck in DOM-coupled `comic-view.ts`,
+  so the density cannot be measured until they move — and D5's every-2–3-turns target is meaningless
+  until that baseline exists.
 
 ---
 
@@ -132,118 +136,63 @@ because the port reads them every phase:
 
 ## Next Actions (per `docs/DEVELOPMENT_PLAN.md`)
 
-**In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
-and verification. In rough priority:
+**M5 is closed. We are in M6 — the road to 1.0.0.** 5.5 met its written exit criterion (game
+completable in the browser) and was marked ☑ on 2026-07-28; ADRs 0004, 0005, 0007 and 0008 are all
+fully built. The presentation polish that used to sit in this section is **not lost** — it moved to
+`docs/FUTURE_WORK.md` §2 with its reasons, and is the menu the improvement iterations draw from.
 
-00. **ADR 0008 — full faithful port of the layout stack against v2.5-beta-1. ✅ COMPLETE (Phases 0–3,
-    v0.18.1–v0.18.5); kept here as the record of what was built and what it left stubbed.** Boundary preserved: camera ladder (SHOTS,
-    semantic/ours) and ADR 0007 fixed-panel + reflowing pane + column-count-by-viewport stay; figure compositing
-    (`figure.ts`/`composite.ts`/`pose.ts`) stays — already a verified port.
-    - **Phase 0 — multi-body fixtures. ✅ DONE (v0.18.1).** `web/tools/cast-fixture.ts` packs 2–4 real `.avb`
-      avatars in memory (`packFixtureCast`/`stubCast` canvas-free; `loadFixtureCast` decodes sheets);
-      `web/test/bodies.test.ts` gates `layoutAvatars` at N=1..4; `npm run render:bodies` writes 30 N-body PNGs.
-      Use these for every Phase 1–2b change — they are the only N≥3 coverage that exists.
-    - **C++ navigation graph — BUILT.** Offline graph of the modern v2.5-beta-1 source lives at
-      `reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (`graph.json` 6.4 MB, `GRAPH_REPORT.md`, queryable;
-      indexes `panel/balloon/avatar/…`). Use it to navigate the C++ call graph during Phases 1–2b:
-      `graphify query "…" --graph reference/comic-chat-v2.5-beta-1-modern/graphify-out/graph.json` (also
-      `path`/`explain`/`affected`). **Offline build command** (regenerate after edits): `graphify extract .
-      --code-only --no-label` (AST-only, no LLM — plain `graphify .` errors on Bedrock via the semantic pass).
-      **Gotchas for future sessions:** `reference/` is gitignored (`.gitignore:62`) and graphify merges
-      `.gitignore` from the git root, so building *in-repo* finds 0 files — this graph was built in the modern
-      copy and lives there, gitignored/local (AGENTS.md forbids committing raw-C++ graphs; the tracked
-      `original-projects/comic-chat/v2.5-beta-1-modern/` is the durable, line-identical fallback source).
-    - **Phase 1 — `LayoutAvatars` port. ✅ DONE (v0.18.2).** Equal-margin (`:807`)/shrink-to-fit (`:777`) kept;
-      `IsSpeaker` gating added (`:822`, via `Body.requested`); the `normHeight` divergence retired as already
-      faithful (`avatar.cpp:64,110` hardcode `100`); facing re-derived from adjacency (`OrderAvatars` `:424` /
-      `EvalPair` `:279`) in `orderBodies`, replacing the geometric past-centre rule. **Still stubbed:** seating
-      order (stable-by-insertion) and histeresis — `DoGreedyOrdering` `:403` needs the talk-to graph, so un-stub
-      with the mob-dialogue slice. Production panels byte-identical; only N≥3 moved.
-    - **Phase 2 — `page.ts` panelization. ✅ DONE (v0.18.3).** `AddLine:1058` whole (5-elem cap, `<2`-panel,
-      `AvatarInPanel`→new, `BM_ACTION`→new panel, clone-append, overflow recursion + leftover re-add), with
-      `AddReaction:1142`, `MakeBalloon:1036` (a `BM_*` bitmask), `FetchSpeaker`/`ReplaceBody`/`Clone`/
-      `RemoveLastPanel`/`AddPanel`/`StartNewPanel`, and the `<Brk>`/`<Chr>` sentinels. Mapper now emits
-      `TurnScript`; Director edits scripts and returns a `PanelDelta`; the ~30 oracle tests were re-derived and
-      `page.test.ts` (20 rule tests) added. Only the opening turn's output moved — see Last Session.
-    - **Phase 2b — multi-balloon layout. ✅ DONE (v0.18.4).** `balloon-layout.ts` (driver + corridors +
-      force-fit split, seeded by a content hash) and `fit.ts` (the `FitTest`, wired into `createDirector`);
-      `SplitHeight`/`measureAtWidth` added to `balloon.ts`; the vertical stack demoted to a draw-time
-      fallback. `FitResult` gained `kept`. Two constants deliberately re-derived rather than transcribed —
-      see Last Session before touching them.
-    - **Phase 3 — pixel-parity gate. ✅ DONE (v0.18.5).** `tools/gate.ts` + `test/gate.test.ts` +
-      `test/golden/panel-gate.json`: 16 cases (10 production panels of `01-west-of-house` at seed 1234,
-      plus 3- and 4-participant scenes over the `.avb` fixture cast), each pinned as a PNG SHA-256 **and**
-      the `PanelTrace` geometry behind it. Golden images are not committed (rationale in the ADR); actual
-      PNGs are dumped on failure. `npm run gate` / `gate:accept`. All fixtures are staged through `page.ts`
-      with the real fit test, so nothing pinned is a panel the product cannot produce. See Last Session for
-      the one known fallback case.
-    - **Out of scope → ADR 0006 slice:** mapper authoring of *when/what* a mob speaks (this port only makes the
-      pane N-capable; a test injecting a mob line proves it).
+**Live work — this is the whole list:**
 
-0. **ADR 0007 fully built and verified (v0.17.10–v0.17.12).** §2 sizing, the citation backfill, and the three
-   balloon enhancements are all done; the fixed-panel layout was in-browser checked, and the balloon changes
-   were eyeballed via `render-panel.ts`. Nothing outstanding on ADR 0007. **Standing rule now in force:** new
-   mechanical-layer code reads the C++ first and cites it. Two enhancement candidates were *considered and
-   deferred* as larger/optional: a fuller permuted-spline outline (we ship a lighter `wavyEdge` ripple), and
-   route-region multi-balloon collision (our panels are 1–2 balloons). Revisit only if a real need appears.
+1. **ADR 0006 Slice 5 (session-recap PDF export)** — the only open ADR slice. Independent of Slices
+   1–4 and schedulable whenever: §5 reframes the export as the record of a session at the table
+   (read-aloud boxed text + the exchange in the margins). Zero engine/parity implications.
+   **Standing constraint: the PDF is deliberately *not* WYSIWYG** — once panel width is a viewport
+   function, WYSIWYG would have to canonize one reader's window. `layout.ts`/`cellFor` is where a
+   print/PDF page policy goes, beside the on-screen one.
 
-**New direction — `docs/adr/0006-dungeon-master-and-player.md` (Accepted, building).** Recasts the Guide
-as a Dungeon Master and the Hero as his player, lets the Hero *speak*, and turns the two-shot into a real
-exchange. Deliberately breaks ADR 0004 §2 (Hero thought-only) and ADR 0005 §4; keeps the three invariants
-(presentation-only Guide, no engine internals, deterministic pure function → parity oracle). 5 slices.
+2. **M6.1 — the comic pane becomes a cartoon. ☐ The most important item in M6 (user's weighting).**
+   The DM and the Hero must converse in most scenes, in the same panel. **The machinery exists and
+   the experience does not** — four limiters compound, the full diagnosis and the six slices
+   (6.1a measure → 6.1f verify) are in `docs/DEVELOPMENT_PLAN.md` §6.1. **Start at 6.1a**: the
+   authored tables are trapped in DOM-coupled `comic-view.ts`, so the density nobody has measured
+   cannot be measured until they move. **Direction and five decisions (D1–D5) are settled** — see the
+   plan's decision table; 6.1b now *records* them as **ADR 0009** rather than asking. Target density:
+   **an exchange every 2–3 turns**, ~15–25× today's ~5.8%.
 
-- ✅ **Slice 1 (Hero speaks) — done, signed off for MVP (v0.17.5–v0.17.7).** Resolved-action balloon is
-  speech; thought register retained for asides. Balloon layout reworked to Comic Chat's model (straddle +
-  bottom tail + headroom, v0.17.7). Accepted as good enough for MVP; further layout-polish ideas deferred.
-- ✅ **Slice 2 (DM↔Hero dialogue pairs) — done (v0.18.6).** `BEAT_SCRIPT` holds `{ dm?, hero? }` pairs,
-  seven beats scripted, dialogue content pinned by a golden sequence. Rules and the one open finding
-  (shot/reverse-shot instead of a two-shot) are in Last Session. No conversational memory — Slice 4 owns
-  that.
-- ✅ **Slice 3 (caption reframe + identity rewrite + relabel) — done (v0.18.7).** The character is
-  **Dungeon Master** (user's call). See `WORKLOG.md` v0.18.7.
-- ✅ **Slice 4 (bounded conversational memory) — done (v0.18.8).** Details in Last Session.
-- **Slice 5 (session-recap PDF export) — the only ADR 0006 slice left.** Independent of 1–4 and
-  schedulable whenever: §5 reframes the export as the record of a session at the table (read-aloud
-  boxed text + the exchange in the margins). Zero engine/parity implications. Note the standing
-  constraint from item 4 below: the PDF is deliberately **not** WYSIWYG.
+3. **M6.2 — save / load / restart on the gameplay screen.** ☐ UI over the engine's existing save
+   contract, not new engine work. **Decided: three named slots, browser storage only, no downloadable
+   save file.** Independent — good filler for an idle session. Two live hazards in Open Issues:
+   `Turn` is not JSON-safe, and resume replays rather than re-executes; a restart must also clear the
+   pose cycles and the Director's beat counters.
 
-1. **`SHOTS` framing table — further tuning (◐, first pass v0.16.3).** Authoring judgement sitting on
-   top of the ADR (the ADR fixes which rung fires; these fill/reveal/backdrop numbers make each rung
-   legible). `establishing`≈`wide` similarity is inherent to solo-Hero scenes and deliberately left.
+4. **M6.3 — the static site.** ☐ **Decided: separate static pages, not routes in the game app** —
+   landing/home, about, and a public changelog (recommend generating it from `CHANGELOG.md` rather
+   than maintaining a second one). **Blocked on the user's `DESIGN.md` + mockups** (promised, not yet
+   supplied), which also govern restyling the gameplay screen.
 
-2. **Engine stubs / uncovered idioms — ✅ tail closed (v0.17.3–v0.17.4).**
-   - ✅ **`V-CLIMB-UP`** (last stub) and **`OTHER-SIDE`** (the `NEXTP` idiom) done in v0.17.3 — engine
-     builtins over the structural exit model. See WORKLOG.
-   - ✅ **`<NTH …>`** (I-CYCLOPS) and **String-in-statement** (GRATE-FUNCTION) lowered in v0.17.4 —
-     extractor vocabulary, `ir/src/extract-behavior.ts`. Catalogued-complex now 26.
-   - **Catalogued by design, no action** (not idiom gaps): **GOTO** (movement) and **PICK-ONE**
-     (randomness) are Group A engine builtins; **V-SAY** stops on the parser's P-LEXV lex buffer — all
-     three engine-owned per ADR 0002. Nothing pending; the catalog tail is fully triaged.
+5. **M6.4 asset separation & neutral branding** (☐, independent) and **M6.5 public release** (☐ —
+   repo public + website ships → tag `1.0.0`).
 
-3. **Invisible-routine audit, re-run after ADR 0003.** 360/439 ROUTINE forms extracted, 28 catalogued,
-   51 invisible. 45 correctly excluded by design (parser/clock/turn-loop the engine owns). Tail worth
-   triage: `BREATHE`, `MIN`, `UNTIE-FROM`, `FIND-IN`, `NO-GO-TELL`, `YES?`. **Worth making this a
-   standing report, not a one-off** — the catalog names the routine that failed but never what its
-   failure cost, which is exactly why combat stayed hidden for two milestones.
+**The M6 list is open.** The user supplied 6.1–6.3 as starters and will add more once work begins;
+absence from the table is not a decision that something is out of scope. **6.1 does not end when the
+list is done — it ends when the user says the product is ready.**
 
-4. **Panel grammar (ADR 0004, Accepted, amended twice at 5.3).** Amend the ADR, not the discussion doc.
-   Still-open authoring judgement: page composition (§5), §4a breakpoints, PDF byte size, pane-scroll
-   coupling. **User wants a recommendation at the point each is needed — lead with a pick, not a
-   survey.** `layout.ts`/`cellFor` is where a print/PDF page policy would go, beside the on-screen one.
-   PDF export is deliberately **not** WYSIWYG (once panel width is a viewport function, WYSIWYG would
-   have to canonize one reader's window).
+**ADR status, one line each:** 0004 Accepted (amended twice; open §5/§4a authoring judgement →
+FUTURE_WORK §2.1) · 0005 implemented (v0.17.0) · 0006 Slices 1–4 done (v0.17.5–v0.18.8), Slice 5
+open · 0007 fully built and verified (v0.17.10–12), nothing outstanding · 0008 Accepted and
+**complete** (Phases 0–3, v0.18.1–v0.18.5); what it left stubbed was scoped out on purpose and is in
+FUTURE_WORK §2.2.
 
-5. **Assisted input — designed, deferred to after the MVP.** SCUMM-style command picker (discussion
-   §15). Two constraints when it comes up: **Zork's 135-verb list is a spoiler table** (`ECHO`,
-   `ODYSSEUS`, `PRAY` *are* solutions), so a fixed core verb set with puzzle verbs typed-only; and it
-   **structurally removes `parser-miss`** (12.7%, the largest affect marker), flattening the comic
-   unless something replaces it. Needs an **ADR 0002 amendment** — a read-only query API
-   (`objectsInScope()`, pull not push), leaving the event stream at 1.0.0. `engine/src/scope.ts`
-   already computes the answer.
+**Standing rule from ADR 0007, still in force:** new mechanical-layer code reads the C++ first and
+cites it. The offline navigation graph is at
+`reference/comic-chat-v2.5-beta-1-modern/graphify-out/` (gitignored, local-only; rebuild with
+`graphify extract . --code-only --no-label` *inside the modern copy* — building in-repo finds 0
+files because `reference/` is gitignored and graphify merges the root `.gitignore`). The tracked,
+line-identical fallback source is `original-projects/comic-chat/v2.5-beta-1-modern/`.
 
-**Standing method note: measure before proposing rules.** Five plausible proposals died that way across
-the panel-grammar sessions. The harness replay and the `art/` corpus answer questions cheaply, and a
-measurement taken for one question often answers another.
+**Standing method note: measure before proposing rules.** Five plausible proposals died that way
+across the panel-grammar sessions. The harness replay and the `art/` corpus answer questions
+cheaply, and a measurement taken for one question often answers another.
 
 ---
 
@@ -335,8 +284,10 @@ measurement taken for one question often answers another.
 - **`Turn` is not JSON-safe** — `EventMix.counts` is a `Map`, and `JSON.stringify` writes it as `{}`
   with no error. Persistence recomputes `mix` rather than storing it. General rule: **derived state
   must not be persisted; a `Map`/`Set` in a persisted type is silent data loss on reload.**
-- Neutral branding for commercial assets (engine/IR/importer). Repo is prepared for public release but
-  not yet public; nothing blocks it.
+- **Neutral branding + asset separation for engine/IR/importer is M6.2**, and the repo going public is
+  **M6.3** — both now stages with exit criteria in `docs/DEVELOPMENT_PLAN.md` rather than a loose note.
+  The repo is *prepared* for public release; what is not prepared is the website, the other half of
+  the 1.0.0 criterion.
 
 ---
 
@@ -382,7 +333,8 @@ Hard-won rules that outlive any one session.
 | `web/tools/cast-fixture.ts` | **ADR 0008 Phase 0.** Packs 2–4 real `.avb` avatars in memory — the only source of N≥3 bodies. Feeds `test/bodies.test.ts` and `npm run render:bodies` |
 | `art/` | Comic Chat art tooling (decode, pose, pack) |
 | `docs/AVB_FORMAT.md` | **Normative** `.avb` format spec + the five silent-failure gotchas. Read before touching `art/` |
-| `docs/adr/` | ADRs: 0001–0005 (0005 = Narrative Director) |
+| `docs/adr/` | ADRs 0001–0008. 0005 = Narrative Director, 0006 = DM & player (Slice 5 open), 0007 = comic-pane port boundary, 0008 = full mechanical port (complete) |
+| `docs/FUTURE_WORK.md` | **The non-critical backlog** + the pre-1.0.0 improvement-iteration protocol. Nothing in it blocks release; nothing in it is scheduled until the user defines an iteration |
 | `docs/backdrop-generation-plan.md` | 30-backdrop generation plan (IDs, prompts, room→backdrop map) |
 | `original-projects/zork1/`, `original-projects/comic-chat/` | ZIL and Comic Chat source references |
 | `reference/` | Third-party reference material. **Gitignored** in full; local-only, may be absent from a fresh checkout. Z-Machine Standards 1.1 (normative for M4 builtins), Comic Chat SIGGRAPH '96 paper, ZILF/ZLR sources |

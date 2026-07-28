@@ -10,6 +10,115 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.12 — 2026-07-28 — M6 decided: six answers, and the dialogue corpus is sanctioned
+
+The user answered every open question on the M6 draft, so §6.1 stopped being a set of forks and
+became a decision table (D1–D5) that ADR 0009 will now record rather than ask.
+
+- **D1 is the one that governs the rest: the goal outranks the mechanism.** The pane must read as a
+  natural DM↔solo-player conversation *as much as possible*, and **the volume of authored dialogue is
+  an accepted cost** — pre-generating many lines is sanctioned, not something to economise on. Where
+  a limiter and the goal conflict, the limiter goes.
+- **The invariant D1 does not suspend, written into the plan because it decides *how* the
+  pre-generation happens:** the mapper stays a deterministic pure function — it is the parity oracle
+  and 11 walkthroughs replay through it in Node. So "pre-generated" means **authored at development
+  time and committed as data**, pinned by the golden sequence. It does **not** mean a model called at
+  runtime: non-deterministic, breaks the oracle, and needs a paid API this project has no budget for.
+  Out of scope for 1.0.0.
+- **D2 narration routing:** description → DM, resolved action → Hero, parser refusals → the Hero's
+  register (they are his frustration, and `parser-miss` is the largest affect marker), system text →
+  DM. **D3:** long descriptions split across two panels, limit 180 → **200** chars. **D4:** the
+  location box appears **only on room change** — the status bar already carries the persistent
+  answer. **D5:** density target **an exchange every 2–3 turns**, ~15–25× today's ~5.8%.
+- **6.2 decided:** three named save slots, browser storage only, no downloadable save file — which
+  keeps the save format an internal detail a released version never has to keep reading.
+- **6.3 grew from a page into a small static site:** landing/home, about, and a public changelog, as
+  separate static pages rather than routes in the game app. Recommendation recorded: generate the
+  public changelog from `CHANGELOG.md`, because two changelogs diverge the first time one is edited
+  in a hurry.
+
+**What this session did not do:** measure anything. 6.1a still owns that, and D5's target is
+meaningless until the baseline exists — the tables are still trapped in DOM-coupled `comic-view.ts`.
+
+---
+
+## v0.18.11 — 2026-07-28 — M6 drafted from the user's first three items; the cartoon gap diagnosed
+
+Documentation-only. The user supplied three starter items for M6 — a landing page, save/load/restart,
+and *"make the comic pane actually a cartoon where the DM and Hero chat in most scenes"* — with more
+to follow. Drafting the third one required finding out why the pane is not one already, since ADR 0006
+Slices 1–4 claim to have built exactly that.
+
+- **The diagnosis: the machinery exists, the experience does not, and no single decision is wrong.**
+  Four compound. (1) `mapper.ts` does `const hero = action ?? exchange.hero` and `exchangeFor` rule 2
+  nulls the reply when `heroBusy` — so the Hero answers *only* on turns he did nothing worth
+  reporting. (2) One cooldown of 3, shared with the room gazetteer. (3) Seven markers scripted, with
+  `parser-miss` — 12.7% of turns, the largest — deliberately excluded. (4) Caption + DM + Hero is
+  three balloons, so the fit test splits the exchange into shot/reverse-shot and the facing two-shot
+  is rare. Net: **35 spoken beats over 606 turns, ~5.8%**, and the both-speak-in-one-panel subset is
+  smaller. The user's "they don't talk to each other at all" is an accurate reading of the product.
+- **The recommendation on record was "spend the caption" — the user decided something better.** The
+  top-left box becomes the **location name** (panel metadata from `context.room`) and **the DM speaks
+  the room description**. The ask came with a wrong premise worth recording: the box is *not* the
+  location name today — `captionFor` puts the first sentence of narration in it and drops it past
+  `CAPTION_MAX` 180, silently losing long descriptions; the room name lives only in the status bar.
+  The decided design is strictly stronger than absorbing the caption, because a `BM_ACTION` caption
+  **unconditionally starts a new panel** (`panel.cpp:1064`, faithful port) and one fires on 96.7% of
+  turns — so panelization is being *told* to break the exchange nearly every turn. Removing the box
+  from the line stream stops that instruction being issued at all. → **ADR 0009**, slice 6.1b, which
+  must also settle the narration routing policy (description → DM, resolved action → Hero, refusals
+  and system text → undecided) and long-description length.
+- **6.1a exists because the measurement is currently impossible.** `GUIDE_SCRIPT`/`BEAT_SCRIPT` live
+  inside DOM-coupled `web/src/comic-view.ts`, so the real tables cannot be replayed over the corpus
+  the way `mapper.test.ts` replays the walkthroughs. Move the authored content to a DOM-free module,
+  then baseline the density every later slice is measured against. **Measure before proposing rules**
+  — the standing note, applied to the largest presentation change the project has attempted.
+- **M6 now has five stages** (6.1 cartoon · 6.2 save/load/restart · 6.3 landing page · 6.4 asset
+  separation · 6.5 public release), with 6.1 sliced a–f. The table is written as **open**: absence
+  from it is not a scoping decision, and 6.1 ends when the user says the product is ready.
+
+**Rule this session is an instance of:** *a subsystem's tests can be green, its ADR satisfied, and the
+feature still absent from the product.* Slices 1–4 each did what they said. What none of them owned
+was the question the user asked — how often, in practice, do the two characters actually talk.
+
+---
+
+## v0.18.10 — 2026-07-28 — The backlog moved out: M5 closed, M6 defined, `FUTURE_WORK.md` created
+
+Documentation-only. No code changed; 255 web / 139 engine / 198 IR tests and parity 143/143 strict
+all unchanged. The trigger was a question — *does any of the open work block the MVP?* — whose
+answer was no for every item but one, which meant `HANDOFF.md`'s Next Actions had become a backlog
+rather than a next-actions list.
+
+- **`docs/FUTURE_WORK.md` created.** Everything non-critical moved there with its reasoning intact:
+  `SHOTS` tuning, the shot/reverse-shot finding and its two levers, ADR 0004's open authoring
+  judgement, the two deferred ADR 0007 balloon enhancements, ADR 0008's deliberately-scoped-out
+  leftovers (mob authoring and the `OrderAvatars`/histeresis stubs — one piece of work, both waiting
+  on the talk-to graph), the `mob4-p02` gate divergence, the invisible-routine audit, and assisted
+  input with its two constraints and its ADR 0002 prerequisite. **Every entry carries a *why
+  deferred*** — the field that decides whether an item can be picked up a year later, and the one a
+  bare backlog list always loses.
+- **M5 closed on the criterion actually written for it.** 5.5's exit criterion was "game completable
+  in the browser", met at v0.16.0 and verified in-browser at v0.17.2. What kept 5.5 open was polish
+  that was never its criterion. The plan now says so, and says what *would* re-open it: a room or
+  turn the browser cannot render.
+- **M6 stopped being provisional.** Gates C and D are both cleared, so "stages to be defined after
+  Gate C/D" had expired. Now three stages: **6.1** open-ended user-defined improvement iterations,
+  **6.2** asset separation & neutral branding (independent of 6.1), **6.3** repo public + website
+  ships → tag `1.0.0`.
+- **6.1's exit criterion is deliberately not "the backlog is empty."** It is *the user declares the
+  product ready*. The iteration count is not fixed in advance, and §2 items stay unscheduled until
+  an iteration names them — written into both the plan and `FUTURE_WORK.md` because the obvious
+  failure mode of publishing a backlog is an agent treating it as a work queue.
+- **The gap the cleanup exposed:** the website is half of the 1.0.0 criterion and has no design
+  behind it anywhere in the docs. The leftover polish never blocked release; that does.
+
+**Rule this session is an instance of:** *a next-actions list that only grows is a backlog wearing
+the wrong hat.* Deferred work needs a file where deferral is the normal state, or it accumulates in
+the one document read in full at every session start.
+
+---
+
 ## v0.18.9 — 2026-07-28 — The dev server was `/`-shaped; macOS named as the platform
 
 The shell served a 404 for its own index and for the world document on Windows while working on

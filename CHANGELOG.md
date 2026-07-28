@@ -13,7 +13,11 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ## [Unreleased]
 
-Toward public launch (`1.0.0`): remaining stage-5.5 presentation work.
+Toward public launch (`1.0.0`), now Milestone 6: the comic pane becoming a true cartoon (the Dungeon
+Master and the Hero conversing in most scenes), save/load/restart on the gameplay screen, a proper
+landing page, separation of the reusable assets (engine, IR spec, ZIL importer) under neutral
+branding, and the public release itself — repo public + website. More items to come. Milestone 5
+(comic presentation) is complete: the game is completable in the browser.
 
 ---
 

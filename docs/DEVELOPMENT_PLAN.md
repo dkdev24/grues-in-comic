@@ -5,7 +5,7 @@ Living document. Milestones are ordered; stages within a milestone are sized so 
 - **Status legend**: ☐ not started · ◐ in progress · ☑ done
 - **Update rule**: when a stage finishes, mark it in this file and record details in `HANDOFF.md` (and `WORKLOG.md` at version milestones). When a decision gate resolves, revise the affected downstream stages rather than working around the plan.
 
-Related documents: `docs/PORTING_STRATEGY.md` (phases and architecture), `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` (Graphify/OpenWiki), `docs/gemini-analysis-on-plan-and-strategy.md` (adopted recommendations: deterministic pre-parser, interface-first engine/UI boundary, brand separation).
+Related documents: `docs/FUTURE_WORK.md` (the non-critical backlog and the pre-1.0.0 iteration protocol — this plan orders the work, that file holds what is deliberately unscheduled), `docs/PORTING_STRATEGY.md` (phases and architecture), `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` (Graphify/OpenWiki), `docs/gemini-analysis-on-plan-and-strategy.md` (adopted recommendations: deterministic pre-parser, interface-first engine/UI boundary, brand separation).
 
 ---
 
@@ -121,7 +121,9 @@ Goal: browser shell consuming engine events; Comic Chat–inspired presentation.
 | 5.2 | **Minimal browser shell** — text-mode UI over the event stream (prove the contract end-to-end) | Playable text version in browser | ✅ |
 | 5.3 | **Comic renderer POC** — one scene as panels + speech bubbles | POC demonstrates event→panel mapping ⚑ **Gate D** | ✅ |
 | 5.4 | **Presentation buildout** — panel sequencing, character portraits, narration styling, persistence | Opening area playable in comic form | ✅ |
-| 5.5 | **Full-game pass** — art/layout coverage for the complete game | Game completable in the browser | ☐ |
+| 5.5 | **Full-game pass** — art/layout coverage for the complete game | Game completable in the browser | ☑ |
+
+**5.5 closed 2026-07-28 on its written exit criterion.** The engine wins Zork I 350/350 into `STONE-BARROW` (`engine/test/completion.test.ts`, seed 1234), the comic pane was verified in-browser and its issue list cleared at v0.17.2, and ADRs 0004–0008 are all built. The presentation *polish* that was tracked under 5.5 was never the exit criterion — it moved to `docs/FUTURE_WORK.md` §2 and is drawn from by Milestone 6.1. **Do not re-open 5.5 for polish**; a genuine coverage gap — a room or turn the browser cannot render — would be a 5.5 regression and does re-open it.
 
 **⚑ Gate D:** comic-presentation POC decides art pipeline and asset strategy — plan 5.4–5.5 in detail only after it.
 
@@ -131,9 +133,100 @@ The text sits at `reference/comic-chat-paper.md` but is **gitignored** — it is
 
 ---
 
-## Milestone 6 — Modernization & Asset Separation (v1.x)
+## Milestone 6 — Road to 1.0.0: Improvement Iterations & Public Release (v0.19.x → v1.0.0)
 
-Post-parity, per PORTING_STRATEGY Phase 6 and the solopreneur strategy: refactoring, performance, documentation quality, and separating reusable assets (engine, IR spec, ZIL importer) under neutral branding for potential standalone use. Stages to be defined after Gate C/D.
+Gates C and D are both cleared, so this milestone is no longer provisional. Its scope, per PORTING_STRATEGY Phase 6 and the solopreneur strategy: making the product what it was meant to be, separating reusable assets (engine, IR spec, ZIL importer) under neutral branding, and shipping.
+
+**`1.0.0` means one thing: the repo goes public and the website ships.** Everything below is what stands between here and that day.
+
+**This table is open.** The user supplied 6.1–6.3 as *starters* and will add more items as iteration 1 proceeds; stage numbers are stable but the list is not exhaustive. **6.1 ends when the user declares the product ready — never when a backlog empties.**
+
+| Stage | Task | Exit criteria | Status |
+|---|---|---|---|
+| 6.1 | **The comic pane becomes a cartoon** — the DM and the Hero converse in most scenes, in the same panel. **The most important item in M6** | A playthrough reads as two characters talking, measured not asserted: an agreed share of turns carries a real exchange, most of them in one panel | ☐ |
+| 6.2 | **Gameplay screen: save / load / restart** — UI over the engine's existing save contract; three named slots, browser storage only | A player can save, reload and restart from the browser without the console; state survives a reload | ☐ |
+| 6.3 | **The static site** — landing/home page, about, public changelog, alongside the gameplay screen; to `DESIGN.md` + mockups (user-supplied, pending) | Static pages ship, gameplay screen restyled to the same look & feel | ☐ |
+| 6.4 | **Asset separation & neutral branding** — engine, IR spec and ZIL importer extractable for standalone use | Reusable assets identified and separable; licensing/attribution settled (`THIRD_PARTY.md`) | ☐ |
+| 6.5 | **Public release** — repo made public, website shipped | Repo public + website live → tag `1.0.0` | ☐ |
+
+**Ordering.** 6.1 first, by the user's own weighting and because it is the only stage that can invalidate an ADR. 6.2 is independent of everything and can fill an idle session. 6.3 is blocked on `DESIGN.md` and the mockups, not on us. 6.4 is independent of 6.1–6.3. 6.5 needs all of them.
+
+---
+
+### 6.1 — The comic pane becomes a cartoon
+
+**The finding that scopes this stage:** the machinery for a DM↔Hero exchange exists (ADR 0006 Slices 1–4) and the *experience* still is not a conversation. That is not a bug — it is four deliberate decisions compounding, each defensible alone:
+
+1. **The Hero cannot report an action and reply in the same turn.** `mapper.ts`: `const hero = action ?? exchange.hero`, and `exchangeFor` rule 2 nulls the reply whenever `heroBusy`. So he only ever answers on turns he did nothing worth reporting — the quiet turns, which is the opposite of where a conversation belongs.
+2. **One cooldown, set to 3, shared with the room gazetteer.** At most one exchange per three turns, and a first-visit room line spends the same budget on DM monologue.
+3. **Beat coverage is 7 markers.** `parser-miss` — the largest marker there is, 12.7% of turns — and `death` are excluded on purpose. Everything else falls through to silence or to a DM-only room line.
+4. **Even when both speak, they land in different panels.** Caption + DM + Hero is three balloons, the fit test refuses them in the band at `UNIT`, and `AddLine` splits — so the exchange renders shot/reverse-shot, and ADR 0005 §4's facing two-shot is rare. 96.7% of turns carry a caption.
+
+Measured consequence, from the corpus the beat runs were tuned against: **35 spoken beats over 606 turns (~5.8%)**, and the both-speak-in-one-panel subset is smaller still. "The two main characters don't talk to each other at all" is an accurate reading of the product.
+
+**The direction, decided by the user 2026-07-28 — the top-left box becomes the location name, and the DM speaks the room description.**
+
+First, the premise that was wrong in the asking, because the plan has to record it: **the box is not the location name today.** `captionFor` (`mapper.ts:606`) puts the first sentence of the turn's *narration* there — "You are standing in an open field west of a white house…" — and drops it entirely past `CAPTION_MAX` (180 chars), which silently loses the longer descriptions. The room **name** is not in the panel at all; it lives in the status bar (`status.ts`, looked up by room id from the world document, with `room-title` available on the event stream since v1.5.1).
+
+So the decided design is a change in both places, and it is a better one than "the DM absorbs the caption" (this plan's superseded recommendation):
+
+- **The box becomes panel metadata, not a line.** A location title drawn by the renderer from `context.room` — which the panel context already carries — never entering the script as a `BM_ACTION` caption.
+- **The DM speaks the room description**, in the read-aloud-at-the-table register ADR 0006 §5 already defines.
+
+**Why this fixes limiter 4 outright and the absorb-the-caption proposal only worked around it:** a `BM_ACTION` caption *unconditionally starts a new panel* (`panel.cpp:1064`, faithful port). With a caption on 96.7% of turns, panelization is being told to break the panel almost every turn, which is what splits the exchange into shot/reverse-shot. Taking the box out of the line stream stops that instruction being issued, leaves DM + Hero as two balloons in the band, and lets the facing two-shot become the ordinary case rather than the rare one.
+
+**Decisions taken 2026-07-28 — these are settled input to ADR 0009, not open questions:**
+
+| # | Decision |
+|---|---|
+| D1 | **The goal outranks the mechanism.** The pane must read as a natural conversation between a DM and a solo player *as much as possible*. **Volume of authored dialogue is an accepted cost** — pre-generating many lines is explicitly sanctioned rather than something to economise on. Where a limiter and the goal conflict, the limiter goes. |
+| D2 | **Narration routing:** room description → the DM's balloon; resolved action → the Hero's balloon (unchanged); parser refusals → the Hero's register (they are his frustration, and `parser-miss` is the largest affect marker); system text → the DM. |
+| D3 | **Long room descriptions split across two panels**, and `CAPTION_MAX`'s successor limit rises **180 → 200 chars**. |
+| D4 | **The location box shows only when the room changes**, not on every panel. The status bar already carries the persistent answer. |
+| D5 | **Density target: an exchange every 2–3 turns.** This is what 6.1a's report is measured against, and it is ~15–25× today's ~5.8%. |
+
+**The invariant D1 does not suspend — and it is the one that decides *how* the pre-generation happens.** The mapper stays a **deterministic pure function**: it is the parity oracle, and 11 walkthroughs replay through it in Node. So "pre-generated" means **authored at development time and committed as data** — lines written by hand or drafted with AI assistance during a session, then pinned by the golden dialogue sequence. It does **not** mean a language model called at runtime: that would be non-deterministic, would break the oracle, and would need a paid API this project has no budget for. Any proposal to generate dialogue while the game is running is out of scope for 1.0.0.
+
+**Slices** (each sized for a session; 6.1a is prerequisite to the rest):
+
+| Slice | Work | Exit criteria |
+|---|---|---|
+| 6.1a | **Measure, and make measurement possible.** `GUIDE_SCRIPT`/`BEAT_SCRIPT` live inside `web/src/comic-view.ts`, which is DOM-coupled, so the real tables cannot be replayed over the corpus. Move the authored content to a DOM-free module and report per-turn density: DM line, Hero line, both, both-in-one-panel | A repeatable report over the walkthrough corpus + completion oracle, with today's numbers pinned as the baseline every later slice is measured against |
+| 6.1b | **Write ADR 0009** from D1–D5 above — the decisions are made, this records them and their consequences. What it still has to work out is *mechanism*, not direction: how a description splits across two panels while the DM keeps the floor, and what the Hero is doing in the second panel | Written and Accepted. It breaks ADR 0004 §3 (caption as a script line) and ADR 0005 §4, so it supersedes rather than amends |
+| 6.1c | **Move the box out of the line stream** and route the description to the DM per D2/D4. Renderer draws the title from `context.room` on room change only; `captionFor` retires, its length limit becomes 200 and stops silently dropping | No `BM_ACTION` line on an ordinary turn; the description is in the DM's balloon; long descriptions split to a second panel; `mapper.ts` stays pure and canvas-free |
+| 6.1d | **Lift the remaining limiters** (D1 governs — the goal outranks each): the `action ?? reply` exclusion, the cooldown, marker coverage (`parser-miss` first — it is the largest and the funniest), gazetteer contention. Then confirm the exchange lands in one panel — with the caption gone this should follow, and if it does not it is a fit-test/`BALLOON_HEADROOM` question | **An exchange every 2–3 turns (D5)** on the 6.1a report; the two-shot is the common case for exchange turns, on screen and in the report |
+| 6.1e | **Write the dialogue — the largest slice, and D1 sanctions its size.** Today's tables cover 7 markers and ~30 rooms; every-2–3-turns across 110 rooms and a full playthrough is a substantial authored corpus, committed as data. Likely spans several sessions | Coverage over a full playthrough with no scene falling back to silence; run depths re-measured, not guessed; the corpus lives in a DOM-free module (6.1a) and is pinned by the golden sequence |
+| 6.1f | **Verify.** Golden dialogue sequence re-pinned, pixel gate re-accepted **after looking at the images**, full playthrough read in the browser | Gate green, playthrough read end to end, findings logged |
+
+**Constraints that do not move in this stage:** the Guide/DM stays presentation-only and reads no engine internals; the mapper stays a deterministic pure function (it is the parity oracle); engine parity stays 143/143 strict. If a proposal needs the DM to know something the event stream does not carry, the answer is no — that is ADR 0006's first invariant.
+
+**Standing method note applies with force here:** measure before proposing rules. Five plausible panel-grammar proposals died that way, and 6.1a exists so the sixth does not.
+
+### 6.2 — Save / load / restart on the gameplay screen
+
+The engine has had save/restore since M4 (`engine/src/` save contract, `SaveState`), and the web shell already persists a session (`web/src/persistence.ts`) — this stage is **UI over an existing contract**, not new engine work.
+
+Two known hazards from the existing notes, both live for this stage: **`Turn` is not JSON-safe** (`EventMix.counts` is a `Map`; persistence recomputes `mix` rather than storing it — derived state must not be persisted), and **resume replays turns, it does not re-execute them** (`SaveState` stays the only source of world truth). A restart must also reset the comic pane's pose cycles and the Director's beat counters, or the new game opens with the old game's conversation state.
+
+**Decided 2026-07-28: named save slots, maximum three, browser storage only.** No downloadable save file for 1.0.0 — which keeps the save format an internal detail rather than something a released version has to keep reading. A three-slot cap also bounds the storage question: browser storage is finite and a comic session is not small.
+
+Left to the implementer: whether a slot stores a name the player types or one derived from room + score + moves (derived is cheaper and needs no dialog — recommend it, with rename deferred), and whether restart confirms (it should — it is the one destructive control on the screen).
+
+### 6.3 — The static site: landing page, about, changelog
+
+**Decided 2026-07-28: the landing page is a separate static page, not a route in the game app**, and it is one of **several** static pages — a public changelog and an about page named so far, more likely.
+
+That makes this stage a small static site plus the game, rather than a page bolted onto the game. Consequences worth settling early: where the static pages live in the repo relative to `web/` (the game app), how the dev server serves both (`web/tools/serve.ts` routes in URL space), and whether the public changelog is generated from `CHANGELOG.md` or written separately — **generated is the recommendation**, since two changelogs diverge the moment one is edited in a hurry.
+
+`web/` has **no bundler by decision** (`web/README.md`), and nothing here needs one: static pages are HTML and CSS.
+
+Still blocked on the user's `DESIGN.md` and mockups for the look & feel, which also govern restyling the gameplay screen to match.
+
+---
+
+**Documents this milestone will touch:** `docs/adr/` (6.1b writes one), `docs/FUTURE_WORK.md` §1 (the iteration table), `wiki/the-guide.md` and `wiki/the-hero.md` (6.1e is their voice), `web/README.md` (6.2/6.3 surfaces).
+
+**The non-critical backlog is not in this file.** `docs/FUTURE_WORK.md` §2 is the menu further iterations draw from — good-to-have items with a recorded reason for deferral. Nothing in it blocks 6.5.
 
 ---
 
