@@ -10,6 +10,42 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.8 — 2026-07-28 — ADR 0006 Slice 4: the beats remember how often they have fired
+
+A beat is no longer one line but a **run** of them: the *n*th time it speaks it takes the *n*th
+authored exchange, and the last one holds. This is the ADR's conversational-memory half — the risk
+surface the testing contract singled out — and it is deliberately the smallest memory that removes
+the stuck-record reading. **255 web tests green (was 249), 139 engine, 198 IR, tsc, build and the
+17-case pixel gate clean.**
+
+- **`mapper.ts`:** new `BeatEntry` (`string | BeatExchange | readonly (…)[]`) and `variantOf`; the
+  memory itself is one `Map<marker, count>` folded over the turns already read, sitting beside
+  `visited` and `lastGuideTurn`. No engine state, no wall-clock, no RNG — so the panel stream is still
+  a pure function of the event stream and `replayPanels` still applies. Bare strings and single
+  exchanges still work, so nothing authored before this slice changed shape.
+- **Two rules, each a decision.** The counter is over **spoken** firings, not marker occurrences — a
+  beat the cooldown swallowed was never on the page, and advancing past its line would retire a reply
+  the reader never read; it advances at the same moment `lastGuideTurn` does. And **past the end the
+  last line repeats, nothing cycles**: a run that looped back to its opener would be a DM surprised by
+  a room he has seen four times, so the last entry is authored as the settled one.
+- **Run depths are measured, not chosen.** Over the 606-turn corpus a beat is *spoken* `reveal` 14×,
+  `effort` 9×, `scored` 5×, `uncanny` 3×, `combat-threat` 3×, `grue-threat` 1×, `combat-victory` 0×.
+  So `reveal` got four lines and the rest two or three; the fights are scripted three deep because the
+  walkthroughs avoid combat and real play does not. All seven beats rewritten as arcs — fresh
+  reaction, recognition, then the worn line the pair are left with.
+- **Six tests, the memory gated hardest:** the run walked in order, the clamp at the end, spoken-not-
+  occurred (cooldown-swallowed firings burn nothing), per-marker independence, rule 2 × rule 4 (a
+  reply the Hero's resolved action outranked ages nothing), and a **determinism replay** — same seed,
+  same walkthrough, twice, byte-identical dialogue. That last one is where anything reaching outside
+  the event stream fails first.
+- **Method note:** the cooldown is measured in `moves`, and a refused command does not advance it, so
+  two parser misses in a row are *one turn apart* by the only clock the mapper has. Cost a test
+  iteration; worth writing down.
+- **Not built, deliberately:** cross-beat memory (a running kill count quoted inside another beat's
+  line). Legal under §4, but it needs line templating — an authoring surface, not this mechanism.
+
+---
+
 ## v0.18.7 — 2026-07-28 — ADR 0006 Slice 3: the character is named, the caption is his to read
 
 The Guide is now **Dungeon Master** — a proper name, on the user's call, from the three options ADR

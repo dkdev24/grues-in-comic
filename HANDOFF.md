@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.18.7**
+**0.18.8**
 
 ---
 
@@ -30,7 +30,8 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 - **M5 ◐** Comic Chat presentation. 5.1 ✅ art pipeline (`art/`), 5.2 ✅ browser shell (`web/`),
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
-  ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
+  ADR 0006 (DM & player) Slices 1–4 done (v0.17.7–v0.18.8; only the Slice 5 export remains);
+  ADR 0007 (comic-pane port boundary + fixed panels)
   fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — ✅ COMPLETE.
   Phases 0–3 done (v0.18.1–v0.18.5); the layout stack is a cited port with a pixel gate.
   Re-scoped 2026-07-24 to a full faithful port vs **v2.5-beta-1 (modern variant)** (was v1.0-pre; the comic
@@ -47,33 +48,38 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 249 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 255 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0008 Phase 3, then ADR 0006 Slices 2–3 (v0.18.5–v0.18.7)
+## Last Session — ADR 0006 Slice 4: bounded conversational memory (v0.18.8)
 
-Full narrative in `WORKLOG.md` v0.18.5–v0.18.7; ADR 0008 has a "Phase 3 built" section and ADR 0006's
-slice list carries Slices 2–3. What the next session must know:
+Full narrative in `WORKLOG.md` v0.18.8; the ADR's slice list carries the decisions. What the next
+session must know:
 
-**ADR 0006 Slice 3 — the character has a name: "Dungeon Master."**
-- The user settled the relabel (a **proper name**, no article). The label lives in **one seam**,
-  `castLabel` (`comic-view.ts`) → cast bar + panel alt text. **Role ids did not move**: `guide`/`hero`
-  are still manifest keys and `Line.speaker` values, so nothing mechanical, and the parity oracle
-  never sees it. `test/cast-label.test.ts` pins the name *and* that boundary.
-- §2 landed as fiction only: the caption is the same verbatim pull-quote (`captionFor` unchanged);
-  the "Not the Narrator" boundary is retired because the caption channel *is* his read-aloud text.
-- `wiki/the-guide.md` is now *The Dungeon Master* — **filename deliberately kept** so `[[the-guide]]`
-  links resolve. The tiki idol survives as the drawing, not as the concept.
+**A beat is now a *run* of lines, not one line.** `BeatEntry` in `mapper.ts` is
+`string | BeatExchange | readonly (…)[]`; the *n*th time a beat speaks it takes the *n*th entry
+(`variantOf`), and past the end the last one repeats. Bare strings and single exchanges are unchanged,
+which is why the pixel gate's fixture script needed no edit.
 
-**ADR 0006 Slice 2 — the DM and the Hero now converse.**
-- `BEAT_SCRIPT` entries are `{ dm?, hero? }` pairs (`BeatExchange`); a bare `string` still means
-  DM-only, so old tables keep working. `mapper.ts`'s `guideFor` is now `exchangeFor`.
-- **Three rules to know before touching it:** one cooldown for the whole exchange, consumed only when
-  something is said; the **resolved action outranks the Hero's authored reply** (he never holds two
-  balloons, so replies land on the quiet turns); the room gazetteer stays DM-only. Measured cost of the
-  outranking rule over 606 turns: 2 replies. 33 of 35 DM lines answered.
-- **Open finding, deliberately not fixed:** an exchange renders as **shot/reverse-shot, not a two-shot**
+- **The whole memory is one `Map<marker, count>`** folded over the turns already read, beside
+  `visited`/`lastGuideTurn`. **No engine state, no clock, no RNG** — that is the ADR's load-bearing
+  constraint, and `replayPanels` still holds. Anything added here must fold the same way.
+- **Two rules, each a decision.** The counter is over **spoken** firings, not marker occurrences (a
+  cooldown-swallowed beat was never on the page, so it must not retire a reply the reader never read);
+  and **nothing cycles** — the last line of a run is authored as the *settled* one.
+- **Run depths are measured.** Spoken over the 606-turn corpus: `reveal` 14×, `effort` 9×, `scored` 5×,
+  `uncanny` 3×, `combat-threat` 3×, `grue-threat` 1×, `combat-victory` 0×. `reveal` got 4 lines, the
+  rest 2–3. Re-measure before deepening a run rather than guessing.
+- **Gotcha that cost a test iteration:** the cooldown is measured in `moves`, and **a refused command
+  does not advance `moves`** — two parser misses in a row are one turn apart by the only clock the
+  mapper has. Any test that wants a cooldown to expire must walk between the beats.
+- **Not built, deliberately:** cross-beat memory (e.g. a kill count quoted in another beat's line).
+  Legal under §4 but it needs line templating — an authoring surface, not this mechanism.
+- **Test count: 255 web** (was 249); 139 engine, 198 IR, tsc, build and the 17-case gate all clean.
+
+**Still-live finding from Slice 2 (unfixed by design):** an exchange renders as **shot/reverse-shot,
+not a two-shot**
   — caption + DM + Hero is three balloons, the fit test refuses them in the band at `UNIT`, and
   `AddLine` splits. Reads well and is the ported mechanism deciding, but ADR 0005 §4's "both figures
   facing each other" panel is now rare (96.7% of turns carry a caption). Levers if it is ever wanted:
@@ -197,14 +203,12 @@ exchange. Deliberately breaks ADR 0004 §2 (Hero thought-only) and ADR 0005 §4;
   (shot/reverse-shot instead of a two-shot) are in Last Session. No conversational memory — Slice 4 owns
   that.
 - ✅ **Slice 3 (caption reframe + identity rewrite + relabel) — done (v0.18.7).** The character is
-  **Dungeon Master** (user's call). Details in Last Session.
-- **Slice 4 (bounded conversational memory) — primary next build, and the hardest-gated.** Dialogue may
-  vary on counters that are themselves a **pure function of the event stream** (the *n*th grue beat,
-  first vs repeat visit, a running kill count) — no engine internals, no wall-clock, no RNG, or
-  `replayPanels` and the parity oracle are lost. The `BEAT_SCRIPT` pair table from Slice 2 is the surface
-  it varies; the golden dialogue test in `mapper.test.ts` is the thing that must keep passing (or be
-  re-derived deliberately).
-- Slice 5 (session-recap PDF export, independent — schedulable whenever).
+  **Dungeon Master** (user's call). See `WORKLOG.md` v0.18.7.
+- ✅ **Slice 4 (bounded conversational memory) — done (v0.18.8).** Details in Last Session.
+- **Slice 5 (session-recap PDF export) — the only ADR 0006 slice left.** Independent of 1–4 and
+  schedulable whenever: §5 reframes the export as the record of a session at the table (read-aloud
+  boxed text + the exchange in the margins). Zero engine/parity implications. Note the standing
+  constraint from item 4 below: the PDF is deliberately **not** WYSIWYG.
 
 1. **`SHOTS` framing table — further tuning (◐, first pass v0.16.3).** Authoring judgement sitting on
    top of the ADR (the ADR fixes which rung fires; these fill/reveal/backdrop numbers make each rung

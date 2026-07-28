@@ -94,3 +94,11 @@ holds two balloons in one panel, so a reply is always the *quiet* turn's line �
 looked, or been refused — and it should read as an answer to the idol, never as a report on
 something he did. Measured over the walkthrough corpus, the exchange fires on 5.4% of turns and 94%
 of the DM's lines are answered.
+
+**Slice 4 makes each of those replies a run rather than a line.** The *n*th time a beat fires he is
+one line further along it, and the arc is his half of getting used to the place: the first reply is
+still doing the joke, the last one has stopped bothering — "As arranged." It suits him better than it
+suits the DM. He is a man who has run this system before and whose competence shows up as
+*decreasing* commentary; the run gives that an actual gradient instead of asking one line to imply
+it. He never resets to the first reply, because a man who is surprised again by the fourth false
+floor is a different character.

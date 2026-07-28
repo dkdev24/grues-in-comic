@@ -15,7 +15,7 @@
 
 import type { Turn } from "./session.js";
 import {
-  CAPTION, GUIDE, HERO, lineOf, type BeatExchange, type BeatScript, type Panel,
+  CAPTION, GUIDE, HERO, lineOf, type BeatEntry, type BeatScript, type Panel,
 } from "./comic/mapper.js";
 import { createDirector, type Director } from "./comic/director.js";
 import { createFitTest } from "./comic/fit.js";
@@ -186,36 +186,120 @@ const GUIDE_SCRIPT = new Map<string, string>([
  *   cooldown, scripting it would spend most of the exchange budget on the Hero
  *   arguing with the parser and starve the rarer beats. Adding it is a
  *   measurement question (the standing method note), not an authoring one.
+ *
+ * **Slice 4: every beat is now a run, not a line.** Each entry is the beat's
+ * lines in the order they are spoken, and the *n*th time the beat speaks it takes
+ * the *n*th line, the last repeating from then on (`mapper.ts`'s `variantOf`).
+ * The run is written as a small arc — fresh reaction, then recognition, then the
+ * worn line the pair are left with — because the beat that fires fourteen times
+ * in a playthrough is the one that read as a stuck record before this slice.
+ *
+ * Run depths are measured, not chosen: over the 606-turn corpus a beat is
+ * *spoken* (cooldown survivors, not marker occurrences) `reveal` 14×, `effort`
+ * 9×, `scored` 5×, `uncanny` 3×, `combat-threat` 3×, `grue-threat` 1×,
+ * `combat-victory` 0×. So `reveal` earns four lines and the rest two or three;
+ * the fights are scripted three deep on the corpus's account being the poorer
+ * evidence there — the walkthroughs avoid combat, real play does not.
  */
-const BEAT_SCRIPT: BeatScript = new Map<string, BeatExchange>([
-  ["combat-victory", {
-    dm: "Something that wanted you dead is dead instead. The empire keeps count.",
-    hero: "Still standing. That's the whole of the review.",
-  }],
-  ["combat-threat", {
-    dm: "The blade knows before you do. It usually does.",
-    hero: "I noticed. It always tells me early and unhelpfully.",
-  }],
-  ["grue-threat", {
-    dm: "The dark is not empty. It is only patient.",
-    hero: "Then it can be patient a little longer.",
-  }],
-  ["scored", {
-    dm: "The empire notices what leaves it. It always sends someone.",
-    hero: "That one counts, then.",
-  }],
-  ["reveal", {
-    dm: "There. It was waiting to be found, the way everything here is.",
-    hero: "Of course it was. They always are.",
-  }],
-  ["effort", {
-    dm: "They built it heavier than it needed to be. They built everything heavier than it needed to be.",
-    hero: "It shows.",
-  }],
-  ["uncanny", {
-    dm: "Not all of this is only stone.",
-    hero: "I heard it. I'm going to keep not thinking about it.",
-  }],
+const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
+  ["combat-victory", [
+    {
+      dm: "Something that wanted you dead is dead instead. The empire keeps count.",
+      hero: "Still standing. That's the whole of the review.",
+    },
+    {
+      dm: "Again. It will send another; it always has another.",
+      hero: "Then it can keep sending. I've got the arm for it now.",
+    },
+    {
+      dm: "The empire is running low on volunteers.",
+      hero: "Good.",
+    },
+  ]],
+  ["combat-threat", [
+    {
+      dm: "The blade knows before you do. It usually does.",
+      hero: "I noticed. It always tells me early and unhelpfully.",
+    },
+    {
+      dm: "It is glowing again. You are learning what that means.",
+      hero: "I learned it the first time. I just don't like the lesson.",
+    },
+  ]],
+  ["grue-threat", [
+    {
+      dm: "The dark is not empty. It is only patient.",
+      hero: "Then it can be patient a little longer.",
+    },
+    {
+      dm: "It is still down here with you. It has nowhere else to be.",
+      hero: "Neither do I, apparently.",
+    },
+    {
+      dm: "You know what lives here. You keep coming back anyway.",
+      hero: "That's the part I'd have written differently.",
+    },
+  ]],
+  ["scored", [
+    {
+      dm: "The empire notices what leaves it. It always sends someone.",
+      hero: "That one counts, then.",
+    },
+    {
+      dm: "Another one out of the ground. It is keeping a list.",
+      hero: "Let it. I'm keeping one too.",
+    },
+    {
+      dm: "The list is getting long on both sides.",
+      hero: "Mine's longer.",
+    },
+  ]],
+  ["reveal", [
+    {
+      dm: "There. It was waiting to be found, the way everything here is.",
+      hero: "Of course it was. They always are.",
+    },
+    {
+      dm: "Another one that was only ever waiting.",
+      hero: "Somebody hid these with a schedule in mind.",
+    },
+    {
+      dm: "You are not surprised any more. That took four rooms.",
+      hero: "Three. I was humouring you.",
+    },
+    {
+      dm: "Found. As arranged.",
+      hero: "As arranged.",
+    },
+  ]],
+  ["effort", [
+    {
+      dm: "They built it heavier than it needed to be. They built everything heavier than it needed to be.",
+      hero: "It shows.",
+    },
+    {
+      dm: "Heavier again. They had a house style.",
+      hero: "The style is 'lean on it until something gives'.",
+    },
+    {
+      dm: "You have stopped reading the room and started reading the hinges.",
+      hero: "The hinges have been more honest.",
+    },
+  ]],
+  ["uncanny", [
+    {
+      dm: "Not all of this is only stone.",
+      hero: "I heard it. I'm going to keep not thinking about it.",
+    },
+    {
+      dm: "There it is again. You did not imagine it the first time either.",
+      hero: "I was doing so well at imagining it.",
+    },
+    {
+      dm: "You have stopped flinching.",
+      hero: "I've started counting instead. That's worse.",
+    },
+  ]],
 ]);
 
 /** Sub-pixel slack when deciding whether the reader is still at the newest panel. */

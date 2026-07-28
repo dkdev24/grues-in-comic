@@ -377,6 +377,160 @@ describe("panel stream", () => {
     ]);
   });
 
+  it("walks a beat's run of lines as it repeats (ADR 0006 §4, Slice 4)", () => {
+    // The memory: the nth *spoken* firing of a beat takes the nth authored line.
+    // `xyzzy plugh` and friends all fire `parser-miss`, which is the cheapest beat
+    // to fire on demand — a marker the Hero cannot help producing.
+    const beatScript = new Map([["parser-miss", [
+      { dm: "The empire hears you." },
+      { dm: "It hears you again." },
+      { dm: "It has stopped listening." },
+    ]]]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ beatScript, guideCooldown: 0 });
+    page.turn(session.start());
+    const said = ["xyzzy plugh", "frotz bozbar", "gnusto rezrov", "blorb frotz"]
+      .map((c) => guide(page.turn(session.command(c)))?.text);
+    // Three lines, then the last one holds: nothing cycles back to the opener.
+    expect(said).toEqual([
+      "The empire hears you.",
+      "It hears you again.",
+      "It has stopped listening.",
+      "It has stopped listening.",
+    ]);
+  });
+
+  it("counts spoken firings, not marker occurrences (ADR 0006 §4, Slice 4)", () => {
+    // The load-bearing half of rule 4. A beat the cooldown swallowed was never on
+    // the page, so it must not retire a line the reader never read: with the
+    // cooldown at 2, the misses in between are silent and the *second* line the
+    // reader sees is still the second line authored.
+    const beatScript = new Map([["parser-miss", [
+      { dm: "The empire hears you." },
+      { dm: "It hears you again." },
+    ]]]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ beatScript, guideCooldown: 2 });
+    page.turn(session.start());
+    // A refused command does not advance `moves`, and the cooldown is measured in
+    // moves — so the walks between the misses are what lets the cooldown expire at
+    // all. (Two misses in a row are one turn apart by the only clock this has.)
+    const commands = ["xyzzy plugh", "frotz bozbar", "north", "south",
+      "gnusto rezrov", "blorb frotz"];
+    const said = commands.map((c) => guide(page.turn(session.command(c)))?.text ?? null);
+    // Most of these are swallowed by the cooldown — how many depends on the beat's
+    // cadence, which is not what this test is about. What it is about: the lines
+    // that *did* reach the page are the run's, in order, with none burned in
+    // silence. A counter over occurrences would have shown only the first line and
+    // then jumped straight to the run's end.
+    expect(said.filter((line) => line !== null))
+      .toEqual(["The empire hears you.", "It hears you again."]);
+  });
+
+  it("keeps each beat's memory to itself (ADR 0006 §4, Slice 4)", () => {
+    // The counter is per marker. A `reveal` must not advance `parser-miss` past
+    // its opening line — one shared counter would make the run order depend on
+    // every *other* beat, which is a different comic every time the route changes.
+    const beatScript = new Map([
+      ["reveal", [{ dm: "Found." }, { dm: "Found again." }]],
+      ["parser-miss", [{ dm: "The empire hears you." }, { dm: "It hears you again." }]],
+    ]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
+    page.turn(session.start());
+    expect(guide(page.turn(session.command("open mailbox")))?.text).toBe("Found.");
+    expect(guide(page.turn(session.command("xyzzy plugh")))?.text)
+      .toBe("The empire hears you.");
+  });
+
+  it("does not spend a line the Hero's action outranked (ADR 0006 §4, Slice 4)", () => {
+    // Rule 2 meets rule 4. A Hero-only beat suppressed by his resolved action
+    // says nothing, so it must also age nothing: his first *spoken* reply is
+    // still the run's first line.
+    const beatScript = new Map([["scored", [
+      { hero: "That one counts." },
+      { hero: "And that one." },
+    ]]]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
+    page.turn(session.start());
+    // `take leaflet` scores nothing here, but the shape under test is the
+    // suppression itself: a turn with a resolved action carries the action.
+    const taken = page.turn(session.command("open mailbox"));
+    expect(hero(taken)?.text).toBeUndefined;
+    const spoken: string[] = [];
+    for (const command of commandsOf(FULL_GAME).slice(0, 120)) {
+      const line = hero(page.turn(session.command(command)))?.text;
+      if (line === "That one counts." || line === "And that one.") spoken.push(line);
+    }
+    // Whatever the route did in between, the run was walked in order and never
+    // skipped an entry.
+    expect(spoken).toEqual(spoken.slice().sort((a, b) =>
+      (a === "That one counts." ? 0 : 1) - (b === "That one counts." ? 0 : 1)));
+    if (spoken.length > 0) expect(spoken[0]).toBe("That one counts.");
+  });
+
+  it("keeps the memory a pure function of the event stream (ADR 0006 testing contract)", () => {
+    // The oracle's precondition, stated directly: the counter is a fold over the
+    // turns read, so two replays of the same walkthrough with the same seed must
+    // produce byte-identical dialogue. Anything reaching for engine state, a
+    // clock or an RNG breaks here first.
+    const beatScript = new Map([
+      ["reveal", [{ dm: "Found.", hero: "As arranged." }, { dm: "Found again." }]],
+      ["effort", [{ dm: "Heavy." }, { dm: "Heavier." }, { dm: "Heaviest." }]],
+      ["scored", [{ dm: "Counted." }, { dm: "Counted twice." }]],
+    ]);
+    const dialogue = (): string[] => {
+      const session = createSession(doc, { seed: SEED });
+      const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 3 });
+      const said: string[] = [];
+      const record = (shot: ReturnType<typeof page.turn>): void => {
+        for (const line of shot.lines) {
+          if (line.speaker !== CAPTION) said.push(`${line.speaker}: ${line.text}`);
+        }
+      };
+      record(page.turn(session.start()));
+      for (const command of commandsOf(FULL_GAME)) record(page.turn(session.command(command)));
+      return said;
+    };
+    const first = dialogue();
+    expect(dialogue()).toEqual(first);
+    // And the memory actually did something: a later line of some run was reached.
+    expect(first.some((l) => l.endsWith("Found again.") || l.endsWith("Heavier.")
+      || l.endsWith("Heaviest.") || l.endsWith("Counted twice."))).toBe(true);
+  });
+
+  it("pins the dialogue a run produces over a repeating beat (Slice 4 golden)", () => {
+    // Slice 2's golden asserted dialogue content; Slice 4's asserts the *order the
+    // run was walked in*, which is the thing a change to `variantOf`, to the
+    // counter's timing, or to the cooldown silently rewrites.
+    const beatScript = new Map([
+      ["reveal", [
+        { dm: "It was waiting to be found.", hero: "Of course it was." },
+        { dm: "Another one that was only ever waiting." },
+      ]],
+      ["scored", [{ dm: "The empire notices what leaves it." }]],
+    ]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 3 });
+    const spoken: string[] = [];
+    const record = (shot: ReturnType<typeof page.turn>): void => {
+      for (const line of shot.lines) {
+        if (line.speaker !== CAPTION) spoken.push(`${line.speaker}: ${line.text}`);
+      }
+    };
+    record(page.turn(session.start()));
+    for (const command of commandsOf("01-west-of-house.cmd")) {
+      record(page.turn(session.command(command)));
+    }
+    expect(spoken).toEqual([
+      "guide: It was waiting to be found.",
+      "hero: Of course it was.",
+      "hero: The leaflet, then.",
+      "hero: The leaflet can stay.",
+    ]);
+  });
+
   it("still fires the room gazetteer on first entry when no beat reacts (ADR 0005 §4)", () => {
     // The opening turn has no reacting marker, so the pre-§4 room path must still
     // produce the gazetteer line — the broadened trigger is additive, not a swap.

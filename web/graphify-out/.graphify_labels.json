@@ -14,5 +14,7 @@
   "12": "status.ts",
   "13": "session.ts",
   "14": "fit.ts",
-  "15": "MixTracker"
+  "15": "MixTracker",
+  "16": "SessionStore",
+  "17": "session.test.ts"
 }

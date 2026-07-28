@@ -1,6 +1,7 @@
 # ADR 0006 — The Dungeon Master and the Player: from Two Voices to a Table
 
-- **Status:** Accepted (building — Slices 1–3 landed v0.17.5, v0.18.6, v0.18.7)
+- **Status:** Accepted (building — Slices 1–4 landed v0.17.5, v0.18.6, v0.18.7, v0.18.8; only
+  Slice 5, the session-recap export, remains)
 - **Date:** 2026-07-22
 - **Supersedes (in part):** ADR 0004 §2/§2a (the Hero's channel is a *thought* balloon), §"Not the Narrator" boundary as stated in `wiki/the-guide.md`; ADR 0005 §4 ("the Hero keeps the *thought* balloon — he does not speak")
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — still consumed, still not extended); the Guide/DM stays **presentation-only** — no game state, unaddressable by the parser, removable without moving one bit of engine behaviour or the parity harness (ADR 0004 §3); the panel stream stays a **deterministic pure function of the event stream with no engine internals**, so `replayPanels` still applies (ADR 0004 §5, ADR 0005 testing contract)
@@ -174,6 +175,25 @@ variation that would need engine state is out of scope by construction.
      retired is the idol as the whole of the concept. The voice rules 1–6 needed no
      rewriting, which is itself the finding: a DM who has run this module too many times
      sounds like an idol that has watched it too many times, so not one shipped line changed.
-4. **Bounded conversational memory** (§4 memory half). Stream-derived counters only; the
-   testing contract's new risk surface, gated hardest.
+4. **Bounded conversational memory** (§4 memory half). ✅ **Done (v0.18.8).** A beat entry may
+   now be a **run** of exchanges (`BeatEntry`); the *n*th firing takes the *n*th line and the
+   last repeats. The whole memory is one `Map<marker, count>` folded over the turns already
+   read, beside `visited` and `lastGuideTurn` — no engine state, no clock, no RNG, so
+   `replayPanels` still holds. Two rules settled:
+   - **The counter is over *spoken* firings, not marker occurrences.** A beat the cooldown
+     swallowed was never on the page, so advancing past its line would retire a reply the
+     reader never read. It advances at the same moment `lastGuideTurn` does.
+   - **Past the end of a run, the last line repeats; nothing cycles.** A beat that looped back
+     to its opening reaction would be a DM surprised by a room he has seen four times. The last
+     line is therefore authored as the *settled* one.
+
+   Run depths are measured, not chosen. Over the 606-turn corpus a beat is **spoken**
+   `reveal` 14×, `effort` 9×, `scored` 5×, `uncanny` 3×, `combat-threat` 3×, `grue-threat` 1×,
+   `combat-victory` 0× — so `reveal` earns four lines and the rest two or three, the fights
+   scripted three deep because the walkthroughs avoid combat and real play does not.
+   Six tests carry it, including a **determinism replay** (same seed, same walkthrough, twice →
+   byte-identical dialogue), which is where anything reaching for state outside the stream
+   fails first. **Deliberately not built:** cross-beat memory (a running kill count quoted in
+   another beat's line) — legal under §4, but it needs line templating, which is an authoring
+   surface, not this slice's mechanism.
 5. **Session-recap export** (§5). Independent of 1–4; can be scheduled whenever.

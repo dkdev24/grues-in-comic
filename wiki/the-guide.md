@@ -72,6 +72,14 @@ rewriting a single shipped line.
    them. He is *still* unaddressable by the player, and the reply is still deadpan atmosphere,
    never a hint (rule 4 holds) — being answered is not the same as taking requests.
 
+7. **He wears out, on purpose.** *(ADR 0006 §4, Slice 4.)* Each beat carries a **run** of lines, and
+   the *n*th time it fires he is one line further along it: fresh reaction, then recognition, then the
+   worn line he is left with — "Found. As arranged." He never loops back to sounding surprised by
+   something he has now watched four times, because the last line of a run repeats forever. This is
+   the only thing he remembers, it is counted off the play itself, and it is deliberately a small
+   memory: a DM who has run this module too many times is characterised by what has stopped
+   impressing him.
+
 ## Coverage
 
 `GUIDE_SCRIPT` is keyed by **room id** and fires **once, on first entry** (ADR 0004 §6). So the
@@ -81,9 +89,12 @@ the Frigid River and the rainbow, the coal mine — plus the notable named rooms
 rooms (the maze cells, the dead ends, the stretch of identical forest) lean *into* the repetition:
 the joke is that he is as tired of them as the player.
 
-`BEAT_SCRIPT` is the second authored surface and a different shape: keyed by **affect marker**, and
-since ADR 0006 Slice 2 each entry is a **pair** with [[the-hero]]'s answer. Seven beats are scripted;
-`death` and `parser-miss` are deliberately not, for reasons recorded at the table itself.
+`BEAT_SCRIPT` is the second authored surface and a different shape: keyed by **affect marker**, each
+entry a **pair** with [[the-hero]]'s answer (Slice 2) and, since Slice 4, a **run** of such pairs
+walked one line per firing. Seven beats are scripted, two to four lines deep by how often each is
+actually spoken in play — `reveal` is the workhorse (14 firings over the corpus) and earns the
+longest arc; `death` and `parser-miss` are deliberately unscripted, for reasons recorded at the table
+itself.
 
 Rooms with no line are silent by design, not omission — the cooldown means not every first visit
 should speak anyway. Adding a room to the map is the entire cost of giving it a voice; nothing else

@@ -184,8 +184,20 @@ export interface BeatExchange {
   hero?: string;
 }
 
-/** Affect marker → the exchange that beat earns. */
-export type BeatScript = ReadonlyMap<string, string | BeatExchange>;
+/**
+ * What one beat is worth, once or over a run — ADR 0006 §4, Slices 2 and 4.
+ *
+ * A bare `string` is the DM-only form; a {@link BeatExchange} is the pair. An
+ * **array** is the Slice 4 addition: the beat's lines in the order they are
+ * spoken, the *n*th firing taking the *n*th entry and every firing past the end
+ * repeating the last. That last entry is therefore the beat's settled line — the
+ * one a DM who has run this module too many times is left with — and the ones
+ * before it are the reactions he has not worn out yet.
+ */
+export type BeatEntry = string | BeatExchange | readonly (string | BeatExchange)[];
+
+/** Affect marker → the exchange (or the run of them) that beat earns. */
+export type BeatScript = ReadonlyMap<string, BeatEntry>;
 
 export interface MapperOptions {
   guideScript?: GuideScript;
@@ -210,6 +222,9 @@ export interface MapperOptions {
    * room gazetteer and under the same cooldown, so the exchange stays
    * presentation-only and does not wear out. Empty keeps the old room-only
    * behaviour.
+   *
+   * A beat may carry a **run** of lines rather than one (Slice 4) — see
+   * {@link BeatEntry}.
    */
   beatScript?: BeatScript;
 }
@@ -246,6 +261,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
 
   const visited = new Set<string>();
   const inventory = new Set<string>();
+  /**
+   * The whole of the conversational memory (ADR 0006 §4, Slice 4): marker → how
+   * many times that beat has actually been **spoken** so far. It is a fold over
+   * the turns already read, exactly like `visited` and `lastGuideTurn` beside it,
+   * so it is a pure function of the event stream and `replayPanels` still holds.
+   */
+  const spokenBeats = new Map<string, number>();
   let room = "";
   let lastGuideTurn = -Infinity;
 
@@ -397,6 +419,17 @@ export function createMapper(options: MapperOptions = {}): Mapper {
    * 3. **The gazetteer stays DM-only.** A room line is the idol narrating a
    *    place, not a beat the Hero caused, so there is nothing for him to answer.
    *    The room path is otherwise untouched (pre-§4 behaviour).
+   *
+   * Slice 4 adds a fourth, and it is the one the testing contract watches:
+   *
+   * 4. **A beat may remember how often it has fired**, and only that. The
+   *    counter is over *spoken* firings, not over marker occurrences: a beat the
+   *    cooldown swallowed was never on the page, so advancing past its line would
+   *    retire a reply the reader never read. It advances at the same moment
+   *    `lastGuideTurn` does — after the decision to speak — which is what keeps
+   *    the two from disagreeing about what happened. Past the end of the run the
+   *    last line repeats; nothing cycles, because a beat that looped back to its
+   *    opening reaction would be a DM surprised by a room he has seen four times.
    */
   function exchangeFor(
     firstVisit: boolean, roomId: string, marker: string | null, turnNumber: number,
@@ -410,12 +443,14 @@ export function createMapper(options: MapperOptions = {}): Mapper {
     // marker the Hero's action produced, so the DM is replying, not narrating a
     // room on a timer.
     const entry = marker !== null ? beatScript.get(marker) : undefined;
-    if (entry !== undefined) {
-      const exchange = typeof entry === "string" ? { dm: entry } : entry;
+    if (entry !== undefined && marker !== null) {
+      const exchange = variantOf(entry, spokenBeats.get(marker) ?? 0);
       const dm = exchange.dm ?? null;
       const hero = heroBusy ? null : (exchange.hero ?? null);
       if (dm !== null || hero !== null) {
         lastGuideTurn = turnNumber;
+        // Rule 4: the beat is one line older only now that it has been said.
+        spokenBeats.set(marker, (spokenBeats.get(marker) ?? 0) + 1);
         return { dm, hero };
       }
       // A Hero-only beat on a turn he is already speaking says nothing; fall
@@ -432,6 +467,23 @@ export function createMapper(options: MapperOptions = {}): Mapper {
     }
     return silent;
   }
+}
+
+/**
+ * The line a beat is on after it has been spoken `said` times — ADR 0006 §4,
+ * Slice 4.
+ *
+ * An empty run is legal and says nothing, so an author can silence a beat by
+ * emptying its array without deleting the key. Past the end the last entry
+ * repeats: see `exchangeFor` rule 4 for why it does not cycle.
+ */
+function variantOf(entry: BeatEntry, said: number): BeatExchange {
+  if (typeof entry === "string") return { dm: entry };
+  if (!Array.isArray(entry)) return entry as BeatExchange;
+  const run = entry as readonly (string | BeatExchange)[];
+  const chosen = run[Math.min(said, run.length - 1)];
+  if (chosen === undefined) return {};
+  return typeof chosen === "string" ? { dm: chosen } : chosen;
 }
 
 interface LadderInput {
