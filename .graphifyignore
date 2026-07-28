@@ -39,6 +39,9 @@ tsconfig.build.json
 
 # Verification ground truth (transcripts, goldens, harness) — not engine source
 verification/
+# Same in kind: the ADR 0008 Phase 3 pixel-gate golden is recorded output, not source
+web/test/golden/
+test/golden/
 
 # Graph outputs themselves — never self-ingest
 graph/

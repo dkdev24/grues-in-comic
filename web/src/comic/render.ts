@@ -62,6 +62,37 @@ export interface RenderOptions {
   cycles?: Map<string, PoseCycle>;
   /** Backdrop id. Room→backdrop assignment is an open M5 question, not 5.3's. */
   backdrop?: string;
+  /**
+   * Somewhere to record what this render placed. Purely an output: the renderer
+   * reads nothing from it and draws the same pixels whether or not it is passed.
+   *
+   * It exists for the ADR 0008 Phase 3 gate. A hash of the finished PNG says
+   * *that* a panel moved; the geometry that produced it says *what* moved — which
+   * body slid, which balloon re-rolled — and that is the difference between a
+   * failing gate you can read and one you can only re-accept. Recording it here
+   * rather than re-deriving it in the gate is deliberate: a second implementation
+   * of the placement maths would be free to drift from the one that draws.
+   */
+  trace?: PanelTrace;
+}
+
+/** What a render placed, in panel space. Filled in by {@link RenderOptions.trace}. */
+export interface PanelTrace {
+  bodies: Array<{ speaker: string; x: number; y: number; scale: number; mirror: boolean }>;
+  balloons: Array<{
+    speaker: string;
+    box: BalloonBox;
+    /** How the text broke — the count is enough to spot a re-wrap. */
+    lines: number;
+    /** Where the tail points, or `null` for a balloon that grows none. */
+    tail: { x: number; y: number } | null;
+  }>;
+  /**
+   * True when the driver refused the panel and {@link stackBalloons} drew it.
+   * A production panel should never set this — `page.ts` ran the same driver
+   * before the panel existed — so the gate treats a flip here as a finding.
+   */
+  stacked: boolean;
 }
 
 /**
@@ -150,12 +181,19 @@ export function renderPanel(
     for (const item of placed) item.y = Math.max(item.y, minHeadTop);
   }
 
+  if (options.trace) {
+    options.trace.bodies = placed.map(({ speaker, x, y, scale, mirror }) =>
+      ({ speaker, x, y, scale, mirror }));
+    options.trace.balloons = [];
+    options.trace.stacked = false;
+  }
+
   for (const item of placed) {
     const sheet = cast.sheets.get(item.speaker);
     if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale, item.mirror);
   }
 
-  drawBalloons(ctx, panel, width, height, placed);
+  drawBalloons(ctx, panel, width, height, placed, options.trace);
 
   // The panel border last, so nothing overdraws it.
   ctx.strokeStyle = "#000";
@@ -329,7 +367,7 @@ function drawBackdrop(
  */
 function drawBalloons(
   ctx: CanvasRenderingContext2D, panel: Panel, width: number, height: number,
-  placed: ReadonlyArray<PlacedBody>,
+  placed: ReadonlyArray<PlacedBody>, trace?: PanelTrace,
 ): void {
   ctx.font = BALLOON_FONT;
   const heads = headGeometry(placed);
@@ -349,6 +387,7 @@ function drawBalloons(
 
   const laid = layoutBalloons(inputs, free);
   if (!laid.fits) {
+    if (trace) trace.stacked = true;
     stackBalloons(ctx, panel, width, heads);
     return;
   }
@@ -362,6 +401,10 @@ function drawBalloons(
       ? headEdgeTip(item.box, face)
       : (heads.anchors.get(balloon.speaker) ?? null);
     drawBalloon(ctx, balloon, item.box, item.lines, target);
+    trace?.balloons.push({
+      speaker: balloon.speaker, box: item.box, lines: item.lines.length,
+      tail: target ? { x: target.x, y: target.y } : null,
+    });
   }
 }
 

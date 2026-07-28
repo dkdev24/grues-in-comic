@@ -14,5 +14,10 @@
   "12": "status.ts",
   "13": "session.ts",
   "14": "fit.ts",
-  "15": "director.test.ts"
+  "15": "director.test.ts",
+  "16": "Session",
+  "17": "createPage",
+  "18": "Turn",
+  "19": "addScript",
+  "20": "SessionStore"
 }

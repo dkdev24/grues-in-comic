@@ -1,0 +1,610 @@
+[
+  {
+    "name": "wk01-p00-establishing",
+    "camera": "establishing",
+    "bodies": [],
+    "sha256": "0a660cafc8e864264953cbb9504fa5043160c8cefe10a20972f6d7eb3901497d",
+    "trace": {
+      "bodies": [],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 111.3,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p01-establishing",
+    "camera": "establishing",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "f953fbf78a673c5f0d0c265bcb5e8dbb7d94b76c18119221feca4de603f46774",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 81.3,
+          "y": 170,
+          "scale": 0.4,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 232.4,
+          "y": 170,
+          "scale": 0.4,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 99.8,
+            "y": 14,
+            "width": 96.6,
+            "height": 65
+          },
+          "lines": 3,
+          "tail": {
+            "x": 119,
+            "y": 170
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p02-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "b5364785f377f7846e56af6eb5fe406c72d3adae2f1a1452597d3b46ce43b9d2",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 132.7,
+          "y": 88.1,
+          "scale": 0.7,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 111.3,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p03-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "d95af68b8d3e9603973f9d3083a09471653f9a0cc53c2eb2c4e8a28c62ae1ea7",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 132.7,
+          "y": 88.1,
+          "scale": 0.7,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 80,
+            "height": 65
+          },
+          "lines": 3,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p04-over-shoulder",
+    "camera": "over-shoulder",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "7b2a603aa510b64295e673b83b4cd04de0719c0b001d34e308f318e6b728f745",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 48.1,
+          "y": 122.4,
+          "scale": 0.7,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 216.1,
+          "y": 122.4,
+          "scale": 0.8,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 283,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        },
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 10,
+            "y": 49,
+            "width": 122.4,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 112.9,
+            "y": 122.4
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p05-close-up",
+    "camera": "close-up",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "2e1112a44ceb29d79d8d280e48f7079b8b4c8671862a59e7f6a56a92dae65e24",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 90,
+          "y": 122.4,
+          "scale": 1.1,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 59.7,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 165.1,
+            "y": 14,
+            "width": 91.7,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 217.3,
+            "y": 122.4
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p06-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "003fa6b272ade1c3c752b7af655c18c7cbaa6140aba7db0f0816ff2efef7de21",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 132.7,
+          "y": 88.1,
+          "scale": 0.7,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 157.7,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p07-close-up",
+    "camera": "close-up",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "7bea449189710f694152b99366d385af550155f46bd73448d8cf0c1b92a7ef7e",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 90,
+          "y": 122.4,
+          "scale": 1.1,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 74.4,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 113.4,
+            "y": 14,
+            "width": 112.1,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 217.3,
+            "y": 122.4
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p08-reaction",
+    "camera": "reaction",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "7fb220cc71d240657c9b33d5c375c29816fe84678c0993c09fa8a21cf80501f2",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 42.4,
+          "y": 90.4,
+          "scale": 1.6,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 111.3,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p09-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "f10ef2064b0e42c2bdc696f40f325da7afa60d97105c50d5e88ef83f6ec3032f",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 91.3,
+          "y": 88.1,
+          "scale": 0.7,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 135,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "mob3-p00-medium",
+    "camera": "medium",
+    "bodies": [],
+    "sha256": "e5fcf7623bd5f5116b1dc49d41e24b8c517a464281d4c172179b1532c1ee901f",
+    "trace": {
+      "bodies": [],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 157.3,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "mob3-p01-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero",
+      "guide"
+    ],
+    "sha256": "89570fc3e8ac49c1864fcc6f56fa72e47e03ddb95522c4e883e18985ff8db627",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 52.2,
+          "y": 122.4,
+          "scale": 0.7,
+          "mirror": false
+        },
+        {
+          "speaker": "guide",
+          "x": 239,
+          "y": 122.4,
+          "scale": 0.6,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 191.9,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 130.1,
+            "y": 122.4
+          }
+        },
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 150.8,
+            "y": 49,
+            "width": 230.4,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 289,
+            "y": 122.4
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "mob3-p02-medium",
+    "camera": "medium",
+    "bodies": [
+      "mob-a"
+    ],
+    "sha256": "a3d6758967616c6a0eb7a0d2a161e49304f75d8de224c600c490a47f54a89e5a",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "mob-a",
+          "x": 140.3,
+          "y": 122.4,
+          "scale": 0.6,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "mob-a",
+          "box": {
+            "x": 95.2,
+            "y": 14,
+            "width": 226.3,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 206.5,
+            "y": 122.4
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "mob4-p00-medium",
+    "camera": "medium",
+    "bodies": [],
+    "sha256": "e5fcf7623bd5f5116b1dc49d41e24b8c517a464281d4c172179b1532c1ee901f",
+    "trace": {
+      "bodies": [],
+      "balloons": [
+        {
+          "speaker": "caption",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 157.3,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": null
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "mob4-p01-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero",
+      "guide"
+    ],
+    "sha256": "89570fc3e8ac49c1864fcc6f56fa72e47e03ddb95522c4e883e18985ff8db627",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 52.2,
+          "y": 122.4,
+          "scale": 0.7,
+          "mirror": false
+        },
+        {
+          "speaker": "guide",
+          "x": 239,
+          "y": 122.4,
+          "scale": 0.6,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 191.9,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 130.1,
+            "y": 122.4
+          }
+        },
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 150.8,
+            "y": 49,
+            "width": 230.4,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 289,
+            "y": 122.4
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "mob4-p02-medium",
+    "camera": "medium",
+    "bodies": [
+      "mob-a",
+      "mob-b"
+    ],
+    "sha256": "369bd4fd1da3a43e665c3d5807075d2a6fb4b679fe9da510adba3128863f478c",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "mob-a",
+          "x": 63.4,
+          "y": 122.4,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "mob-b",
+          "x": 246,
+          "y": 122.4,
+          "scale": 0.6,
+          "mirror": true
+        }
+      ],
+      "balloons": [],
+      "stacked": true
+    }
+  }
+]

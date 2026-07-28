@@ -12,7 +12,9 @@
     "serve": "tsx tools/serve.ts",
     "dev": "npm run build && npm run serve",
     "render:panel": "tsx tools/render-panel.ts",
-    "render:bodies": "tsx tools/render-bodies.ts"
+    "render:bodies": "tsx tools/render-bodies.ts",
+    "gate": "tsx tools/gate.ts",
+    "gate:accept": "tsx tools/gate.ts --accept"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.2",

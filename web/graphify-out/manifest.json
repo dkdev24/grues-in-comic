@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "src/comic/render.ts": {
-    "mtime": 1785164973.7341857,
-    "ast_hash": "d59e3c75397d100b0effedf0d0c5da71",
+    "mtime": 1785217279.4665365,
+    "ast_hash": "d45523df89445d8287c8973f06dc471c",
     "semantic_hash": ""
   },
   "src/persistence.ts": {
@@ -212,6 +212,16 @@
   "test/fit.test.ts": {
     "mtime": 1785164557.1647193,
     "ast_hash": "b956a14599cc5d969d2a41138179c8d5",
+    "semantic_hash": ""
+  },
+  "test/gate.test.ts": {
+    "mtime": 1785217497.3467126,
+    "ast_hash": "08fa78250142d9ff7c508079a2567625",
+    "semantic_hash": ""
+  },
+  "tools/gate.ts": {
+    "mtime": 1785217527.4360485,
+    "ast_hash": "63525c76e8d64cf14067d5b21630142d",
     "semantic_hash": ""
   }
 }

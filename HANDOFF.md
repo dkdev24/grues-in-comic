@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.18.4**
+**0.18.5**
 
 ---
 
@@ -31,14 +31,15 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
   5.3 ✅ comic renderer (⚑ Gate D cleared), 5.4 ✅ backdrops/persistence/panel sequencing/portraits
   (v0.15.0). ADR 0004 (panel grammar) Accepted; ADR 0005 (Narrative Director) implemented (v0.17.0);
   ADR 0006 (DM & player) Slice 1 done (v0.17.7); ADR 0007 (comic-pane port boundary + fixed panels)
-  fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — building.
-  Phases 0–2b done (v0.18.1–v0.18.4); Phase 3 (pixel-parity gate) is next.
+  fully built (v0.17.10–12); **ADR 0008 (full mechanical port + multi-participant) Accepted — ✅ COMPLETE.
+  Phases 0–3 done (v0.18.1–v0.18.5); the layout stack is a cited port with a pixel gate.
   Re-scoped 2026-07-24 to a full faithful port vs **v2.5-beta-1 (modern variant)** (was v1.0-pre; the comic
   pane is now a multi-party GM+NPC comic, not solo-Hero). Source: `original-projects/comic-chat/v2.5-beta-1-modern/`
   (tracked; line-identical to raw `v2.5-beta-1/`), navigated via the offline C++ graph at
   `reference/comic-chat-v2.5-beta-1-modern/graphify-out/`. Seam + N-body layout landed v0.18.0; `LayoutAvatars`
-  (Phase 1), `page.ts` panelization (Phase 2) and the multi-balloon layout driver (Phase 2b) are done —
-  only Phase 3 (pixel gate) remains; see Next Actions 00.**
+  (Phase 1), `page.ts` panelization (Phase 2), the multi-balloon layout driver (Phase 2b) and the pixel
+  gate (Phase 3) are all done. **What ADR 0008 leaves open is only what it scoped out: mob *authoring*
+  (an ADR 0006 slice) and the `OrderAvatars`/histeresis stubs that need the talk-to graph mobs bring.**
   - **5.5 ◐ — core exit criterion MET (v0.16.0): THE GAME IS COMPLETABLE.** Engine wins Zork I
     **350/350**, ends in `STONE-BARROW`, `game-over{victory}`, 0 crashes/deaths, pinned by
     `engine/test/completion.test.ts` (seed 1234). Path built across v0.15.2–v0.16.0 (native routines →
@@ -46,35 +47,37 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 204 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 238 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0008 Phase 2b done: multi-balloon layout ported (v0.18.4)
+## Last Session — ADR 0008 Phase 3 done: the pixel gate. **The port is complete** (v0.18.5)
 
-**Phases 0–2b are complete; next session starts at Phase 3 (the pixel-parity gate).** Full narrative in
-`WORKLOG.md` v0.18.4; ADR 0008 has a "Phase 2b built" section. What the next session must know:
+Full narrative in `WORKLOG.md` v0.18.5; ADR 0008 has a "Phase 3 built" section. What the next session
+must know:
 
-- **`web/src/comic/balloon-layout.ts`** is the cited port of the layout driver (`LayoutBalloons:855`,
-  `GetCloudEstimate:885`, `LayoutBalloon:925`, `GetInterveningBBox:167`, `AdjustRouteRgns:247`,
-  `ForceFitBalloon:153`, `QueryRouteRgn`/`SetRouteRgn`), with `SplitHeight`/`measureAtWidth` added to
-  `balloon.ts`. `web/test/balloon-layout.test.ts` has 15 rule tests, one per branch.
-- **`web/src/comic/fit.ts` fills the `FitTest` seam** and is wired into `createDirector` from
-  `comic-view.ts` with an offscreen canvas. It measures at `UNIT` (never the viewport — panelization must
-  not depend on window width) and estimates arrow positions as even stage slots, because the cast is an
-  async asset. `FitResult` now carries **`kept` as well as `leftover`** (a force-fit split has two halves).
-- **`render.ts` runs the same driver at draw time**; the old vertical stack survives only as
-  `stackBalloons`, the fallback for a panel the driver refuses at the strip's smaller draw size. 0 of 6
-  production panels reach it; 6 of 30 N-body fixtures do (hand-built 4–5-balloon panels that real
-  panelization would split — the fixture tool does not run the fit test).
-- **Two constants are deliberately not literal** — `Dock`'s 90-unit lift is **0** here and `DockAtTop`'s
-  `-250` became "dock only a balloon nothing pushed down". Both are argued at their definitions; do not
-  "restore" them from the C++ without reading those notes, or balloons will stack on top of each other.
-- **Layout is a seeded pure function:** mulberry32 over an FNV-1a hash of the panel's speakers + text.
-  Any change to that hash re-rolls every panel's balloon placement — which is what Phase 3 will pin.
+- **The gate is a hash + geometry golden, not committed PNGs.** `web/tools/gate.ts` renders 16 fixed
+  cases and pins each as the **SHA-256 of its PNG** plus the placement that produced it;
+  `web/test/golden/panel-gate.json` (~6 KB) is the golden, `web/test/gate.test.ts` compares.
+  **`npm run gate` checks, `npm run gate:accept` re-writes the golden.** A failing run dumps actual PNGs
+  to `web/tools/out/gate-actual/` (gitignored) for eyeballing against a re-render of the previous commit.
+- **`renderPanel` now takes an output-only `options.trace`** (`PanelTrace` in `render.ts`). It changes no
+  pixels, and the gate reads placement from it rather than re-deriving it — keep it that way, or a second
+  copy of the placement maths will drift from the one that draws.
+- **Any accepted re-roll must be looked at first.** Balloon layout is seeded by a content hash, so touching
+  that hash, the mapper's prose, or a `SHOTS` rung legitimately moves every panel. `gate:accept` is the
+  right response *after* looking at the images, never instead.
+- **Known pinned divergence — `mob4-p02` falls back to `stackBalloons`.** The fit test cleared a
+  4-participant panel the renderer then refused: `fit.ts` estimates the two arrows at even stage slots
+  (100/300 at `UNIT`), `layoutAvatars` puts the real anchors at ~140/~310, and at 140 the driver has no
+  corridor for the first balloon. It is the documented cost of estimating arrow positions (ADR 0008
+  Phase 2b/4), pinned by a dedicated assertion that the fallback set is exactly `{mob4-p02}`. **If a
+  future change makes the two sides agree, that assertion is the one to update.** Production panels
+  (0 of 10) never fall back.
+- **Fixtures go through `page.ts` with the real fit test.** `render:bodies` still builds panels by hand and
+  can produce 4–5-balloon panels panelization would have split — fine to eyeball, do not pin them.
 
-**Verified:** 204 web (was 178), 139 engine, 198 IR, tsc + build clean, `render:panel`/`render:bodies`
-re-rendered and eyeballed.
+**Verified:** 238 web (was 204), 139 engine, 198 IR, tsc + build clean.
 
 ---
 
@@ -101,8 +104,8 @@ because the port reads them every phase:
 **In 5.5 ◐.** The core exit criterion (game completable) is MET; what remains is presentation polish
 and verification. In rough priority:
 
-00. **ADR 0008 — full faithful port of the layout stack against v2.5-beta-1. Build plan (all folded into one
-    port, no longer deferred). START HERE next session at Phase 3.** Boundary preserved: camera ladder (SHOTS,
+00. **ADR 0008 — full faithful port of the layout stack against v2.5-beta-1. ✅ COMPLETE (Phases 0–3,
+    v0.18.1–v0.18.5); kept here as the record of what was built and what it left stubbed.** Boundary preserved: camera ladder (SHOTS,
     semantic/ours) and ADR 0007 fixed-panel + reflowing pane + column-count-by-viewport stay; figure compositing
     (`figure.ts`/`composite.ts`/`pose.ts`) stays — already a verified port.
     - **Phase 0 — multi-body fixtures. ✅ DONE (v0.18.1).** `web/tools/cast-fixture.ts` packs 2–4 real `.avb`
@@ -136,11 +139,13 @@ and verification. In rough priority:
       `SplitHeight`/`measureAtWidth` added to `balloon.ts`; the vertical stack demoted to a draw-time
       fallback. `FitResult` gained `kept`. Two constants deliberately re-derived rather than transcribed —
       see Last Session before touching them.
-    - **Phase 3 — pixel-parity gate — NEXT:** commit `render:panel` PNGs (seed 1234) incl. a 3-body/
-      multi-balloon fixture; byte-diff regression (none exists today). Note the fixture tools
-      (`render:bodies`) build panels by hand and do **not** run the fit test, so they can hand the renderer
-      4–5-balloon panels that panelization would have split; a Phase 3 fixture should either respect the
-      fit test or be pinned knowing it exercises `stackBalloons`.
+    - **Phase 3 — pixel-parity gate. ✅ DONE (v0.18.5).** `tools/gate.ts` + `test/gate.test.ts` +
+      `test/golden/panel-gate.json`: 16 cases (10 production panels of `01-west-of-house` at seed 1234,
+      plus 3- and 4-participant scenes over the `.avb` fixture cast), each pinned as a PNG SHA-256 **and**
+      the `PanelTrace` geometry behind it. Golden images are not committed (rationale in the ADR); actual
+      PNGs are dumped on failure. `npm run gate` / `gate:accept`. All fixtures are staged through `page.ts`
+      with the real fit test, so nothing pinned is a panel the product cannot produce. See Last Session for
+      the one known fallback case.
     - **Out of scope → ADR 0006 slice:** mapper authoring of *when/what* a mob speaks (this port only makes the
       pane N-capable; a test injecting a mob line proves it).
 

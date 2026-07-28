@@ -10,6 +10,31 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.5 — 2026-07-28 — ADR 0008 Phase 3: the pixel-parity gate. **The port is complete.**
+
+The layout stack now has a change detector. Phases 1–2b replaced three reimplementations with ports,
+two of them seeded, and nothing in the suite would have noticed a change that kept every rule and moved
+every pixel. **238 web tests green (was 204, +34), 139 engine, 198 IR, tsc and build clean.**
+
+- **`web/tools/gate.ts` + `web/test/gate.test.ts` + `web/test/golden/panel-gate.json`** (16 cases, ~6 KB).
+  Each case pins the **SHA-256 of the rendered PNG** and the **geometry that produced it**. `npm run gate`
+  checks; `npm run gate:accept` re-writes the golden when a re-roll is intended.
+- **`renderPanel` gained an output-only `options.trace`** (`PanelTrace`) — placed bodies, balloon boxes,
+  tail targets, line counts, the fallback flag. Recorded by the code that draws, so the gate never
+  re-derives the placement maths and cannot drift from it. It changes no pixels and is optional.
+- **Golden PNGs are deliberately not committed** — ~300 KB of binary per case, rewritten on every accepted
+  re-roll. A failing run dumps its actual PNGs to `web/tools/out/gate-actual/` (gitignored) instead.
+- **Fixtures are staged through `page.ts` with the real fit test**, never hand-built: 10 panels of
+  `01-west-of-house` (seed 1234) through the real mapper, plus 3- and 4-participant scenes over the
+  `.avb` fixture cast. Rendered at `UNIT` (400×340), the size `fit.ts` panelizes at.
+- **First catch:** `mob4-p02` — a 4-participant panel the fit test cleared and the renderer refused, so it
+  is drawn by the `stackBalloons` fallback. Cause is the documented arrow-position estimate (`fit.ts`
+  slots the speakers at 100/300; `layoutAvatars` puts the real anchors at ~140/~310, and at 140 the driver
+  has no corridor). Pinned rather than papered over, with a dedicated assertion that the fallback set is
+  exactly `{mob4-p02}`.
+
+---
+
 ## v0.18.4 — 2026-07-28 — ADR 0008 Phase 2b: the multi-balloon layout driver ported
 
 `web/src/comic/balloon-layout.ts` is the cited port of Comic Chat's balloon layout driver, and
