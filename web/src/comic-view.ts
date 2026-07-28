@@ -38,19 +38,20 @@ export interface ComicView {
 }
 
 /**
- * The Guide's script — one line per room, spoken once on first entry.
+ * The Dungeon Master's gazetteer — one line per room, spoken once on first entry.
  *
- * ADR 0004 §3 makes the Guide presentation-only, and its Consequences bound the
- * project's authoring cost by the Guide's trigger rate. 5.3 committed the
- * *mechanism* (a first-visit trigger, a cooldown, a table keyed by room id) with
- * six placeholder lines; this is the authored script the ADR deferred. The
- * identity and voice it answers to are settled in `wiki/the-guide.md`: the Guide
- * is the tiki idol (§11), and it talks in short, present-tense, deadpan asides —
- * first sentence sees the room, second sentence knows something about it. It is
- * atmosphere, never a hint: no line here gives a puzzle away, and by §3 the Guide
- * could not act on one if it did. Keyed by room id (see `zork1.world.json`), so
- * adding a room is the whole cost of giving it a voice. Rooms absent from the map
- * are silent by design — the cooldown means not every first visit should speak.
+ * ADR 0004 §3 makes him presentation-only, and its Consequences bound the
+ * project's authoring cost by his trigger rate. 5.3 committed the *mechanism* (a
+ * first-visit trigger, a cooldown, a table keyed by room id) with six placeholder
+ * lines; this is the authored script the ADR deferred. The identity and voice it
+ * answers to are settled in `wiki/the-guide.md`: he is the DM running this module
+ * (ADR 0006), drawn as the tiki idol (§11), and he talks in short, present-tense,
+ * deadpan asides — first sentence sees the room, second sentence knows something
+ * about it. It is atmosphere, never a hint: no line here gives a puzzle away, and
+ * by §3 he could not act on one if it did. Keyed by room id (see
+ * `zork1.world.json`), so adding a room is the whole cost of giving it a voice.
+ * Rooms absent from the map are silent by design — the cooldown means not every
+ * first visit should speak.
  */
 const GUIDE_SCRIPT = new Map<string, string>([
   // Above ground — the house and the forest that rings it.
@@ -414,14 +415,46 @@ function cycleSnapshot(live: Map<string, PoseCycle>, panel: Panel): Map<string, 
 }
 
 /**
- * The cast bar: Comic Chat's member list, with this strip's two members in it.
+ * Display names for the cast — ADR 0006 Slice 3's relabel, and the one place
+ * the surface label is decided.
  *
- * **Labelled by role, not by avatar name.** The manifest knows the Hero is dan
- * and the Guide is tiki (§11), and neither is the character's name — they are
- * the names of the *drawings*, chosen for pose inventory. The Guide's identity
- * is still open and the ADR's one standing instruction about it is not to call
- * them "Narrator", so the bar says what each one is and leaves naming to
- * whoever settles it.
+ * **Role ids are not labels.** `guide`/`hero` are manifest keys (ADR 0004 §11)
+ * and the avatars behind them are `tiki` and `dan` — the names of the
+ * *drawings*, chosen for pose inventory, never the characters'. Both stay as
+ * they are; only what the page *says* changes here, which is what keeps this a
+ * presentation-only relabel with no reach into the mapper, the manifest or the
+ * art pipeline.
+ *
+ * **The DM's label is the proper name "Dungeon Master"**, used without an
+ * article. ADR 0004 mandated "the Guide" and ADR 0006 §Consequences reopened it,
+ * leaving three options: "the DM", "the Guide" kept as the DM's name, or a
+ * proper name. A proper name is what a person at a table has — you address a DM
+ * by name, not by job title — and it is the label that stops reading as a
+ * *function* the comic performs. "Narrator" remains out (ADR 0004's standing
+ * instruction), though §2 has now retired the reason: the caption channel is the
+ * DM reading the module aloud, so there is no rival narrator left to collide
+ * with.
+ *
+ * The Hero keeps a role label: his identity was never reopened, and in prose
+ * ("the Hero says…") that reads as the role it is, beside a name that reads as
+ * a name.
+ */
+const CAST_LABELS: ReadonlyMap<string, string> = new Map([
+  [GUIDE, "Dungeon Master"],
+  [HERO, "Hero"],
+]);
+
+/**
+ * What the page calls a cast member. An unknown role — a mob, once ADR 0006's
+ * later slices cast one — falls back to its own id, capitalized, rather than
+ * disappearing from the bar.
+ */
+export function castLabel(role: string): string {
+  return CAST_LABELS.get(role) ?? role.charAt(0).toUpperCase() + role.slice(1);
+}
+
+/**
+ * The cast bar: Comic Chat's member list, with this strip's two members in it.
  */
 function drawCastBar(bar: HTMLElement, cast: Cast): void {
   bar.replaceChildren();
@@ -447,7 +480,7 @@ function drawCastBar(bar: HTMLElement, cast: Cast): void {
     }
 
     const label = document.createElement("figcaption");
-    label.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    label.textContent = castLabel(role);
     // The avatar behind the role stays reachable without being on the page:
     // it is the fact you want when a portrait looks wrong, and noise otherwise.
     item.title = `${label.textContent} — ${avatar.name}`;
@@ -463,16 +496,19 @@ function describe(panel: Panel): string {
   const caption = lineOf(panel, CAPTION);
   const guide = lineOf(panel, GUIDE);
   const hero = lineOf(panel, HERO);
+  // The caption is read-aloud text, not a third voice: ADR 0006 §2 makes it the
+  // module's boxed text with the DM reading it. It is still labelled `caption`
+  // here because a screen reader needs to know it is not a balloon.
   if (caption) parts.push(`caption: ${caption.text}`);
-  if (guide) parts.push(`the Guide says "${guide.text}"`);
+  if (guide) parts.push(`${castLabel(GUIDE)} says "${guide.text}"`);
   if (hero) {
     const verb = hero.balloonClass === "CBWoodringThink" ? "thinks" : "says";
-    parts.push(`the Hero ${verb} "${hero.text}"`);
+    parts.push(`the ${castLabel(HERO)} ${verb} "${hero.text}"`);
   }
   // Any further participants (mobs) — described generically, in draw order.
   for (const line of panel.speakers) {
     if (line.speaker === CAPTION || line.speaker === GUIDE || line.speaker === HERO) continue;
-    parts.push(`${line.speaker} says "${line.text}"`);
+    parts.push(`${castLabel(line.speaker)} says "${line.text}"`);
   }
   return `${parts.join("; ")}.`;
 }

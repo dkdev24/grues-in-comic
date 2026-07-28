@@ -10,6 +10,28 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.7 — 2026-07-28 — ADR 0006 Slice 3: the character is named, the caption is his to read
+
+The Guide is now **Dungeon Master** — a proper name, on the user's call, from the three options ADR
+0006 §Consequences left open. **249 web tests green (was 245), 139 engine, 198 IR, tsc and build clean.**
+
+- **One seam for the label:** `castLabel` in `comic-view.ts`, reaching the cast bar and the panel alt
+  text and nothing else. **Role ids do not move** — `guide`/`hero` stay manifest keys and
+  `Line.speaker` values — so the mapper, the panel stream, the cast manifest and the art pipeline are
+  untouched and the parity oracle never sees this slice.
+- **`test/cast-label.test.ts` (4 tests)** pins the name, the two labels the ADRs rule out ("Narrator",
+  "Guide"), the drawing's name (`tiki`) staying out of it, and the id boundary itself. A relabel with
+  no test reverts silently, which is the whole reason it exists.
+- **§2 landed as fiction, not behaviour.** The caption is the same verbatim pull-quote and
+  `captionFor` is unchanged; what retired is the "Not the Narrator" boundary — the caption channel
+  *is* the module's read-aloud text in his voice, so there is no rival narrator to collide with.
+- **`wiki/the-guide.md` rewritten as *The Dungeon Master*** (filename kept so `[[the-guide]]` links
+  resolve). The tiki idol survives as the **drawing**; what retired is the idol as the whole of the
+  concept. **The voice rules 1–6 needed no rewriting** — a DM who has run this module too many times
+  sounds like an idol that has watched it too many times, so not one shipped line of script changed.
+
+---
+
 ## v0.18.6 — 2026-07-28 — ADR 0006 Slice 2: the DM and the Hero converse
 
 `BEAT_SCRIPT` entries become **pairs** — the DM's line and the Hero's answer, keyed on the same beat —

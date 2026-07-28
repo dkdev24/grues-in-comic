@@ -1,6 +1,6 @@
 # ADR 0006 — The Dungeon Master and the Player: from Two Voices to a Table
 
-- **Status:** Accepted (building — Slices 1–2 landed v0.17.5, v0.18.6)
+- **Status:** Accepted (building — Slices 1–3 landed v0.17.5, v0.18.6, v0.18.7)
 - **Date:** 2026-07-22
 - **Supersedes (in part):** ADR 0004 §2/§2a (the Hero's channel is a *thought* balloon), §"Not the Narrator" boundary as stated in `wiki/the-guide.md`; ADR 0005 §4 ("the Hero keeps the *thought* balloon — he does not speak")
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — still consumed, still not extended); the Guide/DM stays **presentation-only** — no game state, unaddressable by the parser, removable without moving one bit of engine behaviour or the parity harness (ADR 0004 §3); the panel stream stays a **deterministic pure function of the event stream with no engine internals**, so `replayPanels` still applies (ADR 0004 §5, ADR 0005 testing contract)
@@ -114,7 +114,7 @@ variation that would need engine state is out of scope by construction.
 - **The UI label is reopened.** ADR 0004 mandated "the Guide"; the character is now a DM.
   Whether the surface label becomes "the DM," stays "the Guide" as the DM's name, or gets a
   proper name is an identity question deferred to the `the-guide.md` rewrite — not settled
-  here.
+  here. **Settled in Slice 3 (v0.18.7): the proper name "Dungeon Master."**
 - **A new authored surface: DM↔Hero dialogue pairs.** Bounded the same way every authored
   table has been (ADR 0004 §3/§10, ADR 0005 §1): a miss degrades to a single balloon or no
   balloon, never to a wrong exchange.
@@ -153,8 +153,27 @@ variation that would need engine state is out of scope by construction.
    cooldown budget and starve the rarer beats. Adding the latter is a measurement question,
    not an authoring one. **No conversational memory** — that is Slice 4, and nothing here
    reads state the event stream does not carry, so `replayPanels` still holds.
-3. **Caption-as-read-aloud reframe + identity rewrite** (§2, wiki). Mostly authored/UI; the
-   "Narrator" boundary retires. Relabel decision lands here.
+3. **Caption-as-read-aloud reframe + identity rewrite** (§2, wiki). ✅ **Done (v0.18.7).**
+   - **The relabel is settled: the character's name is "Dungeon Master"** — a proper name,
+     used without an article (the user's call, 2026-07-28, from the three options
+     §Consequences left open). Reasoning recorded with it: you address a DM by name, not by
+     job title, and a name stops the label reading as a *function the comic performs*.
+     ADR 0004's "the Guide" is retired; its standing ban on "Narrator" is kept.
+   - **The label is one seam, `castLabel` (`comic-view.ts`)**, reaching the cast bar and the
+     panel alt text and nothing else. **Role ids do not move**: `guide`/`hero` stay as
+     manifest keys and `Line.speaker` values, so the mapper, the panel stream, the cast
+     manifest and the art pipeline are untouched and the parity oracle never sees this
+     slice. `test/cast-label.test.ts` pins the name *and* that boundary — a relabel with no
+     test reverts silently.
+   - **§2 lands as fiction, not as behaviour.** The caption stays the same verbatim
+     pull-quote, chosen the same way; `captionFor` is unchanged. What retires is the "Not
+     the Narrator" boundary — with the caption channel *being* the module's read-aloud text
+     in the DM's voice, there is no rival narrator left to collide with.
+   - **Wiki rewritten, not amended:** `the-guide.md` is now *The Dungeon Master* (filename
+     kept so every `[[the-guide]]` link resolves). The idol survives as the **drawing**; what
+     retired is the idol as the whole of the concept. The voice rules 1–6 needed no
+     rewriting, which is itself the finding: a DM who has run this module too many times
+     sounds like an idol that has watched it too many times, so not one shipped line changed.
 4. **Bounded conversational memory** (§4 memory half). Stream-derived counters only; the
    testing contract's new risk surface, gated hardest.
 5. **Session-recap export** (§5). Independent of 1–4; can be scheduled whenever.

@@ -530,6 +530,16 @@ export function heroBalloon(
 /**
  * The caption: a **verbatim** pull-quote, never a paraphrase (§2).
  *
+ * **What it is, in fiction, as of ADR 0006 §2 (Slice 3): the DM reading the
+ * module aloud.** ADR 0004 kept the Guide off the caption channel because Zork's
+ * narration already owned it and two narrators would collide; the table framing
+ * removes the collision rather than the rule, so the "Not the Narrator" boundary
+ * is retired and the channel is read-aloud boxed text in the DM's voice. Nothing
+ * about the *text* moves — it is the same verbatim pull-quote, chosen the same
+ * way, and this function is unchanged. What changed is that the caption and the
+ * DM's balloon are now one voice in two registers, which is why a panel may
+ * legitimately carry both.
+ *
  * The rule is that the panel quotes the sentence its Hero is reacting to — the
  * one the §10 marker matched — and falls back to the turn's first sentence when
  * no marker fired, which is the ~51% case where the first sentence is a room
