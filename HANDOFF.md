@@ -10,7 +10,9 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.18.8**
+**0.18.9**
+
+**Development platform: macOS only** (user's decision, 2026-07-28). See Open Issues → the pixel gate.
 
 ---
 
@@ -52,31 +54,20 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
 
 ---
 
-## Last Session — ADR 0006 Slice 4: bounded conversational memory (v0.18.8)
+## Last Session — dev server 404 on Windows; macOS named as the platform (v0.18.9)
 
-Full narrative in `WORKLOG.md` v0.18.8; the ADR's slice list carries the decisions. What the next
-session must know:
+Full narrative in `WORKLOG.md` v0.18.9. Short session, two durable outcomes:
 
-**A beat is now a *run* of lines, not one line.** `BeatEntry` in `mapper.ts` is
-`string | BeatExchange | readonly (…)[]`; the *n*th time a beat speaks it takes the *n*th entry
-(`variantOf`), and past the end the last one repeats. Bare strings and single exchanges are unchanged,
-which is why the pixel gate's fixture script needed no edit.
+- **`web/tools/serve.ts` matched its mounts on an already-normalized path.** `path.normalize` is
+  platform-native, so on Windows `/world/x` became `\world\x`, the `/world` mount never matched, and
+  the shell 404'd on the world document before booting (`/` → `\` missed the `index.html` case the
+  same way). Fixed by matching the mount on the **raw URL path** and normalizing only the remainder;
+  the traversal guard still runs after normalization. **Rule: a URL path is not a filesystem path —
+  route in URL space, use `path.*` only after the routing decision.**
+- **The pixel gate is a macOS gate, by decision.** See Open Issues.
 
-- **The whole memory is one `Map<marker, count>`** folded over the turns already read, beside
-  `visited`/`lastGuideTurn`. **No engine state, no clock, no RNG** — that is the ADR's load-bearing
-  constraint, and `replayPanels` still holds. Anything added here must fold the same way.
-- **Two rules, each a decision.** The counter is over **spoken** firings, not marker occurrences (a
-  cooldown-swallowed beat was never on the page, so it must not retire a reply the reader never read);
-  and **nothing cycles** — the last line of a run is authored as the *settled* one.
-- **Run depths are measured.** Spoken over the 606-turn corpus: `reveal` 14×, `effort` 9×, `scored` 5×,
-  `uncanny` 3×, `combat-threat` 3×, `grue-threat` 1×, `combat-victory` 0×. `reveal` got 4 lines, the
-  rest 2–3. Re-measure before deepening a run rather than guessing.
-- **Gotcha that cost a test iteration:** the cooldown is measured in `moves`, and **a refused command
-  does not advance `moves`** — two parser misses in a row are one turn apart by the only clock the
-  mapper has. Any test that wants a cooldown to expire must walk between the beats.
-- **Not built, deliberately:** cross-beat memory (e.g. a kill count quoted in another beat's line).
-  Legal under §4 but it needs line templating — an authoring surface, not this mechanism.
-- **Test count: 255 web** (was 249); 139 engine, 198 IR, tsc, build and the 17-case gate all clean.
+**Where ADR work stands is unchanged from v0.18.8** — Slice 4 done, Slice 5 (PDF export) the only ADR
+0006 slice left, ADR 0008 complete. Test counts unchanged: 255 web, 139 engine, 198 IR, parity 143/143.
 
 **Still-live finding from Slice 2 (unfixed by design):** an exchange renders as **shot/reverse-shot,
 not a two-shot**
@@ -86,8 +77,15 @@ not a two-shot**
   the balloon-band height (`BALLOON_HEADROOM`) or dropping the caption on exchange turns. **Both are
   authoring/layout decisions — take them to the user, not to the port.**
 
-**ADR 0008 Phase 3 — the pixel gate.**
+---
 
+## The pixel gate (ADR 0008 Phase 3) — operating notes
+
+Durable, not session narrative: every mechanical-layer change is measured against this.
+
+- **The golden is macOS-rendered and the gate is a macOS gate** (decided 2026-07-28). The hash half
+  goes through the host font stack; the geometry half does not. **Never `gate:accept` off macOS.**
+  Full reasoning in Open Issues → Project / M5 and `web/README.md`.
 - **The gate is a hash + geometry golden, not committed PNGs.** `web/tools/gate.ts` renders 16 fixed
   cases and pins each as the **SHA-256 of its PNG** plus the placement that produced it;
   `web/test/golden/panel-gate.json` (~6 KB) is the golden, `web/test/gate.test.ts` compares.
@@ -109,9 +107,8 @@ not a two-shot**
 - **Fixtures go through `page.ts` with the real fit test.** `render:bodies` still builds panels by hand and
   can produce 4–5-balloon panels panelization would have split — fine to eyeball, do not pin them.
 
-**Verified:** 249 web (was 204), 139 engine, 198 IR, tsc + build clean. The gate's fixture set is 17
-cases: adding the exchange to it re-indexed walkthrough 01 (10 panels → 11), which the gate reported
-case by case before the golden was re-accepted.
+The fixture set is **17 cases** — the exchange added at Slice 2 re-indexed walkthrough 01 (10 panels
+→ 11), which the gate reported case by case before the golden was re-accepted.
 
 ---
 
@@ -295,6 +292,21 @@ measurement taken for one question often answers another.
   also carries world-state assertions and a positive control of real reference output (v0.8.3).
 
 **Project / M5**
+- **The pixel gate is macOS-only, by decision (2026-07-28).** `gate.test.ts` pins each case as a PNG
+  SHA-256 **and** its `PanelTrace` geometry; `@napi-rs/canvas` rasterizes text through the host font
+  stack, so the geometry half is portable and **the hash half is not**. On Windows all 17 cases fail
+  on `— pixels` with every geometry assertion green — that shape (geometry green, pixels red,
+  *every* case) is the signature of a platform difference, not a regression. The user develops on
+  macOS only, so the golden stays macOS-rendered rather than growing a platform key or a
+  geometry-only mode. **`gate:accept` on a non-macOS host silently re-pins the golden to that host
+  and breaks the gate everywhere it used to pass** — the trap this note exists to prevent. Revisit
+  only if the project gains a second machine or CI.
+- **A URL path is not a filesystem path** (`serve.ts`, v0.18.9). `path.normalize` is platform-native,
+  so normalizing before matching a mount made `/world/...` unmatchable on Windows and 404'd the world
+  document. Routing decisions belong in URL space; `path.*` applies only afterward. The bug was
+  invisible on macOS because there the two spaces look identical — **the general hazard is any
+  POSIX-only assumption baked into tooling, which only a non-macOS run would surface, and there will
+  not be one.**
 - **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run pack`
   (cast pinned in the script). **Re-pack after any `art/` decode change** — v0.13.1 fixed the decoder
   but the committed sheets stayed inverted until regenerated.

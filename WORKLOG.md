@@ -10,6 +10,40 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.9 — 2026-07-28 — The dev server was `/`-shaped; macOS named as the platform
+
+The shell served a 404 for its own index and for the world document on Windows while working on
+macOS. Nothing was missing from the checkout: `web/tools/serve.ts` matched its mounts on a path it
+had already normalized.
+
+- **The bug.** `resolvePath` ran `path.normalize(pathname)` and *then* tested
+  `clean.startsWith("/world/")`. `normalize` is platform-native — on Windows it rewrites
+  `/world/zork1.world.json` to `\world\zork1.world.json`, so the `/world` mount never matched, the
+  request fell through to the `web/` root, and `main.ts:192` threw on the world document before the
+  shell could boot. The same rewrite turned `/` into `\`, missing the `rest === "/"` → `index.html`
+  case, so the index resolved to a directory and 404'd too. Two symptoms, one line.
+- **The fix.** Match the mount on the **raw URL path** — URL paths are always `/`-separated,
+  whatever the host — and normalize only the remainder before joining. The traversal guard is
+  unchanged and still runs after normalization, which is the ordering that makes `../` fail rather
+  than resolve. `sep` joins `""`/`"/"` as an index case.
+- **The general rule this is an instance of:** *a URL path is not a filesystem path.* Anything that
+  decides routing must decide it in URL space; `path.*` may only be used once the decision is made.
+  The failure was invisible on the development machine because there POSIX separators make the two
+  spaces look identical.
+- **The pixel gate is a macOS gate — decided, not deferred.** On Windows all 17 `gate.test.ts` cases
+  fail on `— pixels` while every paired geometry assertion passes: `@napi-rs/canvas` rasterizes text
+  through the host font stack, so identical layout yields different bytes. Geometry green + pixels
+  red across *every* case is the signature of a platform difference; a real regression moves geometry
+  and rarely moves everything uniformly. The user develops on macOS only, so the golden stays
+  macOS-rendered rather than growing a platform key or a geometry-only mode. **`gate:accept` on a
+  non-macOS host is the trap** — it re-pins the golden to that host and breaks the gate everywhere
+  else. Recorded in `web/README.md` and HANDOFF Open Issues.
+- **Verified** by probing the running server: `/`, `/world/zork1.world.json`, `/assets/comic/cast.json`
+  and `/dist/web/src/main.js` all 200 (were 404/404/200/200). 238 web tests pass on Windows; the 17
+  pixel failures are the platform divergence above and are green on macOS.
+
+---
+
 ## v0.18.8 — 2026-07-28 — ADR 0006 Slice 4: the beats remember how often they have fired
 
 A beat is no longer one line but a **run** of them: the *n*th time it speaks it takes the *n*th

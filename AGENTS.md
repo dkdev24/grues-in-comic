@@ -86,6 +86,20 @@ Operational rules:
 
 ---
 
+## Development Platform
+
+**macOS is the only supported development machine** (decided 2026-07-28). The engine, IR and importer
+are platform-independent and must stay that way; the *tooling* is not held to that bar, and two places
+are knowingly macOS-shaped:
+
+* the pixel gate's golden (`web/test/golden/panel-gate.json`) is macOS-rendered — **never run
+  `npm --prefix web run gate:accept` on another OS**, see `docs/adr/0008-*.md` §Phase 3 amendment;
+* anything reading a path may assume POSIX separators. Where it must not — the dev server's URL
+  routing — the reason is written at the call site.
+
+Do not spend effort making tooling cross-platform on speculation. Fix a platform bug when a real run
+hits one, and record it.
+
 ## Repository Organization
 
 `original-projects/` contains imported historical source code. These directories are reference implementations. They are version-controlled as part of this repository.

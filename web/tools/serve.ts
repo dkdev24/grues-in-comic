@@ -67,14 +67,20 @@ const server = createServer((req, res) => {
  * Maps a URL path to a file under one of the two mounts, or `null` if it
  * escapes them. Normalizing *before* joining is what makes `../` traversal fail
  * rather than resolve.
+ *
+ * The mount is matched on the raw URL path, which is always `/`-separated, and
+ * only the remainder is normalized. `normalize` is platform-native: on Windows
+ * it rewrites `/world/x` to `\world\x`, so normalizing first made the `/world`
+ * mount never match (404 on the world document) and `/` never resolve to
+ * `index.html`.
  */
 function resolvePath(pathname: string): string | null {
-  const clean = normalize(pathname).replace(/^(\.\.[/\\])+/, "");
-  const [root, rest] =
-    clean === "/world" || clean.startsWith(`/world/`)
-      ? [WORLD_ROOT, clean.slice("/world".length)]
-      : [WEB_ROOT, clean];
-  const file = join(root, rest === "" || rest === "/" ? "index.html" : rest);
+  const [root, raw] =
+    pathname === "/world" || pathname.startsWith("/world/")
+      ? [WORLD_ROOT, pathname.slice("/world".length)]
+      : [WEB_ROOT, pathname];
+  const rest = normalize(raw).replace(/^(\.\.[/\\])+/, "");
+  const file = join(root, rest === "" || rest === "/" || rest === sep ? "index.html" : rest);
   return file === root || file.startsWith(root.endsWith(sep) ? root : root + sep) ? file : null;
 }
 

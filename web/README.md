@@ -18,7 +18,14 @@ npm --prefix web run dev      # build, then http://localhost:8080/
 
 `tools/serve.ts` mounts `web/` and, at `/world/`, the real `ir/artifacts/` — the page
 fetches the same 1.8 MB world document the parity harness replays, so the shell cannot
-drift from a copy.
+drift from a copy. The mount is matched on the **raw URL path**, before any
+`path.normalize`: normalize is platform-native, and on Windows it rewrites `/world/x` to
+`\world\x`, which made the `/world` mount never match and the shell 404 on the world
+document (fixed v0.18.9 — see `WORKLOG.md`).
+
+**macOS is the supported development platform** (user's decision, 2026-07-28). The shell
+runs on any platform, but the pixel gate's golden is macOS-rendered; see "The pixel gate
+is platform-bound" below.
 
 ## Layout
 
@@ -53,6 +60,25 @@ to bundle. The bundler question stays open for whatever needs it; it is still no
 
 (`tsc` also emits `dist/ir/` from the type-only import graph. Those files are never
 fetched — nothing in `dist/web/` or `dist/engine/` references them.)
+
+## The pixel gate is platform-bound
+
+`npm run gate` (ADR 0008 Phase 3) pins each case as a **PNG SHA-256 plus the `PanelTrace`
+geometry** behind it. The geometry half is platform-independent; **the hash half is not** —
+`@napi-rs/canvas` rasterizes text through the host's font stack, so the same layout produces
+different bytes on macOS and Windows.
+
+Run on Windows, all 17 cases fail on `— pixels` while every paired geometry assertion passes.
+That shape — geometry green, pixels red, *every* case — is the signature of a platform
+difference, not a regression. A real layout change moves geometry too, and usually not
+uniformly.
+
+**Decision (2026-07-28): the golden stays macOS-rendered and the gate is a macOS gate.** The
+project is developed on one machine, so a platform-keyed golden or a geometry-only mode would
+be machinery maintained for a case that does not occur. **Never run `gate:accept` on a
+non-macOS machine** — it silently re-pins the golden to that host's font rendering, and the
+gate then fails everywhere it used to pass. If the project ever gains a second developer or
+CI, that is the moment to key the golden by platform.
 
 ## The comic layer, and where the asset line is drawn (⚑ Gate D)
 
