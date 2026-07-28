@@ -10,6 +10,37 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.13 — 2026-07-28 — `HANDOFF.md` and `AGENTS.md` cut to what a session actually needs
+
+The two files loaded at every session start had grown to ~4,970 words between them. Most of that was
+durable rather than current: cautions that must be true whenever a subsystem is touched, sitting in a
+file whose stated scope is "what the next session needs".
+
+- **`docs/PITFALLS.md` (new)** takes the durable half — Open Issues, Standing Notes, the pixel-gate
+  operating notes and ADR 0008's still-live decisions — reorganized **by subsystem** (Engine/IR ·
+  Web & the comic pane · Art pipeline · Tooling & platform · the pixel gate · the port · Method) with
+  a lookup table on top. The point of the reorganization: a session touching `art/` reads twelve
+  lines, not two hundred. **Read the section for what you are changing, before you change it.**
+- **`HANDOFF.md` 344 → 108 lines**, and its scope rule is now explicit about where things go instead:
+  narrative → `WORKLOG.md`, durable cautions → `PITFALLS.md`, deferred work → `FUTURE_WORK.md`.
+  Status compressed from four milestone paragraphs to four lines; Next Actions became an index into
+  `DEVELOPMENT_PLAN.md` §6 rather than a second copy of it; Key Paths lost the rows that repeated
+  what the paths themselves say.
+- **`AGENTS.md` 178 → 64 lines.** Purpose/Objective/Core Principle/Long-Term Vision were four
+  sections making one point, and the Engineering Principles bullet lists were generic. The system
+  documents became one table with a *when to read* column, which is the part an agent actually needs.
+- **Per-session load: ~4,970 → ~1,570 words (-68%).** Verified nothing durable was dropped by
+  diffing bullet-by-bullet against the previous `HANDOFF.md`; everything flagged as missing was
+  either session narrative now in this log, or a decision now in `DEVELOPMENT_PLAN.md`. One rule was
+  *promoted* while moving — dialogue is authored at build time and never generated at runtime,
+  because the mapper is the parity oracle — since it was living only in a session summary.
+
+**Rule this session is an instance of:** *a file read in full every session is a recurring tax, and
+durable knowledge is exactly the kind that does not need re-reading.* Splitting by *when it is
+needed* costs nothing and pays every session; splitting by topic alone would not have.
+
+---
+
 ## v0.18.12 — 2026-07-28 — M6 decided: six answers, and the dialogue corpus is sanctioned
 
 The user answered every open question on the M6 draft, so §6.1 stopped being a set of forks and

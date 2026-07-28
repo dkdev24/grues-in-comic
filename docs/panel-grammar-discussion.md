@@ -355,7 +355,7 @@ Its weaknesses:
 - **§3.3 determinism vs. Zork's RNG.** Settled in discussion: randomness is *desirable* for
   replayability and not in conflict with determinism, provided the **seed is an explicit part of
   save state**. "Deterministic" means deterministic given seed; tests pin seeds. Note the engine
-  already verifies randomized turns by membership rather than text parity (see Open Issues).
+  already verifies randomized turns by membership rather than text parity (see `docs/PITFALLS.md` → Engine / IR).
 - **§9 camera presets need a selection rule** tied to the event contract (Establishing on room
   change, Close-up when a target is present, Over-the-Shoulder on addressed dialogue). As written
   they are a list with no consumer.
