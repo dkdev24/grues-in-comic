@@ -1,8 +1,5 @@
 {
-  "0": "inspector-view.ts",
-  "1": "status.ts",
   "2": "session.ts",
-  "3": "main.ts",
   "4": "Turn",
   "5": "serve.ts",
   "6": "console-view.ts",
@@ -10,14 +7,7 @@
   "8": "backdrop.ts",
   "9": "balloon.ts",
   "10": "inspector-view.ts",
-  "11": "backdrop.ts",
   "12": "status.ts",
   "13": "session.ts",
-  "14": "fit.ts",
-  "15": "director.test.ts",
-  "16": "Session",
-  "17": "createPage",
-  "18": "Turn",
-  "19": "addScript",
-  "20": "SessionStore"
+  "14": "fit.ts"
 }

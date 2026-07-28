@@ -164,6 +164,29 @@ export function lineOf(panel: Panel, speaker: string): Line | null {
  */
 export type GuideScript = ReadonlyMap<string, string>;
 
+/**
+ * One beat's authored **exchange** — ADR 0006 §4, Slice 2.
+ *
+ * A beat may render as DM-only, Hero-only, or a true back-and-forth, so both
+ * halves are optional and either may be missing without the other degrading:
+ * "a miss degrades to a single balloon or no balloon, never to a wrong
+ * exchange" (§Consequences). A bare `string` is the DM-only form the beat table
+ * had before this slice, kept because most beats are the idol commenting and
+ * writing `{ dm: … }` around every one of them would be noise.
+ */
+export interface BeatExchange {
+  /** The DM's line — the idol reacting to the beat the Hero just caused. */
+  dm?: string;
+  /**
+   * The Hero's answer. Fires **only on a turn where he has no resolved action**
+   * to report; see {@link createMapper}'s `exchangeFor` for why.
+   */
+  hero?: string;
+}
+
+/** Affect marker → the exchange that beat earns. */
+export type BeatScript = ReadonlyMap<string, string | BeatExchange>;
+
 export interface MapperOptions {
   guideScript?: GuideScript;
   /**
@@ -180,14 +203,15 @@ export interface MapperOptions {
    */
   names?: ReadonlyMap<string, string>;
   /**
-   * Affect marker → Guide line (ADR 0005 §4). This is what makes the Guide
-   * *converse*: it reacts to the beat the Hero just caused (the §10 marker the
-   * turn produced — `combat-victory`, `grue-threat`, `scored`, …) instead of only
-   * to entering a scripted room. Consulted before the room gazetteer and under the
-   * same cooldown, so the Guide stays presentation-only and does not wear out.
-   * Empty keeps the old room-only behaviour.
+   * Affect marker → the beat's exchange (ADR 0005 §4, ADR 0006 §4). This is what
+   * makes the two *converse*: the pair is keyed on the beat the Hero just caused
+   * (the §10 marker the turn produced — `combat-victory`, `grue-threat`,
+   * `scored`, …) instead of on entering a scripted room. Consulted before the
+   * room gazetteer and under the same cooldown, so the exchange stays
+   * presentation-only and does not wear out. Empty keeps the old room-only
+   * behaviour.
    */
-  beatScript?: ReadonlyMap<string, string>;
+  beatScript?: BeatScript;
 }
 
 /**
@@ -295,7 +319,14 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       }
 
       const affect = affectFor({ text, gameOver, scoreDelta, systemChannel });
-      const guideLine = guideFor(firstVisit, room, affect.marker, turn.status.moves);
+      // The resolved action is settled before the exchange, because it is what
+      // decides whether the Hero has a mouth free to answer with (rule 2 on
+      // `exchangeFor`).
+      const action = heroBalloon(took, dropped, names);
+      const exchange = exchangeFor(
+        firstVisit, room, affect.marker, turn.status.moves, action !== null,
+      );
+      const guideLine = exchange.dm;
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
 
       // The turn's utterances in draw order (ADR 0008 §2): the caption frames the
@@ -303,7 +334,11 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // (`panel.cpp:1058`) — whether they land in one panel or three is `page.ts`'s
       // decision now, not this module's.
       const caption = captionFor(text, affect.matched);
-      const hero = heroBalloon(took, dropped, names);
+      // What the Hero did, or — on a turn he did nothing worth reporting — what
+      // he says back (ADR 0006 §4). Never both: see `exchangeFor` rule 2.
+      const hero = action ?? (exchange.hero === null
+        ? null
+        : { modes: BM_SAY, text: exchange.hero });
       const lines: PageLine[] = [];
       if (caption) {
         // Bodiless: the caption is narration, and `BM_ACTION` alone is what makes
@@ -341,28 +376,61 @@ export function createMapper(options: MapperOptions = {}): Mapper {
     },
   };
 
-  function guideFor(
+  /**
+   * The turn's authored exchange — ADR 0006 §4, Slice 2.
+   *
+   * Three rules carry this, and each is a decision:
+   *
+   * 1. **One cooldown for the whole exchange.** The pair is a single authored
+   *    event, not two channels: gating the halves separately would let the Hero
+   *    answer a line the DM was too tired to say. It is consumed only when
+   *    something is actually said, so a suppressed half never burns a turn's
+   *    worth of silence.
+   * 2. **The resolved action outranks the Hero's reply** (`heroBusy`). What the
+   *    Hero did is derived from the event stream and cannot be wrong; the reply
+   *    is authored garnish. Rather than give him two balloons in one panel —
+   *    which panelization would then split, breaking the two-shot the exchange
+   *    exists to fill — the reply fires on the turns he is otherwise silent
+   *    (movement, examination, a refusal), which is where the comic is quietest
+   *    and where an exchange adds most. §Consequences' "degrades to a single
+   *    balloon, never a wrong exchange", applied to the Hero's side.
+   * 3. **The gazetteer stays DM-only.** A room line is the idol narrating a
+   *    place, not a beat the Hero caused, so there is nothing for him to answer.
+   *    The room path is otherwise untouched (pre-§4 behaviour).
+   */
+  function exchangeFor(
     firstVisit: boolean, roomId: string, marker: string | null, turnNumber: number,
-  ): string | null {
-    if (turnNumber - lastGuideTurn < guideCooldown) return null;
-    // Beat reaction first (ADR 0005 §4): the Guide answers what the Hero just did.
-    // This is the whole of "they talk to each other" — the line is chosen by the
-    // marker the Hero's action produced, so the Guide is replying, not narrating a
+    heroBusy: boolean,
+  ): { dm: string | null; hero: string | null } {
+    const silent = { dm: null, hero: null };
+    if (turnNumber - lastGuideTurn < guideCooldown) return silent;
+
+    // Beat reaction first (ADR 0005 §4): the pair answers what the Hero just did.
+    // This is the whole of "they talk to each other" — the lines are chosen by the
+    // marker the Hero's action produced, so the DM is replying, not narrating a
     // room on a timer.
-    const beatLine = marker !== null ? beatScript.get(marker) : undefined;
-    if (beatLine !== undefined) {
-      lastGuideTurn = turnNumber;
-      return beatLine;
+    const entry = marker !== null ? beatScript.get(marker) : undefined;
+    if (entry !== undefined) {
+      const exchange = typeof entry === "string" ? { dm: entry } : entry;
+      const dm = exchange.dm ?? null;
+      const hero = heroBusy ? null : (exchange.hero ?? null);
+      if (dm !== null || hero !== null) {
+        lastGuideTurn = turnNumber;
+        return { dm, hero };
+      }
+      // A Hero-only beat on a turn he is already speaking says nothing; fall
+      // through rather than swallow the room line that would otherwise fire.
     }
+
     // Then the room gazetteer, on first entry (the pre-§4 behaviour, unchanged).
     if (firstVisit) {
       const roomLine = guideScript.get(roomId);
       if (roomLine !== undefined) {
         lastGuideTurn = turnNumber;
-        return roomLine;
+        return { dm: roomLine, hero: null };
       }
     }
-    return null;
+    return silent;
   }
 }
 

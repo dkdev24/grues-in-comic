@@ -42,11 +42,16 @@ The six opening lines shipped at 5.3 already fixed the register; this only names
    read "address the scene, not the Hero.")* The trigger broadened: the Guide also reacts to what the
    Hero just *did* — the §10 affect marker the action produced (a kill, a find, the dark), keyed in
    `BEAT_SCRIPT` beside the room gazetteer. So it is, at last, replying rather than narrating to no
-   one. It is still not *conversation* in the back-and-forth sense — the Hero thinks and does not
-   speak ([[the-hero]] §1), the idol remains unaddressable — and the reply is still deadpan
-   atmosphere, never a hint (rule 4 holds). What changed is only who the line is *about*: the beat as
-   often as the room. In a two-shot the Hero now faces the idol (§4 facing), so the reply at least
-   lands on someone looking.
+   one. What changed is only who the line is *about*: the beat as often as the room. In a two-shot
+   the Hero faces the idol (§4 facing), so the reply lands on someone looking.
+
+   **It is now conversation, in the back-and-forth sense** *(ADR 0006 §4, Slice 2 — this rule
+   formerly ended "the Hero thinks and does not speak")*. A `BEAT_SCRIPT` entry is a **pair**: the
+   idol's line and [[the-hero]]'s answer, keyed on the same beat, and on most beats both fire
+   (94% of them, measured over the walkthrough corpus). The Hero answers only on turns he has no
+   action of his own to report, so the exchange fills the quiet turns rather than competing with
+   them. The idol is *still* unaddressable by the player, and the reply is still deadpan atmosphere,
+   never a hint (rule 4 holds) — being answered is not the same as taking requests.
 
 ## Coverage
 

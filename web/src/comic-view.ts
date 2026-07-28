@@ -14,7 +14,9 @@
  */
 
 import type { Turn } from "./session.js";
-import { CAPTION, GUIDE, HERO, lineOf, type Panel } from "./comic/mapper.js";
+import {
+  CAPTION, GUIDE, HERO, lineOf, type BeatExchange, type BeatScript, type Panel,
+} from "./comic/mapper.js";
 import { createDirector, type Director } from "./comic/director.js";
 import { createFitTest } from "./comic/fit.js";
 import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
@@ -161,20 +163,58 @@ const GUIDE_SCRIPT = new Map<string, string>([
 ]);
 
 /**
- * Beat reactions (ADR 0005 §4): keyed by the affect marker the Hero's action
- * produced, so the Guide *replies to what just happened* rather than narrating a
- * room on a timer — the whole of "the two characters talk to each other." Same
- * voice as the gazetteer (`wiki/the-guide.md`) and now the same relaxed rule 6:
- * these address the beat, not only the scene. Shares the Guide cooldown, so it
- * stays presentation-only and never wears out. Death (the `reaction` shot, tight
- * on the Hero) is deliberately absent — the idol does not crowd a death.
+ * Beat **exchanges** (ADR 0005 §4, ADR 0006 §4 Slice 2): keyed by the affect
+ * marker the Hero's action produced, so the two *reply to what just happened*
+ * rather than narrating a room on a timer — the whole of "the two characters
+ * talk to each other." The DM's half keeps the gazetteer's voice
+ * (`wiki/the-guide.md`, rule 6 relaxed to address the beat); the Hero's half is
+ * his settled voice (`wiki/the-hero.md`) — terse, dry, genre-literate, and
+ * never a hint (his rule 5: the reply reacts, it does not tell him what to do).
+ *
+ * The Hero's line fires only on a turn where he has no resolved action to report
+ * (`mapper.ts`'s `exchangeFor`), so these are read as *the quiet turns' half of
+ * the exchange*, not as a second balloon competing with "The lantern, then."
+ *
+ * Two markers are deliberately absent:
+ *
+ * - **`death`** — the `reaction` rung is tight on the Hero's face and carries no
+ *   speech balloon by design (`render.ts`'s `BALLOON_HEADROOM`). The idol does
+ *   not crowd a death, and neither does a quip.
+ * - **`parser-miss`** — the largest marker there is (12.7% of turns). Because
+ *   the beat table is consulted before the room gazetteer and consumes the same
+ *   cooldown, scripting it would spend most of the exchange budget on the Hero
+ *   arguing with the parser and starve the rarer beats. Adding it is a
+ *   measurement question (the standing method note), not an authoring one.
  */
-const BEAT_SCRIPT = new Map<string, string>([
-  ["combat-victory", "Something that wanted you dead is dead instead. The empire keeps count."],
-  ["combat-threat", "The blade knows before you do. It usually does."],
-  ["grue-threat", "The dark is not empty. It is only patient."],
-  ["scored", "The empire notices what leaves it. It always sends someone."],
-  ["reveal", "There. It was waiting to be found, the way everything here is."],
+const BEAT_SCRIPT: BeatScript = new Map<string, BeatExchange>([
+  ["combat-victory", {
+    dm: "Something that wanted you dead is dead instead. The empire keeps count.",
+    hero: "Still standing. That's the whole of the review.",
+  }],
+  ["combat-threat", {
+    dm: "The blade knows before you do. It usually does.",
+    hero: "I noticed. It always tells me early and unhelpfully.",
+  }],
+  ["grue-threat", {
+    dm: "The dark is not empty. It is only patient.",
+    hero: "Then it can be patient a little longer.",
+  }],
+  ["scored", {
+    dm: "The empire notices what leaves it. It always sends someone.",
+    hero: "That one counts, then.",
+  }],
+  ["reveal", {
+    dm: "There. It was waiting to be found, the way everything here is.",
+    hero: "Of course it was. They always are.",
+  }],
+  ["effort", {
+    dm: "They built it heavier than it needed to be. They built everything heavier than it needed to be.",
+    hero: "It shows.",
+  }],
+  ["uncanny", {
+    dm: "Not all of this is only stone.",
+    hero: "I heard it. I'm going to keep not thinking about it.",
+  }],
 ]);
 
 /** Sub-pixel slack when deciding whether the reader is still at the newest panel. */

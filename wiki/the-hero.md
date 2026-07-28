@@ -54,12 +54,18 @@ sincere and ominous about a dead empire it has watched for centuries; the Hero i
 competent because he has seen this *shape* of dungeon before, at a folding table, with dice. They
 agree on tone and disagree on everything else, which is the whole engine of a buddy comic.
 
-**Settled by ADR 0005 §4 (Slice 5):** the Guide now reacts to the beats the Hero causes and the two
-face each other in a shared panel, but the **Hero keeps the *thought* balloon — he does not speak.**
-The exchange is the idol commenting on what the Hero *does*, not a back-and-forth of dialogue; the
-Hero's genre-literate competence reads louder as private thought than as banter, and it keeps rule 5
-(he never performs for an audience). [[the-guide]] rule 6 relaxed to match. A spoken Hero stays
-available if the comic later wants true dialogue, but it is not the voice as settled.
+**Settled by ADR 0005 §4:** the Guide reacts to the beats the Hero causes and the two face each
+other in a shared panel. That ADR left the Hero **thought-only** — the exchange was the idol
+commenting on what the Hero *did*, not dialogue.
+
+**Superseded by ADR 0006 (Slices 1–2): the Hero speaks, and the two now converse.** Slice 1 made
+his resolved action a spoken line; Slice 2 makes the beat table a **pair** — the DM's line and the
+Hero's answer on the same beat. The earlier reasoning (his competence reads louder as private
+thought) lost to the premise of ADR 0006: at a table, the player answers the DM out loud, and a
+comic in which one character speaks and the other thinks is not a buddy comic. Rule 5 is unchanged
+and does the work the thought balloon used to: he answers the beat, he never performs, and he never
+hints. The **thought register stays live** in the type and the renderer for interior asides, whose
+content is not authored yet.
 
 ## Coverage
 
@@ -76,3 +82,15 @@ single line repeated over ~30 takes in a full run will wear. **Deterministic var
 something already in hand (an object's value or class: a treasure earns a greedier line than a
 lantern) — is a sanctioned later refinement, not invented now, because it must stay a pure function
 of the world data to keep the mapper testable ([[comic-chat-presentation]]).
+
+**Slice 2 adds a second, differently-shaped surface: the beat replies.** These are not templates —
+they are written once per beat, in `BEAT_SCRIPT` beside the DM's half, and they answer *what just
+happened* rather than name an object. Seven beats are scripted (`combat-victory`, `combat-threat`,
+`grue-threat`, `scored`, `reveal`, `effort`, `uncanny`); `death` and `parser-miss` are deliberately
+unscripted, for reasons recorded at the table itself.
+
+The rule that shapes the writing: **a reply fires only on a turn with no resolved action.** He never
+holds two balloons in one panel, so a reply is always the *quiet* turn's line — he has just moved,
+looked, or been refused — and it should read as an answer to the idol, never as a report on
+something he did. Measured over the walkthrough corpus, the exchange fires on 5.4% of turns and 94%
+of the DM's lines are answered.

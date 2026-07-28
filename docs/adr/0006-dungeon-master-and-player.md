@@ -1,6 +1,6 @@
 # ADR 0006 — The Dungeon Master and the Player: from Two Voices to a Table
 
-- **Status:** Accepted (building — Slice 1 landed v0.17.5)
+- **Status:** Accepted (building — Slices 1–2 landed v0.17.5, v0.18.6)
 - **Date:** 2026-07-22
 - **Supersedes (in part):** ADR 0004 §2/§2a (the Hero's channel is a *thought* balloon), §"Not the Narrator" boundary as stated in `wiki/the-guide.md`; ADR 0005 §4 ("the Hero keeps the *thought* balloon — he does not speak")
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — still consumed, still not extended); the Guide/DM stays **presentation-only** — no game state, unaddressable by the parser, removable without moving one bit of engine behaviour or the parity harness (ADR 0004 §3); the panel stream stays a **deterministic pure function of the event stream with no engine internals**, so `replayPanels` still applies (ADR 0004 §5, ADR 0005 testing contract)
@@ -131,8 +131,28 @@ variation that would need engine state is out of scope by construction.
    renderer live, content authored in a later slice). Change local to `mapper.ts`
    (`heroBalloon`, `Balloon` doc) + `balloon.ts` header; render already class-driven, so no
    render change. Presentation-only — no engine/IR/parity impact. 113 web tests green.
-2. **DM↔Hero dialogue pairs** (§4, without conversational memory). Beat-keyed line pairs;
-   golden sequences extended to assert dialogue content.
+2. **DM↔Hero dialogue pairs** (§4, without conversational memory). ✅ **Done (v0.18.6).**
+   `BEAT_SCRIPT` entries are now `{ dm?, hero? }` pairs (a bare string stays the DM-only
+   form); `mapper.ts`'s `guideFor` became `exchangeFor`. Seven beats scripted. Golden
+   sequences extended to assert dialogue content (`mapper.test.ts` pins the exchange of
+   walkthrough 01 line for line). Three rules settled, each a decision:
+   - **One cooldown for the whole exchange**, consumed only when something is actually
+     said. The pair is a single authored event; gating the halves apart would let the Hero
+     answer a line the DM was too tired to say.
+   - **The resolved action outranks the Hero's reply.** What he *did* is derived from the
+     event stream and cannot be wrong; the reply is authored. So he never carries two
+     balloons in one panel (panelization would split the two-shot the exchange exists to
+     fill), and the replies land on the quiet turns — movement, examination, a refusal —
+     where the comic had no Hero line at all. **Measured over the 606-turn corpus: the
+     rule costs 2 replies; 33 of 35 DM lines are answered, an exchange on 5.4% of turns.**
+   - **The gazetteer stays DM-only.** A room line is the idol narrating a place, not a
+     beat the Hero caused, so there is nothing to answer.
+
+   `death` and `parser-miss` are deliberately unscripted: the `reaction` rung carries no
+   speech balloon by design, and `parser-miss` (12.7% of turns) would spend the whole
+   cooldown budget and starve the rarer beats. Adding the latter is a measurement question,
+   not an authoring one. **No conversational memory** — that is Slice 4, and nothing here
+   reads state the event stream does not carry, so `replayPanels` still holds.
 3. **Caption-as-read-aloud reframe + identity rewrite** (§2, wiki). Mostly authored/UI; the
    "Narrator" boundary retires. Relabel decision lands here.
 4. **Bounded conversational memory** (§4 memory half). Stream-derived counters only; the

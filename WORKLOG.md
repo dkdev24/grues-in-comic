@@ -10,6 +10,38 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.18.6 — 2026-07-28 — ADR 0006 Slice 2: the DM and the Hero converse
+
+`BEAT_SCRIPT` entries become **pairs** — the DM's line and the Hero's answer, keyed on the same beat —
+so the two-shot carries an exchange instead of a comment. **245 web tests green (was 243), 139 engine,
+198 IR, tsc and build clean.**
+
+- **`mapper.ts`:** `guideFor` → `exchangeFor`, returning both halves. New `BeatExchange`/`BeatScript`
+  types; a bare `string` entry still means DM-only, which is why the pixel gate's own script needed no
+  change to keep passing.
+- **Three rules, each a decision.** One cooldown for the whole exchange (consumed only when something
+  is said); the **resolved action outranks the Hero's reply**, so he never holds two balloons and the
+  replies land on the quiet turns; the room gazetteer stays DM-only.
+- **Measured over the 606-turn corpus:** the outranking rule costs 2 replies. 33 of 35 DM lines are
+  answered — an exchange on 5.4% of turns, 94% of the DM's lines.
+- **Seven beats scripted** (`combat-victory`, `combat-threat`, `grue-threat`, `scored`, `reveal`,
+  `effort`, `uncanny`). `death` is unscripted (the `reaction` rung carries no speech balloon) and so is
+  `parser-miss` (12.7% of turns would eat the whole cooldown budget and starve the rarer beats).
+- **Golden dialogue:** `mapper.test.ts` now pins walkthrough 01's exchange line for line, which is the
+  ADR 0006 testing contract's "assert dialogue content, not just count and shape".
+- **The gate caught the new shape immediately.** Adding an exchange to its fixture script re-indexed the
+  strip (10 panels → 11) and it reported every moved case. Re-accepted after eyeballing.
+- **Finding — the exchange renders as shot/reverse-shot, not as a two-shot.** Caption + DM + Hero is
+  three balloons, which the fit test refuses in the band at `UNIT`, so `AddLine` splits: the DM speaks
+  in one panel, the Hero answers in the next. Faithful (the ported mechanism decides) and it reads well,
+  but it means the "both figures facing each other" two-shot of ADR 0005 §4 rarely occurs while 96.7% of
+  turns carry a caption. Left as-is; the levers (balloon-band height, dropping the caption on exchange
+  turns) are authoring decisions, not port ones.
+- **Wiki rewritten with the slice, not ahead of it:** `the-guide.md` rule 6 (it is conversation now) and
+  `the-hero.md` §The pairing (the thought-only settlement is superseded) + §Coverage (the reply table).
+
+---
+
 ## v0.18.5 — 2026-07-28 — ADR 0008 Phase 3: the pixel-parity gate. **The port is complete.**
 
 The layout stack now has a change detector. Phases 1–2b replaced three reimplementations with ports,

@@ -140,10 +140,14 @@ function fittedPage() {
 function productionPanels(file: string): Panel[] {
   const doc = JSON.parse(readFileSync(WORLD, "utf8")) as WorldDocument;
   const session = createSession(doc, { seed: SEED });
-  // The same two scripts `render-panel.ts` injects, so a DM balloon and a beat
-  // caption are both in the pinned set (they are the two-balloon cases).
+  // Scripts chosen to put every authored shape in the pinned set: a gazetteer
+  // line (DM alone), and a beat **exchange** — DM line plus the Hero's answer
+  // (ADR 0006 §4, Slice 2), which is the three-balloon panel the pane draws at
+  // its busiest and the one panelization is most likely to split.
   const guideScript = new Map([["WEST-OF-HOUSE", "The empire notices what leaves it."]]);
-  const beatScript = new Map([["reveal", "It was waiting to be found."]]);
+  const beatScript = new Map([
+    ["reveal", { dm: "It was waiting to be found.", hero: "Of course it was." }],
+  ]);
   const mapper = createMapper({
     names: objectNameTable(doc.objects), guideScript, beatScript, guideCooldown: 0,
   });

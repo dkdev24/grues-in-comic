@@ -136,25 +136,17 @@
     "name": "wk01-p04-over-shoulder",
     "camera": "over-shoulder",
     "bodies": [
-      "guide",
-      "hero"
+      "guide"
     ],
-    "sha256": "7b2a603aa510b64295e673b83b4cd04de0719c0b001d34e308f318e6b728f745",
+    "sha256": "5248e6b8107349bca7272be3094dc2a7d56825e8b55e697f11c1eec4ac7acaf4",
     "trace": {
       "bodies": [
         {
           "speaker": "guide",
-          "x": 48.1,
+          "x": 140,
           "y": 122.4,
           "scale": 0.7,
           "mirror": false
-        },
-        {
-          "speaker": "hero",
-          "x": 216.1,
-          "y": 122.4,
-          "scale": 0.8,
-          "mirror": true
         }
       ],
       "balloons": [
@@ -172,14 +164,14 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 10,
+            "x": 82.9,
             "y": 49,
             "width": 122.4,
             "height": 50
           },
           "lines": 2,
           "tail": {
-            "x": 112.9,
+            "x": 204.8,
             "y": 122.4
           }
         }
@@ -188,7 +180,43 @@
     }
   },
   {
-    "name": "wk01-p05-close-up",
+    "name": "wk01-p05-over-shoulder",
+    "camera": "over-shoulder",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "de0b4f69c69aa81059354751efa7964ae185c07aab235ba3653b332c428fefbd",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 132.1,
+          "y": 122.4,
+          "scale": 0.8,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 150.2,
+            "y": 14,
+            "width": 123.5,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 211.9,
+            "y": 122.4
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p06-close-up",
     "camera": "close-up",
     "bodies": [
       "hero"
@@ -235,7 +263,7 @@
     }
   },
   {
-    "name": "wk01-p06-medium",
+    "name": "wk01-p07-medium",
     "camera": "medium",
     "bodies": [
       "hero"
@@ -268,7 +296,7 @@
     }
   },
   {
-    "name": "wk01-p07-close-up",
+    "name": "wk01-p08-close-up",
     "camera": "close-up",
     "bodies": [
       "hero"
@@ -315,7 +343,7 @@
     }
   },
   {
-    "name": "wk01-p08-reaction",
+    "name": "wk01-p09-reaction",
     "camera": "reaction",
     "bodies": [
       "hero"
@@ -348,7 +376,7 @@
     }
   },
   {
-    "name": "wk01-p09-medium",
+    "name": "wk01-p10-medium",
     "camera": "medium",
     "bodies": [
       "hero"

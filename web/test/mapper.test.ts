@@ -272,6 +272,111 @@ describe("panel stream", () => {
     expect(guide(panel)?.text).toBe("It was waiting to be found.");
   });
 
+  it("renders a beat as an exchange: the DM's line and the Hero's answer (ADR 0006 §4)", () => {
+    // Same `reveal` beat as above — `open mailbox` takes nothing, so the Hero has
+    // no resolved action and his authored half is free to fire.
+    const beatScript = new Map([
+      ["reveal", { dm: "It was waiting to be found.", hero: "Of course it was." }],
+    ]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
+    page.turn(session.start());
+    let shot;
+    for (const command of ["look", "examine mailbox", "open mailbox"]) {
+      shot = page.turn(session.command(command));
+    }
+    expect(guide(shot)?.text).toBe("It was waiting to be found.");
+    expect(hero(shot)?.text).toBe("Of course it was.");
+    // Spoken, not thought: the exchange is across the table (ADR 0006 §3).
+    expect(hero(shot)?.balloonClass).toBe("CBWoodringNormal");
+  });
+
+  it("lets the resolved action outrank the Hero's authored reply (ADR 0006 §4)", () => {
+    // `take leaflet` fires `reveal`'s sibling case: the Hero *did* something this
+    // turn, so what he says is the derived action, never the authored banter —
+    // and he never says both, which would be two balloons for one speaker.
+    const beatScript = new Map([
+      ["scored", { dm: "The empire notices.", hero: "Should not have fired." }],
+    ]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
+    page.turn(session.start());
+    let shot;
+    for (const command of ["open mailbox", "take leaflet"]) {
+      shot = page.turn(session.command(command));
+    }
+    expect(hero(shot)?.text).toBe("The leaflet, then.");
+  });
+
+  it("fires a Hero-only beat, and drops it without burning the gazetteer", () => {
+    // A beat with no DM half is legal (§4: "DM-only, Hero-only, or a true
+    // back-and-forth"). When the Hero is busy it says nothing at all — and must
+    // then leave the room gazetteer's turn intact rather than consume it.
+    const beatScript = new Map([["parser-miss", { hero: "Different words, then." }]]);
+    const guideScript = new Map([["NORTH-OF-HOUSE", "The house turns its back here."]]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ beatScript, guideScript, guideCooldown: 0 });
+    page.turn(session.start());
+    const miss = page.turn(session.command("xyzzy plugh"));
+    expect(hero(miss)?.text).toBe("Different words, then.");
+    expect(guide(miss)).toBeNull();
+    // The gazetteer still owns first entry.
+    expect(guide(page.turn(session.command("north")))?.text)
+      .toBe("The house turns its back here.");
+  });
+
+  it("keeps the exchange on one cooldown, not two (ADR 0006 §4)", () => {
+    // The pair is a single authored event: after it fires, neither half may speak
+    // again until the cooldown has passed, or the Hero would answer a line the DM
+    // was too tired to say.
+    const beatScript = new Map([
+      ["parser-miss", { dm: "The empire hears you.", hero: "Different words, then." }],
+    ]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ beatScript, guideCooldown: 6 });
+    page.turn(session.start());
+    const first = page.turn(session.command("xyzzy plugh"));
+    expect(guide(first)?.text).toBe("The empire hears you.");
+    expect(hero(first)?.text).toBe("Different words, then.");
+    const second = page.turn(session.command("frotz bozbar"));
+    expect(guide(second)).toBeNull();
+    expect(hero(second)).toBeNull();
+  });
+
+  it("pins the dialogue a walkthrough produces, line for line (ADR 0006 testing contract)", () => {
+    // The contract asks the golden sequences to "assert dialogue content, not just
+    // panel count and shape". This is that assertion: replaying a fixed
+    // walkthrough against a fixed script must yield exactly this exchange, in this
+    // order. It is what catches a change to the cooldown, to the marker table, or
+    // to the resolved-action rule — each of which silently rewrites who speaks.
+    const beatScript = new Map([
+      ["reveal", { dm: "It was waiting to be found.", hero: "Of course it was." }],
+      ["scored", { dm: "The empire notices what leaves it.", hero: "That one counts." }],
+    ]);
+    const guideScript = new Map([["WEST-OF-HOUSE", "Boarded front door."]]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({
+      names: objectNameTable(doc.objects), beatScript, guideScript, guideCooldown: 3,
+    });
+    const spoken: string[] = [];
+    const record = (shot: ReturnType<typeof page.turn>): void => {
+      for (const line of shot.lines) {
+        if (line.speaker !== CAPTION) spoken.push(`${line.speaker}: ${line.text}`);
+      }
+    };
+    record(page.turn(session.start()));
+    for (const command of commandsOf("01-west-of-house.cmd")) {
+      record(page.turn(session.command(command)));
+    }
+    expect(spoken).toEqual([
+      "guide: Boarded front door.",
+      "guide: It was waiting to be found.",
+      "hero: Of course it was.",
+      "hero: The leaflet, then.",
+      "hero: The leaflet can stay.",
+    ]);
+  });
+
   it("still fires the room gazetteer on first entry when no beat reacts (ADR 0005 §4)", () => {
     // The opening turn has no reacting marker, so the pre-§4 room path must still
     // produce the gazetteer line — the broadened trigger is additive, not a swap.

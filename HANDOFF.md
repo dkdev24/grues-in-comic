@@ -10,7 +10,7 @@ append to Open Issues; do not accumulate a "Prior Session" stack.
 ---
 
 ## Current Version
-**0.18.5**
+**0.18.6**
 
 ---
 
@@ -47,14 +47,30 @@ Historical sources imported: `original-projects/zork1/` (ZIL), `original-project
     **In-browser visual verification done; the comic-pane issue list is cleared (v0.17.2).** Remaining
     5.5 work is authoring-judgement polish — see Next Actions.
 
-**Test counts:** 238 web, 139 engine, 198 IR, parity 143/143 strict.
+**Test counts:** 245 web, 139 engine, 198 IR, parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0008 Phase 3 done: the pixel gate. **The port is complete** (v0.18.5)
+## Last Session — ADR 0008 Phase 3 (pixel gate) and ADR 0006 Slice 2 (the exchange) (v0.18.5–v0.18.6)
 
-Full narrative in `WORKLOG.md` v0.18.5; ADR 0008 has a "Phase 3 built" section. What the next session
-must know:
+Full narrative in `WORKLOG.md` v0.18.5–v0.18.6; ADR 0008 has a "Phase 3 built" section and ADR 0006's
+slice list carries Slice 2's rules. What the next session must know:
+
+**ADR 0006 Slice 2 — the DM and the Hero now converse.**
+- `BEAT_SCRIPT` entries are `{ dm?, hero? }` pairs (`BeatExchange`); a bare `string` still means
+  DM-only, so old tables keep working. `mapper.ts`'s `guideFor` is now `exchangeFor`.
+- **Three rules to know before touching it:** one cooldown for the whole exchange, consumed only when
+  something is said; the **resolved action outranks the Hero's authored reply** (he never holds two
+  balloons, so replies land on the quiet turns); the room gazetteer stays DM-only. Measured cost of the
+  outranking rule over 606 turns: 2 replies. 33 of 35 DM lines answered.
+- **Open finding, deliberately not fixed:** an exchange renders as **shot/reverse-shot, not a two-shot**
+  — caption + DM + Hero is three balloons, the fit test refuses them in the band at `UNIT`, and
+  `AddLine` splits. Reads well and is the ported mechanism deciding, but ADR 0005 §4's "both figures
+  facing each other" panel is now rare (96.7% of turns carry a caption). Levers if it is ever wanted:
+  the balloon-band height (`BALLOON_HEADROOM`) or dropping the caption on exchange turns. **Both are
+  authoring/layout decisions — take them to the user, not to the port.**
+
+**ADR 0008 Phase 3 — the pixel gate.**
 
 - **The gate is a hash + geometry golden, not committed PNGs.** `web/tools/gate.ts` renders 16 fixed
   cases and pins each as the **SHA-256 of its PNG** plus the placement that produced it;
@@ -77,7 +93,9 @@ must know:
 - **Fixtures go through `page.ts` with the real fit test.** `render:bodies` still builds panels by hand and
   can produce 4–5-balloon panels panelization would have split — fine to eyeball, do not pin them.
 
-**Verified:** 238 web (was 204), 139 engine, 198 IR, tsc + build clean.
+**Verified:** 245 web (was 204), 139 engine, 198 IR, tsc + build clean. The gate's fixture set is 17
+cases: adding the exchange to it re-indexed walkthrough 01 (10 panels → 11), which the gate reported
+case by case before the golden was re-accepted.
 
 ---
 
@@ -164,12 +182,17 @@ exchange. Deliberately breaks ADR 0004 §2 (Hero thought-only) and ADR 0005 §4;
 - ✅ **Slice 1 (Hero speaks) — done, signed off for MVP (v0.17.5–v0.17.7).** Resolved-action balloon is
   speech; thought register retained for asides. Balloon layout reworked to Comic Chat's model (straddle +
   bottom tail + headroom, v0.17.7). Accepted as good enough for MVP; further layout-polish ideas deferred.
-- **Slice 2 (DM↔Hero dialogue pairs) — primary next build.** Beat-keyed line pairs (DM line ↔ Hero line),
-  *without* conversational memory (that's slice 4). Golden panel-sequences extend to **assert dialogue
-  content**, not just count/shape. The `beatScript` mechanism (marker → Guide line) already exists in
-  `mapper.ts`; slice 2 pairs it with a keyed Hero line and renders both figures in the exchange.
-- Slice 3 (caption-as-read-aloud reframe + identity/wiki rewrite + relabel), Slice 4 (bounded stream-derived
-  conversational memory — the hardest-gated risk surface), Slice 5 (session-recap PDF export, independent).
+- ✅ **Slice 2 (DM↔Hero dialogue pairs) — done (v0.18.6).** `BEAT_SCRIPT` holds `{ dm?, hero? }` pairs,
+  seven beats scripted, dialogue content pinned by a golden sequence. Rules and the one open finding
+  (shot/reverse-shot instead of a two-shot) are in Last Session. No conversational memory — Slice 4 owns
+  that.
+- **Slice 3 (caption-as-read-aloud reframe + identity/wiki rewrite + relabel) — primary next build.** The
+  wiki rewrites for the *Hero's voice* and the *Guide's conversation rule* already landed with Slices 1–2;
+  what is left for Slice 3 is the **caption channel reframed as the DM reading the module aloud** (§2) and
+  the **UI relabel decision** ("the Guide" → "the DM", a name, or unchanged — ADR §Consequences reopened it
+  and left it here deliberately). That relabel is a **user call**, not a default.
+- Slice 4 (bounded stream-derived conversational memory — the hardest-gated risk surface), Slice 5
+  (session-recap PDF export, independent).
 
 1. **`SHOTS` framing table — further tuning (◐, first pass v0.16.3).** Authoring judgement sitting on
    top of the ADR (the ADR fixes which rung fires; these fill/reveal/backdrop numbers make each rung
