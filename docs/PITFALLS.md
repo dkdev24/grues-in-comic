@@ -73,6 +73,12 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 - **The mapper is pure and canvas-free; `render.ts` holds all the numbers.** Mapper decides *what shot
   this is*; renderer decides what that looks like at the current width. That split is what lets 11
   walkthroughs replay through the mapping in Node. `SHOTS` is authoring judgement on top of the ADR.
+- **The authored dialogue lives in `web/src/comic/script.ts` and nothing there may touch the DOM.**
+  It sat in `comic-view.ts` until M6.1a, which made the one number the stage turns on unmeasurable:
+  the view cannot be replayed in Node, so the corpus tools had to invent throwaway scripts and the
+  shipped tables were never measured. Content goes in that module; the trigger, the cooldown and the
+  run cursor stay in `mapper.ts`. **After editing either, run `npm --prefix web run density`** — the
+  numbers are *meant* to move over M6.1, but only deliberately (`density:accept`), like the pixel gate.
 - **Dialogue is authored at build time and committed as data, never generated at runtime.** The
   mapper is the parity oracle, so it must stay deterministic; a model call while the game runs would
   break that, and there is no budget for a paid API. This holds however large the authored corpus

@@ -158,8 +158,10 @@ export function lineOf(panel: Panel, speaker: string): Line | null {
  * This module owns the *mechanism* — first-visit trigger, cooldown, a table that
  * may be empty (ADR 0004 §3 keeps the Guide presentation-only, and the project's
  * authoring cost is bounded by its trigger rate). The script itself is content and
- * lives with the view: `GUIDE_SCRIPT` in `web/src/comic-view.ts`, written to the
- * identity settled in `wiki/the-guide.md`. The map may be empty and the mapper is
+ * lives beside this one as data: `GUIDE_SCRIPT` in `web/src/comic/script.ts`,
+ * written to the identity settled in `wiki/the-guide.md`. (It lived in the view
+ * until M6.1a, which moved it out so the corpus replay could measure the shipped
+ * tables rather than a throwaway.) The map may be empty and the mapper is
  * unchanged if it is — tests here supply their own scripts rather than the real one.
  */
 export type GuideScript = ReadonlyMap<string, string>;

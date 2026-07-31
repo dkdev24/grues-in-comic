@@ -1,0 +1,401 @@
+/**
+ * The dialogue-density report — M6.1a's measuring instrument.
+ *
+ * M6.1 is "the comic pane becomes a cartoon", and its target (D5) is a number:
+ * **an exchange every 2–3 turns**. Before this tool there was no repeatable way
+ * to read today's number off the shipped tables, because the tables lived in the
+ * DOM-coupled view; the ~5.8% in `docs/DEVELOPMENT_PLAN.md` §6.1 was measured by
+ * hand, once. Every later slice is measured against what this prints, so it runs
+ * the **shipped** `comic/script.ts` over the **whole** corpus — the 11 scene
+ * walkthroughs and the full-game completion oracle — through the production
+ * wiring, at the production cooldown, with the real fit test.
+ *
+ * **Two stages are reported, because they answer different questions.**
+ *
+ * - *Script* — what the mapper says per turn, before the Director edits and
+ *   before panelization. This is the authoring question: how often is there a DM
+ *   line, a Hero line, an exchange at all. Slices 6.1d/6.1e move this.
+ * - *Screen* — what survives into emitted panels. The Director drops refusals and
+ *   collapses traversal runs (ADR 0005 §3), so a scripted line can be edited out
+ *   before anyone reads it, and `AddLine` decides whether the DM and the Hero land
+ *   in **one** panel or two. The panel-level counts are limiter 4 of §6.1 stated
+ *   as a measurement: a caption opens a panel unconditionally (`panel.cpp:1064`),
+ *   which is what splits the exchange into shot/reverse-shot. 6.1c moves this.
+ *
+ * **An exchange means both characters speak in the same turn** — a DM line plus a
+ * Hero *reply*, not a Hero action report. The mapper gives the Hero at most one
+ * balloon ("the resolved action outranks the reply", `exchangeFor` rule 2), so
+ * the two are told apart the only way that survives a rewrite of either table: by
+ * looking the text up in `BEAT_SCRIPT`. A DM line is likewise attributed to the
+ * beat table or to the room gazetteer by lookup, which is what separates "they
+ * talked" from "the idol narrated a room".
+ *
+ * Usage:
+ *   npm --prefix web run density           # report, and check against the baseline
+ *   npm --prefix web run density:accept    # re-write the baseline (a deliberate move)
+ *
+ * The baseline is committed at `web/test/golden/dialogue-density.json` and pinned
+ * by `web/test/density.test.ts`. Drift here is not automatically a failure — every
+ * M6.1 slice is *meant* to move these numbers — but it must be looked at and
+ * accepted, exactly like the pixel gate.
+ */
+
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { createCanvas } from "@napi-rs/canvas";
+import type { WorldDocument } from "@grues-in-comic/ir";
+import { createSession } from "../src/session.js";
+import { objectNameTable } from "../src/status.js";
+import { createDirector } from "../src/comic/director.js";
+import { createFitTest } from "../src/comic/fit.js";
+import { CAPTION, GUIDE, HERO, createMapper, type Panel } from "../src/comic/mapper.js";
+import { BEAT_SCRIPT, GUIDE_COOLDOWN, GUIDE_SCRIPT } from "../src/comic/script.js";
+import type { BeatEntry, BeatExchange, MapperOptions } from "../src/comic/mapper.js";
+
+const ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const WORLD = join(ROOT, "ir", "artifacts", "zork1.world.json");
+const WALKTHROUGHS = join(ROOT, "verification", "walkthroughs");
+
+/** The committed baseline. */
+export const BASELINE = join(ROOT, "web", "test", "golden", "dialogue-density.json");
+
+/**
+ * The seed `engine/test/completion.test.ts` and the pixel gate both pin. A
+ * different seed is a different world — the thief moves elsewhere, markers fire
+ * on other turns — so the density numbers would not be comparable across runs.
+ */
+const SEED = 1234;
+
+/**
+ * The corpus, in `readdir` order so the report reads like the directory. The
+ * full-game oracle is **included**: §6.1's density claim is about a playthrough,
+ * and the scene walkthroughs all replay the same opening. It is reported as its
+ * own row as well, because it is the only row that is a whole game.
+ */
+const CORPUS = [
+  "01-west-of-house.cmd", "02-house-entry.cmd", "03-cellar-descent.cmd",
+  "04-lamp-and-darkness.cmd", "05-troll-combat.cmd", "06-scoring-and-treasure.cmd",
+  "07-forest-and-tree.cmd", "08-containers.cmd", "09-take-all-surface.cmd",
+  "10-dam-and-reservoir.cmd", "11-parser-edges.cmd", "12-full-game.cmd",
+] as const;
+
+/** What one walkthrough (or the whole corpus) came to. Counts only — see {@link rates}. */
+export interface DensityCounts {
+  /** Turns fed to the mapper, including `start()`. */
+  turns: number;
+  /** Turns whose script carried a caption — §6.1 limiter 4's 96.7%. */
+  caption: number;
+  /** Turns whose script carried a DM balloon, by table. */
+  dm: number;
+  dmBeat: number;
+  dmGazetteer: number;
+  /** Turns whose script carried a Hero balloon, split by what it is. */
+  hero: number;
+  heroAction: number;
+  heroReply: number;
+  /** Turns where **both** spoke: a DM line and a Hero reply. The headline. */
+  exchanges: number;
+  /** Panels the Director emitted — what a reader actually scrolls past. */
+  panels: number;
+  /** Emitted panels carrying a DM balloon / a Hero balloon / both speakers. */
+  panelsDm: number;
+  panelsHero: number;
+  panelsBothSpeakers: number;
+  /** Emitted panels holding a DM line **and** a Hero reply — the two-shot proper. */
+  panelsExchange: number;
+  /** Exchange turns whose two halves reached the screen at all (either panel). */
+  screenExchangeTurns: number;
+}
+
+export interface DensityReport {
+  seed: number;
+  guideCooldown: number;
+  /** Table sizes, so a baseline diff says whether authoring or mechanism moved. */
+  script: { rooms: number; beats: number; beatLines: number };
+  files: Array<{ file: string } & DensityCounts>;
+  totals: DensityCounts;
+}
+
+const ZERO: DensityCounts = {
+  turns: 0, caption: 0, dm: 0, dmBeat: 0, dmGazetteer: 0,
+  hero: 0, heroAction: 0, heroReply: 0, exchanges: 0,
+  panels: 0, panelsDm: 0, panelsHero: 0, panelsBothSpeakers: 0,
+  panelsExchange: 0, screenExchangeTurns: 0,
+};
+
+function add(into: DensityCounts, next: DensityCounts): DensityCounts {
+  const out = { ...into };
+  for (const key of Object.keys(ZERO) as Array<keyof DensityCounts>) out[key] += next[key];
+  return out;
+}
+
+/** Every `{ dm, hero }` a beat entry can produce, run and all (`variantOf`'s domain). */
+function variants(entry: BeatEntry): BeatExchange[] {
+  if (typeof entry === "string") return [{ dm: entry }];
+  if (!Array.isArray(entry)) return [entry as BeatExchange];
+  return (entry as readonly (string | BeatExchange)[])
+    .map((item) => (typeof item === "string" ? { dm: item } : item));
+}
+
+/**
+ * The two text sets the report is read against.
+ *
+ * Attribution by *text* rather than by re-deriving the mapper's decision is
+ * deliberate: re-deriving would mean a second copy of `exchangeFor`'s cooldown
+ * and run-cursor logic here, which would agree with the mapper right up until
+ * 6.1d changed one of them. The lookup cannot drift — it asks the shipped table.
+ */
+function scriptTexts(): { beatDm: Set<string>; beatHero: Set<string>; gazetteer: Set<string> } {
+  const beatDm = new Set<string>();
+  const beatHero = new Set<string>();
+  for (const entry of BEAT_SCRIPT.values()) {
+    for (const variant of variants(entry)) {
+      if (variant.dm) beatDm.add(variant.dm);
+      if (variant.hero) beatHero.add(variant.hero);
+    }
+  }
+  return { beatDm, beatHero, gazetteer: new Set(GUIDE_SCRIPT.values()) };
+}
+
+function commandsOf(file: string): string[] {
+  return readFileSync(join(WALKTHROUGHS, file), "utf8")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+}
+
+/** The options the pane ships (`comic-view.ts`), minus the browser. */
+function productionOptions(doc: WorldDocument): MapperOptions {
+  return {
+    guideScript: GUIDE_SCRIPT,
+    beatScript: BEAT_SCRIPT,
+    guideCooldown: GUIDE_COOLDOWN,
+    names: objectNameTable(doc.objects),
+  };
+}
+
+/** The real fit test, measuring on a scratch canvas — the same wiring as `gate.ts`. */
+function fitTest() {
+  const measure = createCanvas(1, 1).getContext("2d") as unknown as CanvasRenderingContext2D;
+  return createFitTest(measure);
+}
+
+function measureFile(doc: WorldDocument, file: string): DensityCounts {
+  const texts = scriptTexts();
+  const commands = commandsOf(file);
+  let counts = { ...ZERO };
+
+  // Stage 1 — the script. A bare mapper, folded turn by turn: this is what the
+  // authored tables produce, before any edit.
+  {
+    const session = createSession(doc, { seed: SEED });
+    const mapper = createMapper(productionOptions(doc));
+    const turns = [session.start(), ...commands.map((c) => session.command(c))];
+    for (const turn of turns) {
+      const { lines } = mapper.read(turn);
+      const dm = lines.find((l) => l.speaker === GUIDE) ?? null;
+      const hero = lines.find((l) => l.speaker === HERO) ?? null;
+      const heroReply = hero !== null && texts.beatHero.has(hero.text);
+      counts.turns += 1;
+      if (lines.some((l) => l.speaker === CAPTION)) counts.caption += 1;
+      if (dm) {
+        counts.dm += 1;
+        if (texts.beatDm.has(dm.text)) counts.dmBeat += 1;
+        else if (texts.gazetteer.has(dm.text)) counts.dmGazetteer += 1;
+      }
+      if (hero) {
+        counts.hero += 1;
+        if (heroReply) counts.heroReply += 1;
+        else counts.heroAction += 1;
+      }
+      if (dm && heroReply) counts.exchanges += 1;
+    }
+  }
+
+  // Stage 2 — the screen. A fresh session through the production Director, so the
+  // panels counted are the edited, panelized ones the pane draws.
+  {
+    const session = createSession(doc, { seed: SEED });
+    const director = createDirector({ ...productionOptions(doc), fit: fitTest() });
+    director.ingest(session.start());
+    for (const command of commands) director.ingest(session.command(command));
+    director.flush(); // a trailing traversal run is still a panel (ADR 0005 §3)
+    counts = { ...counts, ...panelCounts(director.panels, texts) };
+  }
+
+  return counts;
+}
+
+type Texts = ReturnType<typeof scriptTexts>;
+
+/** The screen half of {@link DensityCounts}, read off the emitted panel stream. */
+function panelCounts(panels: readonly Panel[], texts: Texts): Partial<DensityCounts> {
+  let panelsDm = 0, panelsHero = 0, panelsBothSpeakers = 0, panelsExchange = 0;
+  // Turn number → what reached the screen for it. A turn's two halves can be
+  // split across panels by `AddLine`, which is exactly the distinction between
+  // this and `panelsExchange`.
+  const onScreen = new Map<number, { dm: boolean; reply: boolean }>();
+
+  for (const panel of panels) {
+    const dm = panel.speakers.filter((line) => line.speaker === GUIDE);
+    const hero = panel.speakers.filter((line) => line.speaker === HERO);
+    const replies = hero.filter((line) => texts.beatHero.has(line.text));
+    if (dm.length > 0) panelsDm += 1;
+    if (hero.length > 0) panelsHero += 1;
+    if (dm.length > 0 && hero.length > 0) panelsBothSpeakers += 1;
+    if (dm.length > 0 && replies.length > 0) panelsExchange += 1;
+
+    // A panel can hold more than one turn's lines (clone-append), and the panel
+    // carries the context of the turn that opened it — so attribute by line, to
+    // the panel's turn, and accept that a clone-appended reply is credited to the
+    // panel it landed in. Both halves in the same panel is the case that matters.
+    const seen = onScreen.get(panel.turn) ?? { dm: false, reply: false };
+    seen.dm ||= dm.length > 0;
+    seen.reply ||= replies.length > 0;
+    onScreen.set(panel.turn, seen);
+  }
+
+  const screenExchangeTurns = [...onScreen.values()].filter((s) => s.dm && s.reply).length;
+  return {
+    panels: panels.length,
+    panelsDm, panelsHero, panelsBothSpeakers, panelsExchange, screenExchangeTurns,
+  };
+}
+
+export function runDensity(): DensityReport {
+  const doc = JSON.parse(readFileSync(WORLD, "utf8")) as WorldDocument;
+  const files = CORPUS.map((file) => ({ file, ...measureFile(doc, file) }));
+  const totals = files.reduce<DensityCounts>((acc, row) => add(acc, row), { ...ZERO });
+  let beatLines = 0;
+  for (const entry of BEAT_SCRIPT.values()) beatLines += variants(entry).length;
+  return {
+    seed: SEED,
+    guideCooldown: GUIDE_COOLDOWN,
+    script: { rooms: GUIDE_SCRIPT.size, beats: BEAT_SCRIPT.size, beatLines },
+    files,
+    totals,
+  };
+}
+
+export function readBaseline(): DensityReport {
+  return JSON.parse(readFileSync(BASELINE, "utf8")) as DensityReport;
+}
+
+/** Rates worth reading — derived, so the baseline stays counts and cannot disagree. */
+export function rates(c: DensityCounts) {
+  const pct = (n: number) => (c.turns === 0 ? 0 : (100 * n) / c.turns);
+  return {
+    caption: pct(c.caption),
+    dm: pct(c.dm),
+    hero: pct(c.hero),
+    exchange: pct(c.exchanges),
+    /** D5 speaks in this unit: one exchange every *n* turns. `Infinity` if none. */
+    turnsPerExchange: c.exchanges === 0 ? Infinity : c.turns / c.exchanges,
+    twoShot: c.panelsExchange === 0 ? 0 : (100 * c.panelsExchange) / Math.max(1, c.panels),
+  };
+}
+
+function pad(text: string, width: number): string {
+  return text.length >= width ? text : text + " ".repeat(width - text.length);
+}
+
+function left(text: string, width: number): string {
+  return text.length >= width ? text : " ".repeat(width - text.length) + text;
+}
+
+function report(current: DensityReport): string {
+  const out: string[] = [];
+  out.push(`dialogue density — seed ${current.seed}, cooldown ${current.guideCooldown}, `
+    + `${current.script.rooms} rooms / ${current.script.beats} beats `
+    + `(${current.script.beatLines} authored exchanges)`);
+  out.push("");
+  const head = ["file", "turns", "cap%", "DM", "hero", "exch", "1/n", "panels", "2-shot"];
+  const widths = [26, 6, 6, 5, 5, 5, 7, 7, 7];
+  out.push(head.map((h, i) => (i === 0 ? pad(h, widths[i]!) : left(h, widths[i]!))).join(" "));
+  const row = (name: string, c: DensityCounts): string => {
+    const r = rates(c);
+    const cells = [
+      String(c.turns), r.caption.toFixed(1), String(c.dm), String(c.hero),
+      String(c.exchanges),
+      r.turnsPerExchange === Infinity ? "—" : r.turnsPerExchange.toFixed(1),
+      String(c.panels), String(c.panelsExchange),
+    ];
+    return [pad(name, widths[0]!), ...cells.map((v, i) => left(v, widths[i + 1]!))].join(" ");
+  };
+  for (const file of current.files) out.push(row(file.file, file));
+  out.push(row("TOTAL", current.totals));
+  out.push("");
+
+  const t = current.totals;
+  const r = rates(t);
+  out.push(`spoken beats:      ${t.dmBeat} DM + ${t.heroReply} Hero reply `
+    + `(gazetteer ${t.dmGazetteer})`);
+  out.push(`exchanges:         ${t.exchanges} of ${t.turns} turns `
+    + `(${r.exchange.toFixed(1)}%, one every ${r.turnsPerExchange.toFixed(1)} turns)`);
+  out.push(`  reached screen:  ${t.screenExchangeTurns} `
+    + `(the Director dropped or collapsed ${t.exchanges - t.screenExchangeTurns})`);
+  // The split count is the whole of limiter 4: an exchange whose halves landed in
+  // two panels is the shot/reverse-shot §6.1 is trying to stop drawing.
+  out.push(`  in one panel:    ${t.panelsExchange} of ${t.screenExchangeTurns} `
+    + `(${t.screenExchangeTurns - t.panelsExchange} split across two panels); `
+    + `${t.panelsBothSpeakers} panels carry both speakers`);
+  out.push(`captions:          ${t.caption} of ${t.turns} turns (${r.caption.toFixed(1)}%)`);
+  out.push("");
+  out.push(`D5 target: one exchange every 2–3 turns. `
+    + `Today: one every ${r.turnsPerExchange.toFixed(1)}.`);
+  return out.join("\n");
+}
+
+/** Baseline drift, as a list of `field: was -> now` lines. Empty when identical. */
+export function diff(baseline: DensityReport, current: DensityReport): string[] {
+  const out: string[] = [];
+  const seen = new Map(baseline.files.map((f) => [f.file, f]));
+  for (const file of current.files) {
+    const was = seen.get(file.file);
+    if (!was) {
+      out.push(`${file.file}: new to the corpus`);
+      continue;
+    }
+    for (const key of Object.keys(ZERO) as Array<keyof DensityCounts>) {
+      if (was[key] !== file[key]) out.push(`${file.file} ${key}: ${was[key]} -> ${file[key]}`);
+    }
+  }
+  for (const file of baseline.files) {
+    if (!current.files.some((f) => f.file === file.file)) out.push(`${file.file}: gone`);
+  }
+  return out;
+}
+
+async function main(): Promise<void> {
+  const accept = process.argv.includes("--accept");
+  const current = runDensity();
+  console.log(report(current));
+
+  if (accept) {
+    writeFileSync(BASELINE, `${JSON.stringify(current, null, 2)}\n`);
+    console.log(`\nbaseline written: ${BASELINE}`);
+    return;
+  }
+
+  let baseline: DensityReport;
+  try {
+    baseline = readBaseline();
+  } catch {
+    console.log("\nno baseline yet — run `npm --prefix web run density:accept` to write one.");
+    return;
+  }
+  const drift = diff(baseline, current);
+  if (drift.length === 0) {
+    console.log("\nbaseline: unchanged");
+    return;
+  }
+  console.log(`\nbaseline drift (${drift.length}):`);
+  for (const line of drift) console.log(`  ${line}`);
+  console.log("\nlook at it, then `npm --prefix web run density:accept` if it is the intended move.");
+  process.exitCode = 1;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

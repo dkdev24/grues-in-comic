@@ -10,6 +10,50 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.19.0 — 2026-08-01 — M6.1a: the authored dialogue becomes data, and the density becomes a number
+
+M6.1's target is a measurement — an exchange every 2–3 turns (D5) — and the thing being measured
+could not be reached. `GUIDE_SCRIPT` and `BEAT_SCRIPT` were written inside `web/src/comic-view.ts`,
+the one module in the comic stack that imports `document`, so every corpus tool that wanted to
+replay the pane (`mapper.test.ts`, `gate.ts`) invented a throwaway script instead. **The shipped
+dialogue had never been measured.** The ~5.8% in the §6.1 diagnosis was a hand count, done once.
+
+- **`web/src/comic/script.ts` (new)** — the two tables and `GUIDE_COOLDOWN`, moved verbatim. Data
+  only: the first-visit trigger, the cooldown and the run cursor stay in `mapper.ts`, which is what
+  keeps the mapper a deterministic pure function and therefore still the parity oracle. The view now
+  imports the tables; the cooldown it used to pass as a literal `3` is the module's constant, because
+  it is the budget the tables are *written against* and 6.1d is going to move it.
+- **`web/tools/density.ts` (new)** — the report, modelled on the pixel gate: run it, read it, accept
+  it. All 12 walkthroughs including the completion oracle, at seed 1234, in **two stages that answer
+  different questions**. *Script*: a bare mapper, per turn — what the authoring produces. *Screen*:
+  the production Director with the real fit test, per emitted panel — what survives the edit and
+  where `AddLine` put it. A DM line is attributed to beat or gazetteer, and a Hero balloon to reply or
+  action report, **by looking the text up in the shipped table** rather than by re-deriving
+  `exchangeFor` here; a second copy of that logic would agree until 6.1d changed one of them.
+- **The numbers, and one correction.** Over 606 turns: **28 exchanges (4.6%) — one every 21.6 turns**;
+  29 spoken beats (4.8%), where the hand count said 35 (5.8%); **20 of the 28 land in one panel, 8
+  split across two** — limiter 4 quantified; captions **96.7%**, which reproduces the diagnosis
+  exactly and is the reason for the splits. The Director dropped none of them.
+- **The finding the corpus average was hiding.** The full-game oracle carries **3 exchanges in 406
+  turns — one every 135.** The eleven scene walkthroughs all open at West of House and are dense in
+  first visits, so they flatter the gazetteer; the rest of a playthrough is revisits, where the room
+  table has nothing left to say and the beat table is the only source. D5 is therefore a ~7–11× move
+  on the scene corpus and **~50× on a real playthrough** — 6.1e's authoring load is larger than the
+  scene numbers suggest, which is the answer to "how much dialogue is enough".
+- **Baseline** `web/test/golden/dialogue-density.json`, pinned by `web/test/density.test.ts`
+  (**web 255 → 262**). Counts only — rates are derived, so the baseline cannot disagree with itself.
+  Alongside the pin, invariants that hold whatever the numbers do (a Hero balloon is a reply *or* an
+  action, never both; nothing reaches the screen that was not scripted), and one deliberate
+  **tripwire that fails when 6.1d succeeds**, so passing D5 is an event someone has to acknowledge
+  rather than a threshold quietly crossed.
+
+**Rule this session is an instance of:** *a target expressed as a number needs its instrument built
+first, and the instrument must read the shipped artifact.* The tables were correct, the mechanism was
+correct, and the one number the milestone turns on was still off by 20% — because it had been counted
+by hand against code no test could reach.
+
+---
+
 ## v0.18.13 — 2026-07-28 — `HANDOFF.md` and `AGENTS.md` cut to what a session actually needs
 
 The two files loaded at every session start had grown to ~4,970 words between them. Most of that was

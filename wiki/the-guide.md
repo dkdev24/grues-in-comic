@@ -7,7 +7,7 @@ mapper, where it is a key and not a name.)*
 The identity document `docs/adr/0004-presentation-mapping.md` defers ("The Guide's identity —
 name, appearance, personality. A separate document."). This is that document. It settles **who the
 Dungeon Master is and how he talks**, so that the one place authored text enters the system —
-`GUIDE_SCRIPT` and `BEAT_SCRIPT` in `web/src/comic-view.ts` — has a single voice to answer to.
+`GUIDE_SCRIPT` and `BEAT_SCRIPT` in `web/src/comic/script.ts` — has a single voice to answer to.
 
 It settles nothing mechanical. The trigger, the cooldown and the two-shot are ADR 0004 §3/§6/§7 and
 are not restated here.

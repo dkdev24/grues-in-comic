@@ -36,7 +36,8 @@ is platform-bound" below.
 | `src/event-mix.ts` | Running event census; `describeEvent` |
 | `src/console-view.ts` | The terminal pane (ADR 0004 §4) |
 | `src/inspector-view.ts` | The event inspector |
-| `src/comic-view.ts` | The comic pane: the panel strip, and the Guide script seam |
+| `src/comic-view.ts` | The comic pane: the panel strip and the Director wiring |
+| `src/comic/script.ts` | **The authored dialogue as data** — `GUIDE_SCRIPT`, `BEAT_SCRIPT`, the cooldown. DOM-free, so `tools/density.ts` can measure it |
 | `src/comic/mapper.ts` | **Events → panels.** The §7 ladder, the salience filter, the three channels |
 | `src/comic/affect.ts` | The §10 affect-marker table |
 | `src/comic/figure.ts` | Pose selection and the face-onto-torso join, against the sprite sheet |
