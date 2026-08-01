@@ -10,6 +10,53 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.19.1 — 2026-08-01 — M6.1b: ADR 0009, and the caption turns out to be the limiter
+
+Documentation only; no code changed. `docs/adr/0009-the-dm-reads-the-room.md` records D1–D5 and
+settles the mechanism the user's decisions left open. The plan expected this slice to work out *how a
+description splits across two panels*; measuring first changed the shape of the answer.
+
+- **The re-ranking.** §6.1 listed four compounding limiters and the caption was the fourth. It is the
+  first: a `BM_ACTION` line unconditionally opens a panel (`panel.cpp:1064`), and 96.7% of turns
+  carry one, so panelization is told to break the panel almost every turn. **So the caption channel
+  retires** — narration becomes the DM's *speech* balloon (which ADR 0006 §2 had already declared it
+  to be, in fiction), and the box becomes renderer-drawn metadata: the room's display name, on room
+  change only (D4). Nothing then instructs a break on an ordinary turn, and the facing two-shot
+  becomes the ordinary case instead of the exception. The cause, not the symptom.
+- **Two DM registers, with different economics, and the distinction is load-bearing.** Read-aloud
+  (derived from the turn's narration, **uncooled**, zero authoring cost) and table-talk (authored,
+  cooled). `GUIDE_COOLDOWN` exists so the *authored* voice does not wear out; it had no business
+  gating narration the player just caused, and after this ADR it does not.
+- **The split is n panels, not two.** Sentence-packed into ≤200-char balloons: **44 of 81 arrivals
+  fit one, 12 need two, 25 need three or four.** Each balloon is one `AddLine` and `page.ts` decides
+  the panels — the port's job, not a policy invented here. The Hero is staged silent through the run
+  and **his line lands in the last panel**, so an arrival *ends* on the two-shot rather than opening
+  on one and trailing into monologue. That is the answer to "what is the Hero doing in the second
+  panel".
+- **Two corrections to the diagnosis, both from measuring before writing.**
+  - **`parser-miss` is 26.4% of turns (160), not 12.7%** — the older figure was a different corpus.
+    `kind: refusal` is the same 26.4%, and the Director drops **all** of it (ADR 0005 §3). It is the
+    largest single lever on D5, so the ADR supersedes that drop: a refusal with a line is a beat and
+    is kept; a silent one is still dropped.
+  - **The 180-char cap was never the leak.** It drops 9 turns in 606, every one of them the same
+    188-char sentence, so D3's rise to 200 recovers exactly those nine. And the box never showed a
+    room description at all — first sentences run p50 24 / max 163 characters where an arrival's full
+    narration runs p50 179 / p90 422 / **max 588**. "The DM speaks the room description" is *new
+    text*, 3–9× longer than the box holds, which is what made the split a real question.
+- **Also superseded: ADR 0006 §4 rule 2.** The action no longer suppresses the reply — with the
+  caption gone the premise (two Hero balloons would split the two-shot) is gone. It survives as an
+  *ordering* (action first, reply second) and the fit test decides the rest.
+- **Recorded costs, so no slice discovers them.** The panel stream gets longer (more turns survive
+  the edit); the pixel gate will drift on nearly every panel and must be re-accepted *after looking
+  at the images*; `stackBalloons` fallbacks should be expected where none were.
+
+**Rule this session is an instance of:** *measure before proposing rules — including before writing
+the document that fixes the rules.* Two of the three premises the slice was scheduled on were wrong
+in the same direction: the thing that looked like a text-length problem was a panelization problem,
+and the biggest lever was mis-sized by half. Both were an hour's probe away.
+
+---
+
 ## v0.19.0 — 2026-08-01 — M6.1a: the authored dialogue becomes data, and the density becomes a number
 
 M6.1's target is a measurement — an exchange every 2–3 turns (D5) — and the thing being measured
