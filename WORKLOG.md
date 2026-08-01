@@ -10,6 +10,44 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.3 — 2026-08-01 — ADR 0010 input: the commands are voiceable, the panels are not free
+
+The user proposed that the Hero speak his *command* as table-talk, the way a player declares an
+action to a DM. Measured before writing the ADR, per the standing method note. Two questions were
+asked; a third answered itself and matters more than either.
+
+- **A — re-voiceability: 95.6%, and the lexicon is small.** 611 commands over the corpus, 183
+  distinct. A prototype lexicon of **86 entries** (22 directions, 22 intransitive verbs, 42
+  transitive templates) phrases **584 of them**, at a mean of 19 characters — shorter than the
+  Hero's existing lines. Shape: **directions are 47.6%** of everything typed, transitive verbs
+  41.1%, intransitive 6.9%. **The tail is 12 distinct commands / 27 occurrences** and every one is a
+  known kind: `y` ×11 (answers to the parser's disambiguation question — a *reply*, with no verb to
+  voice), `take all` / `drop all` (an intent with no object until the events come back), the magic
+  words `xyzzy` / `plugh`, bare `take` / `put`, and four nouns typed alone. None of it is a surprise,
+  and all of it is authorable by hand.
+- **B — balloon pressure: +42%.** One command line per turn, measured at the page level against the
+  real fit test over the won full game: **722 → 1025 panels**. The Director is deliberately outside
+  that loop (it would edit the two arms differently, and balloon pressure is a page property), so
+  these are not the shipped 594 — the *ratio* is the finding. For scale, 6.1d's four limiters cost
+  +68% and were accepted. The upside moves too: panels carrying both speakers **172 → 286**.
+- **C — the one that changes the proposal, and nobody asked for it.** The stated point of speaking
+  the command was to fill the 119 silent revisit walks. **All 116 of them in the full game are
+  buffered into traversal runs, and the Director collapses those runs to 56 panels** (ADR 0005 §3 —
+  a run keeps only its destination). So **at most 56 of the 116 can carry a line at all; the other
+  60 are discarded before anyone reads them.** Speaking the command does *not* fill the silent block
+  unless the collapse rule is opened up as well — which is a second ADR-level change, and the one
+  that actually decides whether the proposal delivers what it was proposed for.
+
+**Consequence for the ADR:** it is not one decision but two — *the Hero speaks his command* and *the
+traversal collapse gives ground*. They can be taken separately, and the first without the second
+buys conversation everywhere **except** the place the census said was empty.
+
+The measurement tool was written and deleted, as in sessions 2 and 3. The prototype lexicon is
+described above rather than kept: 86 template lines are cheap to re-author, and an unreferenced tool
+in `web/tools/` would rot against the mapper it observes.
+
+---
+
 ## v0.24.2 — 2026-08-01 — M6.1e session 4: the Hero stops saying ", then"
 
 A read, not a measurement, and no instrument would have caught it: the user read the Hero's dialogue

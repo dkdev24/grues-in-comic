@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.2** · Platform: **macOS only** (2026-07-28)
+**0.24.3** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -36,20 +36,30 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — M6.1e session 4: the Hero stops saying ", then" (v0.24.2)
+## Last Session — ADR 0010 input, measured (v0.24.3)
 
-**A read, not a measurement.** The user read his dialogue back and objected to the cadence: ~1 in 5
-of the Hero's lines ended `, then`, because one hardcoded template in `mapper.ts` (`The {name},
-then.`) fired **59 times a playthrough** and `wiki/the-hero.md` gave that exact string as *the*
-example of his register — so six authored lines copied it out of the spec. Now `ACTION_SCRIPT` in
-`script.ts` (5 take / 3 drop, `{name}` substituted) with a cursor per kind in the mapper's fold; the
-spec rewritten to describe a register, never a construction; the six lines reworded. Voice picked by
-the user: reaction over report. **Cost, looked at and accepted:** two-shot **158 → 156 of 274**,
-panels 593 → 594, D5 holds at 2.3. Both affected gate panels rendered and read before accepting.
-Narrative in `WORKLOG.md` v0.24.2.
+**No code changed.** The user's command-as-table-talk proposal was measured before the ADR, per the
+standing method note. Narrative in `WORKLOG.md` v0.24.3.
 
-**No instrument would have caught this** — every counter measures firings and gaps, not shape. The
-durable rule is in `PITFALLS.md` → Web.
+- **A — the commands are voiceable: 95.6%.** 611 commands, 183 distinct; an **86-entry** lexicon (22
+  directions, 22 intransitive, 42 transitive templates) phrases 584 of them at a mean of 19 chars.
+  Directions alone are **47.6%** of everything typed. The tail is **12 distinct commands / 27
+  occurrences**, all known kinds: `y` ×11 (disambiguation answers — a reply with no verb), `take
+  all` / `drop all`, `xyzzy` / `plugh`, bare `take` / `put`, four nouns typed alone.
+- **B — one line per turn costs +42% panels** (722 → 1025, page level against the real fit test; the
+  Director is outside the loop, so not the shipped 594 — the ratio is the point). 6.1d's limiters
+  cost +68% and were accepted. Panels carrying both speakers 172 → 286.
+- **C — the finding that re-shapes the proposal.** Its stated purpose was filling the 119 silent
+  revisit walks. **All 116 in the full game are buffered into traversal runs, which the Director
+  collapses to 56 panels** (ADR 0005 §3 keeps only a run's destination). **At most 56 can carry a
+  line; 60 are discarded before anyone reads them.** Speaking the command does not fill the silent
+  block unless the collapse also gives ground.
+
+**So ADR 0010 is two decisions, not one** — *the Hero speaks his command*, and *the traversal
+collapse opens up*. Taking the first alone buys conversation everywhere except the place the census
+said was empty. The measurement tool was deleted (sessions 2–3 precedent); the lexicon is described
+in the WORKLOG rather than kept, since 86 template lines are cheap to re-author and an unreferenced
+tool would rot.
 
 ## Next Actions
 
@@ -75,12 +85,27 @@ durable rule is in `PITFALLS.md` → Web.
    command, so D5 goes to ~1.0 by construction, which is option (c) with a reason attached.
    Mechanically the panel-update half is nearly free (`PanelDelta.replacedLast` already clone-appends
    and `comic-view.ts` already redraws), and no engine change is needed (`Turn.command` is already in
-   the mapper's hands, so purity and parity hold). **Recommended next move: measure first** (the
-   standing rule — five panel-grammar proposals died for want of it): (1) what share of the corpus's
-   commands a phrasing lexicon can voice naturally, and what the tail looks like; (2) what one extra
-   Hero line per turn does to panel count against the current fit test. **Then write ADR 0010.** The
-   open risk to name in it: "Go north." several hundred times is the play-log tell in costume, and
-   the ~20% silent reaction panels are the pane's rhythm.
+   the mapper's hands, so purity and parity hold).
+
+   **Measured at v0.24.3, and the measurements say it is two decisions, not one:**
+
+   - **Voiceable — 95.6%** with an 86-entry lexicon, mean 19 chars; the tail is 12 distinct commands
+     (`y`, `take all`, `xyzzy`, bare nouns), all authorable by hand. **Not a blocker.**
+   - **Costly but precedented — +42% panels** (722 → 1025 at page level), against 6.1d's accepted
+     +68%. Panels carrying both speakers 172 → 286. **A price, not a blocker.**
+   - **It does not do what it was proposed to do, on its own.** All 116 silent walks are buffered
+     into traversal runs the Director collapses to **56 panels**; 60 are discarded before anyone
+     reads them. **Filling the silent block needs the collapse to give ground too** — a second
+     ADR-level change to ADR 0005 §3.
+
+   **So the next decision is the user's, and it is which of the two to take:** (i) the Hero speaks
+   his command everywhere the comic already has panels — conversation throughout, the silent
+   revisit walks still silent; (ii) that plus opening the traversal collapse, which is what actually
+   fills them and costs more panels again; (iii) neither, and fall back to the a/b/c choice below.
+   **Then write ADR 0010** — superseding ADR 0005 §1, recasting 6.1g's `isOrphaned` on ask-vs-answer,
+   and amending ADR 0005 §3 if (ii). The risk to name in it either way: "Let's head north." several
+   hundred times is the play-log tell in costume, and the silent reaction panels are the pane's
+   rhythm.
 
    **The narrower open question, measured and priced — still live if the above is declined, and not
    a task an agent should take unasked.** The census (v0.24.1) says the silent block is **one
