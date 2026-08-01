@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.4** · Platform: **macOS only** (2026-07-28)
+**0.24.5** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,33 +27,28 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d, 6.1f and 6.1g are done; 6.1e is in progress.** The
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d, 6.1f and 6.1g are done; 6.1e is paused; 6.1h–6.1k are the ADR 0010 slices.** The
   corpus is repaired, so **D5 and the two-shot are both met over a game that is actually won** —
-  every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is void. The silent
-  block has been re-censused (v0.24.1) and is **119 revisit walks**, waiting on a user decision.
+  every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is void. **ADR 0010
+  is Accepted (v0.24.5) and nothing is built against it yet**: the Hero will declare his command as
+  table-talk, the exchange becomes the panel's unit, and the traversal collapse keeps a journey line.
+  Work resumes at stage **6.1h**.
 
 **Tests:** 280 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — ADR 0010 written, both decisions (v0.24.4)
+## Last Session — ADR 0010 accepted; next session starts slice 1 (v0.24.5)
 
-**`docs/adr/0010-the-hero-declares-his-move.md`, Status: Proposed.** It records **two separable
-decisions**, per v0.24.3's measurements: **§1 the Hero declares his move** (the command re-voiced as
-table-talk — supersedes ADR 0005 §1 *as an exclusivity*, keeping §1's actual reason as its
-constraint; the resolved-outcome line becomes garnish with a cooldown) and **§3 the traversal
-collapse gives ground** (amends ADR 0005 §3 — a run still collapses to one panel but keeps a
-*journey line*, and a single traversal turn stops being a "run"). Also **§2** the exchange, not the
-turn, becomes the panel's unit — declarations clone-append into the frame they answer, and 6.1g's
-`isOrphaned` is recast on **ask-vs-answer**, with the line carrying the marker so `page.ts` stays
-cast-agnostic. **§4 retires D5 for D5′** — both-speakers as a share of *panels*, band set from the
-first slice's measurement rather than invented.
+**`docs/adr/0010-the-hero-declares-his-move.md` is Accepted whole** (2026-08-01, both decisions,
+§1–§4) by the user. Its four slices are now plan stages **6.1h–6.1k** in `docs/DEVELOPMENT_PLAN.md`
+§6.1, each with its own exit criteria. **No code has been written against it.**
 
-Back-references added to ADR 0005; **ADR 0009 carries a correction header** — every figure in it
-predates the corpus repair and is void, the decisions are not.
-
-**Nothing is built.** Four slices are listed; 1 and 2 are independently shippable, 3 is what makes
-the ADR deliver its stated purpose. The ADR needs the user's acceptance before any of it starts.
+What it changes, in one line each: the Hero **declares his command** as table-talk (§1, supersedes
+ADR 0005 §1 *as an exclusivity*); the **exchange, not the turn, is the panel's unit** (§2, recasts
+6.1g's `isOrphaned` on ask-vs-answer); the **traversal collapse keeps a journey line** instead of
+discarding what it swallows (§3, amends ADR 0005 §3); **D5 → D5′**, both-speakers as a share of
+panels (§4, band set from slice 1's measurement, not invented).
 
 ## Next Actions
 
@@ -61,42 +56,39 @@ the ADR deliver its stated purpose. The ADR needs the user's acceptance before a
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · **6.1e ◐** — the authoring slice, and the only one
-   left open.
+   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · **6.1e ◐** (authoring, paused where ADR 0010
+   subsumes it) · **6.1h–6.1k ☐ — the ADR 0010 slices, and where work resumes.**
 
    **The measurements are now trustworthy.** D5 is met at **one exchange every 2.27 turns** (band
    2–3) and the two-shot at **158 of 274 in one panel**, both over a game that reaches the barrow.
    The corpus is 623 turns, 12 rows, `12-full-game.cmd` sourced from `fullGameCommands()`.
 
-   **⇒ The stage's biggest open item is now an ADR awaiting acceptance: `docs/adr/0010-the-hero-
-   declares-his-move.md` (Proposed).** The Hero re-voices his command as table-talk ("Let's head
-   north"), the exchange rather than the turn becomes the panel's unit, and — separably — the
-   traversal collapse gives ground so the walks it swallows keep a voice. Measured before it was
-   written (v0.24.3): **95.6% voiceable** with an 86-entry lexicon, **+42% panels** against 6.1d's
-   accepted +68%, and **116 silent walks collapsing into 56 panels**, which is why §1 alone does not
-   reach the silence and §3 exists.
+   **⇒ NEXT SESSION STARTS HERE: 6.1h — ADR 0010 slice 1, the lexicon and the declaration.**
+   `docs/adr/0010-the-hero-declares-his-move.md` is **Accepted whole**; read §1 and §4 before
+   starting, and `docs/PITFALLS.md` → Web. Exit criteria are in `docs/DEVELOPMENT_PLAN.md` §6.1
+   (stages 6.1h–6.1k). The build, in the order it wants doing:
 
-   **What the user decides:** accept the ADR whole, accept §1/§2 without §3 (conversation everywhere
-   the comic already has panels; the collapsed walks stay silent), or decline it for the narrower
-   a/b/c choice below. **Nothing is built either way** — slices 1–4 are listed at the foot of the
-   ADR, 1 and 2 independently shippable. The risk the ADR names and cannot measure: "Let's head
-   north." several hundred times is the play-log tell ADR 0005 §1 removed, in costume — it is caught
-   by reading a playthrough, not by a counter.
+   1. **`COMMAND_SCRIPT` in `web/src/comic/script.ts`** — content as data, like `ACTION_SCRIPT`
+      beside it. Three tiers, sized by the v0.24.3 measurement: **directions (47.6% of all commands
+      — the deepest rotation in the game), intransitive verbs (one line each), transitive templates
+      over the command's own nouns.** ~86 entries covers 95.6%; the 12-command tail (`y` ×11, `take
+      all`, `drop all`, `xyzzy`, `plugh`, bare `take`/`put`, four nouns typed alone) is authored by
+      hand or left silent — **silence is a legal outcome.**
+   2. **The trigger and cursor in `mapper.ts`**, beside `tookSaid`/`droppedSaid` — a pure function of
+      `turn.command`, so purity and parity hold and no engine change is needed.
+   3. **`ACTION_SCRIPT` becomes garnish**: give it a cooldown, and where a declaration and a reaction
+      would land in one frame, the declaration wins (ADR 0010 §1, ADR 0009 §6's ordering unchanged).
+   4. **No panel-flow change in this slice** — the declaration lands in the turn's own panel. The
+      cross-turn join is 6.1i.
 
-   **The narrower open question, measured and priced — still live if the above is declined, and not
-   a task an agent should take unasked.** The census (v0.24.1) says the silent block is **one
-   surface**: 119 revisit walks over 35 rooms, skewed (Cellar 13, Kitchen 11, Coal Mine 10). Giving
-   them all a beat would take D5 to **1.59**, far under the band; **~38 is what the 2.0 floor
-   allows.** So the choice is between three, and it is the user's:
+   **Then measure and re-pin:** `npm --prefix web run density` (expect large deliberate drift — page
+   level predicted 722 → 1025, +42%), `npm --prefix web run gate` and **look at the drifted images**
+   before `gate:accept`. Report D5′ (both-speakers as a share of panels) — **its band is set in
+   6.1k from what these measurements say, not chosen now.**
 
-   - **a) Voice the top rooms only** — the ~10 rooms carrying most of the 119, inside the headroom.
-     Cheapest, and the skew means it covers most silent turns a reader actually meets.
-   - **b) Trade** — voice more revisit walks and cool the refusal beats to pay for it.
-   - **c) Move the band** — decide 2–3 was the wrong target now that a won game is what is measured.
-
-   The design hazard to weigh with it: a revisit line is on the one surface that **wears out** (same
-   room, many entries), the exact inverse of the first-visit gazetteer, so anything written here
-   needs a run + cycling tail and its own cooldown from the start.
+   **The one thing no counter here can catch** (the `, then` tic proved it): **read a playthrough.**
+   "Let's head north." several hundred times is the play-log tell ADR 0005 §1 removed, in costume.
+   Rotation depth is the mitigation; a human read is the check.
 
    The remaining 6.1e work is what it always was: authored dialogue across 110 rooms, committed as
    data (D1 sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70
@@ -144,7 +136,7 @@ Three that apply to most sessions. Everything else is in `docs/PITFALLS.md`.
 | `docs/DEVELOPMENT_PLAN.md` | Milestones, stages, gates — **the authority on what to do next** |
 | `docs/PITFALLS.md` | Durable cautions by subsystem — read the relevant section before changing code |
 | `docs/FUTURE_WORK.md` | The deferred backlog + the pre-1.0.0 iteration protocol |
-| `docs/adr/` | ADRs 0001–0010. **0009 governs the comic pane from 6.1c on; 0010 (Proposed) is the command-as-table-talk decision** |
+| `docs/adr/` | ADRs 0001–0010. **0009 governs the comic pane from 6.1c on; 0010 (Accepted) governs the Hero's channel and the panel's unit from 6.1h on** |
 | `original-projects/`, `reference/` | Historical sources (tracked) · third-party reference (**gitignored**) |
 | `wiki/` | Hand-authored semantic notes (`the-hero.md`, `the-guide.md`, …) |
 | `WORKLOG.md` | Persistent history, one entry per version, never edited |

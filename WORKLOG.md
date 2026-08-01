@@ -10,6 +10,25 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.5 — 2026-08-01 — ADR 0010 accepted, and the stage regains a work queue
+
+The user accepted **ADR 0010 whole** — both decisions, §1–§4. Status flipped to **Accepted
+(2026-08-01)**; no code written against it.
+
+- **The four slices became plan stages 6.1h–6.1k**, each with its own exit criteria, so
+  `docs/DEVELOPMENT_PLAN.md` is once more the authority on what to do next: 6.1h the lexicon and the
+  declaration, 6.1i the cross-turn join, 6.1j the collapse giving ground, 6.1k setting D5′'s band
+  and verifying.
+- **6.1e is paused rather than closed.** ADR 0010 subsumes the silent-turn question it was blocked
+  on, but the a/b/c room-authoring option is deliberately kept in `HANDOFF.md`: if 6.1j returns
+  fewer of the 60 discarded walks than hoped, those rooms are the fallback.
+- **`HANDOFF.md` now carries a starting brief for 6.1h** rather than a decision — the build order,
+  the tier sizes the v0.24.3 measurement implies, the goldens to expect drift in, and the one check
+  no counter here performs: **read a playthrough**, because the `, then` tic proved nothing in this
+  repo measures the *shape* of a line.
+
+---
+
 ## v0.24.4 — 2026-08-01 — ADR 0010 is written, and it is two decisions
 
 `docs/adr/0010-the-hero-declares-his-move.md`, **Status: Proposed**. Nothing is built; the ADR needs
