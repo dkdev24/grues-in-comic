@@ -232,7 +232,24 @@ Mapped to `docs/DEVELOPMENT_PLAN.md` §6.1, which stays the schedule of record.
    135 → 2.6** (D5 met on both). 252 exchange turns of 606, all of them reaching the screen;
    **189 of 252 land the two-shot in one panel.** Panels 478 → 801 (+68%), the cost §5 said to
    accept. Table-talk balloons 54 → 308.
-3. **6.1e — write the dialogue.** The largest slice, several sessions, sized by §Consequences.
+3. **6.1e — write the dialogue.** ◐ The largest slice, several sessions, sized by §Consequences.
    Exit: no scene falls back to silence over a full playthrough; run depths re-measured.
+   **Session 1 (v0.22.0) — the refusals, and the mechanism they needed.** 6.1d met D5 on volume
+   and the measurement underneath it was bad: **218 of 252 exchanges were a run's last line
+   repeating.** Two moves fixed it, and both are amendments to ADR 0006 §4 rule 4 rather than
+   new machinery here:
+   - **The big markers split by what actually happened** — `parser-miss` became `not-here` /
+     `not-carried` / `unknown-word` (measured shares ~95 / 54 / 11), and the *map's* refusal
+     became `blocked-exit`, which is **114 turns of the corpus saying exactly "You can't go that
+     way"** and had no marker at all. Downstream asks `markerFamily`/`isRefusal`, never a name.
+   - **Runs gained a cycling tail and a per-beat cooldown.** Scripting the refusals at cooldown
+     0 put the corpus at 1.6 — *past the bottom* of D5's band — so how often a beat is worth
+     hearing is now written beside its lines.
+
+   Measured after: density holds at **2.5 corpus / 2.7 oracle**, the worst-repeated line in a
+   playthrough went **150 → 12**, distinct authored lines per playthrough ~30 → **91**. The
+   cooldown clock also had to move off `turn.status.moves`, which does not advance on a refusal
+   — see `docs/PITFALLS.md` → Web. **Left for the next session:** the 56.6% of turns carrying no
+   marker at all, which is why `07-forest-and-tree` still reads one exchange every 8 turns.
 4. **6.1f — verify.** Golden dialogue sequence re-pinned, pixel gate re-accepted after
    looking at the images, a full playthrough read in the browser.

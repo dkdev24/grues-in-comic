@@ -187,6 +187,22 @@ variation that would need engine state is out of scope by construction.
      to its opening reaction would be a DM surprised by a room he has seen four times. The last
      line is therefore authored as the *settled* one.
 
+     **Amended 2026-08-01 (M6.1e), and the reasoning is kept, not overturned.** A run may now
+     declare a **cycling tail** (`BeatCycle`: `run` walked once, `loop` cycled after it). The
+     guarantee above is what `run` preserves — it is never re-entered, so nothing ever loops
+     back to an opening reaction. What cycles is only the settled register, where the pair have
+     already agreed what the beat is. The amendment exists because the rule was written against
+     beats firing 3–14 times and M6.1d exposed it to beats firing **160 times in the corpus and
+     139 in a single playthrough**: "the last line repeats" was one line said a hundred and
+     fifty times, which is the stuck record the run was invented to prevent. Measured after:
+     the worst-repeated line in a full playthrough went **150 → 12**, and a playthrough draws 91
+     distinct authored lines where it drew about 30.
+   - **A beat may carry its own cooldown** (M6.1e, `BeatCycle.cooldown`). How often a beat is
+     worth hearing is a property of the beat, not of the table: most are rare enough to speak
+     every time, and the two refusal families are 45% of all turns between them. Scripted at the
+     table's 0 they put the corpus at one exchange every 1.6 turns — past the *bottom* of ADR
+     0009 D5's band, which is how the ceiling in `density.test.ts` earns its keep.
+
    Run depths are measured, not chosen. Over the 606-turn corpus a beat is **spoken**
    `reveal` 14×, `effort` 9×, `scored` 5×, `uncanny` 3×, `combat-threat` 3×, `grue-threat` 1×,
    `combat-victory` 0× — so `reveal` earns four lines and the rest two or three, the fights

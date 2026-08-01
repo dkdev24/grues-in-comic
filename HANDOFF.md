@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.21.0** · Platform: **macOS only** (2026-07-28)
+**0.22.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,36 +27,32 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d are done and D5 is met**; 6.1 is in progress.
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d are done and D5 is met; 6.1e is in progress**.
 
-**Tests:** 267 web · 139 engine · 198 IR · parity 143/143 strict.
+**Tests:** 269 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — M6.1d: the limiters came off and D5 is met (v0.21.0)
+## Last Session — M6.1e session 1: the refusals get a voice (v0.22.0)
 
-6.1a ✅ · 6.1b ✅ · 6.1c ✅ · **6.1d ✅ — the stage's number is reached.** Narrative in `WORKLOG.md`
-v0.21.0; the decisions are ADR 0009 §5/§6, which is the authority.
+6.1a–6.1d ✅ · **6.1e ◐ — session 1 of several.** Narrative in `WORKLOG.md` v0.22.0; the decisions
+are ADR 0009 §Implementation slices 3 and **an amendment to ADR 0006 §4 rule 4**.
 
-- **One exchange every 21.6 turns → 2.4, and on the full-game oracle 135 → 2.6.** D5 asked for one
-  every 2–3 on the corpus *and* the oracle. 252 exchange turns of 606, all reaching the screen,
-  **189 of them landing the two-shot in one panel.** Panels 478 → 801 (+68%) — the cost ADR 0009 §5
-  accepted in advance.
-- **Two of the four named limiters were one object: a single cooldown shared by every authored
-  line.** It is now **per beat**, the gazetteer is **uncooled** (a first visit happens once, so the
-  room path limits itself), and the shipped value is **0** — at 1 the oracle reads 5.8, outside D5,
-  because markers arrive in clusters. The run, not a clock, is what keeps a beat from wearing out.
-- **The Director drops a refusal only when it has nothing to say**, asked of the script (`speaks()`)
-  rather than of the marker table — so 6.1e's dialogue changes what survives without touching
-  `director.ts`. **`parser-miss` (26.4% of turns) and `routine-ack` are scripted.** The Hero may
-  report an action *and* answer (§6); only the ordering survives.
-- **The density instrument was wrong and was repaired** — it attributed panels through `panel.turn`,
-  which is the *last* line written into a panel, and printed a negative split count once most turns
-  spoke. Per-turn attribution now comes off the Director's `PanelDelta`. In `docs/PITFALLS.md` → Web,
-  with the per-beat cooldown and the `status.moves` clock that does not advance on a refusal.
-- **The 6.1a tripwire fired and was inverted deliberately**; three tests guarding retired rules were
-  rewritten. Density baseline re-accepted; the pixel gate is clean at 17 cases (its fixtures carry
-  their own scripts, so this slice did not move it).
+- **6.1d met D5 by volume, and the volume was bad: 218 of 252 exchanges were a run's last line
+  repeating** (150 of them `parser-miss`). Density held at **2.5 corpus / 2.7 oracle** while the
+  worst-repeated line in a playthrough went **150 → 12** and distinct lines ~30 → **91**.
+- **The big markers now split on what happened.** `parser-miss` → `not-here` / `not-carried` /
+  `unknown-word` (measured ~95 / 54 / 11), and the map's own refusal → **`blocked-exit`: 114 turns
+  saying exactly "You can't go that way", which had no marker at all.** Everything downstream asks
+  **`markerFamily` / `isRefusal`**, never a marker name — that seam is what makes a fourth variant a
+  table edit.
+- **ADR 0006 §4 rule 4 amended:** a run may end in a **cycling tail** (`run` is the arc and is never
+  re-entered — the guarantee rule 4 actually wanted; `loop` cycles). And **a beat carries its own
+  cooldown**: at the table's 0 the refusals put the corpus at **1.6, past the *bottom* of D5's
+  band** — the ceiling assertion added at 6.1d is what caught it.
+- **The cooldown clock moved off `turn.status.moves`** (it does not advance on a refusal, so it was
+  no cooldown at all on the beats that needed one) onto the mapper's own read count. `PITFALLS.md`
+  → Web was revised, not appended to.
 
 ## Next Actions
 
@@ -64,19 +60,20 @@ v0.21.0; the decisions are ADR 0009 §5/§6, which is the authority.
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a ✅ · 6.1b ✅ · 6.1c ✅ · 6.1d ✅ (D5 met: 2.4 corpus, 2.6 oracle). **Next is 6.1e —
-   write the dialogue.** The largest slice, several sessions, and D1 sanctions its size. The
-   mechanism is finished; what is left is coverage. Three things it inherits, named rather than
-   discovered later:
-   - **Depth, not breadth, is the pressing half.** `parser-miss` fires 160× in the corpus against a
-     ten-line run, so its last line repeats ~150 times. **Decide first whether a beat that frequent
-     wants a rotating tail** instead of a settled last line — that amends ADR 0006 §4 rule 4, so it
-     is a decision, not an edit.
-   - **Write against the oracle's distribution, not the scenes'.** 56.6% of turns carry no marker at
-     all (ambient 191, traversal 89 of 606), which is why `07-forest-and-tree` still reads one
-     exchange every 8 turns while every other scene is at 2.
-   - **The gazetteer is still DM-only** (`exchangeFor` rule 3). Giving room lines a Hero half is the
-     obvious next lever if 6.1e needs one; it was not needed to meet D5.
+   weighting). 6.1a–6.1d ✅ (D5 met) · **6.1e ◐ — continue writing the dialogue.** The mechanism is
+   finished as of v0.22.0; depth on the refusals is done. What is left is **the 56.6% of turns that
+   carry no affect marker at all** — ambient 191, traversal 89 of 606 — which is the last big block
+   of silence and the reason `07-forest-and-tree` reads one exchange every 8 turns while every
+   other scene sits at 2. Two levers, neither yet chosen:
+   - **A fallback keyed on `PanelKind`** (ambient / traversal), so a turn with no marker still has a
+     beat to answer. Widest reach, and the one that risks generic lines — the failure mode the
+     marker split was written to escape.
+   - **A Hero half for the gazetteer** (`exchangeFor` rule 3, still DM-only). Narrow and safe: it
+     only fires on first visits, so it cannot wear out, but it reaches ~26 turns of the corpus.
+
+   **Measure the composition of those 287 turns before writing either** — the last two sessions both
+   turned on a distribution nobody had looked at. Then 6.1f (verify: golden re-pinned, gate
+   re-accepted **after looking at the images**, a playthrough read in the browser).
 
    Then 6.1f (verify: golden re-pinned, gate re-accepted **after looking at the images**, a
    playthrough read in the browser).

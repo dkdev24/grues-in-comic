@@ -184,19 +184,20 @@ export const GUIDE_SCRIPT = new Map<string, string>([
  * Hero's face and carries no speech balloon by design (`render.ts`'s
  * `BALLOON_HEADROOM`). The idol does not crowd a death, and neither does a quip.
  *
- * **`parser-miss` and `routine-ack` are scripted as of M6.1d**, and that was the
- * stage's largest lever. They were held back because the beat table consumed one
- * shared cooldown with the gazetteer, so scripting the biggest marker in the game
- * would have starved the rarer beats. The cooldown is per beat now
+ * **The refusals are scripted as of M6.1d**, and that was the stage's largest
+ * lever. They were held back because the beat table consumed one shared cooldown
+ * with the gazetteer, so scripting the biggest marker in the game would have
+ * starved the rarer beats. The cooldown is per beat now
  * (`MapperOptions.guideCooldown`), so the argument no longer holds — and the
- * measurement it was waiting on says these two are 26.4% and 4.3% of all turns.
+ * measurement it was waiting on says the refusal families are 26.4% and 18.8% of
+ * all turns, the two largest things in the game.
  *
- * **Slice 4: every beat is now a run, not a line.** Each entry is the beat's
- * lines in the order they are spoken, and the *n*th time the beat speaks it takes
- * the *n*th line, the last repeating from then on (`mapper.ts`'s `variantOf`).
- * The run is written as a small arc — fresh reaction, then recognition, then the
- * worn line the pair are left with — because the beat that fires fourteen times
- * in a playthrough is the one that read as a stuck record before this slice.
+ * **Slice 4: every beat is a run, not a line.** Each entry is the beat's lines in
+ * the order they are spoken, and the *n*th time the beat speaks it takes the
+ * *n*th line (`mapper.ts`'s `variantOf`). The run is written as a small arc —
+ * fresh reaction, then recognition, then the worn line the pair are left with —
+ * because the beat that fires fourteen times in a playthrough is the one that
+ * read as a stuck record before this slice.
  *
  * Run depths are measured, not chosen: over the 606-turn corpus a beat is
  * *spoken* (cooldown survivors, not marker occurrences) `reveal` 14×, `effort`
@@ -205,13 +206,25 @@ export const GUIDE_SCRIPT = new Map<string, string>([
  * the fights are scripted three deep on the corpus's account being the poorer
  * evidence there — the walkthroughs avoid combat, real play does not.
  *
- * `parser-miss` occurs on 160 turns of the corpus, which no run can cover: the
- * last line of a run repeats, by rule, so a ten-deep run still ends in one line
- * said a hundred and fifty times. Ten is what M6.1d writes — enough that the arc
- * reads as an arc and the report can be measured — and **going deeper is M6.1e's
- * problem, together with the question of whether a beat this frequent wants a
- * rotating tail rather than a settled last line** (that would amend ADR 0006 §4
- * rule 4, so it is a decision, not a content edit).
+ * **M6.1e answered the question 6.1d left open, and the answer changed the
+ * shape of this table.** 6.1d met D5 on volume, and the measurement underneath it
+ * was bad: **218 of 252 exchanges were a run's last line repeating** — 150 of them
+ * `parser-miss` alone, which fires 160× in the corpus and 139× in one
+ * playthrough. No depth covers that. Two moves, together:
+ *
+ * - **The frequent beats are split by what actually happened.** `parser-miss`
+ *   became `not-here` / `not-carried` / `unknown-word` and the map's own refusal
+ *   became `blocked-exit` — measured shares, not guessed ones. This makes each
+ *   line *apt* rather than merely varied, and it divides the firing count each
+ *   run has to carry.
+ * - **A run may end in a cycling tail** ({@link BeatCycle}, amending ADR 0006 §4
+ *   rule 4). `run` is the arc, walked once and never re-entered — so nothing ever
+ *   loops back to an opening reaction, which is what rule 4 was protecting. Only
+ *   the settled register cycles.
+ *
+ * So an entry here is written as two lists: **what the pair say while the beat is
+ * still new, and what they have left once it is not.** The second list is the one
+ * a reader sees most, and it is written to be re-read.
  */
 export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
   ["combat-victory", [
@@ -252,133 +265,218 @@ export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
       hero: "That's the part I'd have written differently.",
     },
   ]],
-  ["scored", [
-    {
-      dm: "The empire notices what leaves it. It always sends someone.",
-      hero: "That one counts, then.",
-    },
-    {
-      dm: "Another one out of the ground. It is keeping a list.",
-      hero: "Let it. I'm keeping one too.",
-    },
-    {
-      dm: "The list is getting long on both sides.",
-      hero: "Mine's longer.",
-    },
-  ]],
-  ["reveal", [
-    {
-      dm: "There. It was waiting to be found, the way everything here is.",
-      hero: "Of course it was. They always are.",
-    },
-    {
-      dm: "Another one that was only ever waiting.",
-      hero: "Somebody hid these with a schedule in mind.",
-    },
-    {
-      dm: "You are not surprised any more. That took four rooms.",
-      hero: "Three. I was humouring you.",
-    },
-    {
-      dm: "Found. As arranged.",
-      hero: "As arranged.",
-    },
-  ]],
-  ["effort", [
-    {
-      dm: "They built it heavier than it needed to be. They built everything heavier than it needed to be.",
-      hero: "It shows.",
-    },
-    {
-      dm: "Heavier again. They had a house style.",
-      hero: "The style is 'lean on it until something gives'.",
-    },
-    {
-      dm: "You have stopped reading the room and started reading the hinges.",
-      hero: "The hinges have been more honest.",
-    },
-  ]],
-  // The largest beat in the game (26.4% of turns) and the one the pane was
-  // quietest on: the parser said no, and until M6.1d nobody said anything about
-  // it. The DM is the one holding the rulebook, so the refusal is his to explain
-  // away; the Hero is the player who knows exactly what he meant. Neither may
-  // name a noun — the marker knows a refusal happened, not what was refused.
-  ["parser-miss", [
-    {
-      dm: "That is not a thing the world knows how to be asked.",
-      hero: "It knew a minute ago. I'll try smaller words.",
-    },
-    {
-      dm: "The module is quite specific about its vocabulary.",
-      hero: "The module could try meeting me halfway.",
-    },
-    {
-      dm: "No.",
-      hero: "You could tell me why.",
-    },
-    {
-      dm: "I could. It would not help.",
-      hero: "It would help me.",
-    },
-    {
-      dm: "You are arguing with a book.",
-      hero: "The book started it.",
-    },
-    {
-      dm: "Rephrase. It costs you nothing but a turn.",
-      hero: "It costs me the turn. That's the part I mind.",
-    },
-    {
-      dm: "Still no. It is consistent, if nothing else.",
-      hero: "Consistency is what it has instead of manners.",
-    },
-    {
-      dm: "There is a way to say that. This is not it.",
-      hero: "Then we'll find it the slow way.",
-    },
-    {
-      dm: "We have had this conversation.",
-      hero: "We'll have it again. I'm nothing if not thorough.",
-    },
-    {
-      dm: "No.",
-      hero: "Noted.",
-    },
-  ]],
+  ["scored", {
+    run: [
+      {
+        dm: "The empire notices what leaves it. It always sends someone.",
+        hero: "That one counts, then.",
+      },
+      {
+        dm: "Another one out of the ground. It is keeping a list.",
+        hero: "Let it. I'm keeping one too.",
+      },
+    ],
+    loop: [
+      { dm: "The list is getting long on both sides.", hero: "Mine's longer." },
+      { dm: "It noticed that one too.", hero: "Good. I want it counting." },
+    ],
+  }],
+  ["reveal", {
+    run: [
+      {
+        dm: "There. It was waiting to be found, the way everything here is.",
+        hero: "Of course it was. They always are.",
+      },
+      {
+        dm: "Another one that was only ever waiting.",
+        hero: "Somebody hid these with a schedule in mind.",
+      },
+      {
+        dm: "You are not surprised any more. That took four rooms.",
+        hero: "Three. I was humouring you.",
+      },
+    ],
+    loop: [
+      { dm: "Found. As arranged.", hero: "As arranged." },
+      { dm: "There it is, where it was always going to be.", hero: "I do like being right." },
+      { dm: "Another one off the schedule.", hero: "Whose schedule is it, I wonder." },
+    ],
+  }],
+  ["effort", {
+    run: [
+      {
+        dm: "They built it heavier than it needed to be. They built everything heavier than it needed to be.",
+        hero: "It shows.",
+      },
+      {
+        dm: "Heavier again. They had a house style.",
+        hero: "The style is 'lean on it until something gives'.",
+      },
+      {
+        dm: "You have stopped reading the room and started reading the hinges.",
+        hero: "The hinges have been more honest.",
+      },
+    ],
+    loop: [
+      { dm: "It gives, eventually. They all do.", hero: "Eventually is doing a lot of work there." },
+      { dm: "More weight. Of course.", hero: "I'd have built it lighter." },
+    ],
+  }],
+  // **The refusal family**, split three ways at M6.1e because one voice cannot
+  // answer three different noes. Measured over the corpus: `not-here` ~95
+  // firings, `not-carried` 54, `unknown-word` 11. None of them may name a noun —
+  // a marker knows a refusal happened, not what was refused.
+  //
+  // The Hero reaches for something that is somewhere else. The joke is spatial,
+  // and it is the one refusal where he is usually right and merely early.
+  ["parser-miss/not-here", {
+    cooldown: 2,
+    run: [
+      {
+        dm: "Not here. Somewhere, perhaps, but not here.",
+        hero: "It was here. I'd have sworn it was here.",
+      },
+      {
+        dm: "You are describing a room you were in earlier.",
+        hero: "They all describe a room I was in earlier.",
+      },
+      {
+        dm: "The map is large and your memory is a map of its own.",
+        hero: "Mine's to scale. It's just not aligned.",
+      },
+    ],
+    loop: [
+      { dm: "Not in this room.", hero: "Then it's in the next one." },
+      { dm: "Also not in this room.", hero: "I'm narrowing it down." },
+      { dm: "Still elsewhere.", hero: "Elsewhere is where I keep everything." },
+      { dm: "Nothing of that description is here.", hero: "Give it a minute." },
+      { dm: "You are looking for it in the wrong century.", hero: "It's a big dungeon. I'll allow myself the error." },
+      { dm: "Not here either.", hero: "I'm building a very good map of where it isn't." },
+      { dm: "That is somewhere you have been.", hero: "Everywhere is somewhere I have been." },
+    ],
+  }],
+  // The Hero reaches for something he is *not carrying*. Different joke: he is
+  // not lost, he is over-committed. 54 firings — the second largest.
+  ["parser-miss/not-carried", {
+    cooldown: 2,
+    run: [
+      {
+        dm: "You are not holding that.",
+        hero: "I was holding it. Something happened in between.",
+      },
+      {
+        dm: "Your hands contain what your hands contain.",
+        hero: "That is the most useful thing you've said all game.",
+      },
+      {
+        dm: "There is a limit, and you keep finding it.",
+        hero: "The limit keeps moving. I've watched it.",
+      },
+    ],
+    loop: [
+      { dm: "Not in your hands.", hero: "Then it's on the floor behind me." },
+      { dm: "Still not in your hands.", hero: "I'm aware. I was hoping you weren't." },
+      { dm: "You put it down. You do that a lot.", hero: "It's a carrying problem, not a memory problem." },
+    ],
+  }],
+  // The vocabulary miss — the parser did not understand the *word*. The rarest of
+  // the three (11), and the only one where the Hero is arguing with the book
+  // rather than with the world.
+  ["parser-miss/unknown-word", {
+    cooldown: 1,
+    run: [
+      {
+        dm: "That is not a thing the world knows how to be asked.",
+        hero: "It knew a minute ago. I'll try smaller words.",
+      },
+      {
+        dm: "The module is quite specific about its vocabulary.",
+        hero: "The module could try meeting me halfway.",
+      },
+      {
+        dm: "I could tell you why. It would not help.",
+        hero: "It would help me.",
+      },
+      {
+        dm: "You are arguing with a book.",
+        hero: "The book started it.",
+      },
+    ],
+    loop: [
+      { dm: "There is a way to say that. This is not it.", hero: "Then we'll find it the slow way." },
+      { dm: "No.", hero: "Noted." },
+      { dm: "We have had this conversation.", hero: "We'll have it again. I'm nothing if not thorough." },
+    ],
+  }],
+  // **The map's "no", not the parser's** — 114 turns say exactly "You can't go
+  // that way", plus the mountains, the storm-tossed trees and the impenetrable
+  // forest. The largest single sentence in the game, and it had no voice at all
+  // until M6.1e. He is not misunderstood here; he is simply walking into a wall.
+  ["blocked-exit", {
+    cooldown: 3,
+    run: [
+      {
+        dm: "There is no way through there.",
+        hero: "There's a gap. I can see a gap.",
+      },
+      {
+        dm: "You can see it. You cannot use it.",
+        hero: "That's the whole dungeon in one sentence.",
+      },
+      {
+        dm: "The map is not interested in your opinion of the map.",
+        hero: "Noted, and disregarded.",
+      },
+    ],
+    loop: [
+      { dm: "Not that way.", hero: "Fine. The long way." },
+      { dm: "Nor that way.", hero: "I'm eliminating. It's a method." },
+      { dm: "That is a wall doing what walls do.", hero: "It could do it somewhere less convenient." },
+      { dm: "No.", hero: "You could have led with the map." },
+      { dm: "Still a wall.", hero: "I'll take your word for it. Once more." },
+      { dm: "The dungeon has opinions about where you go.", hero: "So do I. Mine lose." },
+      { dm: "You have tried that one before.", hero: "It might have changed its mind." },
+    ],
+  }],
   // The engine's own one-word receipts — "Taken.", "Dropped.", "Opened." — which
   // are the turns the Hero already has an action balloon on. Scriptable only
   // since ADR 0009 §6 let him report *and* answer; before that the reply was
   // suppressed on exactly these turns.
-  ["routine-ack", [
-    {
-      dm: "The empire logs every one of these, you know.",
-      hero: "Let it. The paperwork is the only thing it's good at.",
-    },
-    {
-      dm: "Another entry in a very long inventory.",
-      hero: "It's a job.",
-    },
-    {
-      dm: "You have stopped looking at these before you take them.",
-      hero: "I look. I've just stopped being surprised.",
-    },
-    {
-      dm: "Noted, filed, forgotten.",
-      hero: "That's the arrangement.",
-    },
-  ]],
-  ["uncanny", [
-    {
-      dm: "Not all of this is only stone.",
-      hero: "I heard it. I'm going to keep not thinking about it.",
-    },
-    {
-      dm: "There it is again. You did not imagine it the first time either.",
-      hero: "I was doing so well at imagining it.",
-    },
-    {
-      dm: "You have stopped flinching.",
-      hero: "I've started counting instead. That's worse.",
-    },
-  ]],
+  ["routine-ack", {
+    run: [
+      {
+        dm: "The empire logs every one of these, you know.",
+        hero: "Let it. The paperwork is the only thing it's good at.",
+      },
+      {
+        dm: "Another entry in a very long inventory.",
+        hero: "It's a job.",
+      },
+      {
+        dm: "You have stopped looking at these before you take them.",
+        hero: "I look. I've just stopped being surprised.",
+      },
+    ],
+    loop: [
+      { dm: "Noted, filed, forgotten.", hero: "That's the arrangement." },
+      { dm: "And that one.", hero: "And that one." },
+      { dm: "The list grows.", hero: "The list is the job." },
+    ],
+  }],
+  ["uncanny", {
+    run: [
+      {
+        dm: "Not all of this is only stone.",
+        hero: "I heard it. I'm going to keep not thinking about it.",
+      },
+      {
+        dm: "There it is again. You did not imagine it the first time either.",
+        hero: "I was doing so well at imagining it.",
+      },
+    ],
+    loop: [
+      { dm: "You have stopped flinching.", hero: "I've started counting instead. That's worse." },
+      { dm: "It is still doing that.", hero: "It can do that without me listening." },
+    ],
+  }],
 ]);

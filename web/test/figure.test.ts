@@ -26,7 +26,7 @@ import { EMOTION_NAMES, emotionAngle } from "../../art/src/format.js";
 import type { EmotionOption } from "../../art/src/pose.js";
 import type { PackedAvatar } from "../../art/src/cast-manifest.js";
 import { drawFigure, figureFor, newCycle } from "../src/comic/figure.js";
-import { AFFECT_MARKERS } from "../src/comic/affect.js";
+import { AFFECT_MARKERS, markerFamily } from "../src/comic/affect.js";
 
 const CORPUS = fileURLToPath(
   new URL("../../original-projects/comic-chat/v2.5-beta-1/comicart/", import.meta.url),
@@ -190,7 +190,10 @@ describe("the Hero can shrug (§11)", () => {
 
   it("draws the shrug when the parser refuses a command", () => {
     const { avatar } = load(CAST.hero);
-    const parserMiss = AFFECT_MARKERS.find((m) => m.name === "parser-miss")!;
+    // Any member of the refusal family: M6.1e split the marker three ways and
+    // they deliberately share one face (`REFUSAL_FACE`), which is what this
+    // asserts the cast can draw.
+    const parserMiss = AFFECT_MARKERS.find((m) => markerFamily(m.name) === "parser-miss")!;
     const figure = figureFor(avatar, parserMiss.options, newCycle())!;
     // The gesture claims the torso; the expression, outranking it, has already
     // claimed the face. Both halves are spoken for, which is the whole point of
@@ -210,7 +213,10 @@ describe("the Hero can shrug (§11)", () => {
      */
     const { avatar } = load(CAST.hero);
     expect(avatar.faces.some((f) => f.emotion === "BORED")).toBe(true);
-    const parserMiss = AFFECT_MARKERS.find((m) => m.name === "parser-miss")!;
+    // Any member of the refusal family: M6.1e split the marker three ways and
+    // they deliberately share one face (`REFUSAL_FACE`), which is what this
+    // asserts the cast can draw.
+    const parserMiss = AFFECT_MARKERS.find((m) => markerFamily(m.name) === "parser-miss")!;
     const figure = figureFor(avatar, parserMiss.options, newCycle())!;
     expect(figure.face.emotion).toBe("BORED");
     expect(figure.torso.emotion).toBe("SHRUG");

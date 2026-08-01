@@ -10,6 +10,50 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.22.0 — 2026-08-01 — M6.1e session 1: the refusals get a voice, and runs learn to cycle
+
+6.1d met D5 by volume. The first thing 6.1e measured was what that volume was made of, and the
+answer disqualified it: **218 of 252 exchanges were a run's last line repeating** — 150 of them
+`parser-miss` alone. The pane reached "one exchange every 2.4 turns" by saying the same thing over
+and over. This session fixed the quality behind the number, and left the number where it was.
+
+- **The big markers split by what actually happened.** `parser-miss` was one marker answering three
+  different noes, so its lines could only ever be generic. Measured over the corpus it is
+  `not-here` ~95, `not-carried` 54 and `unknown-word` 11 — three different jokes, now three markers
+  with their own runs. Splitting also divides the firing count any one run has to carry.
+- **The map's "no" was the largest silent thing in the game.** 114 turns say exactly *"You can't go
+  that way"* and carried no marker at all — bigger than any beat except the parser family. It is
+  `blocked-exit`, its own marker rather than a `parser-miss` variant, because the parser understood
+  perfectly and it is the *map* that refused: he is not misunderstood, he is walking into a wall.
+- **ADR 0006 §4 rule 4 is amended, with its reasoning intact.** Rule 4 said the last line of a run
+  repeats and nothing cycles, so a beat never loops back to sounding freshly surprised. That holds
+  for a beat firing 3–14 times; it does not survive one firing 160 times. A run may now declare a
+  **cycling tail** — `run` is the arc, walked once and never re-entered (which is exactly what rule
+  4 was protecting), and `loop` cycles after it. Worst-repeated line in a full playthrough: **150 →
+  12**. Distinct authored lines in a playthrough: ~30 → **91**.
+- **A beat carries its own cooldown**, and this is the finding that surprised me. Scripting the two
+  refusal families at the table's 0 put the corpus at **one exchange every 1.6 turns and the oracle
+  at 1.5** — *past the bottom* of D5's band, two characters talking over the game rather than about
+  it. D5 is a band, not a floor, and the ceiling assertion added at 6.1d caught it. How often a beat
+  is worth hearing now sits beside its lines, where the author can see how many there are.
+- **The cooldown clock had to move.** `turn.status.moves` does not advance on a refusal — ZIL does
+  not charge for a rejected parse — so a run of refusals is several turns wearing one number, and a
+  cooldown measured in moves is no cooldown at all on precisely the beats that needed one. The
+  mapper counts its own reads instead. 6.1d had already found this and filed it as harmless at
+  cooldown 0; it stopped being harmless the moment a beat wanted a cooldown.
+- **Density held while quality moved:** 2.5 corpus, 2.7 oracle, every scene in band except
+  `07-forest-and-tree` at 8.0. Two-shot 149 of 241 (62%) — lower than 6.1d's 75%, and it is a
+  composition effect rather than a regression: refusal turns suppress the DM's read-aloud, so
+  cooling them shifts the surviving exchanges toward turns that carry a description run.
+- **Tests:** 269 web (+2: the cycling tail, the per-beat cooldown), 139 engine, 198 IR, gate clean
+  at 17 cases. Ten tests moved off the marker *name* onto `markerFamily`/`isRefusal`, which is the
+  seam that makes a fourth variant a table edit and nothing more.
+- **Next session's material, measured not guessed:** 56.6% of turns carry no marker (ambient 191,
+  traversal 89 of 606). That is why one scene still reads 1-in-8 while every other is at 2, and it
+  is the last big block of silence.
+
+---
+
 ## v0.21.0 — 2026-08-01 — M6.1d: the limiters come off, and D5 is met
 
 The slice the whole stage was pointed at. ADR 0009 §5/§6, built — and the number M6.1 is judged on

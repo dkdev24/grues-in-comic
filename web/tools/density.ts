@@ -146,9 +146,15 @@ function add(into: DensityCounts, next: DensityCounts): DensityCounts {
 /** Every `{ dm, hero }` a beat entry can produce, run and all (`variantOf`'s domain). */
 function variants(entry: BeatEntry): BeatExchange[] {
   if (typeof entry === "string") return [{ dm: entry }];
-  if (!Array.isArray(entry)) return [entry as BeatExchange];
-  return (entry as readonly (string | BeatExchange)[])
-    .map((item) => (typeof item === "string" ? { dm: item } : item));
+  const line = (item: string | BeatExchange): BeatExchange =>
+    typeof item === "string" ? { dm: item } : item;
+  if (Array.isArray(entry)) return (entry as readonly (string | BeatExchange)[]).map(line);
+  // A cycling run (M6.1e): the arc and the tail are both authored lines, and the
+  // report counts what was written, not how often it is reached.
+  if ("run" in entry && "loop" in entry) {
+    return [...entry.run, ...entry.loop].map(line);
+  }
+  return [entry as BeatExchange];
 }
 
 /**

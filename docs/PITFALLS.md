@@ -99,10 +99,18 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   beat three turns ago silenced an unrelated beat now, and either silenced a room's *one* first-visit
   line permanently — the room path never comes round again. If a future change reintroduces a shared
   clock, D5 goes with it.
-- **The cooldown's clock is `turn.status.moves`, which does not advance on a refusal.** ZIL does not
-  charge the player for a parse it rejected, so a run of refusals is several turns wearing the same
-  number and any non-zero cooldown reads them as one turn. Harmless at the shipped value (0);
-  anything that raises it has to answer this first.
+- **`turn.status.moves` does not advance on a refusal, so it is not a clock** (found M6.1d, acted on
+  M6.1e). ZIL does not charge the player for a parse it rejected, so a run of refusals is several
+  turns wearing the same number — and a cooldown measured in moves is therefore *no* cooldown on
+  exactly the beats that fire most. The mapper counts its own reads (`turnsRead`) instead, which is
+  a fold like everything else and advances once per turn whatever the engine thinks. **Anything that
+  wants to measure elapsed play in the presentation layer has the same choice to make**, and the
+  engine's counter is the wrong side of it.
+- **How often a beat speaks is authored beside its lines, not tuned globally** (`BeatCycle.cooldown`,
+  M6.1e). The two refusal families are 45% of all turns; at the table's default they push the corpus
+  *past the bottom* of D5's band (1.6 against a floor of 2). D5 is a band, not a floor — a comic
+  where the two never stop talking fails it as surely as one where they never start, which is why
+  `density.test.ts` asserts both ends.
 - **`density.ts` attributes panels to turns through the Director's `PanelDelta`, never through
   `panel.turn`** (M6.1d). A panel carries the context of the *last* line written into it, so once most
   turns spoke, whole turns disappeared from a `panel.turn` map and the report printed a negative split

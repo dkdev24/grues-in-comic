@@ -34,7 +34,7 @@ import {
 } from "../src/comic/page.js";
 import type { Turn } from "../src/session.js";
 import { objectNameTable } from "../src/status.js";
-import { AFFECT_MARKERS, affectFor } from "../src/comic/affect.js";
+import { AFFECT_MARKERS, affectFor, isRefusal, markerFamily } from "../src/comic/affect.js";
 
 /**
  * Name a speaker's line by role — the seam generalized to N (ADR 0008 §2).
@@ -251,6 +251,10 @@ describe("panel stream", () => {
     expect(panelKind({ ...base, salientMove: { object: "THIEF" } })).toBe("action");
     expect(panelKind({ ...base, scoreDelta: 10 })).toBe("action");
     expect(panelKind({ ...base, marker: "parser-miss" })).toBe("refusal");
+    // Both refusal families, and every variant of the parser's (M6.1e): the rung
+    // is "nothing happened and somebody said no", whoever said it.
+    expect(panelKind({ ...base, marker: "parser-miss/not-here" })).toBe("refusal");
+    expect(panelKind({ ...base, marker: "blocked-exit" })).toBe("refusal");
     // A non-refusal marker over an otherwise-empty turn is narration, not noise.
     expect(panelKind({ ...base, marker: "grue-threat" })).toBe("ambient");
     expect(panelKind(base)).toBe("ambient");
@@ -331,7 +335,7 @@ describe("panel stream", () => {
     // A beat with no DM half is legal (§4: "DM-only, Hero-only, or a true
     // back-and-forth"). When the Hero is busy it says nothing at all — and must
     // then leave the room gazetteer's turn intact rather than consume it.
-    const beatScript = new Map([["parser-miss", { hero: "Different words, then." }]]);
+    const beatScript = new Map([["parser-miss/unknown-word", { hero: "Different words, then." }]]);
     const guideScript = new Map([["NORTH-OF-HOUSE", "The house turns its back here."]]);
     const session = createSession(doc, { seed: SEED });
     const page = strip({ beatScript, guideScript, guideCooldown: 0 });
@@ -349,7 +353,7 @@ describe("panel stream", () => {
     // again until the cooldown has passed, or the Hero would answer a line the DM
     // was too tired to say.
     const beatScript = new Map([
-      ["parser-miss", { dm: "The empire hears you.", hero: "Different words, then." }],
+      ["parser-miss/unknown-word", { dm: "The empire hears you.", hero: "Different words, then." }],
     ]);
     const session = createSession(doc, { seed: SEED });
     const page = strip({ beatScript, guideCooldown: 6 });
@@ -405,7 +409,7 @@ describe("panel stream", () => {
     // The memory: the nth *spoken* firing of a beat takes the nth authored line.
     // `xyzzy plugh` and friends all fire `parser-miss`, which is the cheapest beat
     // to fire on demand — a marker the Hero cannot help producing.
-    const beatScript = new Map([["parser-miss", [
+    const beatScript = new Map([["parser-miss/unknown-word", [
       { dm: "The empire hears you." },
       { dm: "It hears you again." },
       { dm: "It has stopped listening." },
@@ -424,12 +428,52 @@ describe("panel stream", () => {
     ]);
   });
 
+  it("cycles a run's tail instead of settling on one line (ADR 0006 §4 rule 4, amended M6.1e)", () => {
+    // Rule 4 said the last line repeats and nothing cycles, so that a beat never
+    // loops back to an opening reaction. M6.1e keeps that guarantee and drops the
+    // consequence: `run` is the arc and is walked once, `loop` cycles after it.
+    // The measurement that forced it: the refusal beats fire 160× in the corpus
+    // and 139× in one playthrough, so "the last line repeats" was one line said a
+    // hundred and fifty times.
+    const beatScript = new Map<string, BeatEntry>([["parser-miss/unknown-word", {
+      run: [{ dm: "First." }, { dm: "Second." }],
+      loop: [{ dm: "A." }, { dm: "B." }],
+    }]]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ beatScript, guideCooldown: 0 });
+    page.turn(session.start());
+    const said = ["xyzzy plugh", "frotz bozbar", "gnusto rezrov", "blorb frotz",
+      "quux", "narg bozbar"]
+      .map((c) => talk(page.turn(session.command(c)))?.text);
+    expect(said).toEqual(["First.", "Second.", "A.", "B.", "A.", "B."]);
+    // The guarantee rule 4 was actually protecting: the arc is never re-entered,
+    // so the pair never sound freshly surprised by a beat they have worn out.
+    expect(said.slice(2)).not.toContain("First.");
+  });
+
+  it("lets a beat carry its own cooldown (M6.1e)", () => {
+    // How often a beat is worth hearing is a property of the beat: most are rare
+    // enough to speak every time, and the refusal families are 45% of all turns
+    // between them. The entry's value outranks the table's.
+    const beatScript = new Map<string, BeatEntry>([["parser-miss/unknown-word", {
+      cooldown: 2, run: [{ dm: "Once." }], loop: [{ dm: "Again." }],
+    }]]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ beatScript, guideCooldown: 0 });
+    page.turn(session.start());
+    const said = ["xyzzy plugh", "frotz bozbar", "gnusto rezrov", "blorb frotz"]
+      .map((c) => talk(page.turn(session.command(c)))?.text ?? null);
+    // Turn 1 speaks, the next two are inside the beat's own wait, the fourth is
+    // clear of it. The table said 0; the beat said 2, and the beat wins.
+    expect(said).toEqual(["Once.", null, null, "Again."]);
+  });
+
   it("counts spoken firings, not marker occurrences (ADR 0006 §4, Slice 4)", () => {
     // The load-bearing half of rule 4. A beat the cooldown swallowed was never on
     // the page, so it must not retire a line the reader never read: with the
     // cooldown at 2, the misses in between are silent and the *second* line the
     // reader sees is still the second line authored.
-    const beatScript = new Map([["parser-miss", [
+    const beatScript = new Map([["parser-miss/unknown-word", [
       { dm: "The empire hears you." },
       { dm: "It hears you again." },
     ]]]);
@@ -457,7 +501,7 @@ describe("panel stream", () => {
     // every *other* beat, which is a different comic every time the route changes.
     const beatScript = new Map([
       ["reveal", [{ dm: "Found." }, { dm: "Found again." }]],
-      ["parser-miss", [{ dm: "The empire hears you." }, { dm: "It hears you again." }]],
+      ["parser-miss/unknown-word", [{ dm: "The empire hears you." }, { dm: "It hears you again." }]],
     ]);
     const session = createSession(doc, { seed: SEED });
     const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
@@ -713,7 +757,10 @@ describe("affect table (§10)", () => {
       text: 'I don\'t know the word "dance".',
       gameOver: false, scoreDelta: 0, systemChannel: true,
     });
-    expect(affect.marker).toBe("parser-miss");
+    // The family, not the variant: which of the three refusals this is is the
+    // table's business, and M6.1e split it without changing the rule under test.
+    expect(markerFamily(affect.marker)).toBe("parser-miss");
+    expect(affect.marker).toBe("parser-miss/unknown-word");
   });
 
   it("still catches the refusals ZIL prints as ordinary prose", () => {
@@ -725,7 +772,7 @@ describe("affect table (§10)", () => {
       text: "You can't see any troll here.",
       gameOver: false, scoreDelta: 0, systemChannel: false,
     });
-    expect(affect.marker).toBe("parser-miss");
+    expect(affect.marker).toBe("parser-miss/not-here");
   });
 
   it("lets the highest-priority marker win", () => {
@@ -750,13 +797,21 @@ describe("affect table (§10)", () => {
     expect(flat / panels.length).toBeLessThan(0.8);
   });
 
-  it("makes parser-miss the largest marker that fires", () => {
+  it("makes the refusals the largest thing in the game", () => {
+    // Counted by *family* (M6.1e): `parser-miss` is three markers now, and the
+    // claim was always about the refusal, not about which one of them it was.
     const counts = new Map<string, number>();
     for (const panel of allPanels()) {
-      if (panel.marker !== null) counts.set(panel.marker, (counts.get(panel.marker) ?? 0) + 1);
+      const family = markerFamily(panel.marker);
+      if (family !== null) counts.set(family, (counts.get(family) ?? 0) + 1);
     }
-    const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
-    expect(top?.[0]).toBe("parser-miss");
+    const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    expect(ranked[0]?.[0]).toBe("parser-miss");
+    // And the map's own "no" fires — 114 turns of the corpus say exactly "You
+    // can't go that way", which is why M6.1e gave it a voice. Its *rank* is not
+    // asserted: the scene walkthroughs are short and deliberate, so how high it
+    // sits is a property of the route, not of the game.
+    expect(counts.get("blocked-exit") ?? 0).toBeGreaterThan(0);
   });
 
   it("emits a shrug alongside the parser-miss expression", () => {
@@ -766,7 +821,7 @@ describe("affect table (§10)", () => {
       scoreDelta: 0,
       systemChannel: true,
     });
-    expect(affect.marker).toBe("parser-miss");
+    expect(markerFamily(affect.marker)).toBe("parser-miss");
     // Two options, not one: the expression claims the face and the gesture — a
     // sentinel no angular metric reaches — can then only claim the torso.
     expect(affect.options).toHaveLength(2);
@@ -834,7 +889,9 @@ describe("the read-aloud register (ADR 0009 §2)", () => {
     for (const turn of [session.start(),
       ...commandsOf("11-parser-edges.cmd").map((c) => session.command(c))]) {
       const script = mapper.read(turn);
-      if (script.context.marker !== "parser-miss") continue;
+      // Both families since M6.1e: the map's "no" is no more the module's to
+      // read aloud than the parser's is.
+      if (!isRefusal(script.context.marker)) continue;
       refusals += 1;
       expect(script.lines.filter((l) => l.speaker === GUIDE)).toEqual([]);
     }
@@ -888,7 +945,7 @@ describe("the Guide is presentation-only (§3)", () => {
     // budget was what let a beat three turns ago silence an unrelated one now,
     // and it is the limiter D5 could not be reached through.
     const beatScript = new Map<string, BeatEntry>([
-      ["parser-miss", ["Try again.", "Again."]],
+      ["parser-miss/unknown-word", ["Try again.", "Again."]],
       ["reveal", "Noted."],
     ]);
     const session = createSession(doc, { seed: SEED });

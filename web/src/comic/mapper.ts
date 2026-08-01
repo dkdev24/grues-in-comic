@@ -17,7 +17,7 @@
 import type { EngineEvent } from "../../../engine/src/events.js";
 import { PLAYER_ID } from "../../../engine/src/state.js";
 import type { EmotionOption } from "../../../art/src/pose.js";
-import { affectFor, sentences } from "./affect.js";
+import { affectFor, isRefusal, sentences } from "./affect.js";
 import {
   BM_SAY, BRK, CHR, type BalloonModes, type PageLine, type PanelContext, type Register,
 } from "./page.js";
@@ -203,7 +203,47 @@ export interface BeatExchange {
  * one a DM who has run this module too many times is left with — and the ones
  * before it are the reactions he has not worn out yet.
  */
-export type BeatEntry = string | BeatExchange | readonly (string | BeatExchange)[];
+export type BeatEntry =
+  | string | BeatExchange | readonly (string | BeatExchange)[] | BeatCycle;
+
+/**
+ * A run with a **looping tail** — M6.1e, and an amendment to ADR 0006 §4 rule 4.
+ *
+ * Rule 4 said the last line of a run repeats and nothing cycles, on the reasoning
+ * that a beat looping back to its opening reaction would be a DM surprised by a
+ * room he has seen four times. That reasoning holds for a beat that fires four
+ * times. It does not survive M6.1d's measurement: `parser-miss` fires **160 times
+ * in the corpus and 139 in a single playthrough**, so "the last line repeats" is
+ * one line said a hundred and fifty times, which is the stuck record the run was
+ * invented to prevent.
+ *
+ * So: `run` is walked once — the arc, where the pair are still discovering the
+ * beat — and `loop` cycles from then on. The distinction is what keeps rule 4's
+ * intent: **nothing loops back to an opening reaction**, because the opening
+ * reactions are in `run` and `run` is never re-entered. What cycles is only the
+ * settled register, where the pair have already agreed what this beat is and are
+ * just finding different ways to say so.
+ *
+ * A `loop` of one is exactly the old behaviour, written explicitly.
+ */
+export interface BeatCycle {
+  /** Walked once, in order: the beat before it is worn in. */
+  run: readonly (string | BeatExchange)[];
+  /** Cycled for every firing after that, in order, forever. */
+  loop: readonly (string | BeatExchange)[];
+  /**
+   * Turns this beat waits between firings, overriding
+   * {@link MapperOptions.guideCooldown} — M6.1e.
+   *
+   * **How often a beat is worth hearing is a property of the beat**, not of the
+   * table. Most are rare enough that the answer is 0 (speak every time). The two
+   * refusal families are not: they are 45% of all turns between them, and a pair
+   * who comment on every single one talk over the game rather than about it. The
+   * measurement is blunt about it — scripting them at 0 puts the corpus at one
+   * exchange every 1.6 turns, past the *bottom* of D5's band.
+   */
+  cooldown?: number;
+}
 
 /** Affect marker → the exchange (or the run of them) that beat earns. */
 export type BeatScript = ReadonlyMap<string, BeatEntry>;
@@ -306,10 +346,22 @@ export function createMapper(options: MapperOptions = {}): Mapper {
    * beside it; a beat absent here has never been said and is free to fire.
    */
   const lastBeatTurn = new Map<string, number>();
+  /**
+   * Turns this mapper has read — the clock the cooldown is measured on since
+   * M6.1e, and a fold like everything else here.
+   *
+   * It replaced `turn.status.moves`, which is the engine's move counter and
+   * **does not advance on a refusal**: ZIL does not charge the player for a parse
+   * it rejected, so a run of refusals is several turns wearing one number. That
+   * made a cooldown on the largest beats in the game meaningless — exactly the
+   * beats M6.1e needs to cool. See `docs/PITFALLS.md` → Web.
+   */
+  let turnsRead = 0;
   let room = "";
 
   return {
     read(turn: Turn): TurnScript {
+      turnsRead += 1;
       const text = panelText(turn.events);
       /** The same turn without the room name — the DM's read-aloud source. */
       const prose = proseText(turn.events);
@@ -388,7 +440,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // The resolved action and the authored reply are now independent (ADR 0009
       // §6): the action no longer suppresses the answer, it only precedes it.
       const action = heroBalloon(took, dropped, names);
-      const exchange = exchangeFor(firstVisit, room, affect.marker, turn.status.moves);
+      const exchange = exchangeFor(firstVisit, room, affect.marker);
       const guideLine = exchange.dm;
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
 
@@ -396,7 +448,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // the DM reads the narration aloud, then says his authored piece, then the
       // Hero answers. Each is one `AddLine` (`panel.cpp:1058`) — whether they land
       // in one panel or four is `page.ts`'s decision, not this module's.
-      const readAloudLines = affect.marker === "parser-miss"
+      const readAloudLines = isRefusal(affect.marker)
         ? []
         : readAloud(prose, affect.matched, moved);
       // What the Hero did, then what he says back — ADR 0009 §6 retired the
@@ -552,7 +604,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
    *    opening reaction would be a DM surprised by a room he has seen four times.
    */
   function exchangeFor(
-    firstVisit: boolean, roomId: string, marker: string | null, turnNumber: number,
+    firstVisit: boolean, roomId: string, marker: string | null,
   ): { dm: string | null; hero: string | null } {
     const silent = { dm: null, hero: null };
 
@@ -561,14 +613,20 @@ export function createMapper(options: MapperOptions = {}): Mapper {
     // marker the Hero's action produced, so the DM is replying, not narrating a
     // room on a timer.
     const entry = marker !== null ? beatScript.get(marker) : undefined;
+    // The beat's own cooldown outranks the table's (M6.1e): how often this beat is
+    // worth hearing is written beside its lines, because that is where the author
+    // can see how many there are.
+    const wait = entry !== undefined && typeof entry === "object" && "cooldown" in entry
+      ? entry.cooldown ?? guideCooldown
+      : guideCooldown;
     const cooled = marker !== null
-      && turnNumber - (lastBeatTurn.get(marker) ?? -Infinity) < guideCooldown;
+      && turnsRead - (lastBeatTurn.get(marker) ?? -Infinity) <= wait;
     if (entry !== undefined && marker !== null && !cooled) {
       const exchange = variantOf(entry, spokenBeats.get(marker) ?? 0);
       const dm = exchange.dm ?? null;
       const hero = exchange.hero ?? null;
       if (dm !== null || hero !== null) {
-        lastBeatTurn.set(marker, turnNumber);
+        lastBeatTurn.set(marker, turnsRead);
         // Rule 4: the beat is one line older only now that it has been said.
         spokenBeats.set(marker, (spokenBeats.get(marker) ?? 0) + 1);
         return { dm, hero };
@@ -590,17 +648,34 @@ export function createMapper(options: MapperOptions = {}): Mapper {
 
 /**
  * The line a beat is on after it has been spoken `said` times — ADR 0006 §4,
- * Slice 4.
+ * Slice 4, as M6.1e amends it.
  *
  * An empty run is legal and says nothing, so an author can silence a beat by
- * emptying its array without deleting the key. Past the end the last entry
- * repeats: see `exchangeFor` rule 4 for why it does not cycle.
+ * emptying its array without deleting the key. Past the end of a plain array the
+ * last entry repeats (rule 4 as written); a {@link BeatCycle} instead walks its
+ * `run` once and then cycles its `loop`, which is what a beat firing 160 times
+ * needs. Both are pure functions of `said`, so the oracle is unaffected either
+ * way.
  */
 function variantOf(entry: BeatEntry, said: number): BeatExchange {
   if (typeof entry === "string") return { dm: entry };
-  if (!Array.isArray(entry)) return entry as BeatExchange;
-  const run = entry as readonly (string | BeatExchange)[];
-  const chosen = run[Math.min(said, run.length - 1)];
+  if (Array.isArray(entry)) return pick(entry as readonly (string | BeatExchange)[], said);
+  if (isCycle(entry)) {
+    if (said < entry.run.length) return pick(entry.run, said);
+    if (entry.loop.length === 0) return pick(entry.run, entry.run.length - 1);
+    return pick(entry.loop, (said - entry.run.length) % entry.loop.length);
+  }
+  return entry as BeatExchange;
+}
+
+/** A {@link BeatCycle} rather than a bare {@link BeatExchange}. */
+function isCycle(entry: object): entry is BeatCycle {
+  return "run" in entry && "loop" in entry;
+}
+
+/** The `at`th line of a list, clamped to its end — an empty list says nothing. */
+function pick(lines: readonly (string | BeatExchange)[], at: number): BeatExchange {
+  const chosen = lines[Math.min(at, lines.length - 1)];
   if (chosen === undefined) return {};
   return typeof chosen === "string" ? { dm: chosen } : chosen;
 }
@@ -637,7 +712,9 @@ export function panelKind(input: KindInput): PanelKind {
   if (input.took !== null || input.dropped !== null || input.salientMove !== null || input.scoreDelta > 0) {
     return "action";
   }
-  if (input.marker === "parser-miss") return "refusal";
+  // Both refusal families (M6.1e): the parser's "no" and the map's are the same
+  // beat — nothing happened, and the Hero has an opinion about it.
+  if (isRefusal(input.marker)) return "refusal";
   return "ambient";
 }
 
