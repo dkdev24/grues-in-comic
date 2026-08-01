@@ -160,6 +160,26 @@ export const COMMAND_SCRIPT: CommandScript = {
 };
 
 /**
+ * The Hero's **journey line** (ADR 0010 §3) — the one thing a collapsed
+ * traversal run says, replacing the per-step declaration the run's last turn
+ * would otherwise have spoken. Named after where he ended up ("Back down to
+ * the cellar."), not the steps it took to get there — a run of six becomes
+ * one line, not six. `{room}` fills with the destination's title, lowercased
+ * and given its own article by the caller (`director.ts`), so a template
+ * here never has to guess between "the" and "an".
+ */
+export const JOURNEY_LINES: readonly string[] = [
+  "Back to {room}.",
+  "Made it back to {room}.",
+  "Found our way back to {room}.",
+  "Here we are again — {room}.",
+  "{Room} — we're back.",
+  "Retraced our steps to {room}.",
+  "{Room}, once more.",
+  "Circled back to {room}.",
+];
+
+/**
  * Turns between two firings of **the same beat** (`MapperOptions.guideCooldown`).
  *
  * M6.1d moved it, and changed what it counts. It was 3 turns between *any* two

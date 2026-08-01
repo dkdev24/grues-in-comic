@@ -1006,6 +1006,37 @@ function fillDirection(template: string, dir: string): string {
   return template.replace("{Dir}", capitalized).replace("{dir}", dir);
 }
 
+/**
+ * The run cursor {@link journeyDeclaration} advances — one counter, since the
+ * ADR asks for one rotation across every destination rather than one per
+ * room (ADR 0010 §3). Kept by the Director, not the mapper: a run is the
+ * Director's concept, and the mapper stays a per-turn pure function.
+ */
+export interface JourneyCursor {
+  index: number;
+}
+
+/**
+ * The Hero's journey line: his single declaration for a collapsed traversal
+ * run, naming the room he ended up in rather than the steps that got him
+ * there (ADR 0010 §3). `room` is the destination's title, already given its
+ * article by the caller (`director.ts`) — "the cellar", not "cellar". Empty
+ * lines are legal and produce silence, same as {@link heroDeclaration}.
+ */
+export function journeyDeclaration(
+  room: string, lines: readonly string[], cursor: JourneyCursor,
+): Utterance | null {
+  if (lines.length === 0) return null;
+  const i = cursor.index % lines.length;
+  cursor.index += 1;
+  return { modes: BM_SAY, text: fillRoom(lines[i]!, room) };
+}
+
+function fillRoom(template: string, room: string): string {
+  const capitalized = room.charAt(0).toUpperCase() + room.slice(1);
+  return template.replace("{Room}", capitalized).replace("{room}", room);
+}
+
 export function heroBalloon(
   took: string | null, dropped: string | null, names: ReadonlyMap<string, string>,
   script: ActionScript = ACTION_SCRIPT, said = 0,

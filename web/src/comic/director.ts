@@ -36,6 +36,16 @@
  * mid-walk) stays buffered until `flush` — the comic trails live play by the walk,
  * which is the intended past-tense retelling, not a bug.
  *
+ * **ADR 0010 §3 — the collapse gives ground.** A single traversal turn is not a
+ * run: it is held for one step (the lookahead this buffering already does) and
+ * flushes with its own per-turn declaration untouched, exactly like any other
+ * panel. Only a run of **two or more** loses anything, and what it loses is
+ * replaced rather than dropped: the buffered turn's own declaration — the last
+ * step's "Let's head east." — is swapped for a **journey line**, the Hero's
+ * single declaration for the whole walk, naming where he ended up rather than
+ * each step ({@link journeyDeclaration}, `JOURNEY_LINES` in `script.ts`). A run
+ * still keeps one panel; it no longer keeps only the last step's voice.
+ *
  * The mapper is always folded, even for a dropped or buffered turn: it maintains the
  * visited / inventory / room state the classification of *later* turns depends on, so
  * skipping it would corrupt the stream. Only *emission* is edited. A dropped or
@@ -51,15 +61,30 @@
  */
 
 import type { Turn } from "../session.js";
-import { createMapper, type MapperOptions, type Panel, type TurnScript } from "./mapper.js";
 import {
-  BRK, CHR, addScript, createPage, mergeDelta,
-  type FitTest, type Page, type PanelDelta,
+  HERO, createMapper, journeyDeclaration,
+  type JourneyCursor, type MapperOptions, type Panel, type TurnScript,
+} from "./mapper.js";
+import { JOURNEY_LINES } from "./script.js";
+import {
+  BM_SAY, BRK, CHR, addScript, createPage, mergeDelta,
+  type FitTest, type Page, type PanelDelta, type PageLine,
 } from "./page.js";
 
 export interface DirectorOptions extends MapperOptions {
   /** Balloon-layout seam handed to the {@link Page}; see `page.ts`. */
   fit?: FitTest;
+  /** The journey line's lexicon (ADR 0010 §3). Defaults to {@link JOURNEY_LINES}. */
+  journeyScript?: readonly string[];
+  /**
+   * Room id → display name, for the journey line only (ADR 0010 §3). A
+   * deliberate second table rather than reusing {@link MapperOptions.roomTitles}
+   * (the location-box caption's, ADR 0009 §3, unwired in production today):
+   * wiring the caption's table is a separate, unscoped change with its own
+   * pixel-gate blast radius across every panel, not this stage's to make.
+   * Empty falls back to the room id, same as the caption's table does.
+   */
+  journeyRoomTitles?: ReadonlyMap<string, string>;
 }
 
 /** Nothing was emitted this call. A fresh object each time — deltas are merged into. */
@@ -89,18 +114,63 @@ export interface Director {
   readonly panels: readonly Panel[];
 }
 
+/**
+ * Swap the buffered run's own declaration for its journey line — or, when the
+ * run's last step had none (the lexicon fell silent on it, e.g. `climb tree`
+ * with no direction word to phrase), give the run the line it never had. No
+ * run in the eleven-walkthrough corpus actually needs the insert branch today
+ * — every run's last step happens to be a bare direction — but the lexicon's
+ * 4.4% silent tail is real, and ADR 0010 §3 is explicit that a run must not
+ * stay wordless because of *which* step happened to end it.
+ *
+ * `answers` marks the declaration ADR 0010 §2 wants ({@link PageLine.answers}),
+ * and it is always the Hero's — a traversal turn's own script never carries a
+ * second one — so the first match is the only one there is. When there is
+ * none, the synthesized line borrows the Hero's reaction emotion (the one a
+ * silent turn stages him with) and the reaction itself is dropped — the line
+ * now carries what the reaction was standing in for.
+ */
+function withJourneyLine(script: TurnScript, text: string): TurnScript {
+  const i = script.lines.findIndex((line) => line.speaker === HERO && line.answers === true);
+  if (i !== -1) {
+    const lines = script.lines.slice();
+    lines[i] = { ...(lines[i] as PageLine), text };
+    return { ...script, lines };
+  }
+  const emotion = script.reactions.find((r) => r.speaker === HERO)?.emotion ?? [];
+  const line: PageLine = { speaker: HERO, modes: BM_SAY, text, emotion, register: "narration", answers: true };
+  return {
+    ...script,
+    lines: [line, ...script.lines],
+    reactions: script.reactions.filter((r) => r.speaker !== HERO),
+  };
+}
+
 export function createDirector(options: DirectorOptions = {}): Director {
   const mapper = createMapper(options);
   const page: Page = createPage(options.fit ? { fit: options.fit } : {});
+  const journeyRoomTitles = options.journeyRoomTitles ?? new Map<string, string>();
+  const journeyScript = options.journeyScript ?? JOURNEY_LINES;
+  const journeyCursor: JourneyCursor = { index: 0 };
   // The run collapses to its latest script — the destination reached so far.
-  // `null` when no traversal run is open.
+  // `null` when no traversal run is open. `runLength` counts the turns it has
+  // swallowed; a run starts at two (ADR 0010 §3), so a lone traversal (length
+  // 1) flushes with its own declaration, untouched.
   let pendingTraversal: TurnScript | null = null;
+  let runLength = 0;
 
   /** Panelize the buffered run's one script, if any, and clear the buffer. */
   function flushPending(): PanelDelta {
     if (pendingTraversal === null) return noPanels();
-    const script = pendingTraversal;
+    let script = pendingTraversal;
+    const isRun = runLength >= 2;
     pendingTraversal = null;
+    runLength = 0;
+    if (isRun) {
+      const title = journeyRoomTitles.get(script.context.room) ?? script.context.room;
+      const journey = journeyDeclaration(`the ${title.toLowerCase()}`, journeyScript, journeyCursor);
+      if (journey !== null) script = withJourneyLine(script, journey.text);
+    }
     return addScript(page, script);
   }
 
@@ -123,6 +193,7 @@ export function createDirector(options: DirectorOptions = {}): Director {
       // Slice 4: hold a traversal, keeping only the latest — the run's destination.
       if (script.context.kind === "traversal") {
         pendingTraversal = script;
+        runLength += 1;
         return noPanels();
       }
       // Any other beat ends the run: flush it first, then emit this turn.

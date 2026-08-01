@@ -10,7 +10,7 @@
 
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { createSession, type Session, type Turn } from "./session.js";
-import { objectNameTable } from "./status.js";
+import { objectNameTable, roomNameTable } from "./status.js";
 import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
 import { createComicView, type ComicView } from "./comic-view.js";
@@ -30,12 +30,16 @@ async function main(): Promise<void> {
 
   let session: Session;
   let names: ReadonlyMap<string, string> = new Map();
+  let roomTitles: ReadonlyMap<string, string> = new Map();
   try {
     const doc = await fetchWorld();
     session = createSession(doc, {});
     // The Hero balloon renders resolved actions by object *name* (ADR 0005 §1);
     // the id→name table is static world data, built once beside the session.
     names = objectNameTable(doc.objects ?? []);
+    // The journey line names its destination (ADR 0010 §3); same static-data
+    // shape as `names`, built once beside it.
+    roomTitles = roomNameTable(doc.rooms ?? []);
   } catch (err) {
     consoleView.appendSystem(`Could not start: ${message(err)}`);
     return;
@@ -54,7 +58,7 @@ async function main(): Promise<void> {
   // degrades to 5.2's text shell rather than to a blank page.
   let comic: ComicView | null = null;
   try {
-    comic = await createComicView(requireEl("#comic"), COMIC_ASSETS, names);
+    comic = await createComicView(requireEl("#comic"), COMIC_ASSETS, names, roomTitles);
   } catch (err) {
     consoleView.appendSystem(`[comic pane unavailable: ${message(err)}]`);
   }

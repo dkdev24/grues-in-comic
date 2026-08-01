@@ -10,6 +10,51 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.8 — 2026-08-01 — 6.1j: the collapse gives ground
+
+**ADR 0010 slice 3 is built.** `director.ts`'s traversal buffer now counts `runLength` alongside the
+buffered script. A run of exactly one flushes exactly as it always has — its own per-turn declaration,
+untouched — because a single traversal turn was never a run and the ADR says so explicitly. A run of
+two or more has its buffered script's declaration swapped for a **journey line**: the Hero's single
+line for the whole walk, naming where he ended up ("Back to the cellar.") rather than repeating each
+step's own. The lexicon lives in `script.ts` as `JOURNEY_LINES` — its own rotation, not routed through
+`COMMAND_SCRIPT` — and the destination's title comes from a new `journeyRoomTitles` table, wired
+through `main.ts` → `comic-view.ts` → `DirectorOptions`.
+
+- **Deliberately not the location box's `roomTitles`.** That table exists on `MapperOptions` for the
+  ADR 0009 §3 caption but has never actually been wired in production (`comic-view.ts` never passed
+  it, so the caption has been showing raw room ids all along — a dormant, pre-existing gap). Wiring it
+  would be a separate, unscoped change with its own pixel-gate blast radius across every panel, not
+  this slice's to make, so 6.1j gave the journey line its own table instead.
+- **A run whose last step can't speak still speaks.** `withJourneyLine` first looks for the buffered
+  script's own declaration and swaps its text; when there isn't one (the last step's command fell in
+  the lexicon's silent tail — `climb tree` with no direction word to phrase, say), it inserts a fresh
+  line instead, borrowing the emotion the turn's silent-Hero reaction already carried and dropping that
+  reaction now that the line covers it. Measured over the corpus this branch never fires today (every
+  run's last step in the eleven walkthroughs happens to be a bare direction), but it is not
+  hypothetical — the lexicon's 4.4% silent tail is real, and a run should not lose its voice because of
+  which step happened to end it.
+- **The corpus:** of 50 collapsed traversal runs, 17 are length two or more and now speak the
+  destination instead of the last step's own line. Panels **1091 → 1091**, unchanged — this slice
+  trades *what* the run's frame says for *whether it stays wordless in a merge*, not panel count; a
+  run's own frame already survived on its own before this slice (confirmed by diffing panel totals
+  against the pre-6.1j code on the same corpus). The ADR's own 60-discarded/56-panel figure is from the
+  v0.24.1 census, before the Hero had any declaration at all — by the time 6.1j starts, slices 1–2 had
+  already recovered nearly all of it, so the number this slice can honestly claim is the swap-vs-insert
+  split above, not that older count.
+- **One test's expectation changed for a real reason, not a regression.** `director.test.ts`'s
+  back-and-forth-walk test used a silenced `commandScript` to isolate the collapse mechanism from
+  declaration content — but the journey line is the Director's own default, not routed through
+  `commandScript`, so the run now speaks regardless. Its previously-wordless frame can no longer
+  clone-append into the following same-room turn (a body with something to say behaves like any other
+  panel), so the test now asserts two panels where it asserted one; the comment explains why.
+
+Stage 6.1j is ✅ in `docs/DEVELOPMENT_PLAN.md` §6.1. Work resumes at **6.1k** (set D5′ from the
+measurements, re-pin both goldens, read a full playthrough) — the slice that actually closes M6.1's
+stated purpose.
+
+---
+
 ## v0.24.7 — 2026-08-01 — 6.1i: the exchange crosses the turn boundary
 
 **ADR 0010 slice 2 is built.** `PageLine.answers` (`page.ts`) is the fact a line carries to say "I am

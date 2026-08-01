@@ -52,6 +52,7 @@ const STRIP_GUTTER = 10;
 
 export async function createComicView(
   root: HTMLElement, assetBase: string, names: ReadonlyMap<string, string> = new Map(),
+  journeyRoomTitles: ReadonlyMap<string, string> = new Map(),
 ): Promise<ComicView> {
   const strip = requireChild(root, ".comic-strip");
   const castBar = root.querySelector<HTMLElement>(".comic-cast");
@@ -63,6 +64,7 @@ export async function createComicView(
   const measurer = document.createElement("canvas").getContext("2d");
   const director: Director = createDirector({
     guideScript: GUIDE_SCRIPT, beatScript: BEAT_SCRIPT, guideCooldown: GUIDE_COOLDOWN, names,
+    journeyRoomTitles,
     ...(measurer ? { fit: createFitTest(measurer) } : {}),
   });
   // Cycles live with the *view*, not with a panel: a panel re-drawn on resize

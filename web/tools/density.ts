@@ -47,13 +47,13 @@ import { createCanvas } from "@napi-rs/canvas";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { fullGameCommands } from "../../engine/harness/complete.js";
 import { createSession, type Turn } from "../src/session.js";
-import { objectNameTable } from "../src/status.js";
-import { createDirector } from "../src/comic/director.js";
+import { objectNameTable, roomNameTable } from "../src/status.js";
+import { createDirector, type DirectorOptions } from "../src/comic/director.js";
 import { createFitTest } from "../src/comic/fit.js";
 import { CAPTION, GUIDE, HERO, createMapper, type Panel } from "../src/comic/mapper.js";
 import { BRK, CHR, type PanelDelta } from "../src/comic/page.js";
 import { BEAT_SCRIPT, GUIDE_COOLDOWN, GUIDE_SCRIPT } from "../src/comic/script.js";
-import type { BeatEntry, BeatExchange, MapperOptions } from "../src/comic/mapper.js";
+import type { BeatEntry, BeatExchange } from "../src/comic/mapper.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const WORLD = join(ROOT, "ir", "artifacts", "zork1.world.json");
@@ -229,12 +229,13 @@ function safeTurn(run: () => Turn): Turn | null {
 }
 
 /** The options the pane ships (`comic-view.ts`), minus the browser. */
-function productionOptions(doc: WorldDocument): MapperOptions {
+function productionOptions(doc: WorldDocument): DirectorOptions {
   return {
     guideScript: GUIDE_SCRIPT,
     beatScript: BEAT_SCRIPT,
     guideCooldown: GUIDE_COOLDOWN,
     names: objectNameTable(doc.objects),
+    journeyRoomTitles: roomNameTable(doc.rooms),
   };
 }
 

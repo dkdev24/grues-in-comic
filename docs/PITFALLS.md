@@ -229,6 +229,14 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   document. Routing decisions belong in URL space; `path.*` applies only afterward. **The general
   hazard is any POSIX-only assumption baked into tooling** — invisible on macOS, and no non-macOS run
   is coming to surface it.
+- **`MapperOptions.roomTitles` (the location box's, ADR 0009 §3) has never been wired in production**
+  (found 6.1j, v0.24.8). `comic-view.ts` never passed it to `createDirector`, so the shipped caption
+  has been showing raw room ids (`"NORTH-OF-HOUSE"`) instead of titles the whole time `roomTitle` has
+  existed — every test that checks it supplies its own table, which is why nothing caught the gap.
+  6.1j needed a room-name table for the journey line and deliberately did **not** reuse this one or
+  fix its wiring — that is a separate, unscoped change with its own pixel-gate blast radius across
+  every panel — so it built `journeyRoomTitles` beside it instead (`director.ts`). If a future session
+  wires the caption's table, check whether `journeyRoomTitles` can just become `roomTitles` again.
 
 ## Art pipeline
 

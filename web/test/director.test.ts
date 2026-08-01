@@ -18,11 +18,13 @@ import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { createSession } from "../src/session.js";
-import { createMapper, type Panel, type TurnScript } from "../src/comic/mapper.js";
+import {
+  HERO, createMapper, journeyDeclaration, type JourneyCursor, type Panel, type TurnScript,
+} from "../src/comic/mapper.js";
 import { createDirector, speaks } from "../src/comic/director.js";
-import { addScript, createPage } from "../src/comic/page.js";
+import { BM_SAY, addScript, createPage, type PageLine } from "../src/comic/page.js";
 import { objectNameTable } from "../src/status.js";
-import type { CommandScript } from "../src/comic/script.js";
+import { JOURNEY_LINES, type CommandScript } from "../src/comic/script.js";
 
 /** An empty {@link CommandScript} — see the note in `mapper.test.ts`. */
 const SILENT_COMMANDS: CommandScript = {
@@ -70,22 +72,53 @@ function options() {
  * panelization runs after it (see the module note in `director.ts`) — so the golden
  * edits scripts and then panelizes what survives, through the same `page.ts` port.
  */
+function withJourneyLine(script: TurnScript, text: string): TurnScript {
+  const i = script.lines.findIndex((line) => line.speaker === HERO && line.answers === true);
+  if (i !== -1) {
+    const lines = script.lines.slice();
+    lines[i] = { ...lines[i]!, text };
+    return { ...script, lines };
+  }
+  const emotion = script.reactions.find((r) => r.speaker === HERO)?.emotion ?? [];
+  const line: PageLine = { speaker: HERO, modes: BM_SAY, text, emotion, register: "narration", answers: true };
+  return {
+    ...script,
+    lines: [line, ...script.lines],
+    reactions: script.reactions.filter((r) => r.speaker !== HERO),
+  };
+}
+
+/**
+ * ADR 0010 §3: a run starts at two, and a run of two or more swaps its last
+ * step's declaration for the journey line naming its destination.
+ */
 function edited(full: readonly TurnScript[]): Panel[] {
   const kept: TurnScript[] = [];
   let pending: TurnScript | null = null;
+  let runLength = 0;
+  const journeyCursor: JourneyCursor = { index: 0 };
+  const flushPending = () => {
+    if (pending === null) return;
+    let script = pending;
+    if (runLength >= 2) {
+      const journey = journeyDeclaration(`the ${script.context.room.toLowerCase()}`, JOURNEY_LINES, journeyCursor);
+      if (journey !== null) script = withJourneyLine(script, journey.text);
+    }
+    kept.push(script);
+    pending = null;
+    runLength = 0;
+  };
   for (const script of full) {
     if (script.context.kind === "refusal" && !speaks(script)) continue;
     if (script.context.kind === "traversal") {
       pending = script; // keep only the latest — the run's destination so far
+      runLength += 1;
       continue;
     }
-    if (pending) {
-      kept.push(pending);
-      pending = null;
-    }
+    flushPending();
     kept.push(script);
   }
-  if (pending) kept.push(pending); // trailing run (= director.flush())
+  flushPending(); // trailing run (= director.flush())
 
   const page = createPage();
   for (const script of kept) addScript(page, script);
@@ -144,28 +177,31 @@ describe("director (Slice 4 — traversal collapse)", () => {
     expect(emittedTotal).toBeLessThan(uncollapsedTotal);
   });
 
-  it("collapses a back-and-forth walk to one panel at the destination (ADR 0005 §3)", () => {
+  it("collapses a back-and-forth walk to one panel that now carries the journey line (ADR 0010 §3)", () => {
     const session = createSession(doc, { seed: SEED });
-    // A traversal turn now speaks too (ADR 0010 §1's declaration), so the
-    // buffered panel this run collapses to is no longer wordless, and `look`'s
-    // own declaration can no longer clone-append into it (two Hero balloons
-    // never share a panel). That interaction is 6.1j's ("the collapse gives
-    // ground") to resolve; this test isolates the collapse mechanism itself.
+    // `commandScript` is silenced so the run's own per-step declarations stay
+    // out of it — this test isolates the collapse mechanism, not the lexicon —
+    // but the journey line is `createDirector`'s own default (`JOURNEY_LINES`),
+    // not routed through `commandScript`, so the run still speaks.
     const director = createDirector({ ...options(), commandScript: SILENT_COMMANDS });
     director.ingest(session.start()); // arrival, WEST-OF-HOUSE
     expect(director.ingest(session.command("north")).appended[0]?.kind).toBe("arrival"); // NORTH-OF-HOUSE
     expect(director.ingest(session.command("west")).appended).toEqual([]); // traversal → WEST-OF-HOUSE, buffered
     expect(director.ingest(session.command("north")).appended).toEqual([]); // traversal → NORTH-OF-HOUSE, buffered
     const flushed = director.ingest(session.command("look")).appended; // ambient ends the run
-    // One panel, at the destination — and since 6.1c that panel *is* the ambient
-    // turn's too. A revisit prints only the room name, which is the location box
-    // now (ADR 0009 §3) and not a balloon, so the collapsed traversal carries no
-    // words for the `look` that ends it to be kept out of: same room, no reason
-    // to break, and the port merges them (`AddLine`'s clone-append).
-    expect(flushed).toHaveLength(1);
-    expect(flushed[0]?.room).toBe("NORTH-OF-HOUSE"); // the destination, not the rooms passed
-    expect(flushed[0]?.kind).toBe("ambient"); // the panel takes its newest line's context
-    expect(flushed[0]?.roomTitle).toBe("North of House");
+    // Two panels, not one: the run's frame now carries the Hero's journey line
+    // (ADR 0010 §3), so it is no longer the wordless, body-only frame that used
+    // to let `look`'s ambient narration clone-append silently into it — a body
+    // with something to say behaves like every other panel (M6.1j supersedes
+    // the one-panel merge this test pinned before the run had a voice).
+    expect(flushed).toHaveLength(2);
+    expect(flushed[0]?.room).toBe("NORTH-OF-HOUSE"); // the run's destination
+    expect(flushed[0]?.kind).toBe("traversal");
+    expect(flushed[0]?.speakers).toHaveLength(1);
+    expect(flushed[0]?.speakers[0]?.speaker).toBe(HERO);
+    expect(flushed[1]?.room).toBe("NORTH-OF-HOUSE"); // `look`'s own frame, same room
+    expect(flushed[1]?.kind).toBe("ambient");
+    expect(flushed[1]?.roomTitle).toBeNull(); // no room change from the run's own frame
   });
 
   it("holds a trailing run until flush(), which is idempotent", () => {

@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.7** · Platform: **macOS only** (2026-07-28)
+**0.24.8** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,41 +27,39 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f–6.1i are done; 6.1e is paused; 6.1j–6.1k
-  are the remaining ADR 0010 slices.** The corpus is repaired, so **D5 and the two-shot are both met
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f–6.1j are done; 6.1e is paused; 6.1k is the
+  remaining ADR 0010 slice.** The corpus is repaired, so **D5 and the two-shot are both met
   over a game that is actually won** — every M6.1 figure quoted before v0.24.0 was measured over a
-  losing replay and is void. **ADR 0010 is Accepted (v0.24.5); slices 1 and 2 are built (v0.24.6,
-  v0.24.7)** — the Hero declares his command as table-talk on 98.3% of turns, and that declaration now
-  answers the DM's still-open frame across the turn boundary instead of only garnishing its own. Work
-  resumes at stage **6.1j**, the collapse gives ground.
+  losing replay and is void. **ADR 0010 is Accepted (v0.24.5); all three slices are built (v0.24.6,
+  v0.24.7, v0.24.8)** — the Hero declares his command as table-talk on 98.3% of turns, that
+  declaration answers the DM's still-open frame across the turn boundary, and a collapsed traversal
+  run of two or more now speaks its destination as one journey line instead of discarding its
+  intermediate steps' voice. Work resumes at stage **6.1k**, which sets D5′ from the measurements and
+  closes M6.1's stated purpose.
 
 **Tests:** 292 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — 6.1i built: the exchange crosses the turn boundary (v0.24.7)
+## Last Session — 6.1j built: the collapse gives ground (v0.24.8)
 
-**ADR 0010 slice 2 is done.** `PageLine.answers` (`page.ts`) is a fact a line carries to say "I am
-replying to what's on screen, not asking something new." `isOrphaned` no longer forces the next line
-to open fresh outright — it arms `guardFragment()`, consumed by whichever line reaches the page next:
-unmarked still breaks (M6.1g's mis-pairing guard, unchanged), marked is let through to the ordinary
-clone-append rules. In `mapper.ts` the declaration moved to the front of the turn's own lines, ahead
-of even the room-change `<Brk>` — it answers the *previous* turn's frame, not this turn's own
-narration. Full detail and the exact numbers are in `WORKLOG.md` v0.24.7 and
-`docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1i.
+**ADR 0010 slice 3 is done — all three slices are now built.** `director.ts`'s traversal buffer counts
+`runLength`; a run of one flushes untouched, and a run of two or more has its buffered script's
+declaration swapped for a **journey line** (`JOURNEY_LINES` in `script.ts`, its own lexicon) naming the
+destination via a new `journeyRoomTitles` table. Full detail in `WORKLOG.md` v0.24.8 and
+`docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1j.
 
-**Headline measurements:** two-shot recovered 17/274 → **218/274 (79.6%)**, close to the
-pre-ADR0010 baseline (137/165, 83%); `panelsBothSpeakers` 243 → 477; panels 1158 → 1091 (the join
-nets *fewer* panels, not more). Both goldens re-accepted after looking at the images; 292/292 web
+**Headline measurement:** of 50 collapsed traversal runs in the corpus, 17 are length two or more and
+now speak the destination instead of the last step's own line. Panels **1091 → 1091**, unchanged — this
+slice trades what the run's frame says for whether it stays wordless, not panel count. 292/292 web
 tests green.
 
-**One real trap, worth knowing before touching this code again:** pulling the declaration out of
-`heroLines` also pulled it out of the "did the Hero say anything this turn" check that gates the
-reaction fallback and the death shot — starving a turn with nothing else to say (a plain traversal
-step) of any representation once its declaration went to answer the *previous* frame instead. Fixed
-by keeping those two checks on `heroLines` alone (see `docs/PITFALLS.md` → Web for the durable
-version of this note). `director.test.ts`'s trailing-run test needed updating for a real, expected
-behavior change it happened to exercise.
+**One thing worth knowing before touching this code again:** `journeyRoomTitles` is a *second* table,
+deliberately not a reuse of `MapperOptions.roomTitles` (the location box's, ADR 0009 §3). That table has
+never actually been wired in production — `comic-view.ts` never passed it, so the caption has shown raw
+room ids all along, a dormant pre-existing gap this session found but did not fix, since wiring it would
+be a separate, unscoped change with its own pixel-gate blast radius across every panel. If a future
+session wires it, `journeyRoomTitles` can likely be retired in favor of it.
 
 ## Next Actions
 
@@ -69,19 +67,15 @@ behavior change it happened to exercise.
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · 6.1h ✅ · 6.1i ✅ · **6.1e ◐** (authoring, paused
-   where ADR 0010 subsumes it) · **6.1j–6.1k ☐ — the remaining ADR 0010 slices, and where work
-   resumes.**
+   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · 6.1h ✅ · 6.1i ✅ · 6.1j ✅ · **6.1e ◐** (authoring,
+   paused where ADR 0010 subsumes it) · **6.1k ☐ — the last ADR 0010 slice, and where work resumes.**
 
-   **⇒ NEXT SESSION STARTS HERE: 6.1j — ADR 0010 slice 3, the collapse gives ground.** Read ADR 0010
-   §3 and `docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1j for exit criteria. The shape: a **single** traversal
-   turn stops counting as a "run" (only two or more collapses now) and a longer run keeps its one
-   panel but earns a **journey line** — the Hero's own declaration for the whole walk, naming where
-   he ended up ("Back down to the cellar.") rather than each step — authored as its own surface
-   (amends ADR 0005 §3). Measure the recovery against the **116 walks / 56 panels** bound from ADR
-   0010's Context table; the exact number is to be measured in the slice, not asserted beforehand.
-   Then **6.1k** re-sets D5′'s band from the measurements, re-pins both goldens, and reads a full
-   playthrough — the slice that actually closes M6.1's stated purpose.
+   **⇒ NEXT SESSION STARTS HERE: 6.1k — ADR 0010 slice 4, set D5′ and verify.** Read
+   `docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1k for exit criteria. The shape: set D5′'s band (the share of
+   emitted panels carrying both speakers) **from the measurements** `npm --prefix web run density`
+   already prints, add both ends as assertions to `density.test.ts`, re-pin both goldens (`gate.ts`
+   and the density baseline) after **looking at the images**, and read a full playthrough in the
+   browser — this is the slice that actually closes M6.1's stated purpose, not just its mechanics.
 
    The remaining 6.1e work is what it always was: authored dialogue across 110 rooms, committed as
    data (D1 sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70
