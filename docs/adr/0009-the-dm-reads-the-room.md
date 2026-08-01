@@ -1,6 +1,6 @@
 # ADR 0009 — The DM Reads the Room: the caption channel retires and the box becomes metadata
 
-- **Status:** Accepted (building — 6.1c landed v0.20.0; 6.1d–6.1f in `docs/DEVELOPMENT_PLAN.md` §6.1)
+- **Status:** Accepted (building — 6.1c landed v0.20.0, 6.1d v0.21.0; 6.1e–6.1f in `docs/DEVELOPMENT_PLAN.md` §6.1)
 - **Date:** 2026-08-01
 - **Supersedes:** ADR 0004 §2/§2a and §3 *insofar as the caption is a **script line** in the panel's balloon list* (`BM_ACTION`, `CBWoodringBox`) — the read-aloud text moves into the DM's speech balloon and the box becomes panel metadata; ADR 0005 §3's noise-drop **as an unconditional rule** (a refusal that has a line to say is now kept); ADR 0006 §4's "the resolved action outranks the Hero's reply" **as a permanent exclusion** (it becomes a per-panel ordering, not a suppression)
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — consumed, never extended); the DM stays **presentation-only** — no game state, unaddressable, removable (ADR 0004 §3); the mapper stays a **deterministic pure function of the event stream**, canvas-free, so `replayPanels` and the parity oracle still hold (ADR 0004 §5, ADR 0005/0006 testing contracts); **dialogue is authored at build time and committed as data, never generated at runtime**; `page.ts` stays a faithful port and keeps every panelization decision (ADR 0007, ADR 0008)
@@ -211,10 +211,27 @@ Mapped to `docs/DEVELOPMENT_PLAN.md` §6.1, which stays the schedule of record.
    Measured after the slice: **captions 96.7% → 0%**, exchanges landing in one panel **20 of 28 →
    24 of 28**, panels 411 → 478 (+16%, the predicted cost), DM balloons 54 → 420. Exchanges
    themselves are unchanged at 28 — they are 6.1d's to move.
-2. **6.1d — the limiters go.** The Director's conditional refusal drop (§5), the read-aloud
-   register uncooled and the table-talk cooldown retuned (§2), marker coverage widened
-   (`parser-miss` first), the action/reply exclusion relaxed (§6). Exit: **D5 on the density
-   report**, and the two-shot the common case for exchange turns.
+2. **6.1d — the limiters go.** ✅ **Done (v0.21.0).** All four, as written: the Director's
+   conditional refusal drop (§5), the cooldown retuned (§2), marker coverage widened
+   (`parser-miss` and `routine-ack`), the action/reply exclusion relaxed to an ordering (§6).
+   Two things the design did not name:
+   - **The cooldown had to become *per beat*, not merely smaller**, and the gazetteer had to
+     come out from under it. One shared budget was the mechanism behind two of the four
+     limiters at once — a beat silenced an unrelated beat, and either silenced a room's one
+     first-visit line for good. Shipped value **0**: measured at 1 the corpus reads one
+     exchange every 3.8 turns and the oracle 5.8, both outside D5, because the markers that
+     carry a playthrough arrive in clusters. What replaces the clock is the run.
+   - **The density instrument was wrong once most turns spoke.** It attributed panels to turns
+     through `panel.turn`, and a panel carries the context of the *last* line written into it,
+     so whole turns vanished from the map and the split count printed negative. It now
+     attributes per turn from the Director's own `PanelDelta`, and "in one panel" means the
+     DM's authored line and the Hero's answer in one frame — not the whole turn in one frame,
+     which a description run legitimately is not.
+
+   Measured after the slice: **one exchange every 21.6 turns → 2.4, and on the full-game oracle
+   135 → 2.6** (D5 met on both). 252 exchange turns of 606, all of them reaching the screen;
+   **189 of 252 land the two-shot in one panel.** Panels 478 → 801 (+68%), the cost §5 said to
+   accept. Table-talk balloons 54 → 308.
 3. **6.1e — write the dialogue.** The largest slice, several sessions, sized by §Consequences.
    Exit: no scene falls back to silence over a full playthrough; run depths re-measured.
 4. **6.1f — verify.** Golden dialogue sequence re-pinned, pixel gate re-accepted after

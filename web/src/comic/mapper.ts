@@ -186,8 +186,9 @@ export interface BeatExchange {
   /** The DM's line — the idol reacting to the beat the Hero just caused. */
   dm?: string;
   /**
-   * The Hero's answer. Fires **only on a turn where he has no resolved action**
-   * to report; see {@link createMapper}'s `exchangeFor` for why.
+   * The Hero's answer. Since M6.1d it fires on any turn the beat does, including
+   * one where he also has a resolved action to report — the exclusion ADR 0006
+   * §4 rule 2 wrote is retired by ADR 0009 §6, and only the ordering survives.
    */
   hero?: string;
 }
@@ -210,9 +211,24 @@ export type BeatScript = ReadonlyMap<string, BeatEntry>;
 export interface MapperOptions {
   guideScript?: GuideScript;
   /**
-   * Turns that must pass between Guide balloons. The Guide is the only thing on
-   * the panel that can wear out, because it is the only thing not derived from
-   * what the player just did.
+   * Turns that must pass between two firings of **the same beat** (ADR 0009 §5,
+   * M6.1d). It gates table-talk only: read-aloud is the turn's own narration and
+   * is uncooled (ADR 0009 §2), and the room gazetteer is self-limiting — a first
+   * visit happens once.
+   *
+   * It was a single budget across every authored line until M6.1d, and that is
+   * what made the two limiters this stage lifts: a beat swallowed the room line
+   * of the arrival three turns later (gazetteer contention), and a marker that
+   * fires in clusters — a run of parser refusals is the common one — spoke once
+   * and then stayed quiet through the funniest part of the game. What can
+   * actually wear out is *one beat repeating*, so that is what the counter is
+   * per.
+   *
+   * **The clock it counts is `turn.status.moves`, which does not advance on a
+   * refusal** (ZIL does not charge the player for a parse the parser rejected).
+   * So a run of refusals is several turns at the same number, and any non-zero
+   * cooldown reads them as one. It does not bite at the shipped value (0), and
+   * anything that raises it again has to answer this first.
    */
   guideCooldown?: number;
   /**
@@ -284,8 +300,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
    * so it is a pure function of the event stream and `replayPanels` still holds.
    */
   const spokenBeats = new Map<string, number>();
+  /**
+   * Marker → the turn that beat last **spoke** on, which is what the cooldown is
+   * measured against since M6.1d. Same fold, same guarantee as `spokenBeats`
+   * beside it; a beat absent here has never been said and is free to fire.
+   */
+  const lastBeatTurn = new Map<string, number>();
   let room = "";
-  let lastGuideTurn = -Infinity;
 
   return {
     read(turn: Turn): TurnScript {
@@ -364,13 +385,10 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const affect = affectFor({ text, gameOver, scoreDelta, systemChannel });
       /** ADR 0009 §3: the turn moved the player somewhere else. */
       const roomChanged = room !== roomAtEntry && room !== "";
-      // The resolved action is settled before the exchange, because it is what
-      // decides whether the Hero has a mouth free to answer with (rule 2 on
-      // `exchangeFor`).
+      // The resolved action and the authored reply are now independent (ADR 0009
+      // §6): the action no longer suppresses the answer, it only precedes it.
       const action = heroBalloon(took, dropped, names);
-      const exchange = exchangeFor(
-        firstVisit, room, affect.marker, turn.status.moves, action !== null,
-      );
+      const exchange = exchangeFor(firstVisit, room, affect.marker, turn.status.moves);
       const guideLine = exchange.dm;
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
 
@@ -381,11 +399,14 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const readAloudLines = affect.marker === "parser-miss"
         ? []
         : readAloud(prose, affect.matched, moved);
-      // What the Hero did, or — on a turn he did nothing worth reporting — what
-      // he says back (ADR 0006 §4). Never both: see `exchangeFor` rule 2.
-      const hero = action ?? (exchange.hero === null
-        ? null
-        : { modes: BM_SAY, text: exchange.hero });
+      // What the Hero did, then what he says back — ADR 0009 §6 retired the
+      // exclusion and kept the ordering: the action is derived from events and
+      // cannot be wrong, the reply is authored garnish, and garnish goes second.
+      // Whether the pair shares a panel is `page.ts`'s decision, not a
+      // suppression rule written upstream of the fit test.
+      const heroLines: Utterance[] = [];
+      if (action !== null) heroLines.push(action);
+      if (exchange.hero !== null) heroLines.push({ modes: BM_SAY, text: exchange.hero });
       const lines: PageLine[] = [];
       // **A new location starts a panel.** Until 6.1c the caption did this on
       // every turn as a side effect of `BM_ACTION` (`panel.cpp:1064`); with the
@@ -426,13 +447,25 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           });
         }
       }
-      if (hero) {
+      for (const [i, line] of heroLines.entries()) {
         lines.push({
-          ...hero, speaker: HERO, emotion: affect.options,
+          ...line, speaker: HERO, emotion: affect.options,
           // The resolved action is derived from events; the reply came from
-          // `BEAT_SCRIPT`. `action` is non-null only in the former case.
-          register: action !== null ? "narration" : "authored",
+          // `BEAT_SCRIPT`. The action, when there is one, is always first.
+          register: i === 0 && action !== null ? "narration" : "authored",
         });
+        // The mirror of the staging above, and it exists for the same reason.
+        // Two Hero balloons never share a panel either (`AvatarInPanel`), so an
+        // action *and* a reply (ADR 0009 §6) can open a second panel — and the DM
+        // would be absent from it, the two-shot lost on exactly the turns this
+        // slice added it to. `<Chr>` after the line, not before: it has to land in
+        // whichever panel the line went to, and only that line knows.
+        if (i > 0 && dmLines.length > 0) {
+          lines.push({
+            speaker: GUIDE, modes: BM_SAY, text: CHR, emotion: GUIDE_EMOTION,
+            register: "narration",
+          });
+        }
       }
 
       // ADR 0005 §4's reaction shot has to *survive*, and since 6.1c nothing else
@@ -445,7 +478,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // the turn does, which is why the staging goes through `<Chr>` here rather
       // than through `reactions` — those are applied after every line.
       if (gameOver) {
-        if (hero === null) {
+        if (heroLines.length === 0) {
           lines.push({
             speaker: HERO, modes: BM_SAY, text: CHR, emotion: affect.options,
             register: "narration",
@@ -454,7 +487,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
         lines.push({ speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] });
       }
 
-      const reactions = hero === null && !gameOver
+      const reactions = heroLines.length === 0 && !gameOver
         ? [{ speaker: HERO, emotion: affect.options }]
         : [];
 
@@ -484,24 +517,28 @@ export function createMapper(options: MapperOptions = {}): Mapper {
   /**
    * The turn's authored exchange — ADR 0006 §4, Slice 2.
    *
-   * Three rules carry this, and each is a decision:
+   * Three rules carry this, and each is a decision. **M6.1d rewrote two of them**
+   * (ADR 0009 §5/§6 — D1 governs: where a limiter and the conversation conflict,
+   * the limiter goes):
    *
-   * 1. **One cooldown for the whole exchange.** The pair is a single authored
-   *    event, not two channels: gating the halves separately would let the Hero
-   *    answer a line the DM was too tired to say. It is consumed only when
+   * 1. **The cooldown is per beat, and the whole exchange shares it.** The pair is
+   *    a single authored event, not two channels: gating the halves separately
+   *    would let the Hero answer a line the DM was too tired to say. What it no
+   *    longer is, is one budget across every authored line — see
+   *    {@link MapperOptions.guideCooldown}. It is still consumed only when
    *    something is actually said, so a suppressed half never burns a turn's
    *    worth of silence.
-   * 2. **The resolved action outranks the Hero's reply** (`heroBusy`). What the
-   *    Hero did is derived from the event stream and cannot be wrong; the reply
-   *    is authored garnish. Rather than give him two balloons in one panel —
-   *    which panelization would then split, breaking the two-shot the exchange
-   *    exists to fill — the reply fires on the turns he is otherwise silent
-   *    (movement, examination, a refusal), which is where the comic is quietest
-   *    and where an exchange adds most. §Consequences' "degrades to a single
-   *    balloon, never a wrong exchange", applied to the Hero's side.
-   * 3. **The gazetteer stays DM-only.** A room line is the idol narrating a
-   *    place, not a beat the Hero caused, so there is nothing for him to answer.
-   *    The room path is otherwise untouched (pre-§4 behaviour).
+   * 2. ~~The resolved action outranks the Hero's reply.~~ **Retired at M6.1d**
+   *    (ADR 0009 §6). It was there to keep two Hero balloons out of one panel,
+   *    which panelization would then split — but the caption was what made a split
+   *    likely, and the caption is gone. He may report *and* answer; `page.ts`
+   *    decides whether that is one panel or two, and the ordering (action first,
+   *    it cannot be wrong; reply second, it is garnish) is applied by the caller.
+   * 3. **The gazetteer stays DM-only** — a room line is the idol narrating a
+   *    place, not a beat the Hero caused, so there is nothing for him to answer —
+   *    **but it is no longer cooled.** A first visit happens exactly once per
+   *    room, so the room path limits itself; the shared budget only ever meant an
+   *    unrelated beat three turns earlier could delete a room's one line forever.
    *
    * Slice 4 adds a fourth, and it is the one the testing contract watches:
    *
@@ -509,44 +546,43 @@ export function createMapper(options: MapperOptions = {}): Mapper {
    *    counter is over *spoken* firings, not over marker occurrences: a beat the
    *    cooldown swallowed was never on the page, so advancing past its line would
    *    retire a reply the reader never read. It advances at the same moment
-   *    `lastGuideTurn` does — after the decision to speak — which is what keeps
+   *    `lastBeatTurn` does — after the decision to speak — which is what keeps
    *    the two from disagreeing about what happened. Past the end of the run the
    *    last line repeats; nothing cycles, because a beat that looped back to its
    *    opening reaction would be a DM surprised by a room he has seen four times.
    */
   function exchangeFor(
     firstVisit: boolean, roomId: string, marker: string | null, turnNumber: number,
-    heroBusy: boolean,
   ): { dm: string | null; hero: string | null } {
     const silent = { dm: null, hero: null };
-    if (turnNumber - lastGuideTurn < guideCooldown) return silent;
 
     // Beat reaction first (ADR 0005 §4): the pair answers what the Hero just did.
     // This is the whole of "they talk to each other" — the lines are chosen by the
     // marker the Hero's action produced, so the DM is replying, not narrating a
     // room on a timer.
     const entry = marker !== null ? beatScript.get(marker) : undefined;
-    if (entry !== undefined && marker !== null) {
+    const cooled = marker !== null
+      && turnNumber - (lastBeatTurn.get(marker) ?? -Infinity) < guideCooldown;
+    if (entry !== undefined && marker !== null && !cooled) {
       const exchange = variantOf(entry, spokenBeats.get(marker) ?? 0);
       const dm = exchange.dm ?? null;
-      const hero = heroBusy ? null : (exchange.hero ?? null);
+      const hero = exchange.hero ?? null;
       if (dm !== null || hero !== null) {
-        lastGuideTurn = turnNumber;
+        lastBeatTurn.set(marker, turnNumber);
         // Rule 4: the beat is one line older only now that it has been said.
         spokenBeats.set(marker, (spokenBeats.get(marker) ?? 0) + 1);
         return { dm, hero };
       }
-      // A Hero-only beat on a turn he is already speaking says nothing; fall
-      // through rather than swallow the room line that would otherwise fire.
+      // An empty run says nothing; fall through rather than swallow the room line
+      // that would otherwise fire.
     }
 
-    // Then the room gazetteer, on first entry (the pre-§4 behaviour, unchanged).
+    // Then the room gazetteer, on first entry. Rule 3: uncooled since M6.1d, and
+    // reached even on a turn the beat above was cooled out — the two tables no
+    // longer contend for one budget.
     if (firstVisit) {
       const roomLine = guideScript.get(roomId);
-      if (roomLine !== undefined) {
-        lastGuideTurn = turnNumber;
-        return { dm: roomLine, hero: null };
-      }
+      if (roomLine !== undefined) return { dm: roomLine, hero: null };
     }
     return silent;
   }

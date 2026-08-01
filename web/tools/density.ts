@@ -50,7 +50,7 @@ import { objectNameTable } from "../src/status.js";
 import { createDirector } from "../src/comic/director.js";
 import { createFitTest } from "../src/comic/fit.js";
 import { CAPTION, GUIDE, HERO, createMapper, type Panel } from "../src/comic/mapper.js";
-import { BRK, CHR } from "../src/comic/page.js";
+import { BRK, CHR, type PanelDelta } from "../src/comic/page.js";
 import { BEAT_SCRIPT, GUIDE_COOLDOWN, GUIDE_SCRIPT } from "../src/comic/script.js";
 import type { BeatEntry, BeatExchange, MapperOptions } from "../src/comic/mapper.js";
 
@@ -117,6 +117,8 @@ export interface DensityCounts {
   panelsExchange: number;
   /** Exchange turns whose two halves reached the screen at all (either panel). */
   screenExchangeTurns: number;
+  /** …of those, the ones whose whole turn landed in exactly one panel. */
+  onePanelExchangeTurns: number;
 }
 
 export interface DensityReport {
@@ -132,7 +134,7 @@ const ZERO: DensityCounts = {
   turns: 0, caption: 0, dm: 0, dmReadAloud: 0, dmTalk: 0, dmBeat: 0, dmGazetteer: 0,
   hero: 0, heroAction: 0, heroReply: 0, exchanges: 0, bothSpeak: 0,
   panels: 0, panelsDm: 0, panelsHero: 0, panelsBothSpeakers: 0,
-  panelsExchange: 0, screenExchangeTurns: 0,
+  panelsExchange: 0, screenExchangeTurns: 0, onePanelExchangeTurns: 0,
 };
 
 function add(into: DensityCounts, next: DensityCounts): DensityCounts {
@@ -196,6 +198,13 @@ function measureFile(doc: WorldDocument, file: string): DensityCounts {
   const texts = scriptTexts();
   const commands = commandsOf(file);
   let counts = { ...ZERO };
+  /**
+   * Per turn, in order: did its own script carry a DM line and a Hero reply. The
+   * two stages replay the same commands from the same seed, so the index is the
+   * same turn in both — which is what lets the screen half attribute panels to
+   * the turn that caused them instead of to the context a panel happens to carry.
+   */
+  const scripted: Array<{ dm: boolean; reply: boolean }> = [];
 
   // Stage 1 — the script. A bare mapper, folded turn by turn: this is what the
   // authored tables produce, before any edit.
@@ -228,6 +237,7 @@ function measureFile(doc: WorldDocument, file: string): DensityCounts {
       }
       if (dm.length > 0 && reply !== null) counts.exchanges += 1;
       if (dm.length > 0 && hero.length > 0) counts.bothSpeak += 1;
+      scripted.push({ dm: dm.length > 0, reply: reply !== null });
     }
   }
 
@@ -236,10 +246,47 @@ function measureFile(doc: WorldDocument, file: string): DensityCounts {
   {
     const session = createSession(doc, { seed: SEED });
     const director = createDirector({ ...productionOptions(doc), fit: fitTest() });
-    director.ingest(session.start());
-    for (const command of commands) director.ingest(session.command(command));
+    let screenExchangeTurns = 0;
+    let onePanelExchangeTurns = 0;
+    /**
+     * How many panels this turn's own utterances touched: the ones it appended,
+     * plus the one it clone-appended into. **Zero means the turn never reached the
+     * screen** — the Director dropped it, or it is still buffered in a traversal
+     * run. This is the honest reading of "did the exchange land in one panel", and
+     * it replaced reading it off `panel.turn` at M6.1d: a panel carries the
+     * context of the *last* line written into it, so once most turns spoke, whole
+     * turns disappeared from that map and the split count went negative.
+     */
+    const touchedBy = (delta: PanelDelta): number =>
+      delta.appended.length + (delta.replacedLast ? 1 : 0);
+    /**
+     * Did the exchange itself land in one panel — the DM's authored line and the
+     * Hero's answer in the same frame, which is the facing two-shot D5 asks for.
+     * Deliberately *not* "the whole turn is one panel": a turn where the DM also
+     * reads three sentences of room description aloud is a panel run by ADR 0009
+     * §4, and the exchange closing it is exactly what that run is built to end on.
+     */
+    const record = (delta: PanelDelta, index: number): void => {
+      const s = scripted[index];
+      if (s === undefined || !s.dm || !s.reply) return;
+      const touched = touchedBy(delta);
+      if (touched === 0) return; // dropped, or still buffered in a traversal run
+      screenExchangeTurns += 1;
+      const frames = director.panels.slice(-touched);
+      const together = frames.some((panel) =>
+        panel.speakers.some((l) => l.speaker === GUIDE && l.register === "authored")
+        && panel.speakers.some((l) => l.speaker === HERO && l.register === "authored"));
+      if (together) onePanelExchangeTurns += 1;
+    };
+    record(director.ingest(session.start()), 0);
+    for (const [i, command] of commands.entries()) {
+      record(director.ingest(session.command(command)), i + 1);
+    }
     director.flush(); // a trailing traversal run is still a panel (ADR 0005 §3)
-    counts = { ...counts, ...panelCounts(director.panels, texts) };
+    counts = {
+      ...counts, ...panelCounts(director.panels, texts),
+      screenExchangeTurns, onePanelExchangeTurns,
+    };
   }
 
   return counts;
@@ -250,10 +297,6 @@ type Texts = ReturnType<typeof scriptTexts>;
 /** The screen half of {@link DensityCounts}, read off the emitted panel stream. */
 function panelCounts(panels: readonly Panel[], texts: Texts): Partial<DensityCounts> {
   let panelsDm = 0, panelsHero = 0, panelsBothSpeakers = 0, panelsExchange = 0;
-  // Turn number → what reached the screen for it. A turn's two halves can be
-  // split across panels by `AddLine`, which is exactly the distinction between
-  // this and `panelsExchange`.
-  const onScreen = new Map<number, { dm: boolean; reply: boolean }>();
 
   for (const panel of panels) {
     const dm = panel.speakers.filter((line) => line.speaker === GUIDE);
@@ -263,22 +306,11 @@ function panelCounts(panels: readonly Panel[], texts: Texts): Partial<DensityCou
     if (hero.length > 0) panelsHero += 1;
     if (dm.length > 0 && hero.length > 0) panelsBothSpeakers += 1;
     if (dm.length > 0 && replies.length > 0) panelsExchange += 1;
-
-    // A panel can hold more than one turn's lines (clone-append), and the panel
-    // carries the context of the turn that opened it — so attribute by line, to
-    // the panel's turn, and accept that a clone-appended reply is credited to the
-    // panel it landed in. Both halves in the same panel is the case that matters.
-    const seen = onScreen.get(panel.turn) ?? { dm: false, reply: false };
-    seen.dm ||= dm.length > 0;
-    seen.reply ||= replies.length > 0;
-    onScreen.set(panel.turn, seen);
   }
 
-  const screenExchangeTurns = [...onScreen.values()].filter((s) => s.dm && s.reply).length;
-  return {
-    panels: panels.length,
-    panelsDm, panelsHero, panelsBothSpeakers, panelsExchange, screenExchangeTurns,
-  };
+  // Per-turn attribution lives in `measureFile`, off the Director's own deltas —
+  // a panel's context is the last line written into it, not a turn id.
+  return { panels: panels.length, panelsDm, panelsHero, panelsBothSpeakers, panelsExchange };
 }
 
 export function runDensity(): DensityReport {
@@ -337,7 +369,7 @@ function report(current: DensityReport): string {
       String(c.turns), r.caption.toFixed(1), String(c.dm), String(c.hero),
       String(c.exchanges),
       r.turnsPerExchange === Infinity ? "—" : r.turnsPerExchange.toFixed(1),
-      String(c.panels), String(c.panelsExchange),
+      String(c.panels), String(c.onePanelExchangeTurns),
     ];
     return [pad(name, widths[0]!), ...cells.map((v, i) => left(v, widths[i + 1]!))].join(" ");
   };
@@ -356,9 +388,9 @@ function report(current: DensityReport): string {
     + `(the Director dropped or collapsed ${t.exchanges - t.screenExchangeTurns})`);
   // The split count is the whole of limiter 4: an exchange whose halves landed in
   // two panels is the shot/reverse-shot §6.1 is trying to stop drawing.
-  out.push(`  in one panel:    ${t.panelsExchange} of ${t.screenExchangeTurns} `
-    + `(${t.screenExchangeTurns - t.panelsExchange} split across two panels); `
-    + `${t.panelsBothSpeakers} panels carry both speakers`);
+  out.push(`  in one panel:    ${t.onePanelExchangeTurns} of ${t.screenExchangeTurns} `
+    + `(${t.screenExchangeTurns - t.onePanelExchangeTurns} split across two or more); `
+    + `${t.panelsExchange} panels hold one, ${t.panelsBothSpeakers} carry both speakers`);
   out.push(`both speak:        ${t.bothSpeak} turns (any DM balloon + any Hero balloon)`);
   out.push(`captions:          ${t.caption} of ${t.turns} turns (${r.caption.toFixed(1)}%)`);
   out.push("");

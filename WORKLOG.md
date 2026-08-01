@@ -10,6 +10,60 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.21.0 — 2026-08-01 — M6.1d: the limiters come off, and D5 is met
+
+The slice the whole stage was pointed at. ADR 0009 §5/§6, built — and the number M6.1 is judged on
+moved from **one exchange every 21.6 turns to one every 2.4**, with the full-game oracle (the honest
+row, the one that started at **one in 135**) at **2.6**. D5 asked for one every 2–3, on the corpus
+*and* on the oracle. Both.
+
+- **Four limiters, and they turned out to be two.** The plan named the `action ?? reply` exclusion,
+  the cooldown, marker coverage and gazetteer contention as four compounding limits. Two of them
+  were the same object: **one cooldown budget shared by every authored line.** A beat silenced an
+  unrelated beat, and either silenced a room's single first-visit gazetteer line *permanently*,
+  because the room path never comes round a second time. The cooldown is now **per beat**, the
+  gazetteer is **not cooled at all**, and the shipped value is **0** — measured, not chosen: at 1 the
+  corpus reads 3.8 and the oracle 5.8, both outside D5, because the markers that carry a playthrough
+  arrive in clusters and a clock deletes half of every cluster. What replaces the clock is the run:
+  consecutive firings say consecutive lines, which is an escalating conversation rather than a stuck
+  record.
+- **The Director drops a refusal only when it has nothing to say** (§5). It asks the *script*, not
+  the marker table — `speaks(script)`, everything that is not a `<Brk>`/`<Chr>` sentinel — so the
+  dialogue M6.1e writes changes what survives without touching `director.ts` again.
+- **`parser-miss` is scripted, ten deep.** 26.4% of all turns, the largest marker in the game and the
+  one the pane was silent on; the DM holds the rulebook and the Hero is the player who knows exactly
+  what he meant, so it is written as an argument that wears down rather than a joke that repeats.
+  `routine-ack` (4.3%) joined it — scriptable only because §6 now lets the Hero report *and* answer.
+- **The Hero may report an action and answer on the same turn** (§6). The exclusion existed to keep
+  two of his balloons out of one panel, which the caption would then split; the caption went at
+  6.1c, so only the ordering survives — derived action first, authored garnish second. The DM is
+  staged through his run with `<Chr>` for the same reason the Hero is staged through the DM's: if the
+  pair splits, the frame without the staging cuts away from half the conversation.
+- **The instrument had to be repaired mid-slice, and that is the finding worth keeping.**
+  `density.ts` attributed panels to turns through `panel.turn` — but a panel carries the context of
+  the *last* line written into it, so once most turns spoke, whole turns vanished from the map and
+  the report printed "194 of 154 (-40 split)". It now attributes per turn from the Director's own
+  `PanelDelta`, and it distinguishes "the exchange landed in one panel" from "the whole turn landed
+  in one panel": a turn whose DM also reads a description aloud is a panel *run* by ADR 0009 §4, and
+  the exchange closing it is exactly what the run is built to end on. Under the honest reading,
+  **189 of 252 exchanges land the two-shot in one panel.**
+- **The cost, accepted in advance by ADR 0009 §5:** panels 478 → **801** (+68%) over 606 turns. More
+  turns survive the edit, so a playthrough is more comic. Table-talk balloons 54 → 308.
+- **The tripwire fired and was inverted, as 6.1a designed it to be.** `density.test.ts` asserted
+  `turnsPerExchange > 5` — "we are still nowhere near" — and failing it *is* the exit criterion. It
+  now bounds D5 on both sides, plus a new test that keeps the two-shot the common case. Three older
+  tests guarded rules this slice retired and were rewritten to guard what replaced them.
+- **Tests:** 267 web (+2) · 139 engine · 198 IR · pixel gate clean, 17 cases, no drift (its fixtures
+  carry their own scripts). Nothing in `engine/` or `ir/` was touched; parity stays 143/143 strict.
+- **Still open, and named rather than deferred quietly:** `parser-miss` fires 160 times in the
+  corpus and a ten-line run means the tenth line repeats a hundred and fifty times — depth is
+  M6.1e's, together with the question of whether a beat that frequent wants a *rotating* tail
+  instead of a settled last line (that would amend ADR 0006 §4 rule 4, so it is a decision, not an
+  edit). And one scene walkthrough, `07-forest-and-tree`, still reads one exchange every 8 turns:
+  the forest is unmarked ambient turns, which is precisely the material 6.1e exists to write.
+
+---
+
 ## v0.20.0 — 2026-08-01 — M6.1c: the caption channel retires, and the DM speaks the room
 
 The first slice that changes what the pane draws. ADR 0009 §2/§3/§4, built: narration became the

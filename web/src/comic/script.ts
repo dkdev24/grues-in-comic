@@ -20,12 +20,25 @@
 import type { BeatEntry, BeatScript } from "./mapper.js";
 
 /**
- * Turns between Guide balloons, as the pane ships it (`comic-view.ts` passed 3 as
- * a literal). It lives here because it is the budget the tables are written
- * against: raising it starves the gazetteer, lowering it wears the DM out, and
- * M6.1d is going to move it — from here, once, rather than in the view.
+ * Turns between two firings of **the same beat** (`MapperOptions.guideCooldown`).
+ *
+ * M6.1d moved it, and changed what it counts. It was 3 turns between *any* two
+ * authored lines, which is the budget that starved D5: one beat could silence
+ * another, and either could silence a room's one gazetteer line for good. It is
+ * now per beat, the gazetteer is uncooled, and what is left to protect is the
+ * only thing that can actually wear out — a beat saying the *same* line twice.
+ *
+ * **0, and measured rather than chosen.** At 1 — the same beat kept off two
+ * consecutive turns — the corpus reads one exchange every 3.8 turns and the
+ * full-game oracle one every 5.8, both outside D5, because the markers that
+ * carry a playthrough arrive in clusters and the clock deletes half of every
+ * cluster. At 0 it is 2.4 and 2.6. What replaces the clock is the run
+ * ({@link BEAT_SCRIPT}): consecutive firings say consecutive lines, which is a
+ * conversation escalating rather than a record sticking. The exposure that
+ * leaves is a beat *past the end of its run*, where the last line repeats — see
+ * `BEAT_SCRIPT`'s note, and it is M6.1e's to close with depth.
  */
-export const GUIDE_COOLDOWN = 3;
+export const GUIDE_COOLDOWN = 0;
 
 /**
  * The Dungeon Master's gazetteer — one line per room, spoken once on first entry.
@@ -162,20 +175,21 @@ export const GUIDE_SCRIPT = new Map<string, string>([
  * his settled voice (`wiki/the-hero.md`) — terse, dry, genre-literate, and
  * never a hint (his rule 5: the reply reacts, it does not tell him what to do).
  *
- * The Hero's line fires only on a turn where he has no resolved action to report
- * (`mapper.ts`'s `exchangeFor`), so these are read as *the quiet turns' half of
- * the exchange*, not as a second balloon competing with "The lantern, then."
+ * Since M6.1d the Hero's line fires on any turn the beat does, **including one
+ * where he also reports an action** (ADR 0009 §6): "The lantern, then." and his
+ * answer are two balloons in the order the mapper pushes them, and `page.ts`
+ * decides whether that is one panel or two.
  *
- * Two markers are deliberately absent:
+ * **`death` is still deliberately absent.** The `reaction` rung is tight on the
+ * Hero's face and carries no speech balloon by design (`render.ts`'s
+ * `BALLOON_HEADROOM`). The idol does not crowd a death, and neither does a quip.
  *
- * - **`death`** — the `reaction` rung is tight on the Hero's face and carries no
- *   speech balloon by design (`render.ts`'s `BALLOON_HEADROOM`). The idol does
- *   not crowd a death, and neither does a quip.
- * - **`parser-miss`** — the largest marker there is (12.7% of turns). Because
- *   the beat table is consulted before the room gazetteer and consumes the same
- *   cooldown, scripting it would spend most of the exchange budget on the Hero
- *   arguing with the parser and starve the rarer beats. Adding it is a
- *   measurement question (the standing method note), not an authoring one.
+ * **`parser-miss` and `routine-ack` are scripted as of M6.1d**, and that was the
+ * stage's largest lever. They were held back because the beat table consumed one
+ * shared cooldown with the gazetteer, so scripting the biggest marker in the game
+ * would have starved the rarer beats. The cooldown is per beat now
+ * (`MapperOptions.guideCooldown`), so the argument no longer holds — and the
+ * measurement it was waiting on says these two are 26.4% and 4.3% of all turns.
  *
  * **Slice 4: every beat is now a run, not a line.** Each entry is the beat's
  * lines in the order they are spoken, and the *n*th time the beat speaks it takes
@@ -190,6 +204,14 @@ export const GUIDE_SCRIPT = new Map<string, string>([
  * `combat-victory` 0×. So `reveal` earns four lines and the rest two or three;
  * the fights are scripted three deep on the corpus's account being the poorer
  * evidence there — the walkthroughs avoid combat, real play does not.
+ *
+ * `parser-miss` occurs on 160 turns of the corpus, which no run can cover: the
+ * last line of a run repeats, by rule, so a ten-deep run still ends in one line
+ * said a hundred and fifty times. Ten is what M6.1d writes — enough that the arc
+ * reads as an arc and the report can be measured — and **going deeper is M6.1e's
+ * problem, together with the question of whether a beat this frequent wants a
+ * rotating tail rather than a settled last line** (that would amend ADR 0006 §4
+ * rule 4, so it is a decision, not a content edit).
  */
 export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
   ["combat-victory", [
@@ -274,6 +296,75 @@ export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
     {
       dm: "You have stopped reading the room and started reading the hinges.",
       hero: "The hinges have been more honest.",
+    },
+  ]],
+  // The largest beat in the game (26.4% of turns) and the one the pane was
+  // quietest on: the parser said no, and until M6.1d nobody said anything about
+  // it. The DM is the one holding the rulebook, so the refusal is his to explain
+  // away; the Hero is the player who knows exactly what he meant. Neither may
+  // name a noun — the marker knows a refusal happened, not what was refused.
+  ["parser-miss", [
+    {
+      dm: "That is not a thing the world knows how to be asked.",
+      hero: "It knew a minute ago. I'll try smaller words.",
+    },
+    {
+      dm: "The module is quite specific about its vocabulary.",
+      hero: "The module could try meeting me halfway.",
+    },
+    {
+      dm: "No.",
+      hero: "You could tell me why.",
+    },
+    {
+      dm: "I could. It would not help.",
+      hero: "It would help me.",
+    },
+    {
+      dm: "You are arguing with a book.",
+      hero: "The book started it.",
+    },
+    {
+      dm: "Rephrase. It costs you nothing but a turn.",
+      hero: "It costs me the turn. That's the part I mind.",
+    },
+    {
+      dm: "Still no. It is consistent, if nothing else.",
+      hero: "Consistency is what it has instead of manners.",
+    },
+    {
+      dm: "There is a way to say that. This is not it.",
+      hero: "Then we'll find it the slow way.",
+    },
+    {
+      dm: "We have had this conversation.",
+      hero: "We'll have it again. I'm nothing if not thorough.",
+    },
+    {
+      dm: "No.",
+      hero: "Noted.",
+    },
+  ]],
+  // The engine's own one-word receipts — "Taken.", "Dropped.", "Opened." — which
+  // are the turns the Hero already has an action balloon on. Scriptable only
+  // since ADR 0009 §6 let him report *and* answer; before that the reply was
+  // suppressed on exactly these turns.
+  ["routine-ack", [
+    {
+      dm: "The empire logs every one of these, you know.",
+      hero: "Let it. The paperwork is the only thing it's good at.",
+    },
+    {
+      dm: "Another entry in a very long inventory.",
+      hero: "It's a job.",
+    },
+    {
+      dm: "You have stopped looking at these before you take them.",
+      hero: "I look. I've just stopped being surprised.",
+    },
+    {
+      dm: "Noted, filed, forgotten.",
+      hero: "That's the arrangement.",
     },
   ]],
   ["uncanny", [

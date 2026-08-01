@@ -94,6 +94,21 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   shipped tables were never measured. Content goes in that module; the trigger, the cooldown and the
   run cursor stay in `mapper.ts`. **After editing either, run `npm --prefix web run density`** — the
   numbers are *meant* to move over M6.1, but only deliberately (`density:accept`), like the pixel gate.
+- **The authored cooldown is per beat and the room gazetteer is not cooled at all** (ADR 0009 §5,
+  M6.1d). One shared budget across every authored line was two of M6.1's four limiters at once: a
+  beat three turns ago silenced an unrelated beat now, and either silenced a room's *one* first-visit
+  line permanently — the room path never comes round again. If a future change reintroduces a shared
+  clock, D5 goes with it.
+- **The cooldown's clock is `turn.status.moves`, which does not advance on a refusal.** ZIL does not
+  charge the player for a parse it rejected, so a run of refusals is several turns wearing the same
+  number and any non-zero cooldown reads them as one turn. Harmless at the shipped value (0);
+  anything that raises it has to answer this first.
+- **`density.ts` attributes panels to turns through the Director's `PanelDelta`, never through
+  `panel.turn`** (M6.1d). A panel carries the context of the *last* line written into it, so once most
+  turns spoke, whole turns disappeared from a `panel.turn` map and the report printed a negative split
+  count. Related: **"the exchange is in one panel" is not "the turn is in one panel"** — a turn whose
+  DM also reads a description aloud is a panel run by design (ADR 0009 §4), and the exchange ending it
+  is what the run is built to end on.
 - **Dialogue is authored at build time and committed as data, never generated at runtime.** The
   mapper is the parity oracle, so it must stay deterministic; a model call while the game runs would
   break that, and there is no budget for a paid API. This holds however large the authored corpus

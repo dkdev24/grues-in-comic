@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.20.0** · Platform: **macOS only** (2026-07-28)
+**0.21.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,31 +27,36 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1c are done**; 6.1 is in progress.
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d are done and D5 is met**; 6.1 is in progress.
 
-**Tests:** 265 web · 139 engine · 198 IR · parity 143/143 strict.
+**Tests:** 267 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — M6.1c: the caption channel is gone and the DM speaks (v0.20.0)
+## Last Session — M6.1d: the limiters came off and D5 is met (v0.21.0)
 
-6.1a ✅ (the density report) · 6.1b ✅ (ADR 0009) · **6.1c ✅ — the first slice that changes the pane.**
-Narrative in `WORKLOG.md` v0.19.0–v0.20.0; the decisions are ADR 0009, which is the authority.
+6.1a ✅ · 6.1b ✅ · 6.1c ✅ · **6.1d ✅ — the stage's number is reached.** Narrative in `WORKLOG.md`
+v0.21.0; the decisions are ADR 0009 §5/§6, which is the authority.
 
-- **Captions 96.7% → 0%.** Narration is now the DM's speech balloon; the top-left box is the
-  **location name**, drawn by the renderer from `PanelContext.roomTitle` on room change, never a
-  line. On a turn the player moved he reads the *whole* description, packed into ≤200-char balloons
-  that continue across panels.
-- **The exchange lands in one panel far more often: 20 of 28 → 24 of 28.** Panels 411 → 478 (+16%),
-  the predicted cost. Exchanges themselves are still 28 (one every 21.6 turns) — that is 6.1d.
-- **`web/src/comic/script.ts`** holds the authored tables (6.1a) and **`register: "narration" |
-  "authored"`** now marks every line, which is how anything tells the DM's two voices apart.
-- **Three things the ADR did not foresee, all now in `docs/PITFALLS.md` → Web** — the caption was
-  also holding the panel open, so a **room change** and a **death** must ask for the break with
-  `<Brk>` (missing it deleted the `reaction` rung from the corpus: 11 turns, 0 panels);
-  `roomTitle` must survive a clone-append; the Hero must be staged through the DM's whole run with
-  `<Chr>`.
-- **Gate re-accepted after looking at the images** (17 cases), density baseline re-accepted.
+- **One exchange every 21.6 turns → 2.4, and on the full-game oracle 135 → 2.6.** D5 asked for one
+  every 2–3 on the corpus *and* the oracle. 252 exchange turns of 606, all reaching the screen,
+  **189 of them landing the two-shot in one panel.** Panels 478 → 801 (+68%) — the cost ADR 0009 §5
+  accepted in advance.
+- **Two of the four named limiters were one object: a single cooldown shared by every authored
+  line.** It is now **per beat**, the gazetteer is **uncooled** (a first visit happens once, so the
+  room path limits itself), and the shipped value is **0** — at 1 the oracle reads 5.8, outside D5,
+  because markers arrive in clusters. The run, not a clock, is what keeps a beat from wearing out.
+- **The Director drops a refusal only when it has nothing to say**, asked of the script (`speaks()`)
+  rather than of the marker table — so 6.1e's dialogue changes what survives without touching
+  `director.ts`. **`parser-miss` (26.4% of turns) and `routine-ack` are scripted.** The Hero may
+  report an action *and* answer (§6); only the ordering survives.
+- **The density instrument was wrong and was repaired** — it attributed panels through `panel.turn`,
+  which is the *last* line written into a panel, and printed a negative split count once most turns
+  spoke. Per-turn attribution now comes off the Director's `PanelDelta`. In `docs/PITFALLS.md` → Web,
+  with the per-beat cooldown and the `status.moves` clock that does not advance on a refusal.
+- **The 6.1a tripwire fired and was inverted deliberately**; three tests guarding retired rules were
+  rewritten. Density baseline re-accepted; the pixel gate is clean at 17 cases (its fixtures carry
+  their own scripts, so this slice did not move it).
 
 ## Next Actions
 
@@ -59,15 +64,22 @@ Narrative in `WORKLOG.md` v0.19.0–v0.20.0; the decisions are ADR 0009, which i
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a ✅ · 6.1b ✅ · 6.1c ✅. **Next is 6.1d — where D5 is actually met.** Lift the
-   limiters, in the order ADR 0009 §5/§6 sets: the Director's **conditional refusal drop** (26.4% of
-   turns, the largest lever — a refusal with a line is kept, a silent one still dropped), the
-   cooldown retuned now that read-aloud is uncooled, marker coverage widened (`parser-miss` first),
-   and the action/reply exclusion relaxed to an ordering. Exit: **one exchange every 2–3 turns on
-   `npm --prefix web run density`, on the oracle as well as the scenes** — it starts at 1-in-21.6
-   (1-in-135 on the oracle). Then 6.1e (write the dialogue; the largest, several sessions), 6.1f
-   (verify). **The density tripwire test in `web/test/density.test.ts` fails when 6.1d succeeds —
-   invert it deliberately.**
+   weighting). 6.1a ✅ · 6.1b ✅ · 6.1c ✅ · 6.1d ✅ (D5 met: 2.4 corpus, 2.6 oracle). **Next is 6.1e —
+   write the dialogue.** The largest slice, several sessions, and D1 sanctions its size. The
+   mechanism is finished; what is left is coverage. Three things it inherits, named rather than
+   discovered later:
+   - **Depth, not breadth, is the pressing half.** `parser-miss` fires 160× in the corpus against a
+     ten-line run, so its last line repeats ~150 times. **Decide first whether a beat that frequent
+     wants a rotating tail** instead of a settled last line — that amends ADR 0006 §4 rule 4, so it
+     is a decision, not an edit.
+   - **Write against the oracle's distribution, not the scenes'.** 56.6% of turns carry no marker at
+     all (ambient 191, traversal 89 of 606), which is why `07-forest-and-tree` still reads one
+     exchange every 8 turns while every other scene is at 2.
+   - **The gazetteer is still DM-only** (`exchangeFor` rule 3). Giving room lines a Hero half is the
+     obvious next lever if 6.1e needs one; it was not needed to meet D5.
+
+   Then 6.1f (verify: golden re-pinned, gate re-accepted **after looking at the images**, a
+   playthrough read in the browser).
 2. **M6.2 — save / load / restart.** ☐ UI over the engine's existing save contract; three named
    slots, browser storage only. Independent — good filler for an idle session.
 3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐

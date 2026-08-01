@@ -27,7 +27,7 @@ import { PLAYER_ID } from "../../engine/src/state.js";
 import { createSession } from "../src/session.js";
 import {
   CAPTION, GUIDE, HERO, READ_ALOUD_MAX, createMapper, heroBalloon, lineOf, panelKind, readAloud, salient,
-  type Line, type MapperOptions, type Panel,
+  type BeatEntry, type Line, type MapperOptions, type Panel,
 } from "../src/comic/mapper.js";
 import {
   BM_SAY, BRK, CHR, addScript, createPage, makeBalloonClass, type Register,
@@ -306,12 +306,13 @@ describe("panel stream", () => {
     expect(hero(shot)?.balloonClass).toBe("CBWoodringNormal");
   });
 
-  it("lets the resolved action outrank the Hero's authored reply (ADR 0006 §4)", () => {
-    // `take leaflet` fires `reveal`'s sibling case: the Hero *did* something this
-    // turn, so what he says is the derived action, never the authored banter —
-    // and he never says both, which would be two balloons for one speaker.
+  it("lets the Hero report an action and answer, in that order (ADR 0009 §6)", () => {
+    // ADR 0006 §4 rule 2 made the resolved action *suppress* the reply, because
+    // two Hero balloons in one panel were a panel the caption would then split.
+    // The caption is gone (6.1c), so ADR 0009 §6 keeps only the ordering: the
+    // derived action first — it cannot be wrong — then the authored garnish.
     const beatScript = new Map([
-      ["scored", { dm: "The empire notices.", hero: "Should not have fired." }],
+      ["routine-ack", { dm: "The empire notices.", hero: "Should not have fired." }],
     ]);
     const session = createSession(doc, { seed: SEED });
     const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
@@ -320,7 +321,10 @@ describe("panel stream", () => {
     for (const command of ["open mailbox", "take leaflet"]) {
       shot = page.turn(session.command(command));
     }
-    expect(hero(shot)?.text).toBe("The leaflet, then.");
+    const said = shot!.lines.filter((l) => l.speaker === HERO).map((l) => l.text);
+    expect(said).toEqual(["The leaflet, then.", "Should not have fired."]);
+    expect(hero(shot)?.register).toBe("narration");
+    expect(reply(shot)?.text).toBe("Should not have fired.");
   });
 
   it("fires a Hero-only beat, and drops it without burning the gazetteer", () => {
@@ -463,10 +467,10 @@ describe("panel stream", () => {
       .toBe("The empire hears you.");
   });
 
-  it("does not spend a line the Hero's action outranked (ADR 0006 §4, Slice 4)", () => {
-    // Rule 2 meets rule 4. A Hero-only beat suppressed by his resolved action
-    // says nothing, so it must also age nothing: his first *spoken* reply is
-    // still the run's first line.
+  it("walks the run in order on turns he also acts on (ADR 0006 §4 Slice 4, ADR 0009 §6)", () => {
+    // Rule 4 outliving rule 2. The reply is no longer suppressed by a resolved
+    // action, so these turns now spend a line — and they must spend them in
+    // order, one per *spoken* firing, exactly as the quiet turns do.
     const beatScript = new Map([["scored", [
       { hero: "That one counts." },
       { hero: "And that one." },
@@ -474,13 +478,9 @@ describe("panel stream", () => {
     const session = createSession(doc, { seed: SEED });
     const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
     page.turn(session.start());
-    // `take leaflet` scores nothing here, but the shape under test is the
-    // suppression itself: a turn with a resolved action carries the action.
-    const taken = page.turn(session.command("open mailbox"));
-    expect(hero(taken)?.text).toBeUndefined;
     const spoken: string[] = [];
     for (const command of commandsOf(FULL_GAME).slice(0, 120)) {
-      const line = hero(page.turn(session.command(command)))?.text;
+      const line = reply(page.turn(session.command(command)))?.text;
       if (line === "That one counts." || line === "And that one.") spoken.push(line);
     }
     // Whatever the route did in between, the run was walked in order and never
@@ -883,17 +883,39 @@ describe("the Guide is presentation-only (§3)", () => {
     }
   });
 
-  it("honours its cooldown", () => {
+  it("cools each beat on its own, not the whole authored voice (ADR 0009 §5)", () => {
+    // M6.1d: the cooldown counts turns since *this beat* last spoke. One shared
+    // budget was what let a beat three turns ago silence an unrelated one now,
+    // and it is the limiter D5 could not be reached through.
+    const beatScript = new Map<string, BeatEntry>([
+      ["parser-miss", ["Try again.", "Again."]],
+      ["reveal", "Noted."],
+    ]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 2 });
+    page.turn(session.start());
+    // A refusal speaks, the very next turn's *different* beat is unaffected, and
+    // a second refusal one turn later is the one the cooldown stops.
+    expect(talk(page.turn(session.command("xyzzy plugh")))?.text).toBe("Try again.");
+    expect(talk(page.turn(session.command("open mailbox")))?.text).toBe("Noted.");
+    expect(talk(page.turn(session.command("frobozz")))).toBeNull();
+  });
+
+  it("leaves the room gazetteer uncooled — a first visit happens once (ADR 0009 §5)", () => {
     const script = new Map(
       ["WEST-OF-HOUSE", "NORTH-OF-HOUSE", "BEHIND-HOUSE", "KITCHEN", "LIVING-ROOM"]
         .map((room) => [room, `A word about ${room}.`] as const),
     );
     const session = createSession(doc, { seed: SEED });
+    // A cooldown far larger than the walkthrough: it must not reach the room
+    // path at all. Before M6.1d this left exactly one room with a voice.
     const page = strip({ guideScript: script, guideCooldown: 1000 });
     page.turn(session.start());
     for (const c of commandsOf("02-house-entry.cmd")) page.turn(session.command(c));
-    // The Guide is the only thing on the panel not derived from what the player
-    // just did, so it is the only thing that can wear out.
-    expect(page.panels.filter((p) => talk(p) !== null)).toHaveLength(1);
+    const spoken = new Set(page.panels.map((p) => talk(p)?.text).filter(Boolean));
+    expect(spoken.size).toBeGreaterThan(1);
+    // …and still once per room: the trigger is the first visit, not the clock.
+    const said = page.panels.map((p) => talk(p)?.text).filter(Boolean);
+    expect(said).toHaveLength(spoken.size);
   });
 });

@@ -57,22 +57,42 @@ describe("what the counts must obey whatever they are", () => {
 
   it("counts an exchange only where both spoke", () => {
     expect(t.exchanges).toBeLessThanOrEqual(Math.min(t.dm, t.heroReply));
-    // The mapper gives the Hero one balloon per turn (`exchangeFor` rule 2), so
-    // every reply is a turn on which he reported no action.
+    // Since ADR 0009 §6 the Hero may report *and* answer on one turn, so these
+    // are a partition of his speaking turns by whether a reply was among them,
+    // not by which single balloon he got.
     expect(t.heroReply + t.heroAction).toBe(t.hero);
   });
 
   it("cannot show more exchanges than were scripted", () => {
     expect(t.screenExchangeTurns).toBeLessThanOrEqual(t.exchanges);
-    expect(t.panelsExchange).toBeLessThanOrEqual(t.screenExchangeTurns);
+    expect(t.onePanelExchangeTurns).toBeLessThanOrEqual(t.screenExchangeTurns);
+    // Panels, not turns: one turn's run can leave several frames carrying both,
+    // so this is bounded by the other panel census and not by the turn counts.
     expect(t.panelsExchange).toBeLessThanOrEqual(t.panelsBothSpeakers);
   });
 
-  it("is nowhere near D5 yet — the fact that scopes the whole stage", () => {
-    // Not a target: a tripwire. D5 wants one exchange every 2–3 turns, and this
-    // asserts we are still in the world where that is a 15–25× move. When 6.1d
-    // lands, this test is what says so — it fails, and it is deleted or inverted
-    // deliberately rather than quietly drifting past.
-    expect(rates(t).turnsPerExchange).toBeGreaterThan(5);
+  it("meets D5 — one exchange every 2–3 turns, oracle included (M6.1d)", () => {
+    // **Inverted at M6.1d, which is what 6.1a wrote it for.** Until this slice it
+    // asserted the opposite — `> 5`, "we are still nowhere near" — and it failed
+    // the moment the limiters came off, which is the failure it existed to
+    // produce. It is now the stage's exit criterion, kept as a floor *and* a
+    // ceiling: a comic where the two never stop talking is as wrong as one where
+    // they never start, and 6.1e adds a great deal of dialogue on top of this.
+    expect(rates(t).turnsPerExchange).toBeGreaterThan(1.5);
+    expect(rates(t).turnsPerExchange).toBeLessThanOrEqual(3);
+    // The oracle is the honest number: the scene walkthroughs share an opening
+    // dense in first visits, and a whole playthrough is not. It started at one in
+    // 135 and it is the row D5 is really about.
+    const oracle = current.files.find((f) => f.file === "12-full-game.cmd")!;
+    expect(rates(oracle).turnsPerExchange).toBeLessThanOrEqual(3);
+  });
+
+  it("keeps the two-shot the common case for an exchange (M6.1d)", () => {
+    // ADR 0005 §4's facing two-shot, measured: of the exchanges that reached the
+    // screen, most put the DM's line and the Hero's answer in *one* panel. A turn
+    // whose DM also reads a room description aloud is a panel run by ADR 0009 §4
+    // and is not counted against this — the exchange closing the run is what the
+    // run is built to end on.
+    expect(t.onePanelExchangeTurns).toBeGreaterThan(t.screenExchangeTurns / 2);
   });
 });

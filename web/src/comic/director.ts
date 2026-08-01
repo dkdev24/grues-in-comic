@@ -15,9 +15,14 @@
  * port first and editing panels afterwards would mean dropping a panel that had
  * already absorbed a kept line by clone-append.
  *
- * **Slice 3 — noise drop.** The Director drops turns the mapper tagged `refusal`
- * (ADR 0005 §2/§3): the parser said no and nothing happened, the try-and-error the
- * play-log rendered verbatim. `ingest` emits no panels for those.
+ * **Slice 3 — noise drop, made conditional at M6.1d.** The Director drops turns
+ * the mapper tagged `refusal` (ADR 0005 §2/§3): the parser said no and nothing
+ * happened, the try-and-error the play-log rendered verbatim. That was measured
+ * when a refusal carried no balloon at all. **Since ADR 0009 §5 a refusal that
+ * has something to say is a beat and is kept; a silent one is still dropped** —
+ * at 26.4% of turns it is the largest single lever on D5, and the Hero arguing
+ * with the parser is the funniest material in the game. The consequence is
+ * accepted rather than worked around: the panel stream gets longer.
  *
  * **Slice 4 — traversal collapse (this file's buffering).** A *run* of consecutive
  * `traversal` panels — moves through rooms already seen, i.e. backtracking — is
@@ -47,7 +52,10 @@
 
 import type { Turn } from "../session.js";
 import { createMapper, type MapperOptions, type Panel, type TurnScript } from "./mapper.js";
-import { addScript, createPage, mergeDelta, type FitTest, type Page, type PanelDelta } from "./page.js";
+import {
+  BRK, CHR, addScript, createPage, mergeDelta,
+  type FitTest, type Page, type PanelDelta,
+} from "./page.js";
 
 export interface DirectorOptions extends MapperOptions {
   /** Balloon-layout seam handed to the {@link Page}; see `page.ts`. */
@@ -56,6 +64,17 @@ export interface DirectorOptions extends MapperOptions {
 
 /** Nothing was emitted this call. A fresh object each time — deltas are merged into. */
 const noPanels = (): PanelDelta => ({ replacedLast: false, appended: [] });
+
+/**
+ * Does this turn put a balloon on the page? `<Brk>` and `<Chr>` are instructions
+ * to `page.ts`, not utterances, so a script made only of those is silent — which
+ * is exactly what an unscripted refusal is (ADR 0009 §5). Asked of the script the
+ * mapper produced rather than of the marker table, so a beat authored in M6.1e
+ * changes what survives without touching this file.
+ */
+function speaks(script: TurnScript): boolean {
+  return script.lines.some((line) => line.text !== BRK && line.text !== CHR);
+}
 
 export interface Director {
   /**
@@ -96,9 +115,11 @@ export function createDirector(options: DirectorOptions = {}): Director {
       // Always fold — the mapper's stream state must stay whole even when the
       // turn is dropped or buffered (see the module note).
       const script = mapper.read(turn);
-      // Slice 3: drop refusals. A refusal never interrupts a walk, so an open
-      // traversal run keeps buffering across it.
-      if (script.context.kind === "refusal") return noPanels();
+      // Slice 3, as ADR 0009 §5 amends it: drop a refusal only when it says
+      // nothing. A silent refusal never interrupts a walk, so an open traversal
+      // run keeps buffering across it — but one that speaks is a beat like any
+      // other and ends the run below.
+      if (script.context.kind === "refusal" && !speaks(script)) return noPanels();
       // Slice 4: hold a traversal, keeping only the latest — the run's destination.
       if (script.context.kind === "traversal") {
         pendingTraversal = script;
