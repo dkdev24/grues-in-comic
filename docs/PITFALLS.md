@@ -73,6 +73,21 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 - **The mapper is pure and canvas-free; `render.ts` holds all the numbers.** Mapper decides *what shot
   this is*; renderer decides what that looks like at the current width. That split is what lets 11
   walkthroughs replay through the mapping in Node. `SHOTS` is authoring judgement on top of the ADR.
+- **The caption channel is retired, and three things now depend on the panel not breaking**
+  (ADR 0009, M6.1c). Nothing emits `BM_ACTION` on an ordinary turn any more, so the panel breaks
+  the port used to give for free must be asked for explicitly, with `<Brk>`: **a room change** (or a
+  new location clone-appends into the last room's panel and `clonePanel` relabels it — one panel,
+  two places) and **a death** (or the next turn absorbs the reaction frame; that one silently
+  deleted the `reaction` rung from the whole corpus — 11 turns, 0 panels — while every rule test
+  stayed green). If you remove a `<Brk>`, re-run `npm --prefix web run density` **and** look at the
+  camera census: a rung going to zero is what this looks like.
+- **`roomTitle` is the one panel field that does not take the incoming context** (`clonePanel`).
+  The location box is metadata about *where the panel is*, not about its newest balloon, so a later
+  same-room turn appending into it must not erase it.
+- **Two of the DM's balloons can never share a panel** (`AvatarInPanel`, `panel.cpp:1088`), which
+  is what makes a long description into a panel run — and also means **an extra DM line costs a
+  panel**. The Hero is staged through that run with `<Chr>`; without it he is absent from every
+  panel but the last, and the comic cuts away from its own subject.
 - **The authored dialogue lives in `web/src/comic/script.ts` and nothing there may touch the DOM.**
   It sat in `comic-view.ts` until M6.1a, which made the one number the stage turns on unmeasurable:
   the view cannot be replayed in Node, so the corpus tools had to invent throwaway scripts and the

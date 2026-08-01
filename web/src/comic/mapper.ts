@@ -18,7 +18,9 @@ import type { EngineEvent } from "../../../engine/src/events.js";
 import { PLAYER_ID } from "../../../engine/src/state.js";
 import type { EmotionOption } from "../../../art/src/pose.js";
 import { affectFor, sentences } from "./affect.js";
-import { BM_ACTION, BM_SAY, type BalloonModes, type PageLine, type PanelContext } from "./page.js";
+import {
+  BM_SAY, BRK, CHR, type BalloonModes, type PageLine, type PanelContext, type Register,
+} from "./page.js";
 import type { Turn } from "../session.js";
 
 /**
@@ -96,6 +98,8 @@ export interface Utterance {
 export interface Line extends Balloon {
   /** Cast/avatar id. {@link CAPTION} marks a bodiless box (`SM_ACTION`, `panel.cpp:367`). */
   speaker: string;
+  /** Narration or authored — ADR 0009 §2. See {@link PageLine.register}. */
+  register?: Register;
 }
 
 /**
@@ -128,6 +132,8 @@ export interface Panel {
   emphatic: boolean;
   /** Room id the panel is set in, `""` before the first placement. */
   room: string;
+  /** The location title to draw, or `null` — ADR 0009 §3. See {@link PanelContext}. */
+  roomTitle: string | null;
   /** Object id rung 4 focused on, when the camera is a close-up. */
   focus: string | null;
   /**
@@ -217,6 +223,13 @@ export interface MapperOptions {
    */
   names?: ReadonlyMap<string, string>;
   /**
+   * Room id → display name, for the location box (ADR 0009 §3). Same shape and
+   * same source as {@link names}, resolved by the caller from the world document,
+   * because the mapper must not import it — data in, pure function out. Empty is
+   * safe: a missed id falls back to the id.
+   */
+  roomTitles?: ReadonlyMap<string, string>;
+  /**
    * Affect marker → the beat's exchange (ADR 0005 §4, ADR 0006 §4). This is what
    * makes the two *converse*: the pair is keyed on the beat the Hero just caused
    * (the §10 marker the turn produced — `combat-victory`, `grue-threat`,
@@ -259,6 +272,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
   const guideScript = options.guideScript ?? new Map<string, string>();
   const guideCooldown = options.guideCooldown ?? 6;
   const names = options.names ?? new Map<string, string>();
+  const roomTitles = options.roomTitles ?? new Map<string, string>();
   const beatScript = options.beatScript ?? new Map<string, string>();
 
   const visited = new Set<string>();
@@ -276,6 +290,11 @@ export function createMapper(options: MapperOptions = {}): Mapper {
   return {
     read(turn: Turn): TurnScript {
       const text = panelText(turn.events);
+      /** The same turn without the room name — the DM's read-aloud source. */
+      const prose = proseText(turn.events);
+      const titleText = roomTitleText(turn.events);
+      /** Where the turn started, so "the room changed" is answerable (ADR 0009 §3). */
+      const roomAtEntry = room;
       // Read off the channel, not out of the prose (ADR 0002's actual purpose).
       const systemChannel = turn.events.some(
         (event) => event.type === "narration" && event.channel === "system",
@@ -343,6 +362,8 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       }
 
       const affect = affectFor({ text, gameOver, scoreDelta, systemChannel });
+      /** ADR 0009 §3: the turn moved the player somewhere else. */
+      const roomChanged = room !== roomAtEntry && room !== "";
       // The resolved action is settled before the exchange, because it is what
       // decides whether the Hero has a mouth free to answer with (rule 2 on
       // `exchangeFor`).
@@ -353,33 +374,89 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const guideLine = exchange.dm;
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
 
-      // The turn's utterances in draw order (ADR 0008 §2): the caption frames the
-      // panel, the DM reads into it, the Hero answers. Each is one `AddLine`
-      // (`panel.cpp:1058`) — whether they land in one panel or three is `page.ts`'s
-      // decision now, not this module's.
-      const caption = captionFor(text, affect.matched);
+      // The turn's utterances in draw order (ADR 0008 §2, amended by ADR 0009 §2):
+      // the DM reads the narration aloud, then says his authored piece, then the
+      // Hero answers. Each is one `AddLine` (`panel.cpp:1058`) — whether they land
+      // in one panel or four is `page.ts`'s decision, not this module's.
+      const readAloudLines = affect.marker === "parser-miss"
+        ? []
+        : readAloud(prose, affect.matched, moved);
       // What the Hero did, or — on a turn he did nothing worth reporting — what
       // he says back (ADR 0006 §4). Never both: see `exchangeFor` rule 2.
       const hero = action ?? (exchange.hero === null
         ? null
         : { modes: BM_SAY, text: exchange.hero });
       const lines: PageLine[] = [];
-      if (caption) {
-        // Bodiless: the caption is narration, and `BM_ACTION` alone is what makes
-        // it break the panel (`panel.cpp:1064`).
-        lines.push({ ...caption, speaker: CAPTION, emotion: [], bodiless: true });
-      }
-      if (guideLine !== null) {
-        lines.push({ speaker: GUIDE, modes: BM_SAY, text: guideLine, emotion: GUIDE_EMOTION });
-      }
-      if (hero) lines.push({ ...hero, speaker: HERO, emotion: affect.options });
+      // **A new location starts a panel.** Until 6.1c the caption did this on
+      // every turn as a side effect of `BM_ACTION` (`panel.cpp:1064`); with the
+      // caption gone, a room change would clone-append into the panel the last
+      // room was drawn in, and `clonePanel` would relabel that panel with the new
+      // room — one panel, two places, and the location box on top of it. `<Brk>`
+      // (`:1067`) is the port's own way to say "not in that one".
+      if (roomChanged) lines.push({ speaker: GUIDE, modes: BM_SAY, text: BRK, emotion: [] });
 
-      // The Hero is always on stage — it is his adventure — and poses to the
-      // world's reply (§9: his affect comes from the reply, never from his own
-      // balloon). A line stages him; on a turn he says nothing, that staging is a
-      // reaction (`AddReaction`, `panel.cpp:1142`). The DM and mobs earn the stage
-      // by speaking, so they need no entry here.
-      const reactions = hero === null ? [{ speaker: HERO, emotion: affect.options }] : [];
+      // The DM's balloons for this turn: what he reads aloud, then what he says
+      // (ADR 0009 §2's two registers, in that order — the module first, the table
+      // second). Two of his balloons never share a panel (`AvatarInPanel`,
+      // `panel.cpp:1088`), so this list is also, exactly, the turn's panel run.
+      const dmLines: PageLine[] = readAloudLines.map((said) => ({
+        speaker: GUIDE, modes: BM_SAY, text: said, emotion: GUIDE_EMOTION,
+        register: "narration" as const,
+      }));
+      if (guideLine !== null) {
+        dmLines.push({
+          speaker: GUIDE, modes: BM_SAY, text: guideLine, emotion: GUIDE_EMOTION,
+          register: "authored",
+        });
+      }
+
+      for (const [i, line] of dmLines.entries()) {
+        lines.push(line);
+        // ADR 0009 §4: the DM keeps the floor for the whole run and the Hero is
+        // *staged silent* through it — `<Chr>` is `AddLine`'s own way of saying
+        // that (`panel.cpp:1073` → `AddReaction`). Without it he is simply absent
+        // from every panel of the run but the last, which reads as the comic
+        // cutting away from its own subject. The last balloon is left alone: his
+        // line (or the closing reaction below) lands there, which is what makes an
+        // arrival *end* on the two-shot.
+        if (i < dmLines.length - 1) {
+          lines.push({
+            speaker: HERO, modes: BM_SAY, text: CHR, emotion: affect.options,
+            register: "narration",
+          });
+        }
+      }
+      if (hero) {
+        lines.push({
+          ...hero, speaker: HERO, emotion: affect.options,
+          // The resolved action is derived from events; the reply came from
+          // `BEAT_SCRIPT`. `action` is non-null only in the former case.
+          register: action !== null ? "narration" : "authored",
+        });
+      }
+
+      // ADR 0005 §4's reaction shot has to *survive*, and since 6.1c nothing else
+      // protects it: with no `BM_ACTION` caption breaking the panel, the next
+      // turn's first balloon clone-appends into the death panel and `clonePanel`
+      // takes the *incoming* context — so the death frame silently became
+      // whatever happened next, and the `reaction` rung vanished from the corpus
+      // entirely (11 turns, 0 panels). `<Brk>` (`panel.cpp:1067`) is the port's
+      // own answer: force a new panel, add nothing. It has to be the last thing
+      // the turn does, which is why the staging goes through `<Chr>` here rather
+      // than through `reactions` — those are applied after every line.
+      if (gameOver) {
+        if (hero === null) {
+          lines.push({
+            speaker: HERO, modes: BM_SAY, text: CHR, emotion: affect.options,
+            register: "narration",
+          });
+        }
+        lines.push({ speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] });
+      }
+
+      const reactions = hero === null && !gameOver
+        ? [{ speaker: HERO, emotion: affect.options }]
+        : [];
 
       return {
         lines,
@@ -389,6 +466,10 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           camera,
           emphatic: camera === "establishing" && scoreDelta > 0,
           room,
+          // ADR 0009 §3 / D4: the box names the room, and only on the turn the
+          // room changes. `roomAtEntry` is the fold's own memory — no engine
+          // state, so `replayPanels` still holds.
+          roomTitle: roomChanged ? (titleText || roomTitles.get(room) || room) : null,
           focus: camera === "close-up" ? (salientMove?.object ?? null) : null,
           marker: affect.marker,
           kind: panelKind({
@@ -582,33 +663,86 @@ export function heroBalloon(
 }
 
 /**
- * The caption: a **verbatim** pull-quote, never a paraphrase (§2).
+ * The **read-aloud register** — ADR 0009 §2, and the slice that retired the box.
  *
- * **What it is, in fiction, as of ADR 0006 §2 (Slice 3): the DM reading the
- * module aloud.** ADR 0004 kept the Guide off the caption channel because Zork's
- * narration already owned it and two narrators would collide; the table framing
- * removes the collision rather than the rule, so the "Not the Narrator" boundary
- * is retired and the channel is read-aloud boxed text in the DM's voice. Nothing
- * about the *text* moves — it is the same verbatim pull-quote, chosen the same
- * way, and this function is unchanged. What changed is that the caption and the
- * DM's balloon are now one voice in two registers, which is why a panel may
- * legitimately carry both.
+ * ADR 0006 §2 settled that the caption *is* the DM reading the module aloud; it
+ * left the text in a `BM_ACTION` box because the box was there. The box was also
+ * the pane's largest structural problem: `AddLine` opens a new panel on
+ * `BM_ACTION` unconditionally (`panel.cpp:1064`), and 96.7% of turns carried one,
+ * so panelization was told to break the panel on nearly every turn and the DM and
+ * the Hero could not share one. **The text moves into the DM's speech balloon**
+ * and the box becomes metadata ({@link PanelContext.roomTitle}).
  *
- * The rule is that the panel quotes the sentence its Hero is reacting to — the
- * one the §10 marker matched — and falls back to the turn's first sentence when
- * no marker fired, which is the ~51% case where the first sentence is a room
- * name or a routine acknowledgement and is the right thing to show anyway.
+ * Two selections, because a turn's narration is two different things:
  *
- * A long sentence is dropped rather than trimmed. Truncating would make the
- * caption a paraphrase by omission, and narration is accompanied, never
- * replaced: the console pane still carries every word.
+ * - **The player moved: he reads the room.** The whole narration, packed into
+ *   balloons — an arrival's description runs to 588 characters where the box only
+ *   ever showed its opening clause (p50 24). This is what D2/D3 mean by "the DM
+ *   speaks the room description", and it is new text on the panel, not a re-route.
+ * - **Otherwise: the sentence the panel is about** — the one the §10 marker
+ *   matched, else the turn's first, which is the pre-0009 rule unchanged. A
+ *   parser refusal is skipped here: it is the Hero's register now (D2), and until
+ *   6.1d scripts it the turn simply stays quiet rather than putting the parser's
+ *   "no" in the DM's mouth.
+ *
+ * **Packing never splits a sentence** ({@link READ_ALOUD_MAX}, D3's raised limit).
+ * A sentence longer than the limit is emitted whole rather than dropped: the old
+ * "drop it, never trim it" rule existed because a box could not continue, and a
+ * run of balloons can. Nothing is silently lost any more — which cost exactly
+ * nine turns in 606, all of them the same 188-character sentence.
+ *
+ * Each balloon is one `AddLine`, so **how many panels a description becomes is
+ * `page.ts`'s decision**, not this module's: two consecutive DM balloons fail
+ * `AvatarInPanel` (`:1088`) and open a panel, which is the port doing exactly what
+ * the port is for. Measured over the corpus: 44 of 81 arrivals fit one balloon, 12
+ * need two, 25 need three or four.
  */
-const CAPTION_MAX = 180;
+export const READ_ALOUD_MAX = 200;
 
-export function captionFor(text: string, matched: string | null): Utterance | null {
-  const candidate = matched ?? sentences(text)[0] ?? null;
-  if (candidate === null || candidate.length > CAPTION_MAX) return null;
-  return { modes: BM_ACTION, text: candidate };
+export function readAloud(text: string, matched: string | null, moved: boolean): string[] {
+  const parts = moved ? sentences(text) : [matched ?? sentences(text)[0] ?? ""].filter(Boolean);
+  const out: string[] = [];
+  for (const sentence of parts) {
+    const last = out[out.length - 1];
+    if (last !== undefined && last.length + 1 + sentence.length <= READ_ALOUD_MAX) {
+      out[out.length - 1] = `${last} ${sentence}`;
+    } else {
+      out.push(sentence);
+    }
+  }
+  return out;
+}
+
+/**
+ * The turn's `room-title` narration, or `""` — the engine emits the room's name
+ * on its own channel (v1.5.1), which is where the location box gets its text
+ * (ADR 0009 §3) and why the read-aloud must not repeat it.
+ */
+function roomTitleText(events: readonly EngineEvent[]): string {
+  for (const event of events) {
+    if (event.type === "narration" && event.channel === "room-title") return event.text.trim();
+  }
+  return "";
+}
+
+/**
+ * What the DM reads aloud: the turn's prose, with the room name left out.
+ *
+ * The name is on the panel already — it is the box (ADR 0009 §3) — and reading
+ * it back would be both a repeat and a non-sentence, because the channels
+ * concatenate without punctuation ("North of House You are facing…").
+ */
+function proseText(events: readonly EngineEvent[]): string {
+  let out = "";
+  for (const event of events) {
+    if (event.type === "narration") {
+      if (event.channel !== "room-title") out += event.text;
+    } else if (event.type === "question" || event.type === "game-over"
+      || event.type === "speech") {
+      out += event.text;
+    }
+  }
+  return out;
 }
 
 /** Player-visible text for the turn, on the same definition the harness uses. */

@@ -119,10 +119,15 @@ describe("director (Slice 4 — traversal collapse)", () => {
     expect(director.ingest(session.command("west")).appended).toEqual([]); // traversal → WEST-OF-HOUSE, buffered
     expect(director.ingest(session.command("north")).appended).toEqual([]); // traversal → NORTH-OF-HOUSE, buffered
     const flushed = director.ingest(session.command("look")).appended; // ambient ends the run
-    expect(flushed).toHaveLength(2);
-    expect(flushed[0]?.kind).toBe("traversal");
-    expect(flushed[0]?.room).toBe("NORTH-OF-HOUSE"); // the run's destination, not the rooms passed
-    expect(flushed[1]?.kind).toBe("ambient");
+    // One panel, at the destination — and since 6.1c that panel *is* the ambient
+    // turn's too. A revisit prints only the room name, which is the location box
+    // now (ADR 0009 §3) and not a balloon, so the collapsed traversal carries no
+    // words for the `look` that ends it to be kept out of: same room, no reason
+    // to break, and the port merges them (`AddLine`'s clone-append).
+    expect(flushed).toHaveLength(1);
+    expect(flushed[0]?.room).toBe("NORTH-OF-HOUSE"); // the destination, not the rooms passed
+    expect(flushed[0]?.kind).toBe("ambient"); // the panel takes its newest line's context
+    expect(flushed[0]?.roomTitle).toBe("North of House");
   });
 
   it("holds a trailing run until flush(), which is idempotent", () => {

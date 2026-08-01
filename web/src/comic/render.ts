@@ -193,6 +193,10 @@ export function renderPanel(
     if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale, item.mirror);
   }
 
+  // Metadata, over the figures and under nothing: it owns its band (see
+  // `balloonRect`), so it can never be covered by a balloon or a body.
+  if (panel.roomTitle !== null) drawLocationTitle(ctx, panel.roomTitle, width);
+
   drawBalloons(ctx, panel, width, height, placed, options.trace);
 
   // The panel border last, so nothing overdraws it.
@@ -371,7 +375,7 @@ function drawBalloons(
 ): void {
   ctx.font = BALLOON_FONT;
   const heads = headGeometry(placed);
-  const free = balloonRect(width, height);
+  const free = balloonRect(width, height, panel.roomTitle !== null);
 
   const inputs: BalloonInput[] = panel.speakers.map((balloon) => ({
     speaker: balloon.speaker,
@@ -414,10 +418,14 @@ function drawBalloons(
  * {@link BALLOON_HEADROOM}, the same band `renderPanel` pushes heads below, so
  * the driver's `MINHOOKHEIGHT` check is measured against the real head tops.
  */
-export function balloonRect(width: number, height: number): Rect {
+export function balloonRect(width: number, height: number, titled = false): Rect {
   return {
     left: BALLOON_MARGIN,
-    top: BALLOON_MARGIN,
+    // ADR 0009 §3: the location box is metadata drawn over the top-left corner,
+    // so the band gives way to it rather than a balloon landing on it. The
+    // reserve is unconditional across the width — the box is short, but a
+    // balloon docked at `freeRect.top` beside it would read as a second caption.
+    top: BALLOON_MARGIN + (titled ? TITLE_HEIGHT : 0),
     right: width - BALLOON_MARGIN,
     bottom: height * BALLOON_HEADROOM,
   };
@@ -425,6 +433,49 @@ export function balloonRect(width: number, height: number): Rect {
 
 /** The inset from the panel border, standing in for the original's `m_borderWidth`. */
 export const BALLOON_MARGIN = 10;
+
+/**
+ * The location box (ADR 0009 §3) — height, and the type it is set in.
+ *
+ * It is deliberately *not* a balloon: no class, no tail, no entry in
+ * `panel.speakers`, and nothing about it can open a panel. That is the whole
+ * change — the box the comic had was a `BM_ACTION` line, and `AddLine` breaks the
+ * panel on one (`panel.cpp:1064`). Drawn first, under the figures' band and over
+ * the backdrop, in the panel's own top-left corner where the caption box used to
+ * dock.
+ */
+export const TITLE_HEIGHT = 22;
+const TITLE_FONT = 'bold 12px "Comic Sans MS", "Comic Neue", ui-rounded, cursive';
+const TITLE_PAD = 6;
+
+/** Draw the location box, clipped to the panel's width. */
+export function drawLocationTitle(
+  ctx: CanvasRenderingContext2D, title: string, width: number,
+): void {
+  ctx.save();
+  ctx.font = TITLE_FONT;
+  const text = ctx.measureText(title).width > width - BALLOON_MARGIN * 2 - TITLE_PAD * 2
+    ? ellipsize(ctx, title, width - BALLOON_MARGIN * 2 - TITLE_PAD * 2)
+    : title;
+  const boxWidth = ctx.measureText(text).width + TITLE_PAD * 2;
+  ctx.fillStyle = "#fff";
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.rect(BALLOON_MARGIN, BALLOON_MARGIN, boxWidth, TITLE_HEIGHT);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#000";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, BALLOON_MARGIN + TITLE_PAD, BALLOON_MARGIN + TITLE_HEIGHT / 2);
+  ctx.restore();
+}
+
+function ellipsize(ctx: CanvasRenderingContext2D, text: string, max: number): string {
+  let out = text;
+  while (out.length > 1 && ctx.measureText(`${out}…`).width > max) out = out.slice(0, -1);
+  return `${out}…`;
+}
 
 interface HeadGeometry {
   anchors: Map<string, { x: number; y: number }>;

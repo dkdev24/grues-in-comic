@@ -30,7 +30,7 @@ import { canvasMetrics, layoutBalloons, type BalloonInput } from "./balloon-layo
 import { UNIT } from "./layout.js";
 import { CAPTION, type Panel } from "./mapper.js";
 import type { FitResult, FitTest } from "./page.js";
-import { BALLOON_HEADROOM, BALLOON_MARGIN, isSpeaker, orderBodies } from "./render.js";
+import { balloonRect, isSpeaker, orderBodies } from "./render.js";
 
 /**
  * A canvas the fit test can measure text on. The browser supplies one from an
@@ -59,14 +59,11 @@ export function stageSlots(speakers: readonly string[], width: number): Map<stri
 export function createFitTest(canvas: TextCanvas): FitTest {
   canvas.font = BALLOON_FONT;
   const ctx = canvas as CanvasRenderingContext2D;
-  const free = {
-    left: BALLOON_MARGIN,
-    top: BALLOON_MARGIN,
-    right: UNIT.width - BALLOON_MARGIN,
-    bottom: UNIT.height * BALLOON_HEADROOM,
-  };
-
   return (panel: Panel): FitResult => {
+    // The band, at the panel's native size — and it must be the *same* band the
+    // renderer uses, location box included (ADR 0009 §3), or panelization would
+    // pass a panel whose balloons the draw then has nowhere to put.
+    const free = balloonRect(UNIT.width, UNIT.height, panel.roomTitle !== null);
     // The bodies that earn the stage are `IsSpeaker`'s (`panel.cpp:743`), the
     // same filter `renderPanel` applies before laying figures out.
     const onStage = panel.bodies.filter((body) => isSpeaker(body, panel.speakers))

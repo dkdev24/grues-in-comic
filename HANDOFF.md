@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.19.1** · Platform: **macOS only** (2026-07-28)
+**0.20.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,52 +27,31 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a and 6.1b are done**; 6.1 is in progress.
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1c are done**; 6.1 is in progress.
 
-**Tests:** 262 web · 139 engine · 198 IR · parity 143/143 strict.
-
----
-
-## Last Session — M6.1a and 6.1b: the density is measured, ADR 0009 written (v0.19.0–v0.19.1)
-
-**6.1b (v0.19.1, docs only) — `docs/adr/0009-the-dm-reads-the-room.md`, Accepted.** It records D1–D5
-and settles the mechanism they left open. **Read it before touching the pane; it is now the authority
-on the diagnosis.** The load-bearing decisions:
-
-- **The caption channel retires.** Narration becomes the DM's *speech* balloon, so no `BM_ACTION`
-  line is emitted on an ordinary turn and nothing tells `AddLine` to break the panel — the cause of
-  the split exchange, fixed rather than worked around. The box becomes renderer-drawn metadata: the
-  room's display name, on room change only.
-- **The DM has two registers with different economics** — read-aloud (derived from narration,
-  uncooled, zero authoring cost) and table-talk (authored, cooled). The cooldown never should have
-  gated narration the player just caused.
-- **A description is sentence-packed into ≤200-char balloons — n panels, not two.** The Hero is
-  staged silent through the run and his line lands in the **last** panel, so an arrival *ends* on the
-  facing two-shot. (Measured: 44 of 81 arrivals fit one balloon, 12 need two, 25 need three or four.)
-- It also supersedes **ADR 0005 §3** (a refusal with a line is kept; only a silent one is dropped)
-  and **ADR 0006 §4 rule 2** (action-suppresses-reply becomes an ordering, not an exclusion).
-- **Two corrections to the §6.1 diagnosis:** `parser-miss`/`refusal` is **26.4% of turns (160)** on
-  the full corpus, not 12.7% — the largest lever on D5, and all of it currently dropped. And the
-  180-char cap was never the leak: it drops 9 turns, all the same 188-char sentence.
-
-## 6.1a — the dialogue is data, and the density is measured (v0.19.0)
-
-- **`web/src/comic/script.ts` (new)** holds `GUIDE_SCRIPT`, `BEAT_SCRIPT` and `GUIDE_COOLDOWN`, moved
-  out of the DOM-coupled view. Data only — the trigger, cooldown and run cursor stayed in `mapper.ts`.
-- **`web/tools/density.ts` (new)** replays the shipped tables over all 12 walkthroughs (oracle
-  included) at seed 1234, in two stages: *script* (bare mapper, per turn) and *screen* (production
-  Director + real fit test, per emitted panel). `npm --prefix web run density` / `density:accept`.
-- **The numbers, now reproducible — and the hand count was slightly high.** 606 turns: **28 exchanges
-  (4.6%), one every 21.6 turns**; 29 spoken beats (4.8%, not 35/5.8%); **20 of 28 exchanges in one
-  panel, 8 split**; captions **96.7%**. Worst fact, and new: the full-game oracle runs **3 exchanges
-  in 406 turns — one every 135**. The scene walkthroughs flatter the product because they share an
-  opening dense in first visits.
-- Baseline `web/test/golden/dialogue-density.json`, pinned by `web/test/density.test.ts` (+7 tests,
-  255 → 262). One is a deliberate tripwire that **fails when 6.1d succeeds**.
-
-**Live decisions:** unchanged — D1–D5 stand as written. Nothing in the measurement contradicts them.
+**Tests:** 265 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
+
+## Last Session — M6.1c: the caption channel is gone and the DM speaks (v0.20.0)
+
+6.1a ✅ (the density report) · 6.1b ✅ (ADR 0009) · **6.1c ✅ — the first slice that changes the pane.**
+Narrative in `WORKLOG.md` v0.19.0–v0.20.0; the decisions are ADR 0009, which is the authority.
+
+- **Captions 96.7% → 0%.** Narration is now the DM's speech balloon; the top-left box is the
+  **location name**, drawn by the renderer from `PanelContext.roomTitle` on room change, never a
+  line. On a turn the player moved he reads the *whole* description, packed into ≤200-char balloons
+  that continue across panels.
+- **The exchange lands in one panel far more often: 20 of 28 → 24 of 28.** Panels 411 → 478 (+16%),
+  the predicted cost. Exchanges themselves are still 28 (one every 21.6 turns) — that is 6.1d.
+- **`web/src/comic/script.ts`** holds the authored tables (6.1a) and **`register: "narration" |
+  "authored"`** now marks every line, which is how anything tells the DM's two voices apart.
+- **Three things the ADR did not foresee, all now in `docs/PITFALLS.md` → Web** — the caption was
+  also holding the panel open, so a **room change** and a **death** must ask for the break with
+  `<Brk>` (missing it deleted the `reaction` rung from the corpus: 11 turns, 0 panels);
+  `roomTitle` must survive a clone-append; the Hero must be staged through the DM's whole run with
+  `<Chr>`.
+- **Gate re-accepted after looking at the images** (17 cases), density baseline re-accepted.
 
 ## Next Actions
 
@@ -80,13 +59,15 @@ on the diagnosis.** The load-bearing decisions:
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a ✅ (baseline: `npm --prefix web run density`) · 6.1b ✅ (ADR 0009).
-   **Next is 6.1c — the first code that changes the pane:** `PanelContext.roomTitle` + the renderer
-   drawing the box on room change, narration routed to the DM's balloon, `captionFor` retired, the
-   200-char sentence packing and the balloon run. Exit: no `BM_ACTION` line on an ordinary turn, long
-   descriptions continue across panels, mapper still pure. **Expect the pixel gate to drift — look at
-   the images before accepting**, and re-run the density report. Then 6.1d (lift the limiters — D5 is
-   met here), 6.1e (write the dialogue; the largest, several sessions), 6.1f (verify).
+   weighting). 6.1a ✅ · 6.1b ✅ · 6.1c ✅. **Next is 6.1d — where D5 is actually met.** Lift the
+   limiters, in the order ADR 0009 §5/§6 sets: the Director's **conditional refusal drop** (26.4% of
+   turns, the largest lever — a refusal with a line is kept, a silent one still dropped), the
+   cooldown retuned now that read-aloud is uncooled, marker coverage widened (`parser-miss` first),
+   and the action/reply exclusion relaxed to an ordering. Exit: **one exchange every 2–3 turns on
+   `npm --prefix web run density`, on the oracle as well as the scenes** — it starts at 1-in-21.6
+   (1-in-135 on the oracle). Then 6.1e (write the dialogue; the largest, several sessions), 6.1f
+   (verify). **The density tripwire test in `web/test/density.test.ts` fails when 6.1d succeeds —
+   invert it deliberately.**
 2. **M6.2 — save / load / restart.** ☐ UI over the engine's existing save contract; three named
    slots, browser storage only. Independent — good filler for an idle session.
 3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐

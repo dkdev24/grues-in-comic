@@ -10,6 +10,52 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.20.0 — 2026-08-01 — M6.1c: the caption channel retires, and the DM speaks the room
+
+The first slice that changes what the pane draws. ADR 0009 §2/§3/§4, built: narration became the
+DM's speech balloon, the top-left box became the location name as **panel metadata**, and a long
+room description became a run of balloons across as many panels as it takes.
+
+- **Captions 96.7% → 0%.** That was the point: a `BM_ACTION` line unconditionally opens a panel
+  (`panel.cpp:1064`), so the box was instructing panelization to break the panel on nearly every
+  turn. **Exchanges landing in one panel went 20 of 28 → 24 of 28** without a single change to the
+  dialogue tables. Panels 411 → 478 (+16%), the cost the ADR predicted and accepted.
+- **What the DM says now:** 366 read-aloud balloons where there were 0, plus the 54 authored ones he
+  already had. On a turn the player moved he reads the *whole* description — packed into ≤200-char
+  balloons, never splitting a sentence — and the room *name* is stripped out of it, because the name
+  is the box (the channels concatenate without punctuation, so reading it back gave "North of House
+  You are facing…").
+- **`register: "narration" | "authored"` on every line.** The two registers were suddenly
+  indistinguishable — both are `guide` speech — and half the suite was asserting on "the DM's line"
+  meaning the authored one. Rather than have tests infer it from the text, the line carries where it
+  came from. It cost nothing (`page.ts` carries it, never reads it) and it is what the density tool
+  and every dialogue golden now key on.
+
+**Three things the design did not foresee, each found by a test and each now a caution:**
+
+1. **The caption was also holding the panel open.** With it gone, a room change clone-appended into
+   the *previous room's* panel and `clonePanel` relabelled that panel with the new room — one panel,
+   two places, with the location box on top. And a death frame was absorbed by the next turn, which
+   **deleted the `reaction` rung from the corpus outright: 11 turns, 0 panels.** Both now ask for the
+   break explicitly with `<Brk>` (`panel.cpp:1067`) — the port's own answer, not a new mechanism.
+2. **`roomTitle` must survive a clone-append.** It is the one panel field that does not take the
+   incoming context: the box is metadata about *where the panel is*, not about its newest balloon.
+3. **The Hero must be staged through the DM's whole run**, with `<Chr>` after every DM balloon but
+   the last. Two of the DM's balloons never share a panel (`AvatarInPanel`), so an ordinary
+   read-aloud + gazetteer turn is already a two-panel run — and without the staging the comic cut
+   away from its own subject for the first half of it.
+
+**Verification.** 265 web tests green (was 262). The pixel gate drifted on all 11 production cases,
+as predicted; **re-accepted after looking at the images**, which is also where the staging bug was
+confirmed by eye. Density baseline re-accepted. Engine parity untouched at 143/143.
+
+**Rule this session is an instance of:** *when a mechanism is doing two jobs, removing it costs you
+the job you were not thinking about.* The caption was a channel **and** a panel break; every failure
+above is the second job coming due. A rule test cannot catch it — "the `reaction` rung exists" was a
+corpus census, and it is the only reason the death frame did not ship broken.
+
+---
+
 ## v0.19.1 — 2026-08-01 — M6.1b: ADR 0009, and the caption turns out to be the limiter
 
 Documentation only; no code changed. `docs/adr/0009-the-dm-reads-the-room.md` records D1–D5 and

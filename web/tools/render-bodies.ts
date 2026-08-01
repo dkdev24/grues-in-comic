@@ -64,6 +64,7 @@ function panel(n: number, camera: CameraPreset, speaking: number, gated = false)
     ],
     marker: null,
     kind: "action",
+    roomTitle: null,
   };
 }
 

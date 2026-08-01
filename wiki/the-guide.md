@@ -29,9 +29,19 @@ are not restated here.
   Narrator".)* ADR 0004 forbade him the caption channel because Zork's narration already owned it
   and two narrators would collide. The table framing removes the collision: the caption channel
   **is** the module's boxed text and rules-as-written, and he is the one reading it. Zork's neutral
-  narration and his table-talk are **one voice in two registers** — read-aloud (verbatim caption,
-  unchanged) and authored table-talk (his balloon). The "Not the Narrator" boundary is retired, not
-  violated: there is no rival narrator left to collide with.
+  narration and his table-talk are **one voice in two registers** — read-aloud and authored
+  table-talk. The "Not the Narrator" boundary is retired, not violated: there is no rival narrator
+  left to collide with.
+- **The two registers, and what they cost.** *(ADR 0009 §2, built in M6.1c.)* The read-aloud
+  register is no longer a box: he **says** the narration, in his own speech balloon, and on a turn
+  the player moved he says the *whole* room description rather than its opening clause — packed into
+  balloons of at most 200 characters, never splitting a sentence, continuing across as many panels
+  as it takes. The box that remains is the **location name**, drawn as panel metadata on the turn
+  the room changes; it is not a line and nobody speaks it. The distinction that matters for writing
+  him: **read-aloud is free and uncooled** (it is the game's own prose, and it fires whenever there
+  is prose), while **table-talk is authored and cooled** — the cooldown exists so *his* voice does
+  not wear out, and it never gated the module's text. A parser refusal is not his to read: that is
+  the Hero's register (see [[the-hero]]).
 - **The UI calls him "Dungeon Master."** *(Settled by ADR 0006 Slice 3; ADR 0004's "the Guide" is
   retired and its standing ban on "Narrator" is kept.)* A proper name, used without an article: you
   address a DM by name, not by job title, and a name stops the label reading as a *function the

@@ -2,21 +2,34 @@
   {
     "name": "wk01-p00-establishing",
     "camera": "establishing",
-    "bodies": [],
-    "sha256": "0a660cafc8e864264953cbb9504fa5043160c8cefe10a20972f6d7eb3901497d",
+    "bodies": [
+      "guide"
+    ],
+    "sha256": "76f82a55dd2ef490a2758ada4e0f6fc36dbaebd28737942f87dfb39a778e43e1",
     "trace": {
-      "bodies": [],
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 165.1,
+          "y": 170,
+          "scale": 0.4,
+          "mirror": false
+        }
+      ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
             "x": 10,
-            "y": 14,
-            "width": 111.3,
-            "height": 35
+            "y": 36,
+            "width": 322.9,
+            "height": 65
           },
-          "lines": 1,
-          "tail": null
+          "lines": 3,
+          "tail": {
+            "x": 202.8,
+            "y": 170
+          }
         }
       ],
       "stacked": false
@@ -26,22 +39,22 @@
     "name": "wk01-p01-establishing",
     "camera": "establishing",
     "bodies": [
-      "guide",
-      "hero"
+      "hero",
+      "guide"
     ],
-    "sha256": "f953fbf78a673c5f0d0c265bcb5e8dbb7d94b76c18119221feca4de603f46774",
+    "sha256": "c418f7ee23c16bbf6b8aa9bcb945570c97e37f6844f71672912e69bc097ed45a",
     "trace": {
       "bodies": [
         {
-          "speaker": "guide",
+          "speaker": "hero",
           "x": 81.3,
           "y": 170,
           "scale": 0.4,
           "mirror": false
         },
         {
-          "speaker": "hero",
-          "x": 232.4,
+          "speaker": "guide",
+          "x": 248.9,
           "y": 170,
           "scale": 0.4,
           "mirror": true
@@ -51,14 +64,14 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 99.8,
-            "y": 14,
+            "x": 259.7,
+            "y": 36,
             "width": 96.6,
             "height": 65
           },
           "lines": 3,
           "tail": {
-            "x": 119,
+            "x": 281,
             "y": 170
           }
         }
@@ -70,30 +83,41 @@
     "name": "wk01-p02-medium",
     "camera": "medium",
     "bodies": [
+      "guide",
       "hero"
     ],
-    "sha256": "b5364785f377f7846e56af6eb5fe406c72d3adae2f1a1452597d3b46ce43b9d2",
+    "sha256": "5b3b24ada8fb890226215858eea60561c662a6b0a4b9a64cfba1fab9a31fbfb4",
     "trace": {
       "bodies": [
         {
-          "speaker": "hero",
-          "x": 132.7,
-          "y": 88.1,
-          "scale": 0.7,
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 122.4,
+          "scale": 0.6,
           "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 122.4,
+          "scale": 0.7,
+          "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
-            "x": 10,
+            "x": 85.3,
             "y": 14,
-            "width": 111.3,
-            "height": 35
+            "width": 188,
+            "height": 65
           },
-          "lines": 1,
-          "tail": null
+          "lines": 3,
+          "tail": {
+            "x": 111,
+            "y": 122.4
+          }
         }
       ],
       "stacked": false
@@ -103,30 +127,41 @@
     "name": "wk01-p03-medium",
     "camera": "medium",
     "bodies": [
+      "guide",
       "hero"
     ],
-    "sha256": "d95af68b8d3e9603973f9d3083a09471653f9a0cc53c2eb2c4e8a28c62ae1ea7",
+    "sha256": "81b5e86a1bdd66ce5f173cae7973b848b38e457a2ccb5b44f7218338b9244b71",
     "trace": {
       "bodies": [
         {
-          "speaker": "hero",
-          "x": 132.7,
-          "y": 88.1,
-          "scale": 0.7,
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 122.4,
+          "scale": 0.6,
           "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 122.4,
+          "scale": 0.7,
+          "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
-            "x": 10,
+            "x": 57.9,
             "y": 14,
-            "width": 80,
-            "height": 65
+            "width": 186.8,
+            "height": 35
           },
-          "lines": 3,
-          "tail": null
+          "lines": 1,
+          "tail": {
+            "x": 111,
+            "y": 122.4
+          }
         }
       ],
       "stacked": false
@@ -136,22 +171,30 @@
     "name": "wk01-p04-over-shoulder",
     "camera": "over-shoulder",
     "bodies": [
-      "guide"
+      "guide",
+      "hero"
     ],
-    "sha256": "5248e6b8107349bca7272be3094dc2a7d56825e8b55e697f11c1eec4ac7acaf4",
+    "sha256": "15c78625d9d6e57553f3badc1cd987c46262763de271c9c3cddbb515e37645da",
     "trace": {
       "bodies": [
         {
           "speaker": "guide",
-          "x": 140,
+          "x": 48.1,
           "y": 122.4,
           "scale": 0.7,
           "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 216.1,
+          "y": 122.4,
+          "scale": 0.8,
+          "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
             "x": 10,
             "y": 14,
@@ -159,19 +202,8 @@
             "height": 35
           },
           "lines": 1,
-          "tail": null
-        },
-        {
-          "speaker": "guide",
-          "box": {
-            "x": 82.9,
-            "y": 49,
-            "width": 122.4,
-            "height": 50
-          },
-          "lines": 2,
           "tail": {
-            "x": 204.8,
+            "x": 112.9,
             "y": 122.4
           }
         }
@@ -183,31 +215,53 @@
     "name": "wk01-p05-over-shoulder",
     "camera": "over-shoulder",
     "bodies": [
+      "guide",
       "hero"
     ],
-    "sha256": "de0b4f69c69aa81059354751efa7964ae185c07aab235ba3653b332c428fefbd",
+    "sha256": "54e684b33d5ac7d944923d45b3eeb524f22a895817a0316ecfaf60ad64628864",
     "trace": {
       "bodies": [
         {
+          "speaker": "guide",
+          "x": 48.1,
+          "y": 122.4,
+          "scale": 0.7,
+          "mirror": false
+        },
+        {
           "speaker": "hero",
-          "x": 132.1,
+          "x": 216.1,
           "y": 122.4,
           "scale": 0.8,
-          "mirror": false
+          "mirror": true
         }
       ],
       "balloons": [
         {
+          "speaker": "guide",
+          "box": {
+            "x": 48.9,
+            "y": 14,
+            "width": 182.9,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 112.9,
+            "y": 122.4
+          }
+        },
+        {
           "speaker": "hero",
           "box": {
-            "x": 150.2,
-            "y": 14,
+            "x": 227.3,
+            "y": 49,
             "width": 123.5,
             "height": 35
           },
           "lines": 1,
           "tail": {
-            "x": 211.9,
+            "x": 272.1,
             "y": 122.4
           }
         }
@@ -219,42 +273,53 @@
     "name": "wk01-p06-close-up",
     "camera": "close-up",
     "bodies": [
+      "guide",
       "hero"
     ],
-    "sha256": "2e1112a44ceb29d79d8d280e48f7079b8b4c8671862a59e7f6a56a92dae65e24",
+    "sha256": "7e509e060ff70839e7e66c32f009948d89b84248428c7c0241b7e57751bbbd0d",
     "trace": {
       "bodies": [
         {
-          "speaker": "hero",
-          "x": 90,
+          "speaker": "guide",
+          "x": 0,
           "y": 122.4,
           "scale": 1.1,
           "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 184.5,
+          "y": 122.4,
+          "scale": 1.1,
+          "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
-            "x": 10,
+            "x": 66.4,
             "y": 14,
             "width": 59.7,
             "height": 35
           },
           "lines": 1,
-          "tail": null
+          "tail": {
+            "x": 99.7,
+            "y": 122.4
+          }
         },
         {
           "speaker": "hero",
           "box": {
-            "x": 165.1,
+            "x": 186.8,
             "y": 14,
-            "width": 91.7,
-            "height": 50
+            "width": 126.4,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": {
-            "x": 217.3,
+            "x": 275.3,
             "y": 122.4
           }
         }
@@ -266,22 +331,30 @@
     "name": "wk01-p07-medium",
     "camera": "medium",
     "bodies": [
+      "guide",
       "hero"
     ],
-    "sha256": "003fa6b272ade1c3c752b7af655c18c7cbaa6140aba7db0f0816ff2efef7de21",
+    "sha256": "43247df86272a8bdeb063e35ca6b56e35740ee407952d4c014159a01106f3cea",
     "trace": {
       "bodies": [
         {
-          "speaker": "hero",
-          "x": 132.7,
-          "y": 88.1,
-          "scale": 0.7,
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 122.4,
+          "scale": 0.6,
           "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 122.4,
+          "scale": 0.7,
+          "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
             "x": 10,
             "y": 14,
@@ -289,7 +362,10 @@
             "height": 35
           },
           "lines": 1,
-          "tail": null
+          "tail": {
+            "x": 111,
+            "y": 122.4
+          }
         }
       ],
       "stacked": false
@@ -299,42 +375,53 @@
     "name": "wk01-p08-close-up",
     "camera": "close-up",
     "bodies": [
+      "guide",
       "hero"
     ],
-    "sha256": "7bea449189710f694152b99366d385af550155f46bd73448d8cf0c1b92a7ef7e",
+    "sha256": "460225c9cf8e5c74c90360d0fcbc017d1bd7f20207ed0bbbb4e7556e61a45e79",
     "trace": {
       "bodies": [
         {
-          "speaker": "hero",
-          "x": 90,
+          "speaker": "guide",
+          "x": 0,
           "y": 122.4,
           "scale": 1.1,
           "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 184.5,
+          "y": 122.4,
+          "scale": 1.1,
+          "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
-            "x": 10,
+            "x": 96.2,
             "y": 14,
             "width": 74.4,
             "height": 35
           },
           "lines": 1,
-          "tail": null
+          "tail": {
+            "x": 99.7,
+            "y": 122.4
+          }
         },
         {
           "speaker": "hero",
           "box": {
-            "x": 113.4,
+            "x": 224.9,
             "y": 14,
-            "width": 112.1,
-            "height": 50
+            "width": 145.1,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": {
-            "x": 217.3,
+            "x": 275.3,
             "y": 122.4
           }
         }
@@ -346,30 +433,41 @@
     "name": "wk01-p09-reaction",
     "camera": "reaction",
     "bodies": [
+      "guide",
       "hero"
     ],
-    "sha256": "7fb220cc71d240657c9b33d5c375c29816fe84678c0993c09fa8a21cf80501f2",
+    "sha256": "e1d8e34b9aa2f933f46e4e3f0747c0b722e90692fa456d0b65e1e0cf523fb522",
     "trace": {
       "bodies": [
         {
-          "speaker": "hero",
-          "x": 42.4,
-          "y": 90.4,
-          "scale": 1.6,
+          "speaker": "guide",
+          "x": 0,
+          "y": 145.1,
+          "scale": 1.1,
           "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 200,
+          "y": 181.6,
+          "scale": 1,
+          "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "caption",
+          "speaker": "guide",
           "box": {
-            "x": 10,
+            "x": 82.4,
             "y": 14,
-            "width": 111.3,
-            "height": 35
+            "width": 188,
+            "height": 65
           },
-          "lines": 1,
-          "tail": null
+          "lines": 3,
+          "tail": {
+            "x": 108,
+            "y": 145.1
+          }
         }
       ],
       "stacked": false
@@ -381,7 +479,7 @@
     "bodies": [
       "hero"
     ],
-    "sha256": "f10ef2064b0e42c2bdc696f40f325da7afa60d97105c50d5e88ef83f6ec3032f",
+    "sha256": "0d0a1fd9d87bd1385b9949df66dec69c2c9528528c8737cf2d8bb3c2ffce9516",
     "trace": {
       "bodies": [
         {
@@ -392,19 +490,7 @@
           "mirror": false
         }
       ],
-      "balloons": [
-        {
-          "speaker": "caption",
-          "box": {
-            "x": 10,
-            "y": 14,
-            "width": 135,
-            "height": 35
-          },
-          "lines": 1,
-          "tail": null
-        }
-      ],
+      "balloons": [],
       "stacked": false
     }
   },

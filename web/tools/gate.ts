@@ -172,7 +172,7 @@ function productionPanels(file: string): Panel[] {
 function mobPanels(roles: readonly string[]): Panel[] {
   const context: PanelContext = {
     turn: 1, camera: "medium", emphatic: false, room: "TROLL-ROOM",
-    focus: null, marker: null, kind: "action",
+    focus: null, marker: null, kind: "action", roomTitle: null,
   };
   const said: Record<string, string> = {
     hero: "I take the lamp and go west.",

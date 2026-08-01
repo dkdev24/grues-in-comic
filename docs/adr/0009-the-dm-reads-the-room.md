@@ -1,6 +1,6 @@
 # ADR 0009 — The DM Reads the Room: the caption channel retires and the box becomes metadata
 
-- **Status:** Accepted (building — slices are M6.1c–6.1f in `docs/DEVELOPMENT_PLAN.md` §6.1)
+- **Status:** Accepted (building — 6.1c landed v0.20.0; 6.1d–6.1f in `docs/DEVELOPMENT_PLAN.md` §6.1)
 - **Date:** 2026-08-01
 - **Supersedes:** ADR 0004 §2/§2a and §3 *insofar as the caption is a **script line** in the panel's balloon list* (`BM_ACTION`, `CBWoodringBox`) — the read-aloud text moves into the DM's speech balloon and the box becomes panel metadata; ADR 0005 §3's noise-drop **as an unconditional rule** (a refusal that has a line to say is now kept); ADR 0006 §4's "the resolved action outranks the Hero's reply" **as a permanent exclusion** (it becomes a per-panel ordering, not a suppression)
 - **Preserves (non-negotiable):** ADR 0002 (the event contract — consumed, never extended); the DM stays **presentation-only** — no game state, unaddressable, removable (ADR 0004 §3); the mapper stays a **deterministic pure function of the event stream**, canvas-free, so `replayPanels` and the parity oracle still hold (ADR 0004 §5, ADR 0005/0006 testing contracts); **dialogue is authored at build time and committed as data, never generated at runtime**; `page.ts` stays a faithful port and keeps every panelization decision (ADR 0007, ADR 0008)
@@ -192,10 +192,25 @@ Unchanged in kind, and it is what allows every break above:
 
 Mapped to `docs/DEVELOPMENT_PLAN.md` §6.1, which stays the schedule of record.
 
-1. **6.1c — the box leaves the line stream.** `PanelContext.roomTitle`, renderer draws it on
-   room change (§3); narration routes to the DM's balloon (§2); `captionFor` retires; the
-   200-character packing and the balloon run (§4) land with it. Exit: no `BM_ACTION` line on
-   an ordinary turn, long descriptions continue across panels, mapper still pure.
+1. **6.1c — the box leaves the line stream.** ✅ **Done (v0.20.0).** `PanelContext.roomTitle`
+   drawn by the renderer on room change (§3); narration routes to the DM's balloon (§2);
+   `captionFor` retired; the 200-character packing and the balloon run (§4) landed with it.
+   Three things the design did not foresee, each now a rule and a caution in
+   `docs/PITFALLS.md`:
+   - **The caption was also holding the panel open.** With it gone, a room change clone-appended
+     into the previous room's panel and a death frame was absorbed by the next turn — which
+     deleted the `reaction` rung from the corpus outright (11 turns, 0 panels). Both now ask for
+     the break explicitly with `<Brk>` (`panel.cpp:1067`).
+   - **`roomTitle` must survive a clone-append**, or the box vanishes the moment a later
+     same-room turn appends into the panel that opened the room. It is the one field that does not
+     take the incoming context.
+   - **The Hero has to be staged through the DM's whole run**, not only between description
+     balloons: two DM balloons never share a panel, so an ordinary read-aloud + gazetteer turn is
+     already a two-panel run, and without `<Chr>` he is absent from the first.
+
+   Measured after the slice: **captions 96.7% → 0%**, exchanges landing in one panel **20 of 28 →
+   24 of 28**, panels 411 → 478 (+16%, the predicted cost), DM balloons 54 → 420. Exchanges
+   themselves are unchanged at 28 — they are 6.1d's to move.
 2. **6.1d — the limiters go.** The Director's conditional refusal drop (§5), the read-aloud
    register uncooled and the table-talk cooldown retuned (§2), marker coverage widened
    (`parser-miss` first), the action/reply exclusion relaxed (§6). Exit: **D5 on the density

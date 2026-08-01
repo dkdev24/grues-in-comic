@@ -50,6 +50,7 @@ import { objectNameTable } from "../src/status.js";
 import { createDirector } from "../src/comic/director.js";
 import { createFitTest } from "../src/comic/fit.js";
 import { CAPTION, GUIDE, HERO, createMapper, type Panel } from "../src/comic/mapper.js";
+import { BRK, CHR } from "../src/comic/page.js";
 import { BEAT_SCRIPT, GUIDE_COOLDOWN, GUIDE_SCRIPT } from "../src/comic/script.js";
 import type { BeatEntry, BeatExchange, MapperOptions } from "../src/comic/mapper.js";
 
@@ -84,18 +85,28 @@ const CORPUS = [
 export interface DensityCounts {
   /** Turns fed to the mapper, including `start()`. */
   turns: number;
-  /** Turns whose script carried a caption — §6.1 limiter 4's 96.7%. */
+  /** Turns whose script carried a caption. **0 since 6.1c** — the channel retired. */
   caption: number;
-  /** Turns whose script carried a DM balloon, by table. */
+  /** Turns whose script carried any DM balloon, and the split by register. */
   dm: number;
+  /** Read-aloud: the DM speaking the turn's narration (ADR 0009 §2). Free. */
+  dmReadAloud: number;
+  /** Table-talk: a line out of `GUIDE_SCRIPT`/`BEAT_SCRIPT`, and which of the two. */
+  dmTalk: number;
   dmBeat: number;
   dmGazetteer: number;
   /** Turns whose script carried a Hero balloon, split by what it is. */
   hero: number;
   heroAction: number;
   heroReply: number;
-  /** Turns where **both** spoke: a DM line and a Hero reply. The headline. */
+  /**
+   * Turns where **both** spoke: any DM line and the Hero's authored *reply*. The
+   * headline, and D5's unit. His action report does not count — "The lamp, then."
+   * is him narrating, not answering.
+   */
   exchanges: number;
+  /** The looser reading: any DM balloon and any Hero balloon on the same turn. */
+  bothSpeak: number;
   /** Panels the Director emitted — what a reader actually scrolls past. */
   panels: number;
   /** Emitted panels carrying a DM balloon / a Hero balloon / both speakers. */
@@ -118,8 +129,8 @@ export interface DensityReport {
 }
 
 const ZERO: DensityCounts = {
-  turns: 0, caption: 0, dm: 0, dmBeat: 0, dmGazetteer: 0,
-  hero: 0, heroAction: 0, heroReply: 0, exchanges: 0,
+  turns: 0, caption: 0, dm: 0, dmReadAloud: 0, dmTalk: 0, dmBeat: 0, dmGazetteer: 0,
+  hero: 0, heroAction: 0, heroReply: 0, exchanges: 0, bothSpeak: 0,
   panels: 0, panelsDm: 0, panelsHero: 0, panelsBothSpeakers: 0,
   panelsExchange: 0, screenExchangeTurns: 0,
 };
@@ -194,22 +205,29 @@ function measureFile(doc: WorldDocument, file: string): DensityCounts {
     const turns = [session.start(), ...commands.map((c) => session.command(c))];
     for (const turn of turns) {
       const { lines } = mapper.read(turn);
-      const dm = lines.find((l) => l.speaker === GUIDE) ?? null;
-      const hero = lines.find((l) => l.speaker === HERO) ?? null;
-      const heroReply = hero !== null && texts.beatHero.has(hero.text);
+      // Sentinels (`<Brk>`, `<Chr>`) are instructions to the page, not utterances.
+      const said = lines.filter((l) => l.text !== BRK && l.text !== CHR);
+      const dm = said.filter((l) => l.speaker === GUIDE);
+      const hero = said.filter((l) => l.speaker === HERO);
+      const talk = dm.filter((l) => l.register === "authored");
+      const reply = hero.find((l) => l.register === "authored") ?? null;
       counts.turns += 1;
-      if (lines.some((l) => l.speaker === CAPTION)) counts.caption += 1;
-      if (dm) {
-        counts.dm += 1;
-        if (texts.beatDm.has(dm.text)) counts.dmBeat += 1;
-        else if (texts.gazetteer.has(dm.text)) counts.dmGazetteer += 1;
+      if (said.some((l) => l.speaker === CAPTION)) counts.caption += 1;
+      if (dm.length > 0) counts.dm += 1;
+      if (dm.some((l) => l.register === "narration")) counts.dmReadAloud += 1;
+      if (talk.length > 0) {
+        counts.dmTalk += 1;
+        // Which table it came from — the register says authored, not from where.
+        if (talk.some((l) => texts.beatDm.has(l.text))) counts.dmBeat += 1;
+        else if (talk.some((l) => texts.gazetteer.has(l.text))) counts.dmGazetteer += 1;
       }
-      if (hero) {
+      if (hero.length > 0) {
         counts.hero += 1;
-        if (heroReply) counts.heroReply += 1;
+        if (reply !== null) counts.heroReply += 1;
         else counts.heroAction += 1;
       }
-      if (dm && heroReply) counts.exchanges += 1;
+      if (dm.length > 0 && reply !== null) counts.exchanges += 1;
+      if (dm.length > 0 && hero.length > 0) counts.bothSpeak += 1;
     }
   }
 
@@ -240,7 +258,7 @@ function panelCounts(panels: readonly Panel[], texts: Texts): Partial<DensityCou
   for (const panel of panels) {
     const dm = panel.speakers.filter((line) => line.speaker === GUIDE);
     const hero = panel.speakers.filter((line) => line.speaker === HERO);
-    const replies = hero.filter((line) => texts.beatHero.has(line.text));
+    const replies = hero.filter((line) => line.register === "authored");
     if (dm.length > 0) panelsDm += 1;
     if (hero.length > 0) panelsHero += 1;
     if (dm.length > 0 && hero.length > 0) panelsBothSpeakers += 1;
@@ -329,8 +347,9 @@ function report(current: DensityReport): string {
 
   const t = current.totals;
   const r = rates(t);
-  out.push(`spoken beats:      ${t.dmBeat} DM + ${t.heroReply} Hero reply `
-    + `(gazetteer ${t.dmGazetteer})`);
+  out.push(`DM balloons:       ${t.dmReadAloud} read-aloud + ${t.dmTalk} table-talk `
+    + `(${t.dmBeat} beat, ${t.dmGazetteer} gazetteer)`);
+  out.push(`Hero balloons:     ${t.heroAction} action + ${t.heroReply} reply`);
   out.push(`exchanges:         ${t.exchanges} of ${t.turns} turns `
     + `(${r.exchange.toFixed(1)}%, one every ${r.turnsPerExchange.toFixed(1)} turns)`);
   out.push(`  reached screen:  ${t.screenExchangeTurns} `
@@ -340,6 +359,7 @@ function report(current: DensityReport): string {
   out.push(`  in one panel:    ${t.panelsExchange} of ${t.screenExchangeTurns} `
     + `(${t.screenExchangeTurns - t.panelsExchange} split across two panels); `
     + `${t.panelsBothSpeakers} panels carry both speakers`);
+  out.push(`both speak:        ${t.bothSpeak} turns (any DM balloon + any Hero balloon)`);
   out.push(`captions:          ${t.caption} of ${t.turns} turns (${r.caption.toFixed(1)}%)`);
   out.push("");
   out.push(`D5 target: one exchange every 2–3 turns. `

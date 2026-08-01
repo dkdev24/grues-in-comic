@@ -26,10 +26,12 @@ import type { WorldDocument } from "@grues-in-comic/ir";
 import { PLAYER_ID } from "../../engine/src/state.js";
 import { createSession } from "../src/session.js";
 import {
-  CAPTION, GUIDE, HERO, captionFor, createMapper, heroBalloon, lineOf, panelKind, salient,
+  CAPTION, GUIDE, HERO, READ_ALOUD_MAX, createMapper, heroBalloon, lineOf, panelKind, readAloud, salient,
   type Line, type MapperOptions, type Panel,
 } from "../src/comic/mapper.js";
-import { BM_SAY, addScript, createPage, makeBalloonClass } from "../src/comic/page.js";
+import {
+  BM_SAY, BRK, CHR, addScript, createPage, makeBalloonClass, type Register,
+} from "../src/comic/page.js";
 import type { Turn } from "../src/session.js";
 import { objectNameTable } from "../src/status.js";
 import { AFFECT_MARKERS, affectFor } from "../src/comic/affect.js";
@@ -49,15 +51,29 @@ interface Shot {
   lines: readonly Line[];
 }
 
-function lineIn(target: Shot | Panel | undefined, speaker: string): Line | null {
+function lineIn(
+  target: Shot | Panel | undefined, speaker: string, register?: Register,
+): Line | null {
   if (!target) return null;
-  if ("lines" in target) return target.lines.find((l) => l.speaker === speaker) ?? null;
-  return lineOf(target, speaker);
+  const match = (l: Line): boolean =>
+    l.speaker === speaker && (register === undefined || l.register === register);
+  if ("lines" in target) return target.lines.find(match) ?? null;
+  return target.speakers.find(match) ?? null;
 }
 
 const hero = (p?: Shot | Panel): Line | null => lineIn(p, HERO);
 const guide = (p?: Shot | Panel): Line | null => lineIn(p, GUIDE);
 const caption = (p?: Shot | Panel): Line | null => lineIn(p, CAPTION);
+/**
+ * The two DM registers (ADR 0009 §2), which `guide()` alone can no longer tell
+ * apart: since 6.1c he reads the narration aloud *and* says his authored piece,
+ * both as `guide` speech. Every assertion about the script tables means
+ * {@link talk}; every assertion about the module's text means {@link readsAloud}.
+ */
+const talk = (p?: Shot | Panel): Line | null => lineIn(p, GUIDE, "authored");
+const readsAloud = (p?: Shot | Panel): Line | null => lineIn(p, GUIDE, "narration");
+/** The Hero's authored reply, as opposed to his derived action line. */
+const reply = (p?: Shot | Panel): Line | null => lineIn(p, HERO, "authored");
 
 /**
  * The panel a shot ends on. Panel-level context (camera, room, kind) is the same
@@ -97,8 +113,9 @@ function strip(options: MapperOptions = {}) {
       const delta = addScript(page, script);
       return {
         panels: delta.appended,
-        lines: script.lines.map((l) => ({
+        lines: script.lines.filter((l) => l.text !== CHR && l.text !== BRK).map((l) => ({
           speaker: l.speaker, balloonClass: makeBalloonClass(l.modes), text: l.text,
+          ...(l.register ? { register: l.register } : {}),
         })),
       };
     },
@@ -176,22 +193,20 @@ describe("panel stream", () => {
     expect(hero(first)).toBeNull();
   });
 
-  it("splits the opening turn, and only the opening turn (`m_panels.GetCount() < 2`)", () => {
-    // The one place panelization changes today's single-participant output. Comic
-    // Chat refuses to clone-append while the page holds fewer than two panels
-    // (`panel.cpp:1079`, and the same test in `AddReaction` at `:1148`), so the
-    // opening turn's caption takes panel 0 and the Hero's body is staged in panel
-    // 1. From the second turn on the caption opens a panel (`BM_ACTION`, `:1064`)
-    // and the Hero clone-appends into it — one panel per turn, as before.
+  it("opens the page one panel at a time (`m_panels.GetCount() < 2`)", () => {
+    // Comic Chat refuses to clone-append while the page holds fewer than two
+    // panels (`panel.cpp:1079`, and the same test in `AddReaction` at `:1148`).
+    // Since 6.1c the opening turn is the DM reading West of House aloud, so panel
+    // 0 is his first balloon and the Hero is staged into panel 1 by the `<Chr>`
+    // that follows it — the staging ADR 0009 §4 asks for, seen at the one place
+    // the port makes it visible.
     const panels = replayPanels("01-west-of-house.cmd");
-    expect(panels[0]!.bodies).toHaveLength(0); // caption alone
-    expect(caption(panels[0]!)).not.toBeNull();
-    expect(panels[1]!.bodies.map((b) => b.speaker)).toEqual([HERO]);
-    expect(caption(panels[1]!)).toBeNull();
-    // Steady state: every later panel carries both.
-    for (const panel of panels.slice(2)) {
-      expect(panel.bodies.length).toBeGreaterThan(0);
-    }
+    expect(panels[0]!.bodies.map((b) => b.speaker)).toEqual([GUIDE]);
+    expect(readsAloud(panels[0]!)).not.toBeNull();
+    expect(panels[1]!.bodies.map((b) => b.speaker)).toContain(HERO);
+    // No panel in the corpus carries a caption any more: the box is metadata now
+    // (§3), and this is the assertion that says the channel is really gone.
+    for (const panel of panels) expect(caption(panel)).toBeNull();
   });
 
   it("renders the Hero balloon as the resolved action, never the command (ADR 0005 §1)", () => {
@@ -269,7 +284,7 @@ describe("panel stream", () => {
       panel = page.turn(session.command(command));
     }
     expect(frame(panel)?.marker).toBe("reveal");
-    expect(guide(panel)?.text).toBe("It was waiting to be found.");
+    expect(talk(panel)?.text).toBe("It was waiting to be found.");
   });
 
   it("renders a beat as an exchange: the DM's line and the Hero's answer (ADR 0006 §4)", () => {
@@ -285,7 +300,7 @@ describe("panel stream", () => {
     for (const command of ["look", "examine mailbox", "open mailbox"]) {
       shot = page.turn(session.command(command));
     }
-    expect(guide(shot)?.text).toBe("It was waiting to be found.");
+    expect(talk(shot)?.text).toBe("It was waiting to be found.");
     expect(hero(shot)?.text).toBe("Of course it was.");
     // Spoken, not thought: the exchange is across the table (ADR 0006 §3).
     expect(hero(shot)?.balloonClass).toBe("CBWoodringNormal");
@@ -319,9 +334,9 @@ describe("panel stream", () => {
     page.turn(session.start());
     const miss = page.turn(session.command("xyzzy plugh"));
     expect(hero(miss)?.text).toBe("Different words, then.");
-    expect(guide(miss)).toBeNull();
+    expect(talk(miss)).toBeNull();
     // The gazetteer still owns first entry.
-    expect(guide(page.turn(session.command("north")))?.text)
+    expect(talk(page.turn(session.command("north")))?.text)
       .toBe("The house turns its back here.");
   });
 
@@ -336,10 +351,10 @@ describe("panel stream", () => {
     const page = strip({ beatScript, guideCooldown: 6 });
     page.turn(session.start());
     const first = page.turn(session.command("xyzzy plugh"));
-    expect(guide(first)?.text).toBe("The empire hears you.");
+    expect(talk(first)?.text).toBe("The empire hears you.");
     expect(hero(first)?.text).toBe("Different words, then.");
     const second = page.turn(session.command("frotz bozbar"));
-    expect(guide(second)).toBeNull();
+    expect(talk(second)).toBeNull();
     expect(hero(second)).toBeNull();
   });
 
@@ -361,7 +376,12 @@ describe("panel stream", () => {
     const spoken: string[] = [];
     const record = (shot: ReturnType<typeof page.turn>): void => {
       for (const line of shot.lines) {
-        if (line.speaker !== CAPTION) spoken.push(`${line.speaker}: ${line.text}`);
+        // Everything the characters say to each other — which is every balloon
+        // except the DM reading the module aloud (that text is the engine's, and
+        // pinning it here would pin the game's prose in a dialogue golden).
+        if (!(line.speaker === GUIDE && line.register === "narration")) {
+          spoken.push(`${line.speaker}: ${line.text}`);
+        }
       }
     };
     record(page.turn(session.start()));
@@ -390,7 +410,7 @@ describe("panel stream", () => {
     const page = strip({ beatScript, guideCooldown: 0 });
     page.turn(session.start());
     const said = ["xyzzy plugh", "frotz bozbar", "gnusto rezrov", "blorb frotz"]
-      .map((c) => guide(page.turn(session.command(c)))?.text);
+      .map((c) => talk(page.turn(session.command(c)))?.text);
     // Three lines, then the last one holds: nothing cycles back to the opener.
     expect(said).toEqual([
       "The empire hears you.",
@@ -417,7 +437,7 @@ describe("panel stream", () => {
     // all. (Two misses in a row are one turn apart by the only clock this has.)
     const commands = ["xyzzy plugh", "frotz bozbar", "north", "south",
       "gnusto rezrov", "blorb frotz"];
-    const said = commands.map((c) => guide(page.turn(session.command(c)))?.text ?? null);
+    const said = commands.map((c) => talk(page.turn(session.command(c)))?.text ?? null);
     // Most of these are swallowed by the cooldown — how many depends on the beat's
     // cadence, which is not what this test is about. What it is about: the lines
     // that *did* reach the page are the run's, in order, with none burned in
@@ -438,8 +458,8 @@ describe("panel stream", () => {
     const session = createSession(doc, { seed: SEED });
     const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
     page.turn(session.start());
-    expect(guide(page.turn(session.command("open mailbox")))?.text).toBe("Found.");
-    expect(guide(page.turn(session.command("xyzzy plugh")))?.text)
+    expect(talk(page.turn(session.command("open mailbox")))?.text).toBe("Found.");
+    expect(talk(page.turn(session.command("xyzzy plugh")))?.text)
       .toBe("The empire hears you.");
   });
 
@@ -486,7 +506,9 @@ describe("panel stream", () => {
       const said: string[] = [];
       const record = (shot: ReturnType<typeof page.turn>): void => {
         for (const line of shot.lines) {
-          if (line.speaker !== CAPTION) said.push(`${line.speaker}: ${line.text}`);
+          if (!(line.speaker === GUIDE && line.register === "narration")) {
+            said.push(`${line.speaker}: ${line.text}`);
+          }
         }
       };
       record(page.turn(session.start()));
@@ -516,7 +538,12 @@ describe("panel stream", () => {
     const spoken: string[] = [];
     const record = (shot: ReturnType<typeof page.turn>): void => {
       for (const line of shot.lines) {
-        if (line.speaker !== CAPTION) spoken.push(`${line.speaker}: ${line.text}`);
+        // Everything the characters say to each other — which is every balloon
+        // except the DM reading the module aloud (that text is the engine's, and
+        // pinning it here would pin the game's prose in a dialogue golden).
+        if (!(line.speaker === GUIDE && line.register === "narration")) {
+          spoken.push(`${line.speaker}: ${line.text}`);
+        }
       }
     };
     record(page.turn(session.start()));
@@ -537,7 +564,7 @@ describe("panel stream", () => {
     const guideScript = new Map([["WEST-OF-HOUSE", "Boarded front door."]]);
     const session = createSession(doc, { seed: SEED });
     const page = strip({ guideScript, guideCooldown: 0 });
-    expect(guide(page.turn(session.start()))?.text).toBe("Boarded front door.");
+    expect(talk(page.turn(session.start()))?.text).toBe("Boarded front door.");
   });
 
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
@@ -568,23 +595,30 @@ describe("panel stream", () => {
     expect(seen).toBeGreaterThan(0); // guard: the assertion actually ran
   });
 
-  it("quotes narration verbatim and never paraphrases it (§2)", () => {
+  it("reads narration aloud verbatim and never paraphrases it (§2)", () => {
     const session = createSession(doc, { seed: SEED });
     const page = strip();
     let turn = page.turn(session.start());
-    expect(caption(turn)?.text).toBeTruthy();
+    expect(readsAloud(turn)?.text).toBeTruthy();
 
     for (const command of commandsOf("02-house-entry.cmd")) {
       const result = session.command(command);
-      const panel = page.turn(result);
-      const line = caption(panel);
-      if (line === null) continue;
+      const shot = page.turn(result);
+      const said = shot.lines.filter((l) => l.speaker === GUIDE && l.register === "narration");
+      if (said.length === 0) continue;
       const narration = result.events
         .filter((e) => e.type === "narration" || e.type === "question" || e.type === "game-over")
         .map((e) => e.text)
         .join("");
-      expect(narration).toContain(line.text);
-      expect(line.balloonClass).toBe("CBWoodringBox");
+      // The engine's prose carries newlines and column padding that packing
+      // collapses to single spaces, so the comparison is on normalized text.
+      // Normalizing is not paraphrasing: no word is added, dropped or reordered.
+      const flat = narration.replace(/\s+/g, " ");
+      for (const line of said) {
+        expect(flat).toContain(line.text.replace(/\s+/g, " "));
+        // Speech, not a box: the DM says it (ADR 0006 §2, ADR 0009 §2).
+        expect(line.balloonClass).toBe("CBWoodringNormal");
+      }
     }
   });
 });
@@ -607,8 +641,12 @@ describe("camera ladder (§7)", () => {
     for (const panel of scenePanels()) counts.set(panel.camera, (counts.get(panel.camera) ?? 0) + 1);
     const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
     // The *order* is the claim; the percentages are opening-sequence-shaped and
-    // deliberately not asserted.
-    expect(ranked.slice(0, 2)).toEqual(["medium", "establishing"]);
+    // deliberately not asserted. **6.1c reversed the top two** and that is the
+    // change working: an arrival's description is now several balloons, each
+    // opening a panel at the same `establishing` rung (61 arrival turns → 109
+    // establishing panels), so first visits overtake the medium shot. The rung
+    // *ladder* is untouched; what moved is how many panels one turn draws.
+    expect(ranked.slice(0, 2)).toEqual(["establishing", "medium"]);
     expect(ranked.indexOf("close-up")).toBeLessThan(ranked.indexOf("wide"));
   });
 
@@ -745,45 +783,103 @@ describe("affect table (§10)", () => {
   });
 });
 
-describe("caption", () => {
-  it("prefers the sentence the marker matched", () => {
-    const caption = captionFor(
+describe("the read-aloud register (ADR 0009 §2)", () => {
+  const ROOM = "You are standing in an open field west of a white house, with a boarded front door."
+    + " There is a small mailbox here."
+    + " A rubber mat saying 'Welcome to Zork' lies by the door."
+    + " The forest stands at your back, and the path north is the only thing here that looks used."
+    + " Something has been here recently.";
+
+  it("quotes the sentence the marker matched, on a turn that did not move", () => {
+    const said = readAloud(
       "You open the window. It is pitch black. You are likely to be eaten by a grue.",
       "It is pitch black.",
+      false,
     );
-    expect(caption?.text).toBe("It is pitch black.");
+    expect(said).toEqual(["It is pitch black."]);
   });
 
-  it("drops an over-long sentence rather than trimming it", () => {
-    // Trimming would make the caption a paraphrase by omission. §2 makes it
-    // verbatim, and the console pane still carries every word.
-    expect(captionFor("x".repeat(400), null)).toBeNull();
+  it("reads the whole room aloud on a turn that moved", () => {
+    // The box only ever showed the opening clause; D2/D3 give the DM the
+    // description. Nothing is paraphrased — every sentence is still verbatim.
+    const said = readAloud(ROOM, null, true);
+    expect(said.join(" ")).toBe(ROOM);
+    expect(said.length).toBeGreaterThan(1);
+  });
+
+  it("packs to the limit without splitting a sentence", () => {
+    for (const balloon of readAloud(ROOM, null, true)) {
+      expect(balloon.length).toBeLessThanOrEqual(READ_ALOUD_MAX);
+      // Packing joins whole sentences, so every balloon ends one.
+      expect(balloon).toMatch(/[.!?'"]$/);
+    }
+  });
+
+  it("says an over-long sentence whole rather than dropping it", () => {
+    // The old rule dropped it, because a box could not continue. A run of
+    // balloons can, so the silent loss (9 turns in 606) is gone.
+    const long = `${"x".repeat(400)}.`;
+    expect(readAloud(long, null, true)).toEqual([long]);
+  });
+
+  it("leaves a parser refusal to the Hero (D2)", () => {
+    // The routing decision, asserted on the *script* rather than on the panels: a
+    // panel's context is its newest line's, so a clone-appended refusal can land
+    // in a panel holding an earlier turn's DM balloon. Until 6.1d scripts the
+    // Hero's side the turn is quiet — what it must never be is the DM reading the
+    // parser's "no" aloud in the module's voice.
+    const session = createSession(doc, { seed: SEED });
+    const mapper = createMapper();
+    let refusals = 0;
+    for (const turn of [session.start(),
+      ...commandsOf("11-parser-edges.cmd").map((c) => session.command(c))]) {
+      const script = mapper.read(turn);
+      if (script.context.marker !== "parser-miss") continue;
+      refusals += 1;
+      expect(script.lines.filter((l) => l.speaker === GUIDE)).toEqual([]);
+    }
+    expect(refusals).toBeGreaterThan(0);
   });
 });
 
 describe("the Guide is presentation-only (§3)", () => {
-  it("changes no panel except by adding its own balloon", () => {
+  it("changes nothing derived from the world, only what is said", () => {
+    // Asserted on the *scripts*, not on the page, since 6.1c: an extra DM balloon
+    // now costs a panel (two of his balloons cannot share one — `AvatarInPanel`,
+    // `panel.cpp:1088`), so the two runs no longer have equal panel counts. That
+    // is ADR 0009 working, not the constraint breaking. The constraint is that
+    // nothing the *world* decides moves, and this compares it turn by turn.
     const script = new Map([["NORTH-OF-HOUSE", "Mind the boards."]]);
-    const withGuide = (() => {
+    const run = (options: MapperOptions) => {
       const session = createSession(doc, { seed: SEED });
-      const page = strip({ guideScript: script, guideCooldown: 0 });
-      page.turn(session.start());
-      for (const c of commandsOf("02-house-entry.cmd")) page.turn(session.command(c));
-      return [...page.panels];
-    })();
-    const without = replayPanels("02-house-entry.cmd");
+      const mapper = createMapper(options);
+      return [session.start(), ...commandsOf("02-house-entry.cmd").map((c) => session.command(c))]
+        .map((t) => mapper.read(t));
+    };
+    const withGuide = run({ guideScript: script, guideCooldown: 0 });
+    const without = run({});
 
-    expect(withGuide.some((p) => guide(p) !== null)).toBe(true);
-    expect(withGuide.length).toBe(without.length);
-    for (const [i, panel] of withGuide.entries()) {
+    expect(withGuide.some((s) => s.lines.some((l) => l.register === "authored"))).toBe(true);
+    expect(withGuide).toHaveLength(without.length);
+    for (const [i, script] of withGuide.entries()) {
       const bare = without[i]!;
-      // Everything derived from the world is identical; only rung 5 may differ,
-      // and only on the panels that carry a Guide balloon.
-      expect(panel.marker).toBe(bare.marker);
-      expect(panel.room).toBe(bare.room);
-      expect(hero(panel)).toEqual(hero(bare));
-      expect(caption(panel)).toEqual(caption(bare));
-      if (guide(panel) === null) expect(panel.camera).toBe(bare.camera);
+      const world = (t: typeof bare) => ({
+        marker: t.context.marker, room: t.context.room, kind: t.context.kind,
+        roomTitle: t.context.roomTitle,
+        said: t.lines
+          .filter((l) => l.register === "narration" && l.text !== CHR && l.text !== BRK)
+          .map((l) => l.text),
+        // Sentinels excluded: a `<Chr>` is staging, not speech, and an extra DM
+        // balloon legitimately adds one (ADR 0009 §4).
+        hero: t.lines
+          .filter((l) => l.speaker === HERO && l.text !== CHR && l.text !== BRK)
+          .map((l) => l.text),
+      });
+      expect(world(script)).toEqual(world(bare));
+      // Only rung 5 may differ, and only on the turns that carry his balloon.
+      if (!script.lines.some((l) => l.register === "authored")) {
+        expect(script.context.camera).toBe(bare.context.camera);
+      }
     }
   });
 
@@ -798,6 +894,6 @@ describe("the Guide is presentation-only (§3)", () => {
     for (const c of commandsOf("02-house-entry.cmd")) page.turn(session.command(c));
     // The Guide is the only thing on the panel not derived from what the player
     // just did, so it is the only thing that can wear out.
-    expect(page.panels.filter((p) => guide(p) !== null)).toHaveLength(1);
+    expect(page.panels.filter((p) => talk(p) !== null)).toHaveLength(1);
   });
 });

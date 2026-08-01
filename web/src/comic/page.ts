@@ -73,7 +73,22 @@ export interface PageLine {
    * a cast id the page has to recognise, so panelization stays cast-agnostic.
    */
   bodiless?: boolean;
+  /**
+   * Where the words came from — ADR 0009 §2's two registers, as a fact on the
+   * line instead of a thing the reader has to infer from the text.
+   *
+   * `"narration"` is derived from the event stream and is verbatim (the DM
+   * reading the module aloud, the Hero's resolved action). `"authored"` came out
+   * of a script table. They have different economics — the cooldown governs the
+   * authored voice only, and the M6.1e corpus is the authored one — so anything
+   * counting or gating one of them needs to be able to name it. `page.ts` itself
+   * never reads this: it is carried, not used, exactly like `emotion`.
+   */
+  register?: Register;
 }
+
+/** See {@link PageLine.register}. */
+export type Register = "narration" | "authored";
 
 /**
  * The panel-level facts that are *ours*, not Comic Chat's: the camera rung, the
@@ -95,6 +110,16 @@ export interface PanelContext {
   focus: string | null;
   marker: string | null;
   kind: PanelKind;
+  /**
+   * The location title this panel shows, or `null` — ADR 0009 §3.
+   *
+   * **Panel metadata, not a line.** It is drawn by the renderer from the panel,
+   * never entering the balloon list, which is the whole point: a `BM_ACTION`
+   * caption unconditionally opens a panel (`:1064`) and the box was doing that on
+   * 96.7% of turns. Set only on the turn the room changes (D4) — the status bar
+   * carries the persistent answer.
+   */
+  roomTitle: string | null;
 }
 
 /**
@@ -265,6 +290,8 @@ export function createPage(options: PageOptions = {}): Page {
       speaker: line.speaker,
       balloonClass: makeBalloonClass(line.modes),
       text: line.text,
+      // Carried, never read here — see `PageLine.register`.
+      ...(line.register ? { register: line.register } : {}),
     };
     if (line.bodiless !== true) fetchSpeaker(candidate, line.speaker, line.emotion);
     candidate.speakers.push(balloon);
@@ -349,7 +376,17 @@ function emptyPanel(context: PanelContext): MutablePanel {
  * is the same operation with none of the pointer-fixup trick at `:579`.
  */
 function clonePanel(panel: Panel, context: PanelContext): MutablePanel {
-  return { ...context, bodies: [...panel.bodies], speakers: [...panel.speakers] };
+  return {
+    ...context,
+    // The one field that does **not** take the incoming context: the location box
+    // is metadata about *where this panel is*, not about its newest utterance
+    // (ADR 0009 §3). A later same-room turn clone-appending into the panel that
+    // opened the room would otherwise erase the box — and a room *change* cannot
+    // reach here at all, because the mapper breaks the panel on one.
+    roomTitle: context.roomTitle ?? panel.roomTitle,
+    bodies: [...panel.bodies],
+    speakers: [...panel.speakers],
+  };
 }
 
 /**
