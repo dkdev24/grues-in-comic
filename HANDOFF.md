@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.8** · Platform: **macOS only** (2026-07-28)
+**0.24.9** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,39 +27,34 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f–6.1j are done; 6.1e is paused; 6.1k is the
-  remaining ADR 0010 slice.** The corpus is repaired, so **D5 and the two-shot are both met
-  over a game that is actually won** — every M6.1 figure quoted before v0.24.0 was measured over a
-  losing replay and is void. **ADR 0010 is Accepted (v0.24.5); all three slices are built (v0.24.6,
-  v0.24.7, v0.24.8)** — the Hero declares his command as table-talk on 98.3% of turns, that
-  declaration answers the DM's still-open frame across the turn boundary, and a collapsed traversal
-  run of two or more now speaks its destination as one journey line instead of discarding its
-  intermediate steps' voice. Work resumes at stage **6.1k**, which sets D5′ from the measurements and
-  closes M6.1's stated purpose.
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f–6.1k are done; 6.1e is paused, the only open
+  item under M6.1.** The corpus is repaired, so **D5 and the two-shot are both met over a game that is
+  actually won** — every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is
+  void. **ADR 0010 is Built (v0.24.9) — all four slices done.** The Hero declares his command as
+  table-talk on 98.3% of turns, that declaration answers the DM's still-open frame across the turn
+  boundary, a collapsed traversal run of two or more speaks its destination as one journey line, and
+  **D5′ (the share of emitted panels carrying both speakers) has a band, 25–60%, set from today's
+  43.7% measurement** and asserted in `density.test.ts`. This closes M6.1's stated purpose — the
+  remaining M6.1 work is 6.1e's authoring volume, which was always open-ended.
 
 **Tests:** 292 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — 6.1j built: the collapse gives ground (v0.24.8)
+## Last Session — 6.1k built: D5′ set, ADR 0010 fully built (v0.24.9)
 
-**ADR 0010 slice 3 is done — all three slices are now built.** `director.ts`'s traversal buffer counts
-`runLength`; a run of one flushes untouched, and a run of two or more has its buffered script's
-declaration swapped for a **journey line** (`JOURNEY_LINES` in `script.ts`, its own lexicon) naming the
-destination via a new `journeyRoomTitles` table. Full detail in `WORKLOG.md` v0.24.8 and
-`docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1j.
+**ADR 0010 slice 4 is done — all four slices are now built, and the ADR moves to Built.** D5′'s band
+is **25–60% of emitted panels carry both speakers**, set from today's own measurement (43.7%, 477 of
+1091) — `D5_PRIME_MIN`/`D5_PRIME_MAX` in `web/tools/density.ts`, a new `rates().bothSpeakersShare`,
+both ends asserted in `density.test.ts` over the corpus total and the full-game oracle. Full detail in
+`WORKLOG.md` v0.24.9 and `docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1k.
 
-**Headline measurement:** of 50 collapsed traversal runs in the corpus, 17 are length two or more and
-now speak the destination instead of the last step's own line. Panels **1091 → 1091**, unchanged — this
-slice trades what the run's frame says for whether it stays wordless, not panel count. 292/292 web
-tests green.
-
-**One thing worth knowing before touching this code again:** `journeyRoomTitles` is a *second* table,
-deliberately not a reuse of `MapperOptions.roomTitles` (the location box's, ADR 0009 §3). That table has
-never actually been wired in production — `comic-view.ts` never passed it, so the caption has shown raw
-room ids all along, a dormant pre-existing gap this session found but did not fix, since wiring it would
-be a separate, unscoped change with its own pixel-gate blast radius across every panel. If a future
-session wires it, `journeyRoomTitles` can likely be retired in favor of it.
+**Neither golden had drifted since 6.1j** — density baseline and pixel gate both already matched, so
+there was nothing to re-pin. Verification was a throwaway transcript dump (not committed) over the
+full-game oracle's turns 0–50 and 230–270: it reads as a conversation, declaration/reply rotation
+holds. One soft spot noted, not fixed (out of scope): `dig sand` repeats its declaration verbatim four
+turns running at Sandy Cave — a lexicon-depth gap from 6.1h/i. 292/292 web tests green, `tsc --noEmit`
+clean.
 
 ## Next Actions
 
@@ -67,19 +62,15 @@ session wires it, `journeyRoomTitles` can likely be retired in favor of it.
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · 6.1h ✅ · 6.1i ✅ · 6.1j ✅ · **6.1e ◐** (authoring,
-   paused where ADR 0010 subsumes it) · **6.1k ☐ — the last ADR 0010 slice, and where work resumes.**
+   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · 6.1h ✅ · 6.1i ✅ · 6.1j ✅ · 6.1k ✅ — **ADR 0010 is
+   fully built and M6.1's stated purpose is closed.** **6.1e ◐ is the only open item**: authored
+   dialogue across 110 rooms, committed as data (D1 sanctions the volume). The gazetteer is at 88
+   rooms; `BEAT_SCRIPT` at 12 beats / 70 authored exchanges. No exit criterion beyond "the user says
+   the product is ready" — pick it up when there's appetite for more authoring, or move to M6.2/M6.4
+   as filler.
 
-   **⇒ NEXT SESSION STARTS HERE: 6.1k — ADR 0010 slice 4, set D5′ and verify.** Read
-   `docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1k for exit criteria. The shape: set D5′'s band (the share of
-   emitted panels carrying both speakers) **from the measurements** `npm --prefix web run density`
-   already prints, add both ends as assertions to `density.test.ts`, re-pin both goldens (`gate.ts`
-   and the density baseline) after **looking at the images**, and read a full playthrough in the
-   browser — this is the slice that actually closes M6.1's stated purpose, not just its mechanics.
-
-   The remaining 6.1e work is what it always was: authored dialogue across 110 rooms, committed as
-   data (D1 sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70
-   authored exchanges.
+   **⇒ NEXT SESSION: either resume 6.1e authoring, or pick up one of the independent M6 items below —
+   the user's call, since M6.1's mechanics are done.**
 2. **M6.2 — save / load / restart.** ☐ UI over the engine's existing save contract; three named
    slots, browser storage only. Independent — good filler for an idle session.
 3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐

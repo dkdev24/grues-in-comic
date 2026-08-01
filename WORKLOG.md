@@ -10,6 +10,37 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.9 — 2026-08-01 — 6.1k: D5′ set and verified — ADR 0010 fully built
+
+**ADR 0010 slice 4 is built — all four slices are now built, and the ADR's status moves to Built.**
+D5′ (ADR 0010 §4, "the share of emitted panels in which both characters speak") gets its band from
+this slice's own measurement rather than an invented number: `web/tools/density.ts` exports
+`D5_PRIME_MIN = 25` and `D5_PRIME_MAX = 60`, a new `rates().bothSpeakersShare` derives
+`panelsBothSpeakers / panels`, and the report prints it alongside D5. `density.test.ts` asserts both
+ends of the band, over the corpus total and the full-game oracle separately.
+
+- **Today's number: 43.7%** (477 of 1091 emitted panels carry both speakers) — comfortably inside the
+  band, with room on both sides for 6.1e's remaining authoring to move it without the band needing to
+  move too.
+- **Neither golden had drifted since 6.1j.** The density baseline and the pixel gate both already
+  matched before this slice touched anything, so there was nothing to re-pin — 6.1h–6.1j already
+  carried that cost.
+- **Read the full-game transcript in two slices (turns 0–50, 230–270)** with a throwaway script built
+  on the same `createDirector`/`createSession` wiring `density.ts` uses, since the ADR's own
+  consequence section says no counter here measures *shape*. It reads as a conversation: declarations
+  and replies alternate, rotation holds across both slices sampled. One soft spot found and left as-is
+  because it is out of this slice's scope: `dig sand` repeats its declaration verbatim four turns
+  running mid-game (Sandy Cave) — an existing lexicon-depth gap from 6.1h/i, not something this slice
+  introduced or was asked to fix.
+- 292/292 web tests green, `tsc --noEmit` clean.
+
+**ADR 0010 in full:** the Hero declares his command as table-talk on 98.3% of turns (§1), the
+declaration answers the DM's still-open frame across the turn boundary (§2), a collapsed traversal run
+of two or more speaks its destination as one journey line (§3), and D5′ now has a number and a band
+with a stated failure mode at each end (§4). M6.1's stated purpose — filling the pane's silence with
+the player's own voice — is closed. What remains under M6.1 is 6.1e's authoring volume, which was
+always open-ended and is not an ADR slice.
+
 ## v0.24.8 — 2026-08-01 — 6.1j: the collapse gives ground
 
 **ADR 0010 slice 3 is built.** `director.ts`'s traversal buffer now counts `runLength` alongside the

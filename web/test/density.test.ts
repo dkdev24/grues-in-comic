@@ -18,7 +18,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { diff, rates, readBaseline, runDensity } from "../tools/density.js";
+import { D5_PRIME_MAX, D5_PRIME_MIN, diff, rates, readBaseline, runDensity } from "../tools/density.js";
 
 const baseline = readBaseline();
 const current = runDensity();
@@ -101,24 +101,20 @@ describe("what the counts must obey whatever they are", () => {
     expect(rates(oracle).turnsPerExchange).toBeLessThanOrEqual(3);
   });
 
-  it("reports the two-shot's share of an exchange (M6.1d, superseded by ADR 0010 §2 in this slice)", () => {
-    // ADR 0005 §4's facing two-shot, measured: of the exchanges that reached the
-    // screen, this used to count how many put the DM's line and the Hero's
-    // answer in *one* panel, and asserted most did (`> screenExchangeTurns / 2`).
-    //
-    // **6.1h breaks that on purpose, in a way ADR 0010 §2 already names as its
-    // own to fix.** The Hero's declaration (ADR 0010 §1) now fills the panel's
-    // one Hero-utterance slot on nearly every turn, so a beat's authored reply —
-    // this metric's `heroReply` — is pushed into a *second* panel behind it
-    // (`AvatarInPanel`, two Hero balloons never share a frame) far more often
-    // than before. The share dropped from 137/165 to a low fraction over the
-    // full corpus at the moment this test was updated. That is not this slice's
-    // to repair: §2's clone-append join is what puts the declaration back in the
-    // *previous* turn's frame instead of competing with the reply for this
-    // turn's, and 6.1i is where the fix belongs. Until then this is a measured
-    // fact, not an enforced floor — `density.ts`'s report is where to read it,
-    // and 6.1k re-pins a real bound once D5′'s band is set from the corpus.
-    expect(t.onePanelExchangeTurns).toBeGreaterThanOrEqual(0);
-    expect(t.onePanelExchangeTurns).toBeLessThanOrEqual(t.screenExchangeTurns);
+  it("meets D5′ — both speakers share a band of emitted panels (ADR 0010 §4, 6.1k)", () => {
+    // D5 (turn rate) went to ~1.0 by construction once the Hero speaks on
+    // nearly every turn (ADR 0010 §4), so the exit criterion moved to a panel
+    // share instead: `panelsBothSpeakers / panels`. A band, not a floor — both
+    // ends are real failure modes. The bottom guards against the pane reading
+    // as two monologues (the "1.6" undershoot session 4 hit going the other
+    // direction, `docs/DEVELOPMENT_PLAN.md` §6.1e); the top guards against a
+    // wall of talk where the two never stop. Set from this slice's own
+    // measurement (43.7%) with room on both sides for 6.1e's remaining
+    // authoring to move it.
+    expect(rates(t).bothSpeakersShare).toBeGreaterThan(D5_PRIME_MIN);
+    expect(rates(t).bothSpeakersShare).toBeLessThanOrEqual(D5_PRIME_MAX);
+    const oracle = current.files.find((f) => f.file === "12-full-game.cmd")!;
+    expect(rates(oracle).bothSpeakersShare).toBeGreaterThan(D5_PRIME_MIN);
+    expect(rates(oracle).bothSpeakersShare).toBeLessThanOrEqual(D5_PRIME_MAX);
   });
 });

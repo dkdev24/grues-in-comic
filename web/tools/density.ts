@@ -392,6 +392,16 @@ export function readBaseline(): DensityReport {
   return JSON.parse(readFileSync(BASELINE, "utf8")) as DensityReport;
 }
 
+/**
+ * D5′'s band (ADR 0010 §4): the share of *emitted panels* carrying both
+ * speakers. Set from this slice's measurement (477/1091 = 43.7%) with room on
+ * both sides for §6.1e's remaining authoring to move it — a comic where the
+ * two never stop talking fails as surely as one where they never start
+ * (session 4's 1.6 undershoot, `docs/DEVELOPMENT_PLAN.md` §6.1e).
+ */
+export const D5_PRIME_MIN = 25;
+export const D5_PRIME_MAX = 60;
+
 /** Rates worth reading — derived, so the baseline stays counts and cannot disagree. */
 export function rates(c: DensityCounts) {
   const pct = (n: number) => (c.turns === 0 ? 0 : (100 * n) / c.turns);
@@ -403,6 +413,8 @@ export function rates(c: DensityCounts) {
     /** D5 speaks in this unit: one exchange every *n* turns. `Infinity` if none. */
     turnsPerExchange: c.exchanges === 0 ? Infinity : c.turns / c.exchanges,
     twoShot: c.panelsExchange === 0 ? 0 : (100 * c.panelsExchange) / Math.max(1, c.panels),
+    /** D5′'s own unit: `panelsBothSpeakers` as a share of `panels`. */
+    bothSpeakersShare: c.panels === 0 ? 0 : (100 * c.panelsBothSpeakers) / c.panels,
   };
 }
 
@@ -456,6 +468,8 @@ function report(current: DensityReport): string {
   out.push("");
   out.push(`D5 target: one exchange every 2–3 turns. `
     + `Today: one every ${r.turnsPerExchange.toFixed(1)}.`);
+  out.push(`D5′ target: ${D5_PRIME_MIN}–${D5_PRIME_MAX}% of panels carry both speakers. `
+    + `Today: ${r.bothSpeakersShare.toFixed(1)}% (${t.panelsBothSpeakers} of ${t.panels}).`);
   return out.join("\n");
 }
 
