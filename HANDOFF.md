@@ -54,31 +54,37 @@ one `exactOptionalPropertyTypes` build error the first pass missed (`tsc --noEmi
 `tsconfig.build.json`; `npm run build` does) — fixed with a conditional spread, not `: undefined`.
 292/292 web tests green, build clean, dev server confirmed serving on `:8080`.
 
-**M6.2 (save/load/restart): the UI shape is decided, nothing is built yet.** The user proposed slash
-commands (`/save`, `/load`, `/restart`) in the existing text input rather than separate buttons —
-keeps Zork's text interface as the sole input surface. Feasibility check found the interception point
-already exists and is already load-bearing: `main.ts:164`'s `handleShellCommand()` intercepts bare
-`save`/`restore` before `session.command()` reaches the engine, today. Two decisions recorded in
-`docs/DEVELOPMENT_PLAN.md` §6.2 (2026-08-02): slash commands extend that exact interception point (no
-engine change, no new mechanism), and `/load`/`/restart` are **reload-based** — write/clear storage
-then `location.reload()`, letting boot-time `resume()` do the actual state rebuild — rather than a live
-in-place swap, because `comic-view.ts`/`console-view.ts` have no `reset()` today and a live restart
-would have to reset the Director's pose cycles and beat counters itself (the plan's existing hazard
-note) to avoid the new game opening with the old game's conversation state.
+**M6.2 (save/load/restart): the UI shape is fully decided now, nothing is built yet.** The user
+proposed slash commands (`/save`, `/load`, `/restart`) in the existing text input rather than separate
+buttons — keeps Zork's text interface as the sole input surface. Feasibility check found the
+interception point already exists and is already load-bearing: `main.ts:164`'s `handleShellCommand()`
+intercepts bare `save`/`restore` before `session.command()` reaches the engine, today. All decisions
+recorded in `docs/DEVELOPMENT_PLAN.md` §6.2 (2026-08-02): slash commands extend that exact
+interception point (no engine change); `/load`/`/restart` are **reload-based** — write/clear storage
+then `location.reload()`, letting boot-time `resume()` do the actual rebuild — rather than a live
+in-place swap, because `comic-view.ts`/`console-view.ts` have no `reset()` today; slot labels stay
+derived (room + score + moves), not typed; **slots are addressed by number, 1–3**, and a bare
+`/save`/`/load` with no number lists all three slots and their labels instead of guessing a default;
+**`/restart` confirms by requiring immediate re-entry** (`Type /restart again to confirm`), not a
+dialog; and **discoverability is a one-line `[Type /help for …]` system message at session start plus
+a `/help` branch** listing every shell command, both through mechanisms the shell already has
+(`consoleView.appendSystem`, `handleShellCommand`). Nothing here is built — this is the last of the
+design pass; next session should be able to go straight to code.
 
 ## Next Actions
 
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **M6.2 — save / load / restart.** ☐, **decided, ready to build — read `docs/DEVELOPMENT_PLAN.md`
-   §6.2 for both 2026-08-02 decisions before starting.** UI over the engine's existing save contract:
-   `/save [slot]`, `/load <slot>`, `/restart` in `main.ts`'s `handleShellCommand`, three named slots via
-   `persistence.ts`'s already-parametrized `createSessionStore(key, storage)`, reload-based (no new
-   `comic-view`/`console-view` reset methods needed for this pass). Left to the implementer per the
-   plan: derived vs typed slot names (derived recommended), whether `/restart` confirms (it should).
+1. **M6.2 — save / load / restart.** ☐, **fully decided, nothing left to design — read
+   `docs/DEVELOPMENT_PLAN.md` §6.2 in full before starting, all six 2026-08-02 decisions apply.** UI
+   over the engine's existing save contract: `/save [1-3]`, `/load [1-3]`, `/restart`, `/help` in
+   `main.ts`'s `handleShellCommand`; bare `/save`/`/load` list the three slots and their derived labels;
+   `/restart` needs immediate re-entry to confirm; three slots via `persistence.ts`'s already-
+   parametrized `createSessionStore(key, storage)`; reload-based (no new `comic-view`/`console-view`
+   reset methods needed); a one-line `[Type /help for …]` system message at session start.
 
-   **⇒ NEXT SESSION STARTS HERE: implement M6.2 as scoped above.**
+   **⇒ NEXT SESSION STARTS HERE: implement M6.2 as fully scoped in the plan doc.**
 2. **M6.1 — the comic pane becomes a cartoon.** ◐ Mechanics closed (ADR 0010 fully built, v0.24.9).
    **6.1e ◐ is the only open item**: authored dialogue across 110 rooms, committed as data (D1
    sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70 authored
