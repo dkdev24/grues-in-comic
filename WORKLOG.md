@@ -10,6 +10,39 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.1 — 2026-08-01 — M6.1e session 3: the silent turns turn out to be one turn, 119 times
+
+The last thing 6.1g left was a census to re-take: the 154 silent turns and their composition were
+measured over the losing replay and were void. Taken again over the repaired corpus, **no code
+changed** — the slice is a measurement, and the number it replaces was never the point. The
+composition is.
+
+- **136 of 623 turns (21.8%) are wholly silent.** Of those, **119 are a walk into a room already
+  visited** — the room title, no prose, and no gazetteer line because a first visit happens once.
+  The remainder is 11 scene-ending `quit`s and 6 refusals suppressed by a beat's own cooldown. That
+  is the whole block.
+- **The varied tail was never silent.** 22 examine states, 8 re-looks, 7 lamp toggles, 7 inventory
+  listings, 6 waits, 5 score checks — the old census's long list — are all turns where the DM
+  narrates and only the **Hero** says nothing back: **154 DM-only turns**, a different lever with a
+  different cost. The old figure was not merely stale; it pointed at the wrong surface.
+- **The 119 are skewed over 35 rooms** — Cellar 13, Kitchen 11, Coal Mine 10, Round Room 8,
+  East-West Passage 8, Behind House 7, North of House 6; 10 rooms are hit exactly once. A handful of
+  rooms is most of the block.
+- **The trade is now numeric, which is what makes it decidable.** The corpus sits at 2.27
+  turns/exchange over 274 exchanges, so **~38 new exchanges reach D5's 2.0 floor** and all 119 would
+  take it to **1.59**. Three options, all the user's: voice the top ~10 rooms inside the headroom;
+  trade against the refusal beats; or move the band now that a won game is what is measured.
+- **The design hazard that travels with it:** a revisit line sits on the one authored surface that
+  **wears out** — the same room, entered many times — the exact inverse of the first-visit gazetteer
+  that v0.23.0 chose *because* it cannot. Anything written here needs a run, a cycling tail and its
+  own cooldown from the first line.
+- **The census tool was written and deleted again**, following v0.23.0's precedent. It classifies by
+  what the player typed and what the engine emitted, never by re-deriving the mapper's firing rules;
+  a kept copy is the second-copy hazard `density.ts`'s own header warns about. The measurement lives
+  here.
+
+---
+
 ## v0.24.0 — 2026-08-01 — M6.1g: the corpus is repaired, and it takes three conclusions with it
 
 6.1f ended by finding that the row carrying two thirds of every M6.1 measurement was a game **lost**

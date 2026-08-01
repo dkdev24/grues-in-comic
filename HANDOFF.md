@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.0** · Platform: **macOS only** (2026-07-28)
+**0.24.1** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -29,34 +29,31 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
   `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d, 6.1f and 6.1g are done; 6.1e is in progress.** The
   corpus is repaired, so **D5 and the two-shot are both met over a game that is actually won** —
-  every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is void.
+  every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is void. The silent
+  block has been re-censused (v0.24.1) and is **119 revisit walks**, waiting on a user decision.
 
 **Tests:** 278 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — M6.1g: the corpus is repaired (v0.24.0)
+## Last Session — M6.1e session 3: the silent-turn census, re-taken (v0.24.1)
 
-**6.1g ✅.** Narrative in `WORKLOG.md` v0.24.0. The repair landed and **took three of M6.1f's four
-conclusions with it** — each finding was real, and three were about something other than what the
-losing corpus made them look like.
+**No code changed.** Narrative in `WORKLOG.md` v0.24.1. The void 154-turn figure is replaced, and the
+replacement is a different shape: **136 of 623 turns (21.8%) are wholly silent, and 119 of them are
+one thing** — a walk into a room already visited (title, no prose, and the gazetteer's line is spent
+because a first visit happens once). The rest is 11 scene-ending `quit`s and 6 refusals a beat's own
+cooldown suppressed. The varied tail the old census described (examine states, re-looks, inventory,
+lamp toggles, waits, score checks) is **not silent at all** — those are the 154 **DM-only** turns,
+where he narrates and only the Hero says nothing.
 
-- **The full-game row now wins.** `runFullGame` records what it typed (`RunResult.issued` /
-  `fullGameCommands()`); `density.ts` replays that log instead of the raw `.cmd`. **423 turns,
-  STONE-BARROW, 350/350**, corpus **606 → 623**. Every M6.1 figure quoted before this is void.
-- **The two-shot's blocker was `BALLOON_HEADROOM`, not panelization.** The band is also the fit
-  test's budget, and a location box eats `TITLE_HEIGHT` of it — one balloon's worth at 0.36, on
-  exactly the arrival turns a flail never has. **0.36 → 0.44 (user's call, after renders): 70 → 158
-  of 274 in one panel.** 6.1d's criterion is met on a won game for the first time.
-- **The clustering was `routine-ack`, not the refusals** — "Taken." on consecutive turns, its tail
-  recycling at a gap of one panel. Cooldown 3 + longer loops on `routine-ack` and `scored`: repeats
-  within 20 panels **70 → 6**. D5 moved off the floor as a side effect, **2.0 → 2.3**.
-- **The other three:** the split exchange no longer mis-pairs (`addScript` → `isOrphaned`); the
-  "empty" panels were rendered, **looked at and kept** (they are the traversal collapse's own output
-  — the *blank* frame is what is now pinned against); the death panel is set and titled where the
-  death happened (`panelRoom`, pinned by a synthetic turn — nothing in the corpus dies any more).
-- Both goldens deliberately re-accepted after looking at all 13 drifted gate images. 278 / 139 / 198
-  green, parity 143/143.
+- **The 119 fall over 35 rooms and are skewed** — Cellar 13, Kitchen 11, Coal Mine 10, Round Room 8,
+  East-West Passage 8; 10 rooms are hit exactly once.
+- **The trade is priced.** 2.27 turns/exchange over 274 exchanges, so **~38 new exchanges hit D5's
+  2.0 floor** — under a third of the 119. Filling more means trading against the refusal beats, or
+  the user moving the band.
+- **The census tool was deleted again, on purpose** (the v0.23.0 precedent): it classifies by what
+  the player typed and what the engine emitted, never by re-deriving the mapper's firing rules, and
+  a kept copy would drift into the second-copy hazard `density.ts`'s header warns about.
 
 ## Next Actions
 
@@ -67,16 +64,24 @@ losing corpus made them look like.
    weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · **6.1e ◐** — the authoring slice, and the only one
    left open.
 
-   **The measurements are now trustworthy.** D5 is met at **one exchange every 2.3 turns** (band
-   2–3, mid-band) and the two-shot at **158 of 274 in one panel**, both over a game that reaches the
-   barrow. The corpus is 623 turns, 12 rows, `12-full-game.cmd` sourced from `fullGameCommands()`.
+   **The measurements are now trustworthy.** D5 is met at **one exchange every 2.27 turns** (band
+   2–3) and the two-shot at **158 of 274 in one panel**, both over a game that reaches the barrow.
+   The corpus is 623 turns, 12 rows, `12-full-game.cmd` sourced from `fullGameCommands()`.
 
-   **The open question for the user, repriced by the repair:** turns that are still wholly silent
-   cannot simply be given beats — D5 is a band and the corpus no longer has floor to spare in the
-   direction it used to. **Re-take the silent-turn census before asking it again**: the 154-turn
-   figure and its composition breakdown (69 bare walks, 22 container states, …) came from the losing
-   replay and are void. That census is cheap — a `density.ts` variant — and is the natural first
-   move of the next 6.1e session.
+   **The open question for the user, now measured and priced — this is the next decision, and it is
+   not a task an agent should take unasked.** The census (v0.24.1) says the silent block is **one
+   surface**: 119 revisit walks over 35 rooms, skewed (Cellar 13, Kitchen 11, Coal Mine 10). Giving
+   them all a beat would take D5 to **1.59**, far under the band; **~38 is what the 2.0 floor
+   allows.** So the choice is between three, and it is the user's:
+
+   - **a) Voice the top rooms only** — the ~10 rooms carrying most of the 119, inside the headroom.
+     Cheapest, and the skew means it covers most silent turns a reader actually meets.
+   - **b) Trade** — voice more revisit walks and cool the refusal beats to pay for it.
+   - **c) Move the band** — decide 2–3 was the wrong target now that a won game is what is measured.
+
+   The design hazard to weigh with it: a revisit line is on the one surface that **wears out** (same
+   room, many entries), the exact inverse of the first-visit gazetteer, so anything written here
+   needs a run + cycling tail and its own cooldown from the start.
 
    The remaining 6.1e work is what it always was: authored dialogue across 110 rooms, committed as
    data (D1 sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70
