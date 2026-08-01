@@ -177,9 +177,21 @@ describe("director (Slice 4 — traversal collapse)", () => {
     director.ingest(session.command("north")); // traversal, buffered
     const before = director.panels.length;
     const flushed = director.flush().appended;
-    expect(flushed).toHaveLength(1);
+    // ADR 0010 §2's join needs an open frame missing the Hero to answer, and
+    // here there isn't one: the arrival that preceded this walk already put
+    // his own declaration on stage, so `avatarInPanel` — the ordinary
+    // same-speaker rule, nothing to do with the orphan guard — blocks the
+    // walk's own declaration from joining it. It opens its own panel instead
+    // (`flushed[0]`), same as any turn whose declaration cannot join anything.
+    // What follows is exactly what M6.1g pinned before this slice: the walk's
+    // destination, wordless, since there is nothing else left to say
+    // (`flushed[1]`).
+    expect(flushed).toHaveLength(2);
     expect(flushed[0]?.kind).toBe("traversal");
-    expect(director.panels.length).toBe(before + 1);
+    expect(flushed[1]?.kind).toBe("traversal");
+    expect(flushed[1]?.speakers).toHaveLength(0);
+    expect(flushed[1]?.bodies.length).toBeGreaterThan(0);
+    expect(director.panels.length).toBe(before + 2);
     expect(director.flush().appended).toEqual([]); // nothing left to flush
   });
 

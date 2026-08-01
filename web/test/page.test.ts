@@ -247,6 +247,26 @@ describe("addScript — the orphaned fragment (M6.1g)", () => {
     expect(page.panels).toHaveLength(before + 1);
   });
 
+  it("lets a marked line join the fragment it answers (ADR 0010 §2)", () => {
+    // No warm-up here, and no restrictive fit test: the split comes from the
+    // page's own `m_panels.GetCount() < 2` rule (`panel.cpp:1079`) instead,
+    // leaving a DM-only fragment on a fresh page — the Hero spoke first and
+    // the page was too young to clone-append beside him yet. That is a
+    // fragment missing the Hero, exactly the real shape ADR 0010 §2 answers:
+    // a DM-only frame the Hero's declaration joins next turn. The joining
+    // line carries `answers: true` — the fact the declaration puts on itself
+    // to say "I am not asking, I am replying to what's already on screen" —
+    // and must be let through to the ordinary clone-append rules, unlike the
+    // previous test's unmarked line.
+    const page = createPage();
+    addScript(page, script([line("hero", "ask"), line("dm", "answer")]));
+    const before = page.panels.length;
+    const delta = addScript(page, script([{ ...line("hero", "a later reply"), answers: true }]));
+
+    expect(delta.replacedLast).toBe(true);
+    expect(page.panels).toHaveLength(before);
+  });
+
   it("leaves a turn that fits in one panel alone — clone-append still works", () => {
     // The rule must not cost the traversal collapse or the ordinary two-shot: a
     // frame holding every speaker of its turn is complete, not a fragment.

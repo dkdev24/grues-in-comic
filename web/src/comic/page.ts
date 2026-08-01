@@ -74,6 +74,15 @@ export interface PageLine {
    */
   bodiless?: boolean;
   /**
+   * ADR 0010 §2: this line answers the frame it may clone-append into across a
+   * turn boundary. `isOrphaned` (below) still forces the *next* line after a
+   * fragment to open fresh — the M6.1g mis-pairing guard — but a line that
+   * carries this fact is let through. The fact rides on the line, not on a cast
+   * id, so `page.ts` stays cast-agnostic (only the mapper knows that today it is
+   * always the Hero's declaration).
+   */
+  answers?: boolean;
+  /**
    * Where the words came from — ADR 0009 §2's two registers, as a fact on the
    * line instead of a thing the reader has to infer from the text.
    *
@@ -183,6 +192,14 @@ export interface Page {
   addReaction(speaker: string, emotion: readonly EmotionOption[], context: PanelContext): PanelDelta;
   /** `CPage::StartNewPanel` (`panel.h:91`): the next line opens a fresh panel. */
   startNewPanel(): void;
+  /**
+   * ADR 0010 §2 / M6.1i: this turn ended on a fragment ({@link isOrphaned}).
+   * Unlike {@link startNewPanel}, this does not force the next line fresh — it
+   * only forces it fresh if that line is not marked {@link PageLine.answers}.
+   * Consumed by the very next `addLine`/`addReaction` call either way, same as
+   * `startNewPanel`'s guard.
+   */
+  guardFragment(): void;
   readonly panels: readonly Panel[];
 }
 
@@ -197,13 +214,18 @@ export function addScript(page: Page, script: TurnScript): PanelDelta {
   for (const body of script.reactions) {
     mergeDelta(out, page.addReaction(body.speaker, body.emotion, script.context));
   }
-  if (isOrphaned(out, script)) page.startNewPanel();
+  // ADR 0010 §2 recast: a fragment no longer forces the next line to open
+  // fresh unconditionally — it arms a guard that only an unmarked line trips.
+  // `page.addLine` cannot know that at the moment this turn ends, because the
+  // thing that would let it through (`PageLine.answers`) has not arrived yet.
+  if (isOrphaned(out, script)) page.guardFragment();
   return out;
 }
 
 /**
  * Did this turn end on a **fragment** — a panel holding some of its speakers but
- * not all of them? (M6.1g; found by reading the playthrough at M6.1f.)
+ * not all of them? (M6.1g; found by reading the playthrough at M6.1f. Recast for
+ * ask-vs-answer at ADR 0010 §2 / M6.1i — see {@link Page.guardFragment}.)
  *
  * The case that matters is the split exchange. The DM asks in one panel, the
  * Hero's answer will not fit and opens a second, and that second panel now holds
@@ -213,6 +235,14 @@ export function addScript(page: Page, script: TurnScript): PanelDelta {
  * split exchanges, and long refusal stretches became whole sequences of offset
  * pairs. The unsplit two-shot never had the bug: the DM is already in the panel,
  * so the test at `:1083` breaks it for us.
+ *
+ * Since ADR 0010 §1 the Hero also *answers* the DM across the turn boundary on
+ * purpose — his declaration for turn N+1 is meant to clone-append into the DM's
+ * still-open frame from turn N. So this function no longer decides whether the
+ * next line is let in; it only decides whether a guard is armed. What passes
+ * the guard is ask-vs-answer, decided per line in {@link addLine} because only
+ * the incoming line knows whether it is one ({@link PageLine.answers}) — this
+ * function is called before that line exists.
  *
  * The rule is cast-agnostic on purpose — `page.ts` knows nothing about the DM or
  * the Hero (ADR 0006 §2), and "the frame is missing someone who spoke this turn"
@@ -271,11 +301,17 @@ export function createPage(options: PageOptions = {}): Page {
   const panels: Panel[] = [];
   // `CPage::CPage() { m_newPanel = TRUE; }` (`panel.h:78`).
   let newPanel = true;
+  // ADR 0010 §2's guard — see `Page.guardFragment`. Armed by `addScript` when a
+  // turn ends orphaned; consumed by the very next line, whichever kind it is.
+  let fragmentGuard = false;
 
   return {
     panels,
     startNewPanel(): void {
       newPanel = true;
+    },
+    guardFragment(): void {
+      fragmentGuard = true;
     },
     addLine(line: PageLine, context: PanelContext): PanelDelta {
       const delta: PanelDelta = { replacedLast: false, appended: [] };
@@ -296,6 +332,7 @@ export function createPage(options: PageOptions = {}): Page {
 
     if (line.text === BRK) { // `:1067`
       newPanel = true;
+      fragmentGuard = false; // already breaking outright; nothing left to gate
       return;
     }
     if (line.text === CHR) { // `:1073`
@@ -305,9 +342,18 @@ export function createPage(options: PageOptions = {}): Page {
 
     // `:1078-1090` — the clone-append test. Note the order: `m_newPanel` first, so
     // the tail is only read when a tail is guaranteed to exist.
+    //
+    // ADR 0010 §2: the fragment guard is consumed by this line, whatever it
+    // decides — it only ever gates the *first* line to reach the page after a
+    // turn ends orphaned. An unmarked line forces fresh, same as `startNewPanel`
+    // always did; a line marked `answers` is let through to the ordinary rules
+    // below, exactly as if the guard had never been armed.
+    const guarded = fragmentGuard;
+    fragmentGuard = false;
     const old = panels.length > 0 ? panels[panels.length - 1]! : null;
     const fresh =
       newPanel ||
+      (guarded && line.answers !== true) ||
       old === null ||
       old.speakers.length >= 5 ||
       panels.length < 2 ||
@@ -363,8 +409,14 @@ export function createPage(options: PageOptions = {}): Page {
     // `:1147-1158` — same shape as `AddLine`, but the 5-cap counts **bodies**, and
     // there is no speaker-already-present test: a reaction is allowed to re-pose a
     // body that is already on stage. That is the whole point of it.
+    //
+    // A reaction carries no `answers` fact (`PageLine` is `addLine`'s vocabulary,
+    // not this one's), so the fragment guard always forces it fresh — the same
+    // unconditional break `startNewPanel` always gave it.
+    const guarded = fragmentGuard;
+    fragmentGuard = false;
     const old = panels.length > 0 ? panels[panels.length - 1]! : null;
-    const fresh = newPanel || old === null || old.bodies.length >= 5 || panels.length < 2;
+    const fresh = newPanel || guarded || old === null || old.bodies.length >= 5 || panels.length < 2;
     const candidate = fresh ? emptyPanel(context) : clonePanel(old!, context);
     if (fresh) newPanel = false;
     const replaceLast = !fresh;

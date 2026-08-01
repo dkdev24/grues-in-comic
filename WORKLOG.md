@@ -10,6 +10,43 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.7 — 2026-08-01 — 6.1i: the exchange crosses the turn boundary
+
+**ADR 0010 slice 2 is built.** `PageLine.answers` (`page.ts`) is the fact a line carries to say "I am
+replying to what's already on screen, not asking something new." `isOrphaned` no longer forces the
+next line to open fresh outright — it arms a new `guardFragment()` guard, consumed by whichever line
+reaches the page next: an unmarked line still breaks (the M6.1g mis-pairing guard, unchanged), a
+marked one is let through to the ordinary clone-append rules. In `mapper.ts` the Hero's declaration
+moves to the front of the turn's own lines, ahead of even the room-change `<Brk>` — it answers the
+*previous* turn's still-open frame (what the DM said last), not a comment on this turn's own
+narration, which hasn't happened yet. The room break, this turn's DM lines and the garnish
+(resolved action or beat reply) still follow in their old relative order.
+
+- **The one real trap:** pulling the declaration out of `heroLines` also pulled it out of the
+  "did the Hero say anything this turn" check that gates the reaction fallback and the death shot.
+  That starved a turn with nothing else to say (a plain traversal step) of any representation at
+  all once its declaration went to answer the *previous* frame instead — the room-change break fired
+  with nothing behind it to land in. Fixed by keeping those two checks on `heroLines` alone, exactly
+  as before ADR 0010 §1 existed; the declaration's cross-turn role doesn't change what a turn's own
+  frame needs.
+- **Measured over the full won game (423 turns, still STONE-BARROW 350/350):** the two-shot metric
+  6.1h collapsed (137/165 → 17/274) recovered to **218/274 (79.6%)**, close to the pre-ADR0010
+  baseline. `panelsBothSpeakers` **243 → 477**. Panels **1158 → 1091** — the join nets *fewer*
+  panels than slice 1 alone, not more, since a declaration that joins an existing frame doesn't open
+  one. Both goldens re-accepted after looking at the drifted images (17 gate cases, no garbling — the
+  join reads as a real two-shot, not an overlap); 292/292 web tests green.
+- **`page.test.ts` gained a direct pin of the guard mechanism itself** (not just the corpus-level
+  consequence): a marked line joins a DM-only fragment; an unmarked one still doesn't, same as
+  M6.1g's original test. `director.test.ts`'s trailing-run test needed updating for a real behavior
+  change it happened to exercise: the walk's own declaration usually can't join the still-open frame
+  from the arrival before it (the Hero already spoke there — an ordinary same-speaker block, nothing
+  to do with the new guard), so the flush now emits two panels instead of one.
+
+Stage 6.1i is ✅ in `docs/DEVELOPMENT_PLAN.md` §6.1. Work resumes at **6.1j** (the collapse gives
+ground — a single traversal turn stops counting as a run, a longer run earns a journey line).
+
+---
+
 ## v0.24.6 — 2026-08-01 — 6.1h: the Hero speaks his command
 
 **ADR 0010 slice 1 is built.** `COMMAND_SCRIPT` (`web/src/comic/script.ts`): 24 direction aliases

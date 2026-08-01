@@ -21,13 +21,13 @@
       "heroReply": 4,
       "exchanges": 4,
       "bothSpeak": 9,
-      "panels": 15,
+      "panels": 13,
       "panelsDm": 12,
       "panelsHero": 11,
-      "panelsBothSpeakers": 8,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 10,
+      "panelsExchange": 3,
       "screenExchangeTurns": 4,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 3
     },
     {
       "file": "02-house-entry.cmd",
@@ -43,13 +43,13 @@
       "heroReply": 10,
       "exchanges": 10,
       "bothSpeak": 12,
-      "panels": 35,
+      "panels": 30,
       "panelsDm": 25,
       "panelsHero": 20,
-      "panelsBothSpeakers": 10,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 15,
+      "panelsExchange": 9,
       "screenExchangeTurns": 10,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 9
     },
     {
       "file": "03-cellar-descent.cmd",
@@ -65,13 +65,13 @@
       "heroReply": 12,
       "exchanges": 12,
       "bothSpeak": 15,
-      "panels": 45,
+      "panels": 40,
       "panelsDm": 32,
       "panelsHero": 25,
-      "panelsBothSpeakers": 12,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 17,
+      "panelsExchange": 10,
       "screenExchangeTurns": 12,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 10
     },
     {
       "file": "04-lamp-and-darkness.cmd",
@@ -87,13 +87,13 @@
       "heroReply": 14,
       "exchanges": 14,
       "bothSpeak": 19,
-      "panels": 52,
+      "panels": 45,
       "panelsDm": 37,
       "panelsHero": 31,
-      "panelsBothSpeakers": 16,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 23,
+      "panelsExchange": 12,
       "screenExchangeTurns": 14,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 12
     },
     {
       "file": "05-troll-combat.cmd",
@@ -109,13 +109,13 @@
       "heroReply": 14,
       "exchanges": 14,
       "bothSpeak": 18,
-      "panels": 53,
+      "panels": 48,
       "panelsDm": 36,
       "panelsHero": 32,
-      "panelsBothSpeakers": 15,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 20,
+      "panelsExchange": 10,
       "screenExchangeTurns": 14,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 10
     },
     {
       "file": "06-scoring-and-treasure.cmd",
@@ -131,13 +131,13 @@
       "heroReply": 12,
       "exchanges": 12,
       "bothSpeak": 19,
-      "panels": 46,
+      "panels": 41,
       "panelsDm": 34,
       "panelsHero": 29,
-      "panelsBothSpeakers": 17,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 22,
+      "panelsExchange": 10,
       "screenExchangeTurns": 12,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 10
     },
     {
       "file": "07-forest-and-tree.cmd",
@@ -153,13 +153,13 @@
       "heroReply": 7,
       "exchanges": 7,
       "bothSpeak": 12,
-      "panels": 30,
+      "panels": 31,
       "panelsDm": 21,
       "panelsHero": 19,
-      "panelsBothSpeakers": 10,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 11,
+      "panelsExchange": 5,
       "screenExchangeTurns": 7,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 5
     },
     {
       "file": "08-containers.cmd",
@@ -175,13 +175,13 @@
       "heroReply": 9,
       "exchanges": 9,
       "bothSpeak": 18,
-      "panels": 37,
+      "panels": 32,
       "panelsDm": 28,
       "panelsHero": 25,
-      "panelsBothSpeakers": 16,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 21,
+      "panelsExchange": 8,
       "screenExchangeTurns": 9,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 8
     },
     {
       "file": "09-take-all-surface.cmd",
@@ -197,13 +197,13 @@
       "heroReply": 8,
       "exchanges": 8,
       "bothSpeak": 12,
-      "panels": 32,
+      "panels": 30,
       "panelsDm": 24,
       "panelsHero": 18,
-      "panelsBothSpeakers": 10,
-      "panelsExchange": 1,
+      "panelsBothSpeakers": 12,
+      "panelsExchange": 7,
       "screenExchangeTurns": 8,
-      "onePanelExchangeTurns": 1
+      "onePanelExchangeTurns": 7
     },
     {
       "file": "10-dam-and-reservoir.cmd",
@@ -219,13 +219,13 @@
       "heroReply": 26,
       "exchanges": 26,
       "bothSpeak": 31,
-      "panels": 97,
+      "panels": 90,
       "panelsDm": 69,
       "panelsHero": 54,
-      "panelsBothSpeakers": 26,
-      "panelsExchange": 3,
+      "panelsBothSpeakers": 33,
+      "panelsExchange": 20,
       "screenExchangeTurns": 26,
-      "onePanelExchangeTurns": 3
+      "onePanelExchangeTurns": 20
     },
     {
       "file": "11-parser-edges.cmd",
@@ -241,13 +241,13 @@
       "heroReply": 8,
       "exchanges": 8,
       "bothSpeak": 11,
-      "panels": 25,
+      "panels": 23,
       "panelsDm": 20,
       "panelsHero": 15,
-      "panelsBothSpeakers": 10,
-      "panelsExchange": 3,
+      "panelsBothSpeakers": 12,
+      "panelsExchange": 5,
       "screenExchangeTurns": 8,
-      "onePanelExchangeTurns": 3
+      "onePanelExchangeTurns": 5
     },
     {
       "file": "12-full-game.cmd",
@@ -263,13 +263,13 @@
       "heroReply": 150,
       "exchanges": 150,
       "bothSpeak": 298,
-      "panels": 691,
+      "panels": 668,
       "panelsDm": 495,
       "panelsHero": 439,
-      "panelsBothSpeakers": 243,
-      "panelsExchange": 2,
+      "panelsBothSpeakers": 281,
+      "panelsExchange": 119,
       "screenExchangeTurns": 150,
-      "onePanelExchangeTurns": 2
+      "onePanelExchangeTurns": 119
     }
   ],
   "totals": {
@@ -285,12 +285,12 @@
     "heroReply": 274,
     "exchanges": 274,
     "bothSpeak": 474,
-    "panels": 1158,
+    "panels": 1091,
     "panelsDm": 833,
     "panelsHero": 718,
-    "panelsBothSpeakers": 393,
-    "panelsExchange": 17,
+    "panelsBothSpeakers": 477,
+    "panelsExchange": 218,
     "screenExchangeTurns": 274,
-    "onePanelExchangeTurns": 17
+    "onePanelExchangeTurns": 218
   }
 }

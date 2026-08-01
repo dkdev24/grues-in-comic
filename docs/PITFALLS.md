@@ -167,13 +167,28 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   content that fires on an event-derived trigger belongs in `script.ts` like every other line, and a
   voice document must describe a register, never a fixed construction** — anything it writes as a
   literal example will be reproduced verbatim across the corpus.
-- **Two of a turn's speakers in two panels is a fragment, and the next turn must not join it**
-  (`addScript` → `isOrphaned`, M6.1g). When an exchange splits, the frame holding the Hero's reply
-  contains no DM, so `AvatarInPanel` happily clone-appends the *next* turn's DM line into it and the
-  reader sees him answering a question asked after he spoke — 144 of 300 split exchanges at M6.1f.
-  The rule is cast-agnostic (`page.ts` knows nothing about the DM or the Hero) and only fires when
-  the turn's last frame is missing a speaker the turn had, so the traversal collapse and the
-  ordinary two-shot are untouched.
+- **Two of a turn's speakers in two panels is a fragment, and the next turn must not join it
+  unless it says it's answering** (`addScript` → `isOrphaned`, M6.1g; recast ask-vs-answer at
+  ADR 0010 §2 / M6.1i). When an exchange splits, the frame holding the Hero's reply contains no DM,
+  so `AvatarInPanel` happily clone-appends the *next* turn's DM line into it and the reader sees him
+  answering a question asked after he spoke — 144 of 300 split exchanges at M6.1f. The rule is
+  cast-agnostic (`page.ts` knows nothing about the DM or the Hero) and only fires when the turn's
+  last frame is missing a speaker the turn had, so the traversal collapse and the ordinary two-shot
+  are untouched. Since M6.1i a fragment isn't an unconditional break any more — `isOrphaned` arms
+  `guardFragment()`, and only a line carrying `PageLine.answers` gets past it (still cast-agnostic:
+  the fact rides on the line, not on knowing who the Hero is).
+- **A line pulled out of `heroLines` to answer a *different* frame still has to leave something
+  behind for its own** (M6.1i). The Hero's declaration answers the *previous* turn's frame (ADR
+  0010 §2), so it moved out of `mapper.ts`'s `heroLines` array — but `heroLines.length === 0` was
+  also the gate for the reaction fallback and the death shot, the mechanisms that give a turn's *own*
+  frame a body when nothing else will. Counting the declaration there too (`heroSpoke`) looked
+  natural and was wrong: a turn with nothing else to say (a plain traversal step) would answer the
+  old frame and then hand its own room-change break nothing to land in — no reaction, no destination
+  panel, the room silently unrepresented. The fix is that those two checks stay on `heroLines` alone,
+  unaware the declaration exists at all, exactly as they were before ADR 0010 §1. **The general
+  shape: when a line moves to serve a different frame than the one its turn produces, re-audit every
+  place that used its presence as a proxy for "this turn's frame has content" — the proxy was never
+  about the line, it was about the frame, and pulling the line changes which frame it's evidence for.**
 - **A death happens in two rooms and the panel belongs to the first** (`panelRoom`, M6.1g). ZIL
   narrates the killing blow and then `JIGS-UP` resurrects, both inside one turn, so `room` has
   already moved on by the time the panel is built — the troll's killing blow was captioned *Forest*

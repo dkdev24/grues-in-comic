@@ -545,20 +545,46 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // cannot be wrong, the reply is authored garnish, and garnish goes second.
       // Whether the pair shares a panel is `page.ts`'s decision, not a
       // suppression rule written upstream of the fit test.
-      const heroLines: Utterance[] = [];
       // The declaration wins when it and the resolved action would both want to
       // open this turn (ADR 0010 §1) — `action` is already `null` on any turn
       // that produced one, so this is a plain either/or, not a priority check.
-      if (declaration !== null) heroLines.push(declaration);
-      else if (action !== null) heroLines.push(action);
+      // The declaration itself is no longer in this list — ADR 0010 §2 wants it
+      // answering the *previous* turn's still-open frame, not garnishing this
+      // turn's own, so it is emitted first and separately, below.
+      const heroLines: Utterance[] = [];
+      if (declaration === null && action !== null) heroLines.push(action);
       if (exchange.hero !== null) heroLines.push({ modes: BM_SAY, text: exchange.hero });
+      // Deliberately **not** counting the declaration: it now speaks for the
+      // *previous* frame, so it must not rob this turn's own frame of the
+      // fallback that has always given it a body — the reaction stage (below)
+      // and `gameOver`'s closing shot both still need to fire on a turn whose
+      // only Hero content was a declaration, exactly as they did before ADR
+      // 0010 §1 existed. Otherwise a turn with nothing else to say (a plain
+      // traversal step, say) hands the room-change break nothing to land in,
+      // and the destination goes unrepresented — the M6.1g wordless panel this
+      // turn was supposed to become instead never gets drawn.
+
       const lines: PageLine[] = [];
+      // ADR 0010 §2: the declaration goes out *first*, ahead of even the
+      // room-change break — it is the Hero's answer to the frame the DM left
+      // open last turn, not a comment on this turn's own narration, which has
+      // not been said yet. `answers: true` is the fact `page.ts` needs to let it
+      // clone-append across the turn boundary (`isOrphaned`'s recast guard); it
+      // rides on the line so the page stays cast-agnostic.
+      if (declaration !== null) {
+        lines.push({
+          speaker: HERO, ...declaration, emotion: affect.options,
+          register: "narration", answers: true,
+        });
+      }
       // **A new location starts a panel.** Until 6.1c the caption did this on
       // every turn as a side effect of `BM_ACTION` (`panel.cpp:1064`); with the
       // caption gone, a room change would clone-append into the panel the last
       // room was drawn in, and `clonePanel` would relabel that panel with the new
       // room — one panel, two places, and the location box on top of it. `<Brk>`
-      // (`:1067`) is the port's own way to say "not in that one".
+      // (`:1067`) is the port's own way to say "not in that one". It comes after
+      // the declaration on purpose: the declaration answers the room being left,
+      // and the break is what cuts to the one being entered.
       if (roomChanged) lines.push({ speaker: GUIDE, modes: BM_SAY, text: BRK, emotion: [] });
 
       // The DM's balloons for this turn: what he reads aloud, then what he says
@@ -595,10 +621,11 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       for (const [i, line] of heroLines.entries()) {
         lines.push({
           ...line, speaker: HERO, emotion: affect.options,
-          // The declaration and the resolved action are both derived from the
-          // turn itself (the command, the events); the reply came from
-          // `BEAT_SCRIPT`. Whichever of the first two is present is always first.
-          register: i === 0 && (declaration !== null || action !== null) ? "narration" : "authored",
+          // The resolved action is derived from the turn itself (the events);
+          // the reply came from `BEAT_SCRIPT`. `heroLines[0]` is the action when
+          // one is present (declaration and action are mutually exclusive) and
+          // the reply otherwise, so this is still a plain positional check.
+          register: i === 0 && action !== null ? "narration" : "authored",
         });
         // The mirror of the staging above, and it exists for the same reason.
         // Two Hero balloons never share a panel either (`AvatarInPanel`), so an
