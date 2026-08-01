@@ -86,7 +86,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "0bd168cc981374358268c06516215cc4c2d2c20107ee3eda9beb6c88b2643c2e",
+    "sha256": "6afcef1b000bc314a14d788e654e26ddc96c18077aa9421b1cc87a53545ba10b",
     "trace": {
       "bodies": [
         {
@@ -108,14 +108,28 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 88.3,
+            "x": 10,
             "y": 14,
-            "width": 177.6,
-            "height": 80
+            "width": 276.5,
+            "height": 50
           },
-          "lines": 4,
+          "lines": 2,
           "tail": {
             "x": 111,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 185,
+            "y": 64,
+            "width": 117,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 269.9,
             "y": 149.6
           }
         }
@@ -130,7 +144,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "3632e4a4d9a931a956ecb7b25f1b32e68c1a058acd5f85afbee439e230db90b3",
+    "sha256": "9150286c18d56a89cf7d986b97694826fcfdcb625c52e722d69286d6360ee606",
     "trace": {
       "bodies": [
         {
@@ -152,7 +166,7 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 57.9,
+            "x": 57.7,
             "y": 14,
             "width": 186.8,
             "height": 35
@@ -160,6 +174,20 @@
           "lines": 1,
           "tail": {
             "x": 111,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 117.7,
+            "y": 49,
+            "width": 216.6,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 269.9,
             "y": 149.6
           }
         }
@@ -218,7 +246,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "59d0371c39c0ba3d2e99f5cc289debd64e30b91195d56b308ce0cd83871f4db9",
+    "sha256": "4f7c419c65f030c8b4c38b677901d508c97d9f24f966e53d1371dfd2ec12f699",
     "trace": {
       "bodies": [
         {
@@ -240,7 +268,7 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 48.9,
+            "x": 10,
             "y": 14,
             "width": 182.9,
             "height": 35
@@ -254,9 +282,9 @@
         {
           "speaker": "hero",
           "box": {
-            "x": 227.3,
-            "y": 49,
-            "width": 123.5,
+            "x": 208.7,
+            "y": 14,
+            "width": 161.3,
             "height": 35
           },
           "lines": 1,
@@ -270,13 +298,57 @@
     }
   },
   {
-    "name": "wk01-p06-close-up",
+    "name": "wk01-p06-over-shoulder",
+    "camera": "over-shoulder",
+    "bodies": [
+      "hero",
+      "guide"
+    ],
+    "sha256": "343b1db4d1f59f977832143fefb9a01e105fe93fe96137ebc94f37df4311db0d",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 48.1,
+          "y": 149.6,
+          "scale": 0.8,
+          "mirror": false
+        },
+        {
+          "speaker": "guide",
+          "x": 232,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 123.5,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 127.9,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p07-close-up",
     "camera": "close-up",
     "bodies": [
       "guide",
       "hero"
     ],
-    "sha256": "495837cd2cc7157fb154eb1c39665b229bfcf3ab2583d1ae0edea5491cf7b139",
+    "sha256": "8a8a66761c492c304abf2dc20c02d0db35d5a614c1f2d0078fe70cbaf3609517",
     "trace": {
       "bodies": [
         {
@@ -298,7 +370,7 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 71.3,
+            "x": 69.8,
             "y": 14,
             "width": 59.7,
             "height": 35
@@ -312,9 +384,9 @@
         {
           "speaker": "hero",
           "box": {
-            "x": 160.1,
+            "x": 214.3,
             "y": 14,
-            "width": 132.2,
+            "width": 155.7,
             "height": 35
           },
           "lines": 1,
@@ -328,13 +400,13 @@
     }
   },
   {
-    "name": "wk01-p07-medium",
+    "name": "wk01-p08-medium",
     "camera": "medium",
     "bodies": [
       "guide",
       "hero"
     ],
-    "sha256": "8c6ee4c3dbfaafac4eb70710162c7b987d75da2cc762ed5e55224fb6ff4b08db",
+    "sha256": "3dfcdd7c719b26c40631a3152fecbbd05ea1dd669e24a577a8787d25ad293342",
     "trace": {
       "bodies": [
         {
@@ -356,14 +428,28 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 10,
+            "x": 34.7,
             "y": 14,
-            "width": 157.7,
+            "width": 115.2,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 111,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 192,
+            "y": 64,
+            "width": 155.8,
             "height": 35
           },
           "lines": 1,
           "tail": {
-            "x": 111,
+            "x": 269.9,
             "y": 149.6
           }
         }
@@ -372,13 +458,13 @@
     }
   },
   {
-    "name": "wk01-p08-close-up",
+    "name": "wk01-p09-close-up",
     "camera": "close-up",
     "bodies": [
       "guide",
       "hero"
     ],
-    "sha256": "a35872aeea9cd1be74a255018b7f4e9667d7fd699d9fcf571310642bd77e118b",
+    "sha256": "8f9e3284243d4fc49f9b45c206e92cad4bcd59c33091525336e94df508798067",
     "trace": {
       "bodies": [
         {
@@ -400,7 +486,7 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 62.5,
+            "x": 91.7,
             "y": 14,
             "width": 74.4,
             "height": 35
@@ -414,9 +500,9 @@
         {
           "speaker": "hero",
           "box": {
-            "x": 191.7,
+            "x": 223.6,
             "y": 14,
-            "width": 90.2,
+            "width": 146.4,
             "height": 35
           },
           "lines": 1,
@@ -430,13 +516,13 @@
     }
   },
   {
-    "name": "wk01-p09-reaction",
+    "name": "wk01-p10-reaction",
     "camera": "reaction",
     "bodies": [
       "guide",
       "hero"
     ],
-    "sha256": "6785fe6d61c118fb8b29f2678bdd3bb521e7f342a82249bd29309ab658581940",
+    "sha256": "873b79182407443b322159f026ac506cd43115c136d06b95a068882834bd4176",
     "trace": {
       "bodies": [
         {
@@ -458,15 +544,29 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 85.3,
+            "x": 10,
             "y": 14,
-            "width": 177.6,
-            "height": 80
+            "width": 313.7,
+            "height": 50
           },
-          "lines": 4,
+          "lines": 2,
           "tail": {
             "x": 108,
             "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 176,
+            "y": 64,
+            "width": 146.4,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 287.3,
+            "y": 181.6
           }
         }
       ],
@@ -474,7 +574,7 @@
     }
   },
   {
-    "name": "wk01-p10-medium",
+    "name": "wk01-p11-medium",
     "camera": "medium",
     "bodies": [
       "hero"

@@ -72,7 +72,7 @@ const noPanels = (): PanelDelta => ({ replacedLast: false, appended: [] });
  * mapper produced rather than of the marker table, so a beat authored in M6.1e
  * changes what survives without touching this file.
  */
-function speaks(script: TurnScript): boolean {
+export function speaks(script: TurnScript): boolean {
   return script.lines.some((line) => line.text !== BRK && line.text !== CHR);
 }
 

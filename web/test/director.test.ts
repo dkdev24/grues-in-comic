@@ -19,9 +19,15 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { createSession } from "../src/session.js";
 import { createMapper, type Panel, type TurnScript } from "../src/comic/mapper.js";
-import { createDirector } from "../src/comic/director.js";
+import { createDirector, speaks } from "../src/comic/director.js";
 import { addScript, createPage } from "../src/comic/page.js";
 import { objectNameTable } from "../src/status.js";
+import type { CommandScript } from "../src/comic/script.js";
+
+/** An empty {@link CommandScript} — see the note in `mapper.test.ts`. */
+const SILENT_COMMANDS: CommandScript = {
+  directionWords: new Map(), directions: [], verbs: new Map(), templates: new Map(),
+};
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const WALKTHROUGHS = join(ROOT, "verification", "walkthroughs");
@@ -50,9 +56,15 @@ function options() {
 }
 
 /**
- * The Slice 4 edit, as a pure reducer: drop refusal turns, collapse each maximal
- * run of consecutive traversals to its last one. This is the golden the Director
- * must reproduce; keeping it here makes the editing contract executable.
+ * The Slice 4 edit, as a pure reducer: drop a silent refusal, collapse each
+ * maximal run of consecutive traversals to its last one. This is the golden the
+ * Director must reproduce; keeping it here makes the editing contract executable.
+ *
+ * **A refusal that speaks is kept, not dropped** (ADR 0009 §5, and — since
+ * ADR 0010 §1 gives nearly every command a declaration, including one the parser
+ * then refuses — the common case rather than the rare one this reducer used to
+ * assume). `speaks` is `director.ts`'s own predicate, imported rather than
+ * duplicated so this reference cannot drift from what it is meant to describe.
  *
  * Since ADR 0008 Phase 2 the edit is applied to the *turn scripts*, not to panels —
  * panelization runs after it (see the module note in `director.ts`) — so the golden
@@ -62,7 +74,7 @@ function edited(full: readonly TurnScript[]): Panel[] {
   const kept: TurnScript[] = [];
   let pending: TurnScript | null = null;
   for (const script of full) {
-    if (script.context.kind === "refusal") continue;
+    if (script.context.kind === "refusal" && !speaks(script)) continue;
     if (script.context.kind === "traversal") {
       pending = script; // keep only the latest — the run's destination so far
       continue;
@@ -80,9 +92,24 @@ function edited(full: readonly TurnScript[]): Panel[] {
   return [...page.panels];
 }
 
+/**
+ * `edited`'s drop rule with no collapsing — every surviving traversal step
+ * panelized on its own, not just the run's last. The gap between this and
+ * `edited` is what proves the collapse fires; comparing panel counts straight
+ * against the kept-turn count stopped working once a turn could reliably cost
+ * more than one panel (ADR 0010 §1's declaration routinely opens a second Hero
+ * panel behind the DM's, M6.1h).
+ */
+function uncollapsed(full: readonly TurnScript[]): Panel[] {
+  const kept = full.filter((script) => script.context.kind !== "refusal" || speaks(script));
+  const page = createPage();
+  for (const script of kept) addScript(page, script);
+  return [...page.panels];
+}
+
 describe("director (Slice 4 — traversal collapse)", () => {
   it("emits edited(full fold) — refusals dropped, traversal runs collapsed — every walkthrough", () => {
-    let keptTotal = 0;
+    let uncollapsedTotal = 0;
     let emittedTotal = 0;
     for (const file of cmdFiles()) {
       const commands = commandsOf(file);
@@ -101,19 +128,30 @@ describe("director (Slice 4 — traversal collapse)", () => {
       const emitted = [...director.panels];
 
       expect(emitted).toEqual(edited(full));
-      expect(emitted.every((panel) => panel.kind !== "refusal")).toBe(true);
+      // A silent refusal is still dropped; one that speaks — ADR 0010 §1 gives a
+      // declaration to the command the parser then refuses — is kept as a beat
+      // like any other, so the assertion is "no silent refusal survives", not
+      // "no refusal panel exists" (superseded from the latter, M6.1h).
+      expect(emitted.every((panel) => panel.kind !== "refusal" || panel.speakers.length > 0))
+        .toBe(true);
 
-      keptTotal += full.filter((script) => script.context.kind !== "refusal").length;
+      uncollapsedTotal += uncollapsed(full).length;
       emittedTotal += emitted.length;
     }
-    // Collapse actually fired: the corpus (esp. the backtracking full game) emits
-    // strictly fewer panels than the non-refusal turn count.
-    expect(emittedTotal).toBeLessThan(keptTotal);
+    // Collapse actually fired: panelizing every surviving turn with no
+    // buffering costs strictly more panels than letting a traversal run
+    // collapse to its last step.
+    expect(emittedTotal).toBeLessThan(uncollapsedTotal);
   });
 
   it("collapses a back-and-forth walk to one panel at the destination (ADR 0005 §3)", () => {
     const session = createSession(doc, { seed: SEED });
-    const director = createDirector(options());
+    // A traversal turn now speaks too (ADR 0010 §1's declaration), so the
+    // buffered panel this run collapses to is no longer wordless, and `look`'s
+    // own declaration can no longer clone-append into it (two Hero balloons
+    // never share a panel). That interaction is 6.1j's ("the collapse gives
+    // ground") to resolve; this test isolates the collapse mechanism itself.
+    const director = createDirector({ ...options(), commandScript: SILENT_COMMANDS });
     director.ingest(session.start()); // arrival, WEST-OF-HOUSE
     expect(director.ingest(session.command("north")).appended[0]?.kind).toBe("arrival"); // NORTH-OF-HOUSE
     expect(director.ingest(session.command("west")).appended).toEqual([]); // traversal → WEST-OF-HOUSE, buffered

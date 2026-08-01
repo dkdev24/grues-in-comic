@@ -26,9 +26,11 @@ import type { WorldDocument } from "@grues-in-comic/ir";
 import { PLAYER_ID } from "../../engine/src/state.js";
 import { createSession } from "../src/session.js";
 import {
-  CAPTION, GUIDE, HERO, READ_ALOUD_MAX, createMapper, heroBalloon, lineOf, panelKind, readAloud, salient,
-  type BeatEntry, type Line, type MapperOptions, type Panel,
+  CAPTION, GUIDE, HERO, READ_ALOUD_MAX, createMapper, heroBalloon, heroDeclaration, lineOf, panelKind,
+  readAloud, salient,
+  type BeatEntry, type DeclarationCursor, type Line, type MapperOptions, type Panel,
 } from "../src/comic/mapper.js";
+import { COMMAND_SCRIPT, type CommandScript } from "../src/comic/script.js";
 import {
   BM_SAY, BRK, CHR, addScript, createPage, makeBalloonClass, type Register,
 } from "../src/comic/page.js";
@@ -98,6 +100,17 @@ beforeAll(() => {
  * line clone-appended, is a panel an earlier turn opened. That is the port's whole
  * point, so these tests assert on the panel a turn produced, not on a 1:1 index.
  */
+/**
+ * An empty {@link CommandScript} — every command a legal silence. Tests that
+ * pin `ACTION_SCRIPT`/`BEAT_SCRIPT` behavior in isolation pass this so the
+ * Hero's declaration (ADR 0010 §1) doesn't win the panel out from under the
+ * mechanism they're actually testing; `heroDeclaration`'s own coverage lives in
+ * this file's declaration tests below.
+ */
+const SILENT_COMMANDS: CommandScript = {
+  directionWords: new Map(), directions: [], verbs: new Map(), templates: new Map(),
+};
+
 function strip(options: MapperOptions = {}) {
   const mapper = createMapper(options);
   const page = createPage();
@@ -215,7 +228,13 @@ describe("panel stream", () => {
     // turns get an action line; every other turn — movement, examination, the
     // parser echo — gets no balloon, which is the play-log tell being removed.
     const session = createSession(doc, { seed: SEED });
-    const page = strip({ names: objectNameTable(doc.objects) });
+    // The Hero's declaration (ADR 0010 §1) would otherwise win every one of
+    // these panels — it's what this file's declaration tests cover — and its
+    // cooldown is a new ADR 0010 concern too, so this test isolates the
+    // pre-existing resolved-action mechanism it actually pins.
+    const page = strip({
+      names: objectNameTable(doc.objects), commandScript: SILENT_COMMANDS, actionCooldown: 0,
+    });
     const panels = [page.turn(session.start())];
     for (const command of commandsOf("01-west-of-house.cmd")) {
       panels.push(page.turn(session.command(command)));
@@ -298,7 +317,9 @@ describe("panel stream", () => {
       ["reveal", { dm: "It was waiting to be found.", hero: "Of course it was." }],
     ]);
     const session = createSession(doc, { seed: SEED });
-    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
+    const page = strip({
+      names: objectNameTable(doc.objects), beatScript, guideCooldown: 0, commandScript: SILENT_COMMANDS,
+    });
     page.turn(session.start());
     let shot;
     for (const command of ["look", "examine mailbox", "open mailbox"]) {
@@ -319,7 +340,9 @@ describe("panel stream", () => {
       ["routine-ack", { dm: "The empire notices.", hero: "Should not have fired." }],
     ]);
     const session = createSession(doc, { seed: SEED });
-    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 0 });
+    const page = strip({
+      names: objectNameTable(doc.objects), beatScript, guideCooldown: 0, commandScript: SILENT_COMMANDS,
+    });
     page.turn(session.start());
     let shot;
     for (const command of ["open mailbox", "take leaflet"]) {
@@ -380,6 +403,7 @@ describe("panel stream", () => {
     const session = createSession(doc, { seed: SEED });
     const page = strip({
       names: objectNameTable(doc.objects), beatScript, guideScript, guideCooldown: 3,
+      commandScript: SILENT_COMMANDS, actionCooldown: 0,
     });
     const spoken: string[] = [];
     const record = (shot: ReturnType<typeof page.turn>): void => {
@@ -578,7 +602,10 @@ describe("panel stream", () => {
       ["scored", [{ dm: "The empire notices what leaves it." }]],
     ]);
     const session = createSession(doc, { seed: SEED });
-    const page = strip({ names: objectNameTable(doc.objects), beatScript, guideCooldown: 3 });
+    const page = strip({
+      names: objectNameTable(doc.objects), beatScript, guideCooldown: 3,
+      commandScript: SILENT_COMMANDS, actionCooldown: 0,
+    });
     const spoken: string[] = [];
     const record = (shot: ReturnType<typeof page.turn>): void => {
       for (const line of shot.lines) {
@@ -804,6 +831,87 @@ describe("salience filter (§7 precondition)", () => {
       if (panel.camera === "close-up") expect(panel.focus).toBeTruthy();
       else expect(panel.focus).toBeNull();
     }
+  });
+});
+
+describe("Hero declaration (ADR 0010 §1)", () => {
+  const cursor = (): DeclarationCursor => ({ direction: 0, verb: new Map(), template: new Map() });
+
+  it("is null on the opening turn, which has no command", () => {
+    expect(heroDeclaration(null, COMMAND_SCRIPT, cursor())).toBeNull();
+  });
+
+  it("re-voices a bare direction, never the typed abbreviation", () => {
+    const said = heroDeclaration("n", COMMAND_SCRIPT, cursor());
+    expect(said).not.toBeNull();
+    expect(said!.text).not.toBe("n");
+    expect(said!.text.toLowerCase()).toContain("north");
+  });
+
+  it("treats `go <direction>` the same as the bare direction", () => {
+    const c = cursor();
+    const bare = heroDeclaration("s", COMMAND_SCRIPT, c)!.text;
+    const said = heroDeclaration("go s", COMMAND_SCRIPT, cursor())!.text;
+    expect(said.toLowerCase()).toContain("south");
+    // Both draw from the same rotation, at the same cursor position.
+    expect(said).toBe(bare);
+  });
+
+  it("rotates the direction lexicon and never repeats before it wraps", () => {
+    const c = cursor();
+    const seen = new Set<string>();
+    for (let i = 0; i < COMMAND_SCRIPT.directions.length; i += 1) {
+      const said = heroDeclaration("north", COMMAND_SCRIPT, c)!.text;
+      expect(seen.has(said)).toBe(false);
+      seen.add(said);
+    }
+    // The (n+1)th firing repeats the first — the rotation wrapped, not grew.
+    expect(heroDeclaration("north", COMMAND_SCRIPT, c)!.text).toBe([...seen][0]);
+  });
+
+  it("shares one rotation across every direction word, not one per word", () => {
+    const c = cursor();
+    const first = heroDeclaration("n", COMMAND_SCRIPT, c)!.text;
+    const second = heroDeclaration("north", COMMAND_SCRIPT, c)!.text;
+    expect(second).not.toBe(first); // the cursor advanced, not reset
+  });
+
+  it("says an intransitive verb's own line, cheaply rotated", () => {
+    const said = heroDeclaration("look", COMMAND_SCRIPT, cursor());
+    expect(said).not.toBeNull();
+    expect(said!.text).not.toBe("look");
+  });
+
+  it("fills a transitive template with the command's own noun phrase", () => {
+    const said = heroDeclaration("take lamp", COMMAND_SCRIPT, cursor());
+    expect(said).not.toBeNull();
+    expect(said!.text.toLowerCase()).toContain("lamp");
+    expect(said!.text).not.toBe("take lamp");
+  });
+
+  it("matches a phrasal verb as a unit, not its first word alone", () => {
+    const said = heroDeclaration("turn on lantern", COMMAND_SCRIPT, cursor());
+    expect(said).not.toBeNull();
+    expect(said!.text.toLowerCase()).toContain("lantern");
+  });
+
+  it("stays silent on a command the lexicon cannot phrase — a legal outcome", () => {
+    expect(heroDeclaration("xyzzy", COMMAND_SCRIPT, cursor())).toBeNull();
+    expect(heroDeclaration("y", COMMAND_SCRIPT, cursor())).toBeNull();
+  });
+
+  it("refuses `take all` rather than saying \"the all\"", () => {
+    expect(heroDeclaration("take all", COMMAND_SCRIPT, cursor())).toBeNull();
+  });
+
+  it("keeps the verb and template cursors independent per key", () => {
+    const c = cursor();
+    heroDeclaration("take lamp", COMMAND_SCRIPT, c);
+    const dropFirst = heroDeclaration("drop lamp", COMMAND_SCRIPT, c)!.text.replace("lamp", "{noun}");
+    // The drop cursor has not moved just because take's did — it is still on
+    // its own first template, whatever noun this call fills it with.
+    const freshDrop = heroDeclaration("drop sword", COMMAND_SCRIPT, cursor())!.text.replace("sword", "{noun}");
+    expect(dropFirst).toBe(freshDrop);
   });
 });
 

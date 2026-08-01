@@ -10,6 +10,39 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.6 — 2026-08-01 — 6.1h: the Hero speaks his command
+
+**ADR 0010 slice 1 is built.** `COMMAND_SCRIPT` (`web/src/comic/script.ts`): 24 direction aliases
+sharing one 12-line rotation (directions are 47.6% of the corpus and the deepest repetition the
+project has ever authored for), ~19 intransitive verbs, ~37 transitive verb keys with 1–3
+`{noun}`-templated lines each. The 12-command tail (`take all`/`drop all`, bare `y` ×11, `xyzzy`,
+`plugh`, bare `take`/`put`, four bare nouns) stays silent by design, per the ADR. `heroDeclaration()`
+plus a fold cursor in `mapper.ts` match direction → phrasal verb → intransitive verb → verb+noun, a
+pure function of `turn.command`. `ACTION_SCRIPT` ("Worth the weight.") is now garnish: it gained a
+4-turn cooldown and is held outright on any turn a declaration fires, so the panel never carries two
+Hero utterances (ADR 0009 §6 unchanged). No panel-flow change, as the slice specifies.
+
+- **Measured over the full won game (423 turns, still STONE-BARROW 350/350):** Hero speaks on
+  **416/423 turns (98.3%)**. Panels **1141 → 1158 (+1.5%)** — far under the ADR's own +42% estimate;
+  the shipped lexicon overlaps DM frames more than the ADR's prototype did, so declarations land in
+  frames that were already being drawn more often than the estimate assumed. `panelsBothSpeakers`
+  **172 → 243**, the direction the ADR predicted. Both goldens re-accepted after looking at the
+  drifted images; 293/293 web tests green (11 new).
+- **Read through for the play-log tell** ("Let's head north." several hundred times, the failure ADR
+  0005 §1 removed in costume) — not found; the rotation reads as varied.
+- **One real seam surfaced, deliberately not patched here.** The declaration now usually claims the
+  panel's one Hero-utterance slot ahead of the old beat reply, so the DM+reply two-shot metric
+  collapsed **137/165 → 17/274**. This is not a regression to chase in this slice — it is exactly the
+  join ADR 0010 §2 (slice 2, stage 6.1i) exists to close, where a declaration marks itself as
+  answering and clone-appends into the DM's frame. `density.test.ts`'s assertion on that metric was
+  relaxed to a sanity bound rather than invented around.
+- **Judgment call, unspecified by the ADR:** `ACTION_SCRIPT`'s cooldown is 4, chosen so the silent
+  tail of the lexicon doesn't leave a long run of un-cooled reaction lines.
+
+Stage 6.1h is ✅ in `docs/DEVELOPMENT_PLAN.md` §6.1. Work resumes at **6.1i**.
+
+---
+
 ## v0.24.5 — 2026-08-01 — ADR 0010 accepted, and the stage regains a work queue
 
 The user accepted **ADR 0010 whole** — both decisions, §1–§4. Status flipped to **Accepted

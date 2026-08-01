@@ -27,7 +27,7 @@ import type { Turn } from "../session.js";
 // there is no runtime cycle), and defaulting rather than requiring the option
 // keeps every existing caller — the view, `density.ts`, `gate.ts`,
 // `render-panel.ts` — speaking the shipped voice without having to opt in.
-import { ACTION_SCRIPT, type ActionScript } from "./script.js";
+import { ACTION_SCRIPT, type ActionScript, COMMAND_SCRIPT, type CommandScript } from "./script.js";
 
 /**
  * §7's six rungs. `establishing` carries the "emphatic" modifier separately
@@ -318,6 +318,21 @@ export interface MapperOptions {
    * derived from events and always sayable, so the default is the content.
    */
   actionScript?: ActionScript;
+  /**
+   * The lexicon behind the Hero's declaration ({@link COMMAND_SCRIPT}, ADR 0010
+   * §1). Defaults to the shipped table; like {@link actionScript}, an omitted
+   * table is content, not silence — a declaration is derived from the turn's own
+   * command and is always sayable.
+   */
+  commandScript?: CommandScript;
+  /**
+   * Turns {@link ACTION_SCRIPT} waits between firings (ADR 0010 §1). The
+   * resolved-action line is garnish now that the declaration is the Hero's
+   * primary utterance, and it is held outright — not merely cooled — on any turn
+   * that produces a declaration; this cooldown is what limits it on the tail of
+   * turns a declaration cannot phrase (`take all`, the disambiguation `y`, …).
+   */
+  actionCooldown?: number;
 }
 
 /**
@@ -351,6 +366,8 @@ export function createMapper(options: MapperOptions = {}): Mapper {
   const roomTitles = options.roomTitles ?? new Map<string, string>();
   const beatScript = options.beatScript ?? new Map<string, string>();
   const actionScript = options.actionScript ?? ACTION_SCRIPT;
+  const commandScript = options.commandScript ?? COMMAND_SCRIPT;
+  const actionCooldown = options.actionCooldown ?? 4;
 
   const visited = new Set<string>();
   const inventory = new Set<string>();
@@ -387,6 +404,14 @@ export function createMapper(options: MapperOptions = {}): Mapper {
    */
   let tookSaid = 0;
   let droppedSaid = 0;
+  /**
+   * The last turn {@link ACTION_SCRIPT} actually spoke — the cursor
+   * {@link MapperOptions.actionCooldown} is measured against (ADR 0010 §1). A
+   * fold like `lastBeatTurn` beside it.
+   */
+  let lastActionTurn = -Infinity;
+  /** The run cursor for the Hero's declaration ({@link COMMAND_SCRIPT}, ADR 0010 §1). */
+  const declarationCursor: DeclarationCursor = { direction: 0, verb: new Map(), template: new Map() };
   let room = "";
 
   return {
@@ -487,14 +512,22 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const panelRoom = died ? roomAtEntry : room;
       /** ADR 0009 §3: the turn moved the player somewhere else. */
       const roomChanged = room !== roomAtEntry && room !== "";
-      // The resolved action and the authored reply are now independent (ADR 0009
-      // §6): the action no longer suppresses the answer, it only precedes it.
-      const action = heroBalloon(
-        took, dropped, names, actionScript, took !== null ? tookSaid : droppedSaid,
-      );
+      // The Hero's declaration (ADR 0010 §1) — his re-voicing of the player's own
+      // command, a pure function of `turn.command`. It is the primary utterance
+      // now; the resolved-action line below is garnish and is held outright when
+      // a declaration also wants to speak this turn.
+      const declaration = heroDeclaration(turn.command, commandScript, declarationCursor);
+      // The resolved action and the authored reply are independent (ADR 0009 §6),
+      // but the action is now garnish (ADR 0010 §1): it is held when a
+      // declaration already speaks for this turn, and cooled otherwise, so it
+      // survives only on the tail of commands the lexicon cannot phrase.
+      const action = declaration === null && turnsRead - lastActionTurn > actionCooldown
+        ? heroBalloon(took, dropped, names, actionScript, took !== null ? tookSaid : droppedSaid)
+        : null;
       if (action !== null) {
         if (took !== null) tookSaid += 1;
         else droppedSaid += 1;
+        lastActionTurn = turnsRead;
       }
       const exchange = exchangeFor(firstVisit, room, affect.marker);
       const guideLine = exchange.dm;
@@ -513,7 +546,11 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // Whether the pair shares a panel is `page.ts`'s decision, not a
       // suppression rule written upstream of the fit test.
       const heroLines: Utterance[] = [];
-      if (action !== null) heroLines.push(action);
+      // The declaration wins when it and the resolved action would both want to
+      // open this turn (ADR 0010 §1) — `action` is already `null` on any turn
+      // that produced one, so this is a plain either/or, not a priority check.
+      if (declaration !== null) heroLines.push(declaration);
+      else if (action !== null) heroLines.push(action);
       if (exchange.hero !== null) heroLines.push({ modes: BM_SAY, text: exchange.hero });
       const lines: PageLine[] = [];
       // **A new location starts a panel.** Until 6.1c the caption did this on
@@ -558,9 +595,10 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       for (const [i, line] of heroLines.entries()) {
         lines.push({
           ...line, speaker: HERO, emotion: affect.options,
-          // The resolved action is derived from events; the reply came from
-          // `BEAT_SCRIPT`. The action, when there is one, is always first.
-          register: i === 0 && action !== null ? "narration" : "authored",
+          // The declaration and the resolved action are both derived from the
+          // turn itself (the command, the events); the reply came from
+          // `BEAT_SCRIPT`. Whichever of the first two is present is always first.
+          register: i === 0 && (declaration !== null || action !== null) ? "narration" : "authored",
         });
         // The mirror of the staging above, and it exists for the same reason.
         // Two Hero balloons never share a panel either (`AvatarInPanel`), so an
@@ -837,6 +875,110 @@ export function salient(
  * faintly proprietary. Templates over object DESCs, so they must stay grammatical
  * across every name the world holds ("leaflet", "jewel-encrusted egg").
  */
+/**
+ * The run cursor {@link heroDeclaration} advances — one counter for the
+ * direction rotation (shared across every direction word, since the ADR asks
+ * for one deep rotation rather than one per word), and one map each for the
+ * intransitive verbs and the transitive templates, keyed the same way the
+ * lexicon is. A fold like `tookSaid`/`droppedSaid`, kept in the mapper's
+ * closure so a session's declarations rotate across the whole playthrough.
+ */
+export interface DeclarationCursor {
+  direction: number;
+  verb: Map<string, number>;
+  template: Map<string, number>;
+}
+
+/**
+ * The Hero's declaration: his re-voicing of the player's own typed command as
+ * table-talk (ADR 0010 §1) — "Let's head north.", not `n`. A pure function of
+ * `turn.command` and the lexicon, so the mapper stays a deterministic fold and
+ * `replayPanels` still holds.
+ *
+ * Three tiers, tried in order: a bare direction (or `go <direction>`) draws
+ * from the lexicon's one deep rotation; a lone intransitive verb draws from its
+ * own short rotation; a verb with a noun phrase after it fills a template with
+ * the phrase verbatim. **Anything else says nothing** — a command the lexicon
+ * cannot phrase is a legal silence (ADR 0010 §1), not a bug, and a noun phrase
+ * of exactly `all` is refused rather than forced into "the all", the one
+ * consequence of the transitive tail (`take all`, `drop all`) not being carried
+ * by a template.
+ */
+export function heroDeclaration(
+  command: string | null, script: CommandScript, cursor: DeclarationCursor,
+): Utterance | null {
+  if (command === null) return null;
+  const words = command.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return null;
+
+  const bareDir = words.length === 1 ? script.directionWords.get(words[0]!) : undefined;
+  const goDir = words.length === 2 && words[0] === "go" ? script.directionWords.get(words[1]!) : undefined;
+  const dir = bareDir ?? goDir;
+  if (dir !== undefined) {
+    if (script.directions.length === 0) return null;
+    const i = cursor.direction % script.directions.length;
+    cursor.direction += 1;
+    return { modes: BM_SAY, text: fillDirection(script.directions[i]!, dir) };
+  }
+
+  if (words.length >= 2) {
+    const phrasal = `${words[0]} ${words[1]}`;
+    const templates = script.templates.get(phrasal);
+    if (templates !== undefined) {
+      return declareFromTemplate(templates, directObject(words.slice(2)), phrasal, cursor);
+    }
+  }
+
+  if (words.length === 1) {
+    const lines = script.verbs.get(words[0]!);
+    if (lines !== undefined) {
+      if (lines.length === 0) return null;
+      const said = cursor.verb.get(words[0]!) ?? 0;
+      cursor.verb.set(words[0]!, said + 1);
+      return { modes: BM_SAY, text: lines[said % lines.length]! };
+    }
+  }
+
+  if (words.length >= 2) {
+    const templates = script.templates.get(words[0]!);
+    if (templates !== undefined) {
+      return declareFromTemplate(templates, directObject(words.slice(1)), words[0]!, cursor);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * The direct object out of a noun phrase that may carry an indirect one —
+ * "coins in case" is a `put`, not a case named "coins in case". Stops at the
+ * first preposition rather than trying to parse the whole phrase, which is
+ * enough for a declaration: the Hero names what he's handling, not the whole
+ * sentence the player typed.
+ */
+const OBJECT_STOP_WORDS: ReadonlySet<string> = new Set(["in", "on", "under", "with", "at", "through"]);
+
+function directObject(words: readonly string[]): string {
+  const stop = words.findIndex((word) => OBJECT_STOP_WORDS.has(word));
+  return (stop === -1 ? words : words.slice(0, stop)).join(" ");
+}
+
+function declareFromTemplate(
+  templates: readonly string[], noun: string, key: string, cursor: DeclarationCursor,
+): Utterance | null {
+  if (templates.length === 0 || noun === "" || noun === "all") return null;
+  const said = cursor.template.get(key) ?? 0;
+  cursor.template.set(key, said + 1);
+  const text = templates[said % templates.length]!.replace("{noun}", noun);
+  return { modes: BM_SAY, text };
+}
+
+/** `{dir}` mid-sentence, `{Dir}` capitalized for a template that opens on it. */
+function fillDirection(template: string, dir: string): string {
+  const capitalized = dir.charAt(0).toUpperCase() + dir.slice(1);
+  return template.replace("{Dir}", capitalized).replace("{dir}", dir);
+}
+
 export function heroBalloon(
   took: string | null, dropped: string | null, names: ReadonlyMap<string, string>,
   script: ActionScript = ACTION_SCRIPT, said = 0,

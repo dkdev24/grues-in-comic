@@ -20,6 +20,146 @@
 import type { BeatEntry, BeatExchange, BeatScript } from "./mapper.js";
 
 /**
+ * The lexicon behind the Hero's **declaration** (ADR 0010 §1) — his re-voicing of
+ * the player's own command as table-talk. "Let's head north." for `n`, not `n`
+ * itself and not "I went north."
+ *
+ * **Three tiers, because the measurement found three** (ADR 0010, v0.24.3):
+ * bare directions are 47.6% of everything typed and get the deepest rotation in
+ * the game; intransitive verbs (`look`, `wait`, …) get one line each, because
+ * each fires far less often than a direction; transitive verbs get templates
+ * over the command's own noun phrase, the same `{name}`-style substitution
+ * `ACTION_SCRIPT` already uses. **A command this lexicon cannot phrase produces
+ * no declaration — silence is a legal outcome**, not a failure: the 4.4% tail
+ * (`y`, `take all`, `xyzzy`, four bare nouns, …) is either hand-authored
+ * elsewhere or left quiet rather than forced into an ungrammatical line.
+ */
+export interface CommandScript {
+  /** Direction word or abbreviation (as typed, lowercased) → its canonical form. */
+  readonly directionWords: ReadonlyMap<string, string>;
+  /**
+   * Rotation of templates over a canonical direction (`{dir}`/`{Dir}`). This is
+   * the lexicon's one deep rotation: a direction recurs hundreds of times over a
+   * playthrough, so a shallow table here is the play-log tell in costume
+   * (`docs/PITFALLS.md` → Web, the `, then` tic).
+   */
+  readonly directions: readonly string[];
+  /** Bare intransitive verb (single word, as typed) → rotation of lines. */
+  readonly verbs: ReadonlyMap<string, readonly string[]>;
+  /**
+   * Verb (one word, or two for a phrasal verb like `turn on`) → rotation of
+   * templates over the rest of the command as `{noun}`. The noun phrase is
+   * substituted verbatim (lowercased, untranslated), so a template must stay
+   * grammatical across whatever the player typed.
+   */
+  readonly templates: ReadonlyMap<string, readonly string[]>;
+}
+
+const DIRECTION_WORDS: ReadonlyMap<string, string> = new Map([
+  ["n", "north"], ["north", "north"],
+  ["s", "south"], ["south", "south"],
+  ["e", "east"], ["east", "east"],
+  ["w", "west"], ["west", "west"],
+  ["ne", "northeast"], ["northeast", "northeast"],
+  ["nw", "northwest"], ["northwest", "northwest"],
+  ["se", "southeast"], ["southeast", "southeast"],
+  ["sw", "southwest"], ["southwest", "southwest"],
+  ["u", "up"], ["up", "up"],
+  ["d", "down"], ["down", "down"],
+  ["in", "in"], ["enter", "in"],
+  ["out", "out"], ["exit", "out"],
+]);
+
+/** The rotation a bare direction draws from — the deepest table in the lexicon. */
+const DIRECTION_LINES: readonly string[] = [
+  "Let's head {dir}.",
+  "{Dir}, then.",
+  "I'll try {dir}.",
+  "{Dir} looks right.",
+  "Let's see what's {dir}.",
+  "Onward — {dir}.",
+  "{Dir} it is.",
+  "Worth a look, {dir}.",
+  "Let's go {dir}.",
+  "{Dir}. Why not.",
+  "This way — {dir}.",
+  "Off we go, {dir}.",
+];
+
+const LOOK_LINES = ["Let's see where we are.", "Worth a proper look."];
+const WAIT_LINES = ["Let's give it a moment.", "No rush."];
+const INVENTORY_LINES = ["Let's see what I'm carrying.", "Quick check of the pockets."];
+
+const VERB_LINES: ReadonlyMap<string, readonly string[]> = new Map([
+  ["look", LOOK_LINES], ["l", LOOK_LINES],
+  ["wait", WAIT_LINES], ["z", WAIT_LINES],
+  ["inventory", INVENTORY_LINES], ["i", INVENTORY_LINES],
+  ["jump", ["Here goes nothing."]],
+  ["listen", ["Let's listen a moment."]],
+  ["smell", ["Something's in the air."]],
+  ["pray", ["Couldn't hurt."]],
+  ["yell", ["Worth a shout."]],
+  ["scream", ["Worth a shout."]],
+  ["shout", ["Worth a shout."]],
+  ["wave", ["A wave, for what it's worth."]],
+  ["sing", ["Not my strong suit, but here goes."]],
+  ["dance", ["When in doubt."]],
+  ["diagnose", ["Let's see how banged up I am."]],
+  ["score", ["Let's check the tally."]],
+  ["sleep", ["Tempting, but no."]],
+]);
+
+const TAKE_LINES = ["Let's grab the {noun}.", "That {noun}'s coming with me.", "I'll take the {noun}."];
+const ATTACK_LINES = ["Time to deal with the {noun}.", "Let's take on the {noun}."];
+const EXAMINE_LINES = ["Let's have a look at the {noun}.", "Worth examining the {noun}."];
+
+const TEMPLATE_LINES: ReadonlyMap<string, readonly string[]> = new Map([
+  ["take", TAKE_LINES], ["get", TAKE_LINES],
+  ["drop", ["I'll leave the {noun}.", "The {noun} can stay.", "Let it go — the {noun}."]],
+  ["open", ["Let's open the {noun}.", "See what's in the {noun}."]],
+  ["close", ["Better shut the {noun}."]],
+  ["examine", EXAMINE_LINES], ["x", EXAMINE_LINES],
+  ["read", ["Let's read the {noun}.", "What's the {noun} say?"]],
+  ["attack", ATTACK_LINES], ["kill", ATTACK_LINES],
+  ["light", ["Let's light the {noun}."]],
+  ["extinguish", ["Better put out the {noun}."]],
+  ["put", ["Let's put it with the {noun}."]],
+  ["give", ["Let's hand over the {noun}."]],
+  ["throw", ["Here goes the {noun}."]],
+  ["unlock", ["Let's get the {noun} open."]],
+  ["lock", ["Better lock the {noun}."]],
+  ["move", ["Let's shift the {noun}."]],
+  ["push", ["Give the {noun} a push."]],
+  ["pull", ["Let's pull the {noun}."]],
+  ["tie", ["Let's tie off the {noun}."]],
+  ["untie", ["Time to untie the {noun}."]],
+  ["pour", ["Let's pour out the {noun}."]],
+  ["fill", ["Let's fill the {noun}."]],
+  ["rub", ["Worth a rub, the {noun}."]],
+  ["touch", ["Let's feel the {noun}."]],
+  ["count", ["Let's count the {noun}."]],
+  ["wind", ["Better wind the {noun}."]],
+  ["ring", ["Let's ring the {noun}."]],
+  ["dig", ["Time to dig the {noun}."]],
+  ["burn", ["Let's burn the {noun}."]],
+  ["cut", ["Let's cut the {noun}."]],
+  ["climb", ["Let's climb the {noun}."]],
+  ["enter", ["Let's get into the {noun}."]],
+  ["search", ["Let's search the {noun}."]],
+  ["turn on", ["Let's switch on the {noun}."]],
+  ["turn off", ["Better switch off the {noun}."]],
+  ["look in", ["Let's look inside the {noun}."]],
+  ["look under", ["Let's check under the {noun}."]],
+]);
+
+export const COMMAND_SCRIPT: CommandScript = {
+  directionWords: DIRECTION_WORDS,
+  directions: DIRECTION_LINES,
+  verbs: VERB_LINES,
+  templates: TEMPLATE_LINES,
+};
+
+/**
  * Turns between two firings of **the same beat** (`MapperOptions.guideCooldown`).
  *
  * M6.1d moved it, and changed what it counts. It was 3 turns between *any* two
