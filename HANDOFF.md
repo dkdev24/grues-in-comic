@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.23.0** · Platform: **macOS only** (2026-07-28)
+**0.23.1** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,31 +27,33 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d are done and D5 is met; 6.1e is in progress**.
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f are done and D5 is met; 6.1e is in progress**
+  — and 6.1f found that the numbers D5 is judged on are measured over a losing replay (below).
 
 **Tests:** 271 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — M6.1e session 2: the rooms answer back (v0.23.0)
+## Last Session — M6.1f: the playthrough is read (v0.23.1)
 
-6.1a–6.1d ✅ · **6.1e ◐ — session 2 of several.** Narrative in `WORKLOG.md` v0.23.0; the decisions
-are in ADR 0009 §Implementation slices 3.
+**6.1f ✅.** Narrative in `WORKLOG.md` v0.23.1. Verification only — nothing was changed in `web/src/`.
 
-- **The census came first, and corrected the figure the last session handed over.** Not 56.6% of
-  turns without a marker — **220 of 606 (36.3%)**: traversal 88, ambient 87, arrival 45. The split
-  that mattered was not `PanelKind` but who was already speaking: **164 wholly silent, 56 the DM
-  narrating a room at a player who says nothing.**
-- **That chose the lever.** The "narrow and safe" option was not narrow: **45 of 45 marker-less
-  first visits already had a gazetteer line and no reply.** So the gazetteer gained a Hero half —
-  `GuideScript` takes a `BeatExchange` now, all **88 rooms** written — and the `PanelKind` fallback
-  was **not** built, which keeps the generic-line risk off the table entirely.
-- **A room line cannot wear out** (a first visit happens once), which is now a `PITFALLS.md` rule:
-  it is the only authored surface with no run, no cooldown and no repeat to design around.
-- **`blocked-exit` widened** over 10 more turns in the map's voice ("would need a machete", "no tree
-  here suitable"). Two singletons left silent on purpose.
-- **Density: corpus 2.5 → 2.0, oracle 2.7 → 2.4, `07-forest-and-tree` 8.0 → 2.3**, no scene worse
-  than 2.3. Baseline re-accepted deliberately; 269 web / 139 engine tests green, gate clean.
+- **Both goldens were already in sync; neither needed re-accepting.** Gate **clean, 17/17**, density
+  baseline **unchanged**, 271 web / 139 engine tests green, typecheck clean. The 17 gate PNGs were
+  dumped (`runGate()` only writes them on drift) and looked at one by one — no pixel objection.
+- **Reading the full game panel by panel found what no aggregate could: `12-full-game.cmd` does not
+  complete under the comic replay.** The list is authored for the **resilient** `runFullGame`, which
+  repeats combat until the villain falls. A naive replay — `web/tools/density.ts` and the pane both —
+  loses the troll fight on turn ~70 and then flails: **Rocky Ledge, 30/350, 16 of 110 rooms.** The
+  engine's completion test still reaches the barrow at 350; it drives the harness, not the raw list.
+- **That run is 406 of the corpus's 606 turns**, so the 2.0 exchanges-per-turn figure, "refusals are
+  45% of all turns" and the 154-silent-turns census are two-thirds a flail through the surface map.
+  Now a `PITFALLS.md` → Web rule.
+- **Four presentation findings, logged in `FUTURE_WORK.md` §2.1, none fixed:** a split exchange
+  **mis-pairs** (the Hero's reply shares a frame with the *next* turn's DM line — 144 of 300 split),
+  **3 empty panels**, the **death panel wears the resurrection room's location box**, and refusal
+  repeats **cluster** within ~20 panels.
+- The browser half was done: played live at :8080, the pane behaves as the transcript says.
 
 ## Next Actions
 
@@ -59,19 +61,24 @@ are in ADR 0009 §Implementation slices 3.
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a–6.1d ✅ (D5 met) · **6.1e ◐ — and it is now blocked on a decision, not on
-   writing.** Every scene reads between 2.0 and 2.4; the corpus sits on the **bottom edge of D5's
-   2–3 band**, so the **154 turns that are still wholly silent cannot simply be given beats** —
-   each one is a trade against the refusal beats that fire 283 times.
+   weighting). 6.1a–6.1d ✅ (D5 met) · 6.1f ✅ · **6.1e ◐.**
 
-   **The question for the user:** leave the remaining silence alone (a comic where the pair are
-   quiet on a bare walk is arguably right), trade some refusal turns for it, or move D5's band?
-   Their composition is measured and waiting either way: 69 bare walks with no prose at all, 22
-   container states on examine, 8 floor items noticed on entry, 8 room re-descriptions, 7 lamp
-   toggles, 7 inventory listings, 6 waits, 5 score checks, ~22 one-offs.
+   **Do the corpus repair first — it is the recommended next action.** 6.1f established that the
+   full-game row, two-thirds of every M6.1 measurement, is a game lost at the troll and then flailed
+   through 16 surface rooms (`PITFALLS.md` → Web). Make the comic-side replay resilient the way
+   `runFullGame` is, then re-measure. That is a deliberate move of the density baseline, accepted
+   like a gate re-roll.
 
-   Then 6.1f (verify: golden re-pinned, gate re-accepted **after looking at the images**, a
-   playthrough read in the browser). **6.1f is schedulable now** — nothing above blocks it.
+   **Then the question for the user, which the repair may reword:** every scene reads 2.0–2.4 and
+   the corpus sits on the **bottom edge of D5's 2–3 band**, so the **154 turns still wholly silent
+   cannot simply be given beats** — each is a trade against the refusal beats that fire 283 times.
+   Leave the silence (a comic where the pair are quiet on a bare walk is arguably right), trade
+   refusal turns for it, or move D5's band? Composition, measured: 69 bare walks with no prose at
+   all, 22 container states on examine, 8 floor items noticed on entry, 8 room re-descriptions, 7
+   lamp toggles, 7 inventory listings, 6 waits, 5 score checks, ~22 one-offs. **Those figures come
+   from the losing replay too** — expect them to move.
+
+   **Do not answer the D5 question on today's numbers.**
 2. **M6.2 — save / load / restart.** ☐ UI over the engine's existing save contract; three named
    slots, browser storage only. Independent — good filler for an idle session.
 3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐

@@ -10,6 +10,50 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.23.1 — 2026-08-01 — M6.1f: the playthrough is read, and the corpus turns out to be a dead man walking
+
+6.1f is the verification slice — re-pin the goldens, re-accept the pixel gate *after looking at the
+images*, and read a full playthrough end to end. The first two were clean in minutes. The third one
+was the point of the slice, and it found what no aggregate number could.
+
+- **Both goldens were already in sync and nothing needed re-accepting.** `npm run gate` → *clean, 17
+  cases*; `npm run density` → *baseline unchanged*; 271 web / 139 engine tests green, typecheck
+  clean. The dialogue-density baseline and `panel-gate.json` still describe the shipped code, so
+  6.1f re-pinned nothing — the right outcome, not a skipped step.
+- **The gate images were looked at, one by one.** `runGate()` only writes PNGs on drift, so the 17
+  cases were dumped to `web/tools/out/` (gitignored) and read. They are good: the location box sits
+  where ADR 0009 put it, the description balloon carries the run, the two-shot faces correctly,
+  `mob4-p02` still shows its documented `stackBalloons` fallback. No pixel objection.
+- **Then the full-game corpus was read as a comic, panel by panel — and the headline is that
+  `12-full-game.cmd` does not complete under the comic replay.** The command list is authored for
+  `runFullGame`, which is *resilient*: it repeats combat until the villain falls. A naive replay —
+  which is what `web/tools/density.ts` and the comic pane do — loses the troll fight on turn ~70,
+  is resurrected in the Forest, and then spends the remaining ~330 commands bouncing off walls.
+  Measured: **final room Rocky Ledge, score 30/350, 16 of 110 rooms visited.** The engine's
+  completion test is not wrong — it drives the resilient harness and still reaches the barrow at
+  350 — but the *density corpus* is a different run of the same file.
+- **That is two-thirds of every M6.1 number.** The full-game row is 406 of the corpus's 606 turns.
+  So "refusals are 45% of all turns", the 2.0 exchanges-per-turn corpus figure, and the 154-silent-
+  turns census are all dominated by a flail through 16 surface rooms, not by a playthrough. The
+  question 6.1e left for the user — *leave the silence, trade refusal beats for it, or move D5's
+  band?* — is posed on that data, which is why it should not be answered before the corpus is fixed.
+- **Reading it also surfaced four presentation findings that no counter was watching.** The split
+  exchange **mis-pairs**: when a two-shot splits, the frame that carries the Hero's reply also
+  carries the *next* turn's DM line, so the reader sees him answering the wrong question (144 of 300
+  exchanges split, and long stretches read entirely as offset pairs). **Three panels are empty** —
+  `[wide]` frames with a location box and no balloon at all. The **death panel wears the wrong
+  location box** (the Troll Room killing is narrated under a *Forest* title, the room the
+  resurrection moved to). And the refusal lines **cluster**: the worst repeats 10 times, and the
+  same DM/Hero pair recurs within ~20 panels — a per-playthrough maximum of 12 reads much worse when
+  the hits are adjacent than when they are spread.
+- **Nothing was fixed in this slice, by design.** Each finding is logged where it belongs — the
+  corpus caveat as a `PITFALLS.md` rule, the four presentation findings in `FUTURE_WORK.md` §2.1 —
+  and the corpus repair is the recommended next action because the pending D5 decision depends on it.
+- The browser half was done too: the game was played in the shell at :8080 and the pane read live.
+  It behaves as the transcript says it does.
+
+---
+
 ## v0.23.0 — 2026-08-01 — M6.1e session 2: the rooms answer back, and D5 becomes the constraint
 
 Session 1 left a number to act on and session 2 refused to act on it until it had been measured

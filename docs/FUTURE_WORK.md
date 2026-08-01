@@ -72,6 +72,31 @@ without asking.
   four limiters keeping the pane from reading as a cartoon. Levers and full diagnosis:
   `docs/DEVELOPMENT_PLAN.md` §6.1.
 
+- **A split exchange mis-pairs the balloons.** ☐ Found by reading the playthrough at M6.1f. When a
+  two-shot does not fit one panel (144 of 300 exchanges), the frame carrying the Hero's reply also
+  carries the *next* turn's DM line — so the reader sees him answering the wrong question, and long
+  refusal stretches read as a whole sequence of offset pairs.
+  *Why deferred:* it is a panelization rule, not a text fix, and it belongs beside whatever 6.1e's
+  pending D5 decision does to the refusal beats.
+  *Done looks like:* a split exchange never puts a Hero reply in the same frame as a later DM line —
+  either the break comes before the new line, or the orphaned reply rides alone.
+
+- **Three panels in the full-game corpus are empty.** ☐ Found at M6.1f: `[wide]` frames with a
+  location box and no balloon at all (a flushed traversal run with nothing to say).
+  *Why deferred:* harmless-looking and small, but it is a blank frame in a comic — decide whether an
+  empty panel is ever wanted before deleting it, since a wordless establishing beat is defensible.
+
+- **A death wears the resurrection room's location box.** ☐ Found at M6.1f: the troll's killing blow
+  is narrated under a *Forest* title, because the turn that ends in death also ends in the room the
+  player is resurrected into. The `<Brk>` rule (`PITFALLS.md` → Web) puts the death in its own panel;
+  it does not fix which room that panel claims to be.
+  *Done looks like:* the death panel is titled with the room the death happened in.
+
+- **Refusal repeats cluster.** ☐ The per-playthrough worst is 10–12 (M6.1e session 1 brought it down
+  from 150), but M6.1f's read shows the same DM/Hero pair recurring within ~20 panels, which reads far
+  worse than the same count spread out. *Wait for the corpus fix* (`PITFALLS.md` → Web): the flail
+  that dominates today's numbers is exactly what makes refusals cluster, so re-measure before writing.
+
 - **Panel grammar (ADR 0004) — open authoring judgement.** Page composition (§5), §4a breakpoints,
   PDF byte size, pane-scroll coupling. Amend the ADR, not the discussion doc.
   *Why deferred:* each becomes urgent only when the surface it governs is touched.

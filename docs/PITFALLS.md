@@ -112,6 +112,15 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   line written for a room can be as specific as the author likes. Everything keyed on a *marker* has
   the opposite property. **Do not add a firing rule that lets a room line fire twice**: it would put
   the one surface with no repeat protection into the class that needs it.
+- **`12-full-game.cmd` is authored for the *resilient* harness, and a naive replay of it loses the
+  game** (found M6.1f). `runFullGame` repeats combat until the villain falls and ferries scattered
+  treasure back to the case; `web/tools/density.ts` and the comic pane just feed the commands to a
+  session, so the troll wins on turn ~70 and the remaining ~330 commands bounce off walls —
+  **Rocky Ledge, 30/350, 16 of 110 rooms.** That row is **406 of the corpus's 606 turns**, so every
+  M6.1 aggregate (the 2.0 exchanges-per-turn, "refusals are 45% of all turns", the silent-turn
+  census) is two-thirds a flail through the surface map. The engine's completion test is unaffected —
+  it drives the harness, not the raw list. **Any comic-side measurement over the full game must go
+  through a resilient replay, or say in its output that it is measuring a losing run.**
 - **D5's band is the binding constraint on filling silence, not authoring effort** (M6.1e session 2).
   The corpus sits at one exchange every **2.0** turns against a band of 2–3, so the 154 turns still
   wholly silent (69 of them a bare walk with no prose at all) cannot simply be given beats: each one
