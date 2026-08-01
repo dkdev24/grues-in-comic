@@ -222,9 +222,9 @@ describe("panel stream", () => {
     }
 
     expect(hero(panels[4])).toMatchObject({
-      speaker: HERO, balloonClass: "CBWoodringNormal", text: "The leaflet, then.",
+      speaker: HERO, balloonClass: "CBWoodringNormal", text: "Worth the weight.",
     });
-    expect(hero(panels[6])?.text).toBe("The leaflet can stay.");
+    expect(hero(panels[6])?.text).toBe("It can stay.");
     expect(hero(panels[1])).toBeNull(); // `look` — no action, no balloon
     expect(hero(panels[2])).toBeNull(); // `examine mailbox`
     // The regression this file used to *pin*: the balloon must never be the
@@ -326,7 +326,7 @@ describe("panel stream", () => {
       shot = page.turn(session.command(command));
     }
     const said = shot!.lines.filter((l) => l.speaker === HERO).map((l) => l.text);
-    expect(said).toEqual(["The leaflet, then.", "Should not have fired."]);
+    expect(said).toEqual(["Worth the weight.", "Should not have fired."]);
     expect(hero(shot)?.register).toBe("narration");
     expect(reply(shot)?.text).toBe("Should not have fired.");
   });
@@ -400,8 +400,8 @@ describe("panel stream", () => {
       "guide: Boarded front door.",
       "guide: It was waiting to be found.",
       "hero: Of course it was.",
-      "hero: The leaflet, then.",
-      "hero: The leaflet can stay.",
+      "hero: Worth the weight.",
+      "hero: It can stay.",
     ]);
   });
 
@@ -597,8 +597,8 @@ describe("panel stream", () => {
     expect(spoken).toEqual([
       "guide: It was waiting to be found.",
       "hero: Of course it was.",
-      "hero: The leaflet, then.",
-      "hero: The leaflet can stay.",
+      "hero: Worth the weight.",
+      "hero: It can stay.",
     ]);
   });
 
@@ -647,15 +647,47 @@ describe("panel stream", () => {
 
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
     const names = new Map([["LAMP", "brass lantern"]]);
-    expect(heroBalloon("LAMP", null, names)).toEqual({
-      modes: BM_SAY, text: "The brass lantern, then.",
+    const script = { take: ["Took the {name}.", "And that."], drop: ["The {name} stays."] };
+    expect(heroBalloon("LAMP", null, names, script, 0)).toEqual({
+      modes: BM_SAY, text: "Took the brass lantern.",
     });
-    expect(heroBalloon(null, "LAMP", names)?.text).toBe("The brass lantern can stay.");
+    expect(heroBalloon(null, "LAMP", names, script, 0)?.text).toBe("The brass lantern stays.");
     // Take wins when a turn did both (one balloon per panel).
-    expect(heroBalloon("LAMP", "SWORD", names)?.text).toBe("The brass lantern, then.");
-    expect(heroBalloon(null, null, names)).toBeNull();
+    expect(heroBalloon("LAMP", "SWORD", names, script, 0)?.text).toBe("Took the brass lantern.");
+    expect(heroBalloon(null, null, names, script, 0)).toBeNull();
     // An id with no name falls back to the id rather than dropping the balloon.
-    expect(heroBalloon("EGG", null, new Map())?.text).toBe("The EGG, then.");
+    expect(heroBalloon("EGG", null, new Map(), script, 0)?.text).toBe("Took the EGG.");
+  });
+
+  it("walks the action rotation and wraps, per kind (M6.1e session 4)", () => {
+    // The tic this replaced was one string on a trigger that fires 59 times a
+    // playthrough. The rotation is a pure function of how many times the line has
+    // been *said*, like `variantOf`, so the oracle is unaffected.
+    const names = new Map([["LAMP", "brass lantern"]]);
+    const script = { take: ["One.", "Two.", "The {name}."], drop: ["Gone."] };
+    expect(heroBalloon("LAMP", null, names, script, 1)?.text).toBe("Two.");
+    expect(heroBalloon("LAMP", null, names, script, 2)?.text).toBe("The brass lantern.");
+    expect(heroBalloon("LAMP", null, names, script, 3)?.text).toBe("One."); // wraps
+    // A one-line list is legal and never wraps into another kind's rotation.
+    expect(heroBalloon(null, "LAMP", names, script, 7)?.text).toBe("Gone.");
+    // An emptied list silences the channel rather than throwing.
+    expect(heroBalloon("LAMP", null, names, { take: [], drop: [] }, 0)).toBeNull();
+  });
+
+  it("advances the take and drop cursors independently (M6.1e session 4)", () => {
+    // A long collecting run must not walk the drop rotation it never reaches.
+    const names = new Map([["LAMP", "brass lantern"], ["SWORD", "sword"]]);
+    const script = { take: ["First take.", "Second take."], drop: ["First drop.", "Second drop."] };
+    const said = { take: 0, drop: 0 };
+    const say = (took: string | null, dropped: string | null): string | undefined => {
+      const line = heroBalloon(took, dropped, names, script, took !== null ? said.take : said.drop);
+      if (line !== null) took !== null ? (said.take += 1) : (said.drop += 1);
+      return line?.text;
+    };
+    expect(say("LAMP", null)).toBe("First take.");
+    expect(say("SWORD", null)).toBe("Second take.");
+    expect(say(null, "LAMP")).toBe("First drop."); // the drop cursor is still at 0
+    expect(say("LAMP", null)).toBe("First take."); // …and the take cursor wrapped
   });
 
   it("the Hero speaks: every resolved-action balloon is a speech balloon (ADR 0006 §3)", () => {

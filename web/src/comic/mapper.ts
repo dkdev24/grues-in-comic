@@ -22,6 +22,12 @@ import {
   BM_SAY, BRK, CHR, type BalloonModes, type PageLine, type PanelContext, type Register,
 } from "./page.js";
 import type { Turn } from "../session.js";
+// The one content import, and it is the shipped default for {@link heroBalloon}'s
+// rotation: `script.ts` is data and DOM-free (it imports only types from here, so
+// there is no runtime cycle), and defaulting rather than requiring the option
+// keeps every existing caller — the view, `density.ts`, `gate.ts`,
+// `render-panel.ts` — speaking the shipped voice without having to opt in.
+import { ACTION_SCRIPT, type ActionScript } from "./script.js";
 
 /**
  * §7's six rungs. `establishing` carries the "emphatic" modifier separately
@@ -305,6 +311,13 @@ export interface MapperOptions {
    * {@link BeatEntry}.
    */
   beatScript?: BeatScript;
+  /**
+   * The Hero's resolved-action rotation ({@link ACTION_SCRIPT}, ADR 0005 §1).
+   * Defaults to the shipped table; tests supply their own, exactly as they do for
+   * the other two. Unlike those, an omitted table is *not* silence — this line is
+   * derived from events and always sayable, so the default is the content.
+   */
+  actionScript?: ActionScript;
 }
 
 /**
@@ -337,6 +350,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
   const names = options.names ?? new Map<string, string>();
   const roomTitles = options.roomTitles ?? new Map<string, string>();
   const beatScript = options.beatScript ?? new Map<string, string>();
+  const actionScript = options.actionScript ?? ACTION_SCRIPT;
 
   const visited = new Set<string>();
   const inventory = new Set<string>();
@@ -364,6 +378,15 @@ export function createMapper(options: MapperOptions = {}): Mapper {
    * beats M6.1e needs to cool. See `docs/PITFALLS.md` → Web.
    */
   let turnsRead = 0;
+  /**
+   * How many take lines and drop lines the Hero has actually **said** — the run
+   * cursor for {@link ACTION_SCRIPT}, kept per kind so a long collecting run does
+   * not walk the drop rotation it never reaches. A fold like everything above it,
+   * and it advances only when the line is emitted, so a silent turn does not skip
+   * a line the reader never heard (rule 4's shape, and `spokenBeats`'s).
+   */
+  let tookSaid = 0;
+  let droppedSaid = 0;
   let room = "";
 
   return {
@@ -466,7 +489,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const roomChanged = room !== roomAtEntry && room !== "";
       // The resolved action and the authored reply are now independent (ADR 0009
       // §6): the action no longer suppresses the answer, it only precedes it.
-      const action = heroBalloon(took, dropped, names);
+      const action = heroBalloon(
+        took, dropped, names, actionScript, took !== null ? tookSaid : droppedSaid,
+      );
+      if (action !== null) {
+        if (took !== null) tookSaid += 1;
+        else droppedSaid += 1;
+      }
       const exchange = exchangeFor(firstVisit, room, affect.marker);
       const guideLine = exchange.dm;
       const camera = cameraFor({ gameOver, moved, firstVisit, salientMove, guide: guideLine });
@@ -782,6 +811,11 @@ export function salient(
 /**
  * The Hero balloon: the *resolved action*, not the typed command (ADR 0005 §1).
  *
+ * **The lines are a rotation in `script.ts`, not a template here** (M6.1e session
+ * 4). One string on a trigger that fires 59 times a playthrough is a tic — see
+ * {@link ACTION_SCRIPT}. `said` is which line of the rotation this is; the cursor
+ * that counts it lives in the mapper's fold, like every other run cursor.
+ *
  * The player authored the Hero's action; the command was the authoring, not the
  * Hero's dialogue. So a turn that moved an object into or out of the Hero's hands
  * renders that outcome — "I take the leaflet." — and every other turn (movement,
@@ -805,11 +839,14 @@ export function salient(
  */
 export function heroBalloon(
   took: string | null, dropped: string | null, names: ReadonlyMap<string, string>,
+  script: ActionScript = ACTION_SCRIPT, said = 0,
 ): Utterance | null {
   const id = took ?? dropped;
   if (id === null) return null;
+  const lines = took !== null ? script.take : script.drop;
+  if (lines.length === 0) return null; // an emptied list silences the channel
   const name = names.get(id) ?? id;
-  const text = took !== null ? `The ${name}, then.` : `The ${name} can stay.`;
+  const text = lines[said % lines.length]!.replace("{name}", name);
   return { modes: BM_SAY, text };
 }
 

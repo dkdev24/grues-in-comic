@@ -68,6 +68,44 @@ export const GUIDE_COOLDOWN = 0;
  * Rooms absent from the map are silent by design — the cooldown means not every
  * first visit should speak.
  */
+/**
+ * The Hero's **resolved-action** lines (ADR 0005 §1) — what he says on a turn
+ * that moved something into or out of his hands.
+ *
+ * **Data, and a rotation, because a single string on a frequent trigger is a
+ * verbal tic rather than a voice** (M6.1e session 4; the `routine-ack` lesson of
+ * M6.1g, arrived at again from the other direction). This was one hardcoded
+ * template in `mapper.ts` — `The {name}, then.` — firing **59 times** over a
+ * playthrough in the identical shape, and `wiki/the-hero.md` prescribed the
+ * shape, so every line authored from the spec inherited it. The clipped fragment
+ * is right and stays; the fixed `, then` suffix is gone.
+ *
+ * `{name}` is the object's display name, substituted by the mapper. A line
+ * without the token is one that does not need it: the panel already shows what he
+ * picked up, and never naming it is part of not sounding like a play-log. Lines
+ * must stay grammatical across every name the world holds — "jewel-encrusted
+ * egg" as readily as "lantern".
+ */
+export interface ActionScript {
+  readonly take: readonly string[];
+  readonly drop: readonly string[];
+}
+
+export const ACTION_SCRIPT: ActionScript = {
+  take: [
+    "Worth the weight.",
+    "That'll be useful.",
+    "Somebody left this lying around.",
+    "The {name}. Good.",
+    "Mine now.",
+  ],
+  drop: [
+    "It can stay.",
+    "Not worth carrying.",
+    "The {name}'s done its bit.",
+  ],
+};
+
 export const GUIDE_SCRIPT = new Map<string, string | BeatExchange>([
   // Above ground — the house and the forest that rings it.
   ["WEST-OF-HOUSE", { dm: "Boarded front door. Someone did not want visitors.",
@@ -158,7 +196,7 @@ export const GUIDE_SCRIPT = new Map<string, string | BeatExchange>([
   ["DAM-LOBBY", { dm: "Guidebooks and matches. The empire believed in signage.",
     hero: "And in fire, apparently." }],
   ["MAINTENANCE-ROOM", { dm: "Buttons in four colors. Only some of them regret being pressed.",
-    hero: "Four ways to find out, then." }],
+    hero: "Four ways to find out, one at a time." }],
   ["RESERVOIR-SOUTH", { dm: "The south bank. The water decides whether this is a shore or a floor.",
     hero: "Wet either way." }],
   ["RESERVOIR", { dm: "A reservoir, drained or full by a bolt you turned upstream. Cause, then effect.",
@@ -208,7 +246,7 @@ export const GUIDE_SCRIPT = new Map<string, string | BeatExchange>([
   ["SHORE", { dm: "The far shore. The river sets you down, this once.",
     hero: "Dry land. Overrated, but dry." }],
   ["SANDY-BEACH", { dm: "Sand, and a buoy that rode the river before you did.",
-    hero: "It got here first, then." }],
+    hero: "It got here first." }],
   ["SANDY-CAVE", { dm: "A cave that wants digging. Bring a shovel and low expectations.",
     hero: "I have one of the two." }],
   ["ARAGAIN-FALLS", { dm: "A waterfall, and a rainbow you might yet be able to walk on.",
@@ -248,7 +286,7 @@ export const GUIDE_SCRIPT = new Map<string, string | BeatExchange>([
   ["LADDER-BOTTOM", { dm: "The foot of the ladder, and the mine proper. Mind your light.",
     hero: "The light and I are close." }],
   ["TIMBER-ROOM", { dm: "Old timbers, and a gap too narrow for a full pack. Travel light or not at all.",
-    hero: "Light it is, then." }],
+    hero: "Light it is." }],
   ["LOWER-SHAFT", { dm: "A draft from nowhere, and pressure of the diamond-making kind. Something valuable is close.",
     hero: "Pressure I know about." }],
   ["MACHINE-ROOM", { dm: "A machine, a lid, a switch. Coal goes in; something better is supposed to come out.",
@@ -258,7 +296,7 @@ export const GUIDE_SCRIPT = new Map<string, string | BeatExchange>([
 
   // The end.
   ["STONE-BARROW", { dm: "The barrow, at last. The way in opens once, and only forward.",
-    hero: "Forward, then. Finally." }],
+    hero: "Forward. Finally." }],
 ]);
 
 /**
@@ -271,7 +309,7 @@ export const GUIDE_SCRIPT = new Map<string, string | BeatExchange>([
  * never a hint (his rule 5: the reply reacts, it does not tell him what to do).
  *
  * Since M6.1d the Hero's line fires on any turn the beat does, **including one
- * where he also reports an action** (ADR 0009 §6): "The lantern, then." and his
+ * where he also reports an action** (ADR 0009 §6): "Worth the weight." and his
  * answer are two balloons in the order the mapper pushes them, and `page.ts`
  * decides whether that is one panel or two.
  *
@@ -369,7 +407,7 @@ export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
     run: [
       {
         dm: "The empire notices what leaves it. It always sends someone.",
-        hero: "That one counts, then.",
+        hero: "That one counts.",
       },
       {
         dm: "Another one out of the ground. It is keeping a list.",

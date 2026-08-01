@@ -156,6 +156,17 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   eleven panels apart; cooldown 3 **and** five lines put it forty apart. **When a line reads as
   repetitive, measure the gap in panels, not the count** — and beware the measurement artifact that
   a pair whose two halves are the *same string* (the echo joke) always reports a gap of 1.
+- **A hardcoded line in `mapper.ts` is a line no rotation protects, and the voice spec can *prescribe*
+  a tic** (M6.1e session 4). The Hero's resolved-action balloon was one template — `The {name},
+  then.` — firing **59 times a playthrough** in the identical cadence, and it read as a verbal tic
+  rather than a voice (the user's call; no measurement flagged it, because every counter here counts
+  *firings and gaps*, not shape). Two things made it durable: the string lived in the mapper, where
+  the "content goes in `script.ts`" rule would otherwise have put it beside a rotation; and
+  `wiki/the-hero.md` **specified** the shape, so six authored lines copied the suffix from the spec.
+  It is now `ACTION_SCRIPT` with a cursor per kind in the mapper's fold. **Two standing rules:
+  content that fires on an event-derived trigger belongs in `script.ts` like every other line, and a
+  voice document must describe a register, never a fixed construction** — anything it writes as a
+  literal example will be reproduced verbatim across the corpus.
 - **Two of a turn's speakers in two panels is a fragment, and the next turn must not join it**
   (`addScript` → `isOrphaned`, M6.1g). When an exchange splits, the frame holding the Hero's reply
   contains no DM, so `AvatarInPanel` happily clone-appends the *next* turn's DM line into it and the

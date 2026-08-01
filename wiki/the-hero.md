@@ -28,8 +28,16 @@ class, and the future two-shot are ADR 0005 §1/§4 and ADR 0004 §11, and are n
 ## How the Hero talks
 
 1. **First person, present, terse.** He narrates the action as he takes it, in fragments more than
-   sentences. "The lantern, then." — not "I pick up the brass lantern." If it needs a subject and a
+   sentences. "Worth the weight." — not "I pick up the brass lantern." If it needs a subject and a
    verb to stand up, it is too long.
+
+   **No signature suffix, and this rule is the reason the last one had to go.** The fragments
+   themselves are right; a *fixed* way of ending them is not. Written as "The lantern, then." this
+   rule produced one shape on every take — 59 firings a playthrough in the identical cadence, plus
+   six authored lines that copied it from here — and read as a verbal tic rather than a voice
+   (user's call, M6.1e session 4). **Vary the shape**: name the object sometimes, react to it
+   sometimes, and never let one construction become the way he talks. Anything authored here that
+   fires often needs the rotation treatment its table gives it.
 2. **Genre-literate, never breaks the frame.** He knows the shape of what he's in and may name it
    dryly — a rug that's obviously hiding something, a grue that's obviously coming — but he never
    says "game," "parser," or "puzzle." He is *in* the empire, just not naïve about it. The knowing
@@ -78,17 +86,20 @@ first visit is exactly when a hint would land.
 
 Unlike `GUIDE_SCRIPT`'s room gazetteer, his *action* lines are **templates over object display names**
 (ADR 0005 §1), so they must stay grammatical across every DESC the world holds — "leaflet",
-"jewel-encrusted egg", "nasty knife". The Slice 1 pair:
+"jewel-encrusted egg", "nasty knife" — and since M6.1e session 4 they are a **rotation, authored as
+data** in `web/src/comic/script.ts` (`ACTION_SCRIPT`), not a template in the mapper. `{name}` is
+substituted; a line without the token is one that does not need it, because the panel already shows
+what he picked up.
 
-- **take** → `The {name}, then.` — the methodical loot instinct of a tabletop player working a room,
-  checking an item off.
-- **drop** → `The {name} can stay.` — pragmatic; he has no use for it and no sentiment about it.
+Slice 1 shipped one template each — `The {name}, then.` and `The {name} can stay.` — and this
+document predicted the outcome exactly: *"a single line repeated over ~30 takes in a full run will
+wear."* It wore at **59 firings**, and the user called it before the corpus did. The fix is the same
+one the beat tables use: several lines, walked by a cursor in the mapper's fold, so the rotation is
+still a pure function of the event stream and the oracle is unaffected.
 
-One template each is deliberate for Slice 1 and reads far better than the command it replaced, but a
-single line repeated over ~30 takes in a full run will wear. **Deterministic variation** — keyed on
-something already in hand (an object's value or class: a treasure earns a greedier line than a
-lantern) — is a sanctioned later refinement, not invented now, because it must stay a pure function
-of the world data to keep the mapper testable ([[comic-chat-presentation]]).
+**Deterministic variation keyed on the object** — a treasure earning a greedier line than a lantern,
+read off the world data — remains a sanctioned refinement on top of the rotation, not a replacement
+for it ([[comic-chat-presentation]]).
 
 **Slice 2 adds a second, differently-shaped surface: the beat replies.** These are not templates —
 they are written once per beat, in `BEAT_SCRIPT` beside the DM's half, and they answer *what just

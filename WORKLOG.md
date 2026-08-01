@@ -10,6 +10,42 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.2 — 2026-08-01 — M6.1e session 4: the Hero stops saying ", then"
+
+A read, not a measurement, and no instrument would have caught it: the user read the Hero's dialogue
+back and objected to the cadence. **Roughly one in five of his utterances ended in `, then`** — and
+the tic was not an authoring slip, it was *specified*.
+
+- **One template, 59 firings.** `heroBalloon` in `mapper.ts` was `The {name}, then.` on every take
+  and `The {name} can stay.` on every drop — the only Hero content still hardcoded outside
+  `script.ts`, and therefore the only Hero content with no rotation behind it. Every counter the
+  pane has measures firings and gaps; none of them measures *shape*, which is why 6.1g's clustering
+  work went straight past it.
+- **`wiki/the-hero.md` prescribed it.** Rule 1 gave `"The lantern, then."` as *the* example of his
+  register, so six authored beat and gazetteer lines copied the suffix out of the spec. The rule now
+  says what it meant — clipped fragments, no fixed construction — and says explicitly that a voice
+  document must describe a register rather than a shape, because a literal example gets reproduced
+  verbatim across the corpus.
+- **The fix is the one the beats already use.** `ACTION_SCRIPT` in `script.ts` (5 take lines, 3
+  drop), `{name}` substituted by the mapper, and a cursor **per kind** in the mapper's fold so a long
+  collecting run does not walk the drop rotation it never reaches. Still a pure function of the
+  event stream, so the oracle is untouched. The option defaults to the shipped table rather than to
+  empty: this line is derived from events and always sayable, so an un-updated caller must not go
+  silent.
+- **Voice chosen by the user from three candidate registers** — reaction over report ("Worth the
+  weight.", "Somebody left this lying around.") on the grounds that the panel already shows him
+  taking the thing.
+- **Cost, looked at and accepted:** the two-shot goes **158 → 156 of 274** and panels 593 → 594 on
+  the full game. Not a length effect — shortening the longest new line changed nothing; varying the
+  text simply lands different lines against the fit test. D5 holds at **2.3**.
+- **Verification:** both gate panels that carry the line were rendered and read (`wk01-p06`,
+  `wk01-p08`) — clean two-shots, "Taken." / "Worth the weight." — before `gate:accept`; density
+  baseline accepted at 8 drifted counters. **280 web** (+2 new: the rotation wraps, and the two
+  cursors advance independently) / **139 engine** / **198 IR** green, typecheck clean, parity
+  **143/143 strict**.
+
+---
+
 ## v0.24.1 — 2026-08-01 — M6.1e session 3: the silent turns turn out to be one turn, 119 times
 
 The last thing 6.1g left was a census to re-take: the 154 silent turns and their composition were

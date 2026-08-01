@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.1** · Platform: **macOS only** (2026-07-28)
+**0.24.2** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -32,28 +32,24 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is void. The silent
   block has been re-censused (v0.24.1) and is **119 revisit walks**, waiting on a user decision.
 
-**Tests:** 278 web · 139 engine · 198 IR · parity 143/143 strict.
+**Tests:** 280 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — M6.1e session 3: the silent-turn census, re-taken (v0.24.1)
+## Last Session — M6.1e session 4: the Hero stops saying ", then" (v0.24.2)
 
-**No code changed.** Narrative in `WORKLOG.md` v0.24.1. The void 154-turn figure is replaced, and the
-replacement is a different shape: **136 of 623 turns (21.8%) are wholly silent, and 119 of them are
-one thing** — a walk into a room already visited (title, no prose, and the gazetteer's line is spent
-because a first visit happens once). The rest is 11 scene-ending `quit`s and 6 refusals a beat's own
-cooldown suppressed. The varied tail the old census described (examine states, re-looks, inventory,
-lamp toggles, waits, score checks) is **not silent at all** — those are the 154 **DM-only** turns,
-where he narrates and only the Hero says nothing.
+**A read, not a measurement.** The user read his dialogue back and objected to the cadence: ~1 in 5
+of the Hero's lines ended `, then`, because one hardcoded template in `mapper.ts` (`The {name},
+then.`) fired **59 times a playthrough** and `wiki/the-hero.md` gave that exact string as *the*
+example of his register — so six authored lines copied it out of the spec. Now `ACTION_SCRIPT` in
+`script.ts` (5 take / 3 drop, `{name}` substituted) with a cursor per kind in the mapper's fold; the
+spec rewritten to describe a register, never a construction; the six lines reworded. Voice picked by
+the user: reaction over report. **Cost, looked at and accepted:** two-shot **158 → 156 of 274**,
+panels 593 → 594, D5 holds at 2.3. Both affected gate panels rendered and read before accepting.
+Narrative in `WORKLOG.md` v0.24.2.
 
-- **The 119 fall over 35 rooms and are skewed** — Cellar 13, Kitchen 11, Coal Mine 10, Round Room 8,
-  East-West Passage 8; 10 rooms are hit exactly once.
-- **The trade is priced.** 2.27 turns/exchange over 274 exchanges, so **~38 new exchanges hit D5's
-  2.0 floor** — under a third of the 119. Filling more means trading against the refusal beats, or
-  the user moving the band.
-- **The census tool was deleted again, on purpose** (the v0.23.0 precedent): it classifies by what
-  the player typed and what the engine emitted, never by re-deriving the mapper's firing rules, and
-  a kept copy would drift into the second-copy hazard `density.ts`'s header warns about.
+**No instrument would have caught this** — every counter measures firings and gaps, not shape. The
+durable rule is in `PITFALLS.md` → Web.
 
 ## Next Actions
 
@@ -68,8 +64,26 @@ where he narrates and only the Hero says nothing.
    2–3) and the two-shot at **158 of 274 in one panel**, both over a game that reaches the barrow.
    The corpus is 623 turns, 12 rows, `12-full-game.cmd` sourced from `fullGameCommands()`.
 
-   **The open question for the user, now measured and priced — this is the next decision, and it is
-   not a task an agent should take unasked.** The census (v0.24.1) says the silent block is **one
+   **⇒ First, the bigger question on the table (raised by the user, v0.24.2 session): should the
+   Hero speak his *command* as table-talk?** — "Let's go north", the way a player declares an action
+   to a DM, with the DM's result closing the exchange, and the conversational unit therefore
+   **straddling two turns** (DM describes on turn N, Hero answers on turn N+1). Analysed, not
+   decided. It would **supersede ADR 0005 §1** (the Hero balloon is the resolved *outcome*, never the
+   input — the decision that got the pane out of play-log territory), **recast 6.1g's `isOrphaned`
+   rule** (which forbids exactly the cross-turn joining this needs, on a different criterion:
+   ask-vs-answer rather than same-turn), and **subsume the a/b/c choice below** — every turn has a
+   command, so D5 goes to ~1.0 by construction, which is option (c) with a reason attached.
+   Mechanically the panel-update half is nearly free (`PanelDelta.replacedLast` already clone-appends
+   and `comic-view.ts` already redraws), and no engine change is needed (`Turn.command` is already in
+   the mapper's hands, so purity and parity hold). **Recommended next move: measure first** (the
+   standing rule — five panel-grammar proposals died for want of it): (1) what share of the corpus's
+   commands a phrasing lexicon can voice naturally, and what the tail looks like; (2) what one extra
+   Hero line per turn does to panel count against the current fit test. **Then write ADR 0010.** The
+   open risk to name in it: "Go north." several hundred times is the play-log tell in costume, and
+   the ~20% silent reaction panels are the pane's rhythm.
+
+   **The narrower open question, measured and priced — still live if the above is declined, and not
+   a task an agent should take unasked.** The census (v0.24.1) says the silent block is **one
    surface**: 119 revisit walks over 35 rooms, skewed (Cellar 13, Kitchen 11, Coal Mine 10). Giving
    them all a beat would take D5 to **1.59**, far under the band; **~38 is what the 2.0 floor
    allows.** So the choice is between three, and it is the user's:

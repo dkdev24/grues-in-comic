@@ -219,13 +219,13 @@
       "heroReply": 26,
       "exchanges": 26,
       "bothSpeak": 27,
-      "panels": 75,
+      "panels": 76,
       "panelsDm": 69,
       "panelsHero": 29,
-      "panelsBothSpeakers": 23,
-      "panelsExchange": 20,
+      "panelsBothSpeakers": 22,
+      "panelsExchange": 19,
       "screenExchangeTurns": 26,
-      "onePanelExchangeTurns": 20
+      "onePanelExchangeTurns": 19
     },
     {
       "file": "11-parser-edges.cmd",
@@ -263,13 +263,13 @@
       "heroReply": 150,
       "exchanges": 150,
       "bothSpeak": 199,
-      "panels": 593,
+      "panels": 594,
       "panelsDm": 495,
       "panelsHero": 258,
-      "panelsBothSpeakers": 173,
-      "panelsExchange": 65,
+      "panelsBothSpeakers": 172,
+      "panelsExchange": 64,
       "screenExchangeTurns": 150,
-      "onePanelExchangeTurns": 65
+      "onePanelExchangeTurns": 64
     }
   ],
   "totals": {
@@ -285,12 +285,12 @@
     "heroReply": 274,
     "exchanges": 274,
     "bothSpeak": 333,
-    "panels": 962,
+    "panels": 964,
     "panelsDm": 833,
     "panelsHero": 404,
-    "panelsBothSpeakers": 288,
-    "panelsExchange": 158,
+    "panelsBothSpeakers": 286,
+    "panelsExchange": 156,
     "screenExchangeTurns": 274,
-    "onePanelExchangeTurns": 158
+    "onePanelExchangeTurns": 156
   }
 }

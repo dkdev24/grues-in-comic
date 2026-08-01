@@ -13,6 +13,11 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ## [Unreleased]
 
+### Changed
+- The Hero no longer ends most of his lines the same way. Picking something up used to produce one
+  fixed phrase every time; he now has a rotation of them, and the handful of written lines that had
+  picked up the same tic have been reworded.
+
 ### Fixed
 - The comic pane no longer puts the Hero's reply in the same frame as the *next* turn's line from the
   Dungeon Master, so a split exchange can't read as him answering the wrong question.
