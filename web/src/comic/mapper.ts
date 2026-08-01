@@ -575,6 +575,14 @@ export function createMapper(options: MapperOptions = {}): Mapper {
         lines.push({
           speaker: HERO, ...declaration, emotion: affect.options,
           register: "narration", answers: true,
+          // He says this standing in the room he is leaving — it has not
+          // changed yet at the moment of speaking, whatever `panelRoom`
+          // (below) says the rest of this turn's script is set in. Omitted
+          // (not `roomAtEntry`) when the two already agree, so a non-moving
+          // turn's declaration does not blank the box `panelRoom` earned —
+          // `exactOptionalPropertyTypes` is why this is a conditional spread
+          // rather than `room: ... : undefined`.
+          ...(roomAtEntry !== panelRoom ? { room: roomAtEntry } : {}),
         });
       }
       // **A new location starts a panel.** Until 6.1c the caption did this on

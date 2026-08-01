@@ -250,9 +250,14 @@ describe("director (Slice 4 — traversal collapse)", () => {
     expect(director.ingest(session.command("blorptastic")).appended).toEqual([]); // dropped
     // The move after a dropped refusal must still classify against up-to-date
     // visited/room state — proving the fold ran even though nothing was emitted.
+    // Two panels now (the declaration answers in the room he is leaving before
+    // the DM's own arrival panel cuts to the new one — the fix that makes the
+    // room change land after the Hero's line, not under it): the declaration's
+    // own panel first, still `WEST-OF-HOUSE`, then the arrival.
     const north = director.ingest(session.command("north")).appended;
-    expect(north[0]?.kind).toBe("arrival");
-    expect(north[0]?.room).toBe("NORTH-OF-HOUSE");
+    expect(north[0]?.room).toBe("WEST-OF-HOUSE");
+    expect(north[1]?.kind).toBe("arrival");
+    expect(north[1]?.room).toBe("NORTH-OF-HOUSE");
   });
 });
 

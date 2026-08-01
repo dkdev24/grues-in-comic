@@ -83,6 +83,17 @@ export interface PageLine {
    */
   answers?: boolean;
   /**
+   * Overrides {@link PanelContext.room} (and blanks `roomTitle`) for this line
+   * alone, when it differs from the script's own `context.room`. Exists for
+   * ADR 0010 §1/§2's declaration: it is drawn (or clone-appended) speaking in
+   * the room the Hero is *leaving*, not the one `context` otherwise depicts —
+   * that room has not been entered yet at the moment he says the words. Every
+   * other line in a script shares the one `context.room`; this is the single
+   * exception, carried per-line for the same cast-agnostic reason as
+   * {@link answers}.
+   */
+  room?: string;
+  /**
    * Where the words came from — ADR 0009 §2's two registers, as a fact on the
    * line instead of a thing the reader has to infer from the text.
    *
@@ -210,7 +221,15 @@ export interface Page {
  */
 export function addScript(page: Page, script: TurnScript): PanelDelta {
   const out: PanelDelta = { replacedLast: false, appended: [] };
-  for (const line of script.lines) mergeDelta(out, page.addLine(line, script.context));
+  for (const line of script.lines) {
+    // `PageLine.room` overrides the room (and blanks the box) for this one
+    // line — the declaration's departure-room exception. `undefined` is the
+    // overwhelmingly common case, so the shared context is reused as-is then.
+    const context = line.room === undefined
+      ? script.context
+      : { ...script.context, room: line.room, roomTitle: null };
+    mergeDelta(out, page.addLine(line, context));
+  }
   for (const body of script.reactions) {
     mergeDelta(out, page.addReaction(body.speaker, body.emotion, script.context));
   }
