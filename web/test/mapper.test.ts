@@ -1010,3 +1010,42 @@ describe("the Guide is presentation-only (§3)", () => {
     expect(said).toHaveLength(spoken.size);
   });
 });
+
+describe("a death is set where it happened, not where the player woke up (M6.1g)", () => {
+  /**
+   * ZIL narrates the killing blow and then `JIGS-UP` resurrects, both inside one
+   * turn, so the turn ends with the player already in the forest. M6.1f read the
+   * troll's killing blow captioned **Forest** and drawn against the forest
+   * backdrop — the reaction shot ADR 0005 §4 asks for, set in the wrong room.
+   *
+   * A synthetic turn, because the corpus cannot reach this: the walkthroughs all
+   * survive, and `12-full-game.cmd` now *wins*.
+   */
+  const turnOf = (events: Turn["events"], room: string): Turn =>
+    ({ command: "kill troll with sword", events, status: { room, score: 0, moves: 7 }, mix: {} }) as unknown as Turn;
+
+  const deathTurn = (): Turn => turnOf([
+    { type: "narration", text: "The troll's axe removes your head." },
+    { type: "game-over", outcome: "death", text: "You have died." },
+    { type: "player-moved", from: "TROLL-ROOM", to: "FOREST-1" },
+  ] as unknown as Turn["events"], "Forest");
+
+  function firstPanel(): Panel {
+    const page = strip({ roomTitles: new Map([["TROLL-ROOM", "The Troll Room"], ["FOREST-1", "Forest"]]) });
+    // Get the player into the troll room first, so the death turn has a room to
+    // have happened *in* — the mapper's own fold, no engine state.
+    page.turn(turnOf([
+      { type: "player-moved", from: "CELLAR", to: "TROLL-ROOM" },
+    ] as unknown as Turn["events"], "The Troll Room"));
+    const shot = page.turn(deathTurn());
+    return shot.panels[0]!;
+  }
+
+  it("sets the panel in the room the death happened in", () => {
+    expect(firstPanel().room).toBe("TROLL-ROOM");
+  });
+
+  it("titles it with that room, even though the turn's own title text is the forest", () => {
+    expect(firstPanel().roomTitle).toBe("The Troll Room");
+  });
+});

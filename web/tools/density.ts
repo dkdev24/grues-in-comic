@@ -45,7 +45,8 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createCanvas } from "@napi-rs/canvas";
 import type { WorldDocument } from "@grues-in-comic/ir";
-import { createSession } from "../src/session.js";
+import { fullGameCommands } from "../../engine/harness/complete.js";
+import { createSession, type Turn } from "../src/session.js";
 import { objectNameTable } from "../src/status.js";
 import { createDirector } from "../src/comic/director.js";
 import { createFitTest } from "../src/comic/fit.js";
@@ -185,11 +186,46 @@ function scriptTexts(): { beatDm: Set<string>; beatHero: Set<string>; gazetteer:
   return { beatDm, beatHero, gazetteer };
 }
 
+/**
+ * The corpus row that is a whole game, and the one that cannot be read off disk.
+ *
+ * `12-full-game.cmd` is authored against the *resilient* driver — it writes
+ * `kill troll with sword` the number of times dfrotz needed, which is not the
+ * number this engine's draw needs. Fed naively to a session the troll wins on
+ * turn ~70 and the remaining ~330 commands bounce off walls (M6.1f measured it:
+ * Rocky Ledge, 30/350, 16 of 110 rooms). Since that row is two thirds of the
+ * corpus, every aggregate below it was two thirds a flail through the surface
+ * map. So the full game comes from `runFullGame`'s own log instead — the same
+ * seed, the same engine, the repeated strikes and the hoard ferry included —
+ * and replaying it into a fresh session reproduces the won game turn for turn.
+ */
+const RESILIENT = new Set<string>(["12-full-game.cmd"]);
+
+/** Memoised: the driver is a whole playthrough, and both stages ask for it. */
+let fullGame: string[] | null = null;
+
 function commandsOf(file: string): string[] {
+  if (RESILIENT.has(file)) {
+    fullGame ??= fullGameCommands({ seed: SEED });
+    return fullGame;
+  }
   return readFileSync(join(WALKTHROUGHS, file), "utf8")
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0 && !line.startsWith("#"));
+}
+
+/**
+ * The harness swallows a crashing command and carries on (`safeCommand`), and
+ * the log records it, so the replay has to swallow it the same way or it would
+ * stop where the winning run did not. A crashed turn produces no `Turn`.
+ */
+function safeTurn(run: () => Turn): Turn | null {
+  try {
+    return run();
+  } catch {
+    return null;
+  }
 }
 
 /** The options the pane ships (`comic-view.ts`), minus the browser. */
@@ -225,8 +261,15 @@ function measureFile(doc: WorldDocument, file: string): DensityCounts {
   {
     const session = createSession(doc, { seed: SEED });
     const mapper = createMapper(productionOptions(doc));
-    const turns = [session.start(), ...commands.map((c) => session.command(c))];
+    const turns = [
+      session.start(),
+      ...commands.map((c) => safeTurn(() => session.command(c))),
+    ];
     for (const turn of turns) {
+      if (turn === null) {
+        scripted.push({ dm: false, reply: false });
+        continue;
+      }
       const { lines } = mapper.read(turn);
       // Sentinels (`<Brk>`, `<Chr>`) are instructions to the page, not utterances.
       const said = lines.filter((l) => l.text !== BRK && l.text !== CHR);
@@ -294,7 +337,9 @@ function measureFile(doc: WorldDocument, file: string): DensityCounts {
     };
     record(director.ingest(session.start()), 0);
     for (const [i, command] of commands.entries()) {
-      record(director.ingest(session.command(command)), i + 1);
+      const turn = safeTurn(() => session.command(command));
+      if (turn === null) continue; // crashed here too — the index still holds
+      record(director.ingest(turn), i + 1);
     }
     director.flush(); // a trailing traversal run is still a panel (ADR 0005 §3)
     counts = {

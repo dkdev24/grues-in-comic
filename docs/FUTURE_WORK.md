@@ -72,30 +72,24 @@ without asking.
   four limiters keeping the pane from reading as a cartoon. Levers and full diagnosis:
   `docs/DEVELOPMENT_PLAN.md` §6.1.
 
-- **A split exchange mis-pairs the balloons.** ☐ Found by reading the playthrough at M6.1f. When a
-  two-shot does not fit one panel (144 of 300 exchanges), the frame carrying the Hero's reply also
-  carries the *next* turn's DM line — so the reader sees him answering the wrong question, and long
-  refusal stretches read as a whole sequence of offset pairs.
-  *Why deferred:* it is a panelization rule, not a text fix, and it belongs beside whatever 6.1e's
-  pending D5 decision does to the refusal beats.
-  *Done looks like:* a split exchange never puts a Hero reply in the same frame as a later DM line —
-  either the break comes before the new line, or the orphaned reply rides alone.
+- ~~**A split exchange mis-pairs the balloons.**~~ **Fixed at M6.1g** (`addScript` → `isOrphaned`).
+  A frame missing one of its own turn's speakers is a fragment and no longer accepts a later turn's
+  line, so the orphaned reply rides alone. Cast-agnostic, so the traversal collapse is untouched.
 
-- **Three panels in the full-game corpus are empty.** ☐ Found at M6.1f: `[wide]` frames with a
-  location box and no balloon at all (a flushed traversal run with nothing to say).
-  *Why deferred:* harmless-looking and small, but it is a blank frame in a comic — decide whether an
-  empty panel is ever wanted before deleting it, since a wordless establishing beat is defensible.
+- ~~**Three panels in the full-game corpus are empty.**~~ **Decided at M6.1g: kept, and it is not a
+  bug.** Rendered and looked at — it is the traversal collapse's one output, the Hero standing in a
+  revisited room under its name, and deleting it would delete the only trace of the walk. The
+  genuinely blank frame (no balloon *and* no body) is now pinned against in `director.test.ts`.
 
-- **A death wears the resurrection room's location box.** ☐ Found at M6.1f: the troll's killing blow
-  is narrated under a *Forest* title, because the turn that ends in death also ends in the room the
-  player is resurrected into. The `<Brk>` rule (`PITFALLS.md` → Web) puts the death in its own panel;
-  it does not fix which room that panel claims to be.
-  *Done looks like:* the death panel is titled with the room the death happened in.
+- ~~**A death wears the resurrection room's location box.**~~ **Fixed at M6.1g** (`panelRoom`). The
+  panel is set and titled in the room the death happened in; the fold's `room` still advances. Pinned
+  by a synthetic turn, because no walkthrough in the corpus dies any more.
 
-- **Refusal repeats cluster.** ☐ The per-playthrough worst is 10–12 (M6.1e session 1 brought it down
-  from 150), but M6.1f's read shows the same DM/Hero pair recurring within ~20 panels, which reads far
-  worse than the same count spread out. *Wait for the corpus fix* (`PITFALLS.md` → Web): the flail
-  that dominates today's numbers is exactly what makes refusals cluster, so re-measure before writing.
+- ~~**Refusal repeats cluster.**~~ **Re-measured and fixed at M6.1g — and it was not the refusals.**
+  On the won corpus the culprit was `routine-ack` (and `scored`): "Taken." fires every turn of a
+  `take all` and of the endgame hoard ferry, recycling a three-line tail at a gap of *one panel*.
+  A cooldown of 3 plus a longer loop took repeats within 20 panels from 70 to 6, and the tightest
+  real gap from 1 to 30. The refusal families, which M6.1f blamed, were never the tight ones.
 
 - **Panel grammar (ADR 0004) — open authoring judgement.** Page composition (§5), §4a breakpoints,
   PDF byte size, pane-scroll coupling. Amend the ADR, not the discussion doc.
@@ -127,12 +121,14 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   *Done looks like:* the greedy ordering ported and cited, gated by the N≥3 fixtures
   (`web/tools/cast-fixture.ts`, `web/test/bodies.test.ts`), pixel gate re-accepted after looking.
 
-- **Known pinned gate divergence — `mob4-p02` falls back to `stackBalloons`.** `fit.ts` estimates
-  arrow positions at even stage slots; `layoutAvatars` puts the real anchors elsewhere.
-  *Why deferred:* documented cost of estimating arrow positions (ADR 0008 Phase 2b/4); production
-  panels never fall back.
-  *Done looks like:* the two sides agree — and the dedicated assertion pinning the fallback set to
-  exactly `{mob4-p02}` is the one to update.
+- **Known gate divergence — `fit.ts` estimates arrow positions, `layoutAvatars` places them.** ☐
+  *No longer observable since M6.1g:* widening `BALLOON_HEADROOM` to 0.44 gave `mob4-p02` enough band
+  that the estimate stopped mattering, and `gate.test.ts` now pins the `stackBalloons` fallback set at
+  **empty**. The two sides still disagree; the disagreement has slack to hide in.
+  *Why deferred:* documented cost of estimating arrow positions (ADR 0008 Phase 2b/4), and now with
+  no symptom at all.
+  *Done looks like:* the two sides agree — and that empty-set assertion is the one that will notice
+  first if the slack runs out.
 
 ### 2.3 Engine / IR hygiene
 

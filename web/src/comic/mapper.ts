@@ -383,6 +383,12 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       let moved = false;
       let scoreDelta = 0;
       let gameOver = false;
+      /**
+       * A death specifically, as opposed to a victory or a quit — ZIL narrates
+       * the killing blow and *then* resurrects, both in one turn, so `room` has
+       * already moved on by the time the panel is built. See {@link panelRoom}.
+       */
+      let died = false;
       let salientMove: { object: string } | null = null;
       // ADR 0005 §1: the first object the Hero gained or gave up this turn, which
       // the Hero balloon renders as an action. Movement, examination and parser
@@ -435,6 +441,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
             break;
           case "game-over":
             gameOver = true;
+            if (event.outcome === "death") died = true;
             break;
           default:
             break;
@@ -442,6 +449,19 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       }
 
       const affect = affectFor({ text, gameOver, scoreDelta, systemChannel });
+      /**
+       * **Where this panel is set** — not always where the turn left the player
+       * (M6.1g; found by reading the playthrough at M6.1f).
+       *
+       * A death is one turn that happens in two rooms: ZIL narrates the killing
+       * blow, then `JIGS-UP` resurrects into the forest, so the turn ends with
+       * `room` already the *next* room. The reaction shot ADR 0005 §4 asks for
+       * depicts the first of those, and it was getting the second — the troll's
+       * killing blow captioned *Forest*, drawn against the forest backdrop.
+       * `room` itself must still move: the fold's memory is what makes the
+       * following turns answerable. Only the panel is pinned back.
+       */
+      const panelRoom = died ? roomAtEntry : room;
       /** ADR 0009 §3: the turn moved the player somewhere else. */
       const roomChanged = room !== roomAtEntry && room !== "";
       // The resolved action and the authored reply are now independent (ADR 0009
@@ -557,11 +577,19 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           turn: turn.status.moves,
           camera,
           emphatic: camera === "establishing" && scoreDelta > 0,
-          room,
+          room: panelRoom,
           // ADR 0009 §3 / D4: the box names the room, and only on the turn the
           // room changes. `roomAtEntry` is the fold's own memory — no engine
           // state, so `replayPanels` still holds.
-          roomTitle: roomChanged ? (titleText || roomTitles.get(room) || room) : null,
+          //
+          // A death is the exception in both halves. It always shows a box, even
+          // when the killing blow fell in the room the turn started in: the
+          // reader is about to be moved somewhere else, and the frame has to say
+          // where this happened. And the title can't come from `titleText` —
+          // that is the engine printing the *resurrection* room's name.
+          roomTitle: died
+            ? (roomTitles.get(panelRoom) || panelRoom)
+            : roomChanged ? (titleText || roomTitles.get(room) || room) : null,
           focus: camera === "close-up" ? (salientMove?.object ?? null) : null,
           marker: affect.marker,
           kind: panelKind({

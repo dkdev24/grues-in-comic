@@ -40,10 +40,24 @@ describe("dialogue density (M6.1a)", () => {
 
   it("covers the whole corpus, oracle included", () => {
     expect(current.files.map((f) => f.file)).toContain("12-full-game.cmd");
-    // 606 turns is the corpus §6.1's diagnosis was measured over; a change to the
-    // walkthroughs is a legitimate reason for this to move, and a reason to
-    // re-read every rate in the plan.
-    expect(current.totals.turns).toBe(606);
+    // 623 turns since M6.1g. It was 606 while the full-game row was a *naive*
+    // replay of `12-full-game.cmd` — a game lost at the troll and then flailed
+    // through 16 surface rooms (`PITFALLS.md` → Web). The row now comes from the
+    // resilient driver's own command log, so those 423 turns are a game that
+    // reaches STONE-BARROW at 350/350. A change to the walkthroughs is still a
+    // legitimate reason for this to move, and a reason to re-read every rate in
+    // the plan.
+    expect(current.totals.turns).toBe(623);
+  });
+
+  it("measures a game that is *won*, not one that is lost (M6.1g)", () => {
+    // The regression that matters most about the row, stated so it cannot come
+    // back quietly: the losing replay only ever saw 16 of 110 rooms, so it fired
+    // a fraction of the gazetteer. Two thirds of every aggregate above depends
+    // on this staying true.
+    const oracle = current.files.find((f) => f.file === "12-full-game.cmd")!;
+    expect(oracle.turns).toBeGreaterThan(400);
+    expect(oracle.dmGazetteer).toBeGreaterThan(50);
   });
 });
 

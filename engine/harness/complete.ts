@@ -83,6 +83,14 @@ export interface RunResult {
    * which is what makes the web score display update on take/case.
    */
   eventScore: number;
+  /**
+   * Every input actually handed to `engine.command`, in order — the *resilient*
+   * list, not the authored one: the repeated strikes, the re-arms, the hoard
+   * ferry. Replaying it into a fresh engine at the same seed reproduces this run
+   * exactly, which is how a presentation-layer tool measures a game that is won
+   * without importing the recovery logic (`web/tools/density.ts`, M6.1g).
+   */
+  issued: string[];
 }
 
 export interface RunOptions {
@@ -116,8 +124,12 @@ export function runFullGame(opts: RunOptions = {}): RunResult {
   let over: string | null = null;
   let eventScore = 0;
   const crashes = new Map<string, number>();
+  const issued: string[] = [];
 
   function safeCommand(input: string): EngineEvent[] {
+    // Logged before the call and whatever it throws: a crashing command still
+    // ran, and a replay that skipped it would diverge from this run's state.
+    issued.push(input);
     try {
       return engine.command(input).events;
     } catch (err) {
@@ -235,5 +247,17 @@ export function runFullGame(opts: RunOptions = {}): RunResult {
     crashes,
     stranded: strandedInHideaway(),
     eventScore,
+    issued,
   };
+}
+
+/**
+ * The command list that *wins*, for anyone who needs the turns rather than the
+ * outcome. `12-full-game.cmd` on its own does not: it is authored against the
+ * resilient driver above, so a naive replay loses the troll fight on turn ~70
+ * and bounces off walls for the remaining ~330 commands (`PITFALLS.md` → Web).
+ * This runs the driver once and hands back what it actually typed.
+ */
+export function fullGameCommands(opts: RunOptions = {}): string[] {
+  return runFullGame(opts).issued;
 }

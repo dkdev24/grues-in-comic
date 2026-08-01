@@ -13,6 +13,16 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ## [Unreleased]
 
+### Fixed
+- The comic pane no longer puts the Hero's reply in the same frame as the *next* turn's line from the
+  Dungeon Master, so a split exchange can't read as him answering the wrong question.
+- A death is drawn in the room it happened in, rather than under the name and backdrop of the room
+  the player is resurrected into.
+- The pair repeat themselves far less on treasure and take/drop turns — the acknowledgement lines had
+  been recycling on consecutive panels during long collecting runs.
+- More exchanges land in a single panel as a facing two-shot instead of being split across two, on
+  the arrival turns that show a location name.
+
 Toward public launch (`1.0.0`), now Milestone 6: the comic pane becoming a true cartoon (the Dungeon
 Master and the Hero conversing in most scenes), save/load/restart on the gameplay screen, a proper
 landing page, separation of the reusable assets (engine, IR spec, ZIL importer) under neutral

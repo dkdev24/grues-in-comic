@@ -81,6 +81,15 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   deleted the `reaction` rung from the whole corpus — 11 turns, 0 panels — while every rule test
   stayed green). If you remove a `<Brk>`, re-run `npm --prefix web run density` **and** look at the
   camera census: a rung going to zero is what this looks like.
+- **`BALLOON_HEADROOM` is a layout constant *and* the fit test's budget, and it is what decides
+  whether the two-shot exists** (M6.1g). The band `fit.ts` lays balloons into is the same band that
+  keeps a figure's head clear of a straddling balloon, and a panel drawing the location box gives
+  `TITLE_HEIGHT` of it away (ADR 0009 §3). At 0.36 that left ~90px at `UNIT` — one balloon, not two —
+  so the fit test refused the facing two-shot on exactly the turns that carry a room title, and
+  `AddLine` split the exchange into shot/reverse-shot. 0.44 took it from **70 of 274 exchanges in one
+  panel to 158**, and incidentally retired the pinned `mob4-p02` stack fallback. **Anything that
+  changes this number, `TITLE_HEIGHT`, or `UNIT` is changing the conversation, not just the
+  spacing** — re-run `density` as well as the pixel gate.
 - **`roomTitle` is the one panel field that does not take the incoming context** (`clonePanel`).
   The location box is metadata about *where the panel is*, not about its newest balloon, so a later
   same-room turn appending into it must not erase it.
@@ -113,25 +122,60 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   the opposite property. **Do not add a firing rule that lets a room line fire twice**: it would put
   the one surface with no repeat protection into the class that needs it.
 - **`12-full-game.cmd` is authored for the *resilient* harness, and a naive replay of it loses the
-  game** (found M6.1f). `runFullGame` repeats combat until the villain falls and ferries scattered
-  treasure back to the case; `web/tools/density.ts` and the comic pane just feed the commands to a
-  session, so the troll wins on turn ~70 and the remaining ~330 commands bounce off walls —
-  **Rocky Ledge, 30/350, 16 of 110 rooms.** That row is **406 of the corpus's 606 turns**, so every
-  M6.1 aggregate (the 2.0 exchanges-per-turn, "refusals are 45% of all turns", the silent-turn
-  census) is two-thirds a flail through the surface map. The engine's completion test is unaffected —
-  it drives the harness, not the raw list. **Any comic-side measurement over the full game must go
-  through a resilient replay, or say in its output that it is measuring a losing run.**
-- **D5's band is the binding constraint on filling silence, not authoring effort** (M6.1e session 2).
-  The corpus sits at one exchange every **2.0** turns against a band of 2–3, so the 154 turns still
-  wholly silent (69 of them a bare walk with no prose at all) cannot simply be given beats: each one
-  added is a turn that has to come off something else, most plausibly the refusal beats that fire
-  283 times. **Measure before writing, then check the ceiling** — `density.test.ts` asserts both ends
-  precisely because "they never stop talking" fails D5 as hard as "they never start".
+  game** (found M6.1f, repaired M6.1g). `runFullGame` repeats combat until the villain falls and
+  ferries scattered treasure back to the case; feeding the raw list to a session instead lets the
+  troll win on turn ~70, and the remaining ~330 commands bounce off walls — **Rocky Ledge, 30/350,
+  16 of 110 rooms**, which was **406 of the corpus's 606 turns**. `density.ts` now takes the row from
+  `fullGameCommands()` — the driver's own log of what it actually typed, replayed into a fresh
+  session at the same seed, which reproduces the won game turn for turn (423 turns, STONE-BARROW,
+  350/350). **Any comic-side measurement over the full game must go through that log, or say in its
+  output that it is measuring a losing run.** The log includes commands that *threw*, deliberately:
+  the harness swallows those and carries on, and a replay that skipped them would diverge.
+- **A measurement taken over a lost game is not a weak measurement, it is a different game**
+  (M6.1g, the lesson of the repair). Every conclusion M6.1d–f drew from the corpus had to be re-taken
+  and three of them inverted: the two-shot was not 59% but 26% (the flail carries no arrivals, so it
+  never paid the location box's share of the balloon band — see `render.ts`'s note on
+  `BALLOON_HEADROOM`); the clustering culprit was not the refusal beats but `routine-ack`, which the
+  flail could not reach; and the exchange rate sat at the floor of D5's band rather than mid-band.
+  **When a corpus row changes, re-read every rate that quotes it before acting on any of them.**
+- **D5's band is the binding constraint on filling silence, not authoring effort** (M6.1e session 2;
+  figures updated M6.1g). The corpus sits at one exchange every **2.3** turns against a band of 2–3,
+  so turns that are still wholly silent cannot simply be given beats: each one added is a turn that
+  has to come off something else. **Measure before writing, then check the ceiling** —
+  `density.test.ts` asserts both ends precisely because "they never stop talking" fails D5 as hard
+  as "they never start".
 - **How often a beat speaks is authored beside its lines, not tuned globally** (`BeatCycle.cooldown`,
   M6.1e). The two refusal families are 45% of all turns; at the table's default they push the corpus
   *past the bottom* of D5's band (1.6 against a floor of 2). D5 is a band, not a floor — a comic
   where the two never stop talking fails it as surely as one where they never start, which is why
   `density.test.ts` asserts both ends.
+- **A beat needs a cooldown *and* a long enough loop — they space different things** (M6.1g). The
+  `cooldown` spaces the *firings*; the length of `loop` spaces the *lines*. `routine-ack` had
+  neither, and "Taken." is what a `take all` and the endgame hoard ferry produce on consecutive
+  turns, so its three-line tail recycled at a gap of one panel. Cooldown alone left the same line
+  eleven panels apart; cooldown 3 **and** five lines put it forty apart. **When a line reads as
+  repetitive, measure the gap in panels, not the count** — and beware the measurement artifact that
+  a pair whose two halves are the *same string* (the echo joke) always reports a gap of 1.
+- **Two of a turn's speakers in two panels is a fragment, and the next turn must not join it**
+  (`addScript` → `isOrphaned`, M6.1g). When an exchange splits, the frame holding the Hero's reply
+  contains no DM, so `AvatarInPanel` happily clone-appends the *next* turn's DM line into it and the
+  reader sees him answering a question asked after he spoke — 144 of 300 split exchanges at M6.1f.
+  The rule is cast-agnostic (`page.ts` knows nothing about the DM or the Hero) and only fires when
+  the turn's last frame is missing a speaker the turn had, so the traversal collapse and the
+  ordinary two-shot are untouched.
+- **A death happens in two rooms and the panel belongs to the first** (`panelRoom`, M6.1g). ZIL
+  narrates the killing blow and then `JIGS-UP` resurrects, both inside one turn, so `room` has
+  already moved on by the time the panel is built — the troll's killing blow was captioned *Forest*
+  and drawn against the forest backdrop. `room` itself must still advance (the fold's memory is what
+  makes later turns answerable); only the panel is pinned back. **The corpus cannot catch this** —
+  the walkthroughs all survive and the full game now wins — so it is pinned by a synthetic turn in
+  `mapper.test.ts`.
+- **The wordless panel is deliberate; the *blank* one would not be** (M6.1g, resolving an M6.1f
+  finding). A frame with a location box and no balloon is the traversal collapse's one output
+  (ADR 0005 §3): the Hero has walked back through rooms he has seen, the pair have nothing to say,
+  and rendered it is him standing in the room under its name. Deleting it would delete the only
+  trace of the walk. What must never appear is a frame with **neither** a balloon nor a body, which
+  `director.test.ts` pins.
 - **`density.ts` attributes panels to turns through the Director's `PanelDelta`, never through
   `panel.turn`** (M6.1d). A panel carries the context of the *last* line written into it, so once most
   turns spoke, whole turns disappeared from a `panel.turn` map and the report printed a negative split

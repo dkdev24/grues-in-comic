@@ -11,8 +11,10 @@
 import { describe, expect, it } from "vitest";
 import {
   ALWAYS_FITS, BM_ACTION, BM_SAY, BM_THINK, BM_WHISPER, BRK, CHR,
-  createPage, makeBalloonClass, type FitTest, type PageLine, type PanelContext,
+  addScript, createPage, makeBalloonClass,
+  type FitTest, type PageLine, type PanelContext,
 } from "../src/comic/page.js";
+import type { TurnScript } from "../src/comic/mapper.js";
 
 const CONTEXT: PanelContext = {
   turn: 1, camera: "medium", emphatic: false, room: "WEST-OF-HOUSE",
@@ -221,5 +223,51 @@ describe("overflow (panel.cpp:1110)", () => {
     expect(page.panels).toHaveLength(2);
     expect(page.panels[0]!.speakers[0]!.text).toBe("a long speech");
     expect(page.panels[1]!.speakers[0]!.text).toBe("the rest");
+  });
+});
+
+describe("addScript — the orphaned fragment (M6.1g)", () => {
+  const script = (lines: PageLine[]): TurnScript =>
+    ({ lines, reactions: [], context: CONTEXT }) as unknown as TurnScript;
+  /** Refuses any panel holding two balloons — the split exchange, reproduced. */
+  const oneBalloonOnly: FitTest = (panel) => ({ fits: panel.speakers.length <= 1 });
+
+  it("does not let a later turn's line join a frame missing one of this turn's speakers", () => {
+    // The bug M6.1f found by reading the playthrough: the DM asks in one panel,
+    // the Hero's answer will not fit and opens a second, and the *next* turn's
+    // DM line then clone-appends into that second panel — so the reader sees the
+    // Hero answering a question asked after he spoke. 144 of 300 split exchanges.
+    const page = warmPage(oneBalloonOnly);
+    addScript(page, script([line("dm", "ask"), line("hero", "answer")]));
+    const before = page.panels.length;
+    addScript(page, script([line("dm", "a later question")]));
+
+    const orphan = page.panels[before - 1]!;
+    expect(orphan.speakers.map((l) => l.text)).toEqual(["answer"]);
+    expect(page.panels).toHaveLength(before + 1);
+  });
+
+  it("leaves a turn that fits in one panel alone — clone-append still works", () => {
+    // The rule must not cost the traversal collapse or the ordinary two-shot: a
+    // frame holding every speaker of its turn is complete, not a fragment.
+    const page = warmPage();
+    addScript(page, script([line("dm", "ask"), line("hero", "answer")]));
+    const before = page.panels.length;
+    const delta = addScript(page, script([line("mob", "and me")]));
+
+    expect(delta.replacedLast).toBe(true);
+    expect(page.panels).toHaveLength(before);
+  });
+
+  it("leaves a one-speaker turn alone however many panels it took", () => {
+    // A long room description is a panel run by ADR 0009 §4 and every frame of it
+    // holds its only speaker. Nothing is orphaned, so the next turn may join.
+    const page = warmPage();
+    addScript(page, script([line("dm", "one"), line("dm", BRK), line("dm", "two")]));
+    const before = page.panels.length;
+    const delta = addScript(page, script([line("hero", "answer")]));
+
+    expect(delta.replacedLast).toBe(true);
+    expect(page.panels).toHaveLength(before);
   });
 });

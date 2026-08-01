@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.23.1** · Platform: **macOS only** (2026-07-28)
+**0.24.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,33 +27,36 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f are done and D5 is met; 6.1e is in progress**
-  — and 6.1f found that the numbers D5 is judged on are measured over a losing replay (below).
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d, 6.1f and 6.1g are done; 6.1e is in progress.** The
+  corpus is repaired, so **D5 and the two-shot are both met over a game that is actually won** —
+  every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is void.
 
-**Tests:** 271 web · 139 engine · 198 IR · parity 143/143 strict.
+**Tests:** 278 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — M6.1f: the playthrough is read (v0.23.1)
+## Last Session — M6.1g: the corpus is repaired (v0.24.0)
 
-**6.1f ✅.** Narrative in `WORKLOG.md` v0.23.1. Verification only — nothing was changed in `web/src/`.
+**6.1g ✅.** Narrative in `WORKLOG.md` v0.24.0. The repair landed and **took three of M6.1f's four
+conclusions with it** — each finding was real, and three were about something other than what the
+losing corpus made them look like.
 
-- **Both goldens were already in sync; neither needed re-accepting.** Gate **clean, 17/17**, density
-  baseline **unchanged**, 271 web / 139 engine tests green, typecheck clean. The 17 gate PNGs were
-  dumped (`runGate()` only writes them on drift) and looked at one by one — no pixel objection.
-- **Reading the full game panel by panel found what no aggregate could: `12-full-game.cmd` does not
-  complete under the comic replay.** The list is authored for the **resilient** `runFullGame`, which
-  repeats combat until the villain falls. A naive replay — `web/tools/density.ts` and the pane both —
-  loses the troll fight on turn ~70 and then flails: **Rocky Ledge, 30/350, 16 of 110 rooms.** The
-  engine's completion test still reaches the barrow at 350; it drives the harness, not the raw list.
-- **That run is 406 of the corpus's 606 turns**, so the 2.0 exchanges-per-turn figure, "refusals are
-  45% of all turns" and the 154-silent-turns census are two-thirds a flail through the surface map.
-  Now a `PITFALLS.md` → Web rule.
-- **Four presentation findings, logged in `FUTURE_WORK.md` §2.1, none fixed:** a split exchange
-  **mis-pairs** (the Hero's reply shares a frame with the *next* turn's DM line — 144 of 300 split),
-  **3 empty panels**, the **death panel wears the resurrection room's location box**, and refusal
-  repeats **cluster** within ~20 panels.
-- The browser half was done: played live at :8080, the pane behaves as the transcript says.
+- **The full-game row now wins.** `runFullGame` records what it typed (`RunResult.issued` /
+  `fullGameCommands()`); `density.ts` replays that log instead of the raw `.cmd`. **423 turns,
+  STONE-BARROW, 350/350**, corpus **606 → 623**. Every M6.1 figure quoted before this is void.
+- **The two-shot's blocker was `BALLOON_HEADROOM`, not panelization.** The band is also the fit
+  test's budget, and a location box eats `TITLE_HEIGHT` of it — one balloon's worth at 0.36, on
+  exactly the arrival turns a flail never has. **0.36 → 0.44 (user's call, after renders): 70 → 158
+  of 274 in one panel.** 6.1d's criterion is met on a won game for the first time.
+- **The clustering was `routine-ack`, not the refusals** — "Taken." on consecutive turns, its tail
+  recycling at a gap of one panel. Cooldown 3 + longer loops on `routine-ack` and `scored`: repeats
+  within 20 panels **70 → 6**. D5 moved off the floor as a side effect, **2.0 → 2.3**.
+- **The other three:** the split exchange no longer mis-pairs (`addScript` → `isOrphaned`); the
+  "empty" panels were rendered, **looked at and kept** (they are the traversal collapse's own output
+  — the *blank* frame is what is now pinned against); the death panel is set and titled where the
+  death happened (`panelRoom`, pinned by a synthetic turn — nothing in the corpus dies any more).
+- Both goldens deliberately re-accepted after looking at all 13 drifted gate images. 278 / 139 / 198
+  green, parity 143/143.
 
 ## Next Actions
 
@@ -61,24 +64,23 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a–6.1d ✅ (D5 met) · 6.1f ✅ · **6.1e ◐.**
+   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · **6.1e ◐** — the authoring slice, and the only one
+   left open.
 
-   **Do the corpus repair first — it is the recommended next action.** 6.1f established that the
-   full-game row, two-thirds of every M6.1 measurement, is a game lost at the troll and then flailed
-   through 16 surface rooms (`PITFALLS.md` → Web). Make the comic-side replay resilient the way
-   `runFullGame` is, then re-measure. That is a deliberate move of the density baseline, accepted
-   like a gate re-roll.
+   **The measurements are now trustworthy.** D5 is met at **one exchange every 2.3 turns** (band
+   2–3, mid-band) and the two-shot at **158 of 274 in one panel**, both over a game that reaches the
+   barrow. The corpus is 623 turns, 12 rows, `12-full-game.cmd` sourced from `fullGameCommands()`.
 
-   **Then the question for the user, which the repair may reword:** every scene reads 2.0–2.4 and
-   the corpus sits on the **bottom edge of D5's 2–3 band**, so the **154 turns still wholly silent
-   cannot simply be given beats** — each is a trade against the refusal beats that fire 283 times.
-   Leave the silence (a comic where the pair are quiet on a bare walk is arguably right), trade
-   refusal turns for it, or move D5's band? Composition, measured: 69 bare walks with no prose at
-   all, 22 container states on examine, 8 floor items noticed on entry, 8 room re-descriptions, 7
-   lamp toggles, 7 inventory listings, 6 waits, 5 score checks, ~22 one-offs. **Those figures come
-   from the losing replay too** — expect them to move.
+   **The open question for the user, repriced by the repair:** turns that are still wholly silent
+   cannot simply be given beats — D5 is a band and the corpus no longer has floor to spare in the
+   direction it used to. **Re-take the silent-turn census before asking it again**: the 154-turn
+   figure and its composition breakdown (69 bare walks, 22 container states, …) came from the losing
+   replay and are void. That census is cheap — a `density.ts` variant — and is the natural first
+   move of the next 6.1e session.
 
-   **Do not answer the D5 question on today's numbers.**
+   The remaining 6.1e work is what it always was: authored dialogue across 110 rooms, committed as
+   data (D1 sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70
+   authored exchanges.
 2. **M6.2 — save / load / restart.** ☐ UI over the engine's existing save contract; three named
    slots, browser storage only. Independent — good filler for an idle session.
 3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐

@@ -197,7 +197,40 @@ export function addScript(page: Page, script: TurnScript): PanelDelta {
   for (const body of script.reactions) {
     mergeDelta(out, page.addReaction(body.speaker, body.emotion, script.context));
   }
+  if (isOrphaned(out, script)) page.startNewPanel();
   return out;
+}
+
+/**
+ * Did this turn end on a **fragment** — a panel holding some of its speakers but
+ * not all of them? (M6.1g; found by reading the playthrough at M6.1f.)
+ *
+ * The case that matters is the split exchange. The DM asks in one panel, the
+ * Hero's answer will not fit and opens a second, and that second panel now holds
+ * one body — his. So when the *next* turn's DM line arrives, `AvatarInPanel`
+ * says the DM is not there and clone-appends it in, and the reader sees the Hero
+ * answering a question asked after he spoke. At M6.1f's read that was 144 of 300
+ * split exchanges, and long refusal stretches became whole sequences of offset
+ * pairs. The unsplit two-shot never had the bug: the DM is already in the panel,
+ * so the test at `:1083` breaks it for us.
+ *
+ * The rule is cast-agnostic on purpose — `page.ts` knows nothing about the DM or
+ * the Hero (ADR 0006 §2), and "the frame is missing someone who spoke this turn"
+ * is the same statement without the cast. A turn that fits in one panel, and a
+ * panel run whose last frame closes the exchange (ADR 0009 §4), both hold every
+ * speaker and are left alone — the clone-append that collapses a traversal run
+ * is untouched. `<Brk>`, `<Chr>` and bodiless captions are not utterances.
+ */
+function isOrphaned(delta: PanelDelta, script: TurnScript): boolean {
+  const last = delta.appended[delta.appended.length - 1];
+  if (last === undefined || delta.appended.length < 2) return false;
+  const spoke = new Set<string>();
+  for (const line of script.lines) {
+    if (line.text === BRK || line.text === CHR || line.bodiless === true) continue;
+    spoke.add(line.speaker);
+  }
+  if (spoke.size < 2) return false;
+  return [...spoke].some((speaker) => !last.speakers.some((l) => l.speaker === speaker));
 }
 
 /**

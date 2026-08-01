@@ -10,6 +10,72 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.0 — 2026-08-01 — M6.1g: the corpus is repaired, and it takes three conclusions with it
+
+6.1f ended by finding that the row carrying two thirds of every M6.1 measurement was a game **lost**
+at the troll and then flailed through 16 surface rooms. This slice repairs that row, re-measures, and
+fixes the four presentation findings that were logged against the old numbers. Three of the four
+turned out to be about something other than what M6.1f named, which is the real lesson of the slice.
+
+### The repair
+
+- **`runFullGame` now records what it typed** (`RunResult.issued`, plus `fullGameCommands()`). The
+  resilient list — repeated strikes, re-arms after a disarm, the hoard ferry — is what wins;
+  `12-full-game.cmd` on its own is authored *for* that driver and does not. `density.ts` takes the
+  full-game row from that log instead of from disk, and replaying it into a fresh session at seed
+  1234 reproduces the won game turn for turn: **423 turns, STONE-BARROW, 350/350**, against Rocky
+  Ledge, 30/350, 16 of 110 rooms. Crashing commands are in the log deliberately — the harness
+  swallows them and carries on, so a replay that skipped them would diverge.
+- **Corpus 606 → 623 turns**, and the full-game row moves everywhere: read-aloud 68 → 300, gazetteer
+  16 → 67 (the flail never reached 51 of the rooms it now visits), panels 314 → 593.
+
+### What the repaired numbers said, against what M6.1f said
+
+- **The two-shot was not 59%, it was 26%** — 70 of 274 exchanges in one panel. And the cause was not
+  panelization: it was `BALLOON_HEADROOM`. The band `fit.ts` lays balloons into is the same band that
+  keeps a head clear of a straddling balloon, and a panel drawing the location box gives
+  `TITLE_HEIGHT` of it away, leaving ~90px at `UNIT` — room for one balloon. So the fit test was
+  refusing the facing two-shot on exactly the turns that carry a room title, which is exactly the
+  turns a losing flail does not have. **0.36 → 0.44, decided by the user after before/after renders:
+  158 of 274.** 6.1d's exit criterion is met on a won game for the first time. It also retired the
+  pinned `mob4-p02` stack fallback, so `gate.test.ts` now pins that set at empty.
+- **The clustering culprit was `routine-ack`, not the refusal beats.** "Taken." is what a `take all`
+  and the endgame hoard ferry produce on consecutive turns, and its three-line tail was recycling at
+  a gap of **one panel** — "And that one." 34 times. Cooldown 3 on `routine-ack` and `scored`, plus
+  a longer loop on each (5 and 4 lines): repeats within 20 panels **70 → 6**, tightest real gap
+  **1 → 30**. A measurement artifact worth knowing: a pair whose halves are the same string (the echo
+  joke) always reports a gap of 1.
+- **D5 moved off the floor as a side effect** — one exchange every **2.0 → 2.3** turns, mid-band.
+  The pending D5 question is repriced and still the user's.
+
+### The other three findings
+
+- **The split exchange mis-paired**, and it is fixed in `addScript` (`isOrphaned`). A frame missing
+  one of its own turn's speakers is a fragment, and a fragment no longer accepts a later turn's line
+  — so the Hero never shares a frame with a question asked after he answered. The rule is
+  cast-agnostic, because `page.ts` knows nothing about the DM or the Hero, and it only fires on a
+  frame that is short a speaker, so the traversal collapse and the ordinary two-shot are untouched.
+  A `speakerInPanel` divergence from `AvatarInPanel` was tried first and **reverted**: it changed
+  nothing, because the fit test was the blocker all along.
+- **The "empty" panels are kept.** Rendered and looked at: a location box, the Hero standing in a
+  room he has walked back to, no balloon — the traversal collapse's one output (ADR 0005 §3), and
+  deleting it would delete the only trace of the walk. What is now pinned against is the genuinely
+  blank frame: no balloon **and** no body.
+- **The death panel is set where the death happened** (`panelRoom`). ZIL narrates the killing blow
+  and then resurrects inside one turn, so `room` had already moved on — the troll's blow was
+  captioned *Forest* and drawn against the forest backdrop. The fold's `room` still advances; only
+  the panel is pinned back. The corpus cannot catch this any more (the walkthroughs survive and the
+  full game wins), so it is pinned by a synthetic turn.
+
+### Verification
+
+Both goldens deliberately re-accepted, after looking at all 13 drifted gate images one by one — no
+pixel objection; figures drop a few pixels on `close-up` only, and `establishing`/`wide` are
+identical. **278 web** (271 + 7 new) / **139 engine** / **198 IR** green, typecheck clean on all,
+parity **143/143 strict**.
+
+---
+
 ## v0.23.1 — 2026-08-01 — M6.1f: the playthrough is read, and the corpus turns out to be a dead man walking
 
 6.1f is the verification slice — re-pin the goldens, re-accept the pixel gate *after looking at the

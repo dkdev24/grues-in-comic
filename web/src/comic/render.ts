@@ -123,8 +123,22 @@ export const MAX_FIGURE_WIDTH = 0.55;
  * reach the top edge, so when such a balloon is present the figure is pushed down
  * until its head-top clears this fraction of the panel height. The game-over
  * `reaction` rung carries no speech balloon and keeps its full, uncropped face.
+ *
+ * **0.36 → 0.44 at M6.1g, and it is the two-shot's binding constraint, not
+ * panelization.** The band is also the budget `fit.ts` lays balloons into, and a
+ * panel showing the location box gives {@link TITLE_HEIGHT} of it away (ADR 0009
+ * §3) — at 0.36 that left ~90px at `UNIT`, which fits one balloon and refuses
+ * two. So the fit test was rejecting the facing two-shot on precisely the turns
+ * that carry a room title, and `AddLine` split the exchange into shot/reverse-
+ * shot: **70 of 274 exchanges in one panel** on the won corpus. At 0.44 it is
+ * 158. M6.1d and M6.1f both missed this because they measured a *lost* game,
+ * which carries almost no arrivals and so almost no location boxes.
+ *
+ * The cost was rendered and looked at before the change: `establishing` and
+ * `wide` are pixel-identical (their figures never reach the band anyway), and
+ * `close-up` drops the pair a few pixels with both balloons in frame.
  */
-export const BALLOON_HEADROOM = 0.36;
+export const BALLOON_HEADROOM = 0.44;
 
 /** A laid-out body: its speaker id, figure, and placement in panel space. */
 export interface PlacedBody {

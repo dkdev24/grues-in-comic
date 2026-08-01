@@ -361,6 +361,11 @@ export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
     },
   ]],
   ["scored", {
+    // M6.1g. Treasure does not arrive one room at a time — the endgame is a ferry
+    // to the trophy case, and on the won corpus this beat was firing on
+    // consecutive turns, putting "Mine's longer." in adjacent panels. The count
+    // was never the problem; the spacing was.
+    cooldown: 3,
     run: [
       {
         dm: "The empire notices what leaves it. It always sends someone.",
@@ -371,9 +376,14 @@ export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
         hero: "Let it. I'm keeping one too.",
       },
     ],
+    // Four, not two: the cooldown above spaces the *firings*, and the loop's
+    // length is what spaces the *lines*. At two the same line came back every
+    // second firing, which on the won corpus was every eleven panels.
     loop: [
       { dm: "The list is getting long on both sides.", hero: "Mine's longer." },
       { dm: "It noticed that one too.", hero: "Good. I want it counting." },
+      { dm: "One more the empire will want back.", hero: "It can want." },
+      { dm: "It never runs out of ledger, that one.", hero: "Neither do I." },
     ],
   }],
   ["reveal", {
@@ -538,6 +548,13 @@ export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
   // since ADR 0009 §6 let him report *and* answer; before that the reply was
   // suppressed on exactly these turns.
   ["routine-ack", {
+    // M6.1g, and the worst of the clustering: "Taken." is what a `take all` and a
+    // hoard ferry produce every single turn, so the loop's three lines were
+    // recycling at **gap 1** — "And that one." 34 times, twice back to back. The
+    // acknowledgement beat is the one that most needs to be occasional: it fires
+    // on the turns where the Hero already has an action balloon, so a silent one
+    // is not a silent panel.
+    cooldown: 3,
     run: [
       {
         dm: "The empire logs every one of these, you know.",
@@ -552,10 +569,13 @@ export const BEAT_SCRIPT: BeatScript = new Map<string, BeatEntry>([
         hero: "I look. I've just stopped being surprised.",
       },
     ],
+    // The most-fired loop in the game, so the longest — same reason as `scored`.
     loop: [
       { dm: "Noted, filed, forgotten.", hero: "That's the arrangement." },
       { dm: "And that one.", hero: "And that one." },
       { dm: "The list grows.", hero: "The list is the job." },
+      { dm: "Logged.", hero: "Efficient of you." },
+      { dm: "The inventory takes it without comment.", hero: "Best kind of witness." },
     ],
   }],
   ["uncanny", {

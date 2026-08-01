@@ -59,13 +59,18 @@ describe("panel gate (ADR 0008 Phase 3)", () => {
    * that reaches it was laid out by a fallback rather than by the port. Which
    * cases do that is pinned per-case above; this asserts the *count* separately
    * so a new panel silently falling back is a failure with a name, rather than
-   * one more changed hash. The single stacked case is `mob4-p02`, where the fit
-   * test's estimated arrow positions passed a panel the real head anchors then
-   * refused — the divergence `fit.ts` documents, and the reason it is pinned.
+   * one more changed hash.
+   *
+   * **Empty since M6.1g.** It used to be exactly `mob4-p02`, where the fit test's
+   * estimated arrow positions passed a panel the real head anchors then refused —
+   * the divergence `fit.ts` documents. Widening `BALLOON_HEADROOM` to 0.44 gave
+   * that panel enough band that the estimate no longer matters. The two sides
+   * still disagree; the disagreement just has slack to hide in now, so this stays
+   * pinned at zero to catch the day it runs out again.
    */
-  it("only the known case falls back to the balloon stack", () => {
+  it("nothing falls back to the balloon stack", () => {
     const stacked = actual.records.filter((r) => r.trace.stacked).map((r) => r.name);
     expect(stacked).toEqual(golden.filter((r) => r.trace.stacked).map((r) => r.name));
-    expect(stacked).toEqual(["mob4-p02-medium"]);
+    expect(stacked).toEqual([]);
   });
 });

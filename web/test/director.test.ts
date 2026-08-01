@@ -169,3 +169,36 @@ describe("director (Slice 4 — traversal collapse)", () => {
     expect(north[0]?.room).toBe("NORTH-OF-HOUSE");
   });
 });
+
+describe("the wordless panel is deliberate (M6.1g)", () => {
+  /**
+   * M6.1f flagged "empty panels" — frames with a location box and no balloon.
+   * **Looked at, and kept.** They are the traversal collapse's one output: the
+   * Hero has walked back through rooms he has already seen, the pair have
+   * nothing to say about it, and ADR 0005 §3 draws the run as a single wide shot
+   * at its destination. Rendered, it is him standing in the room under its name
+   * — a wordless establishing beat, not a blank frame. Deleting it would delete
+   * the only trace of the walk.
+   *
+   * What must never happen is the *actually* blank one: no balloon and no body.
+   * A silent turn stages the Hero (`reactions`), so this holds today; the test
+   * is here because nothing else would notice if that stopped being true.
+   */
+  it("never emits a frame with neither a balloon nor a body", () => {
+    for (const file of cmdFiles()) {
+      const session = createSession(doc, { seed: SEED });
+      const director = createDirector(options());
+      director.ingest(session.start());
+      for (const command of commandsOf(file)) director.ingest(session.command(command));
+      director.flush();
+
+      for (const panel of director.panels) {
+        if (panel.speakers.length > 0) continue;
+        expect(panel.bodies.length, `${file}: blank frame in ${panel.room}`).toBeGreaterThan(0);
+        // …and it has to say where it is, or the wordless frame is unreadable.
+        expect(panel.roomTitle, `${file}: untitled wordless frame in ${panel.room}`)
+          .not.toBeNull();
+      }
+    }
+  });
+});
