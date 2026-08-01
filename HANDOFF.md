@@ -41,38 +41,49 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — 6.1k built: D5′ set, ADR 0010 fully built (v0.24.9)
+## Last Session — room-order bug fixed; M6.2's UI shape decided (not built)
 
-**ADR 0010 slice 4 is done — all four slices are now built, and the ADR moves to Built.** D5′'s band
-is **25–60% of emitted panels carry both speakers**, set from today's own measurement (43.7%, 477 of
-1091) — `D5_PRIME_MIN`/`D5_PRIME_MAX` in `web/tools/density.ts`, a new `rates().bothSpeakersShare`,
-both ends asserted in `density.test.ts` over the corpus total and the full-game oracle. Full detail in
-`WORKLOG.md` v0.24.9 and `docs/DEVELOPMENT_PLAN.md` §6.1 → 6.1k.
+**Fixed a real bug in ADR 0010's declaration, found by the user in play (commit `7e2405c`).**
+`page.ts`'s `addScript()` stamped every line in a turn's script — including the Hero's declaration —
+with the *destination* room's `PanelContext`, so the declaration's own panel showed the new room's
+backdrop before the DM had said anything about it: the location visibly changed under his line instead
+of after it. Fixed with a per-line `PageLine.room` override (mapper.ts sets it to `roomAtEntry` on the
+declaration only when it differs from the turn's destination); `<Brk>` was already splitting these into
+two panels, so the fix is a relabeling, not a panel-count change — zero drift on either golden. Caught
+one `exactOptionalPropertyTypes` build error the first pass missed (`tsc --noEmit` alone doesn't use
+`tsconfig.build.json`; `npm run build` does) — fixed with a conditional spread, not `: undefined`.
+292/292 web tests green, build clean, dev server confirmed serving on `:8080`.
 
-**Neither golden had drifted since 6.1j** — density baseline and pixel gate both already matched, so
-there was nothing to re-pin. Verification was a throwaway transcript dump (not committed) over the
-full-game oracle's turns 0–50 and 230–270: it reads as a conversation, declaration/reply rotation
-holds. One soft spot noted, not fixed (out of scope): `dig sand` repeats its declaration verbatim four
-turns running at Sandy Cave — a lexicon-depth gap from 6.1h/i. 292/292 web tests green, `tsc --noEmit`
-clean.
+**M6.2 (save/load/restart): the UI shape is decided, nothing is built yet.** The user proposed slash
+commands (`/save`, `/load`, `/restart`) in the existing text input rather than separate buttons —
+keeps Zork's text interface as the sole input surface. Feasibility check found the interception point
+already exists and is already load-bearing: `main.ts:164`'s `handleShellCommand()` intercepts bare
+`save`/`restore` before `session.command()` reaches the engine, today. Two decisions recorded in
+`docs/DEVELOPMENT_PLAN.md` §6.2 (2026-08-02): slash commands extend that exact interception point (no
+engine change, no new mechanism), and `/load`/`/restart` are **reload-based** — write/clear storage
+then `location.reload()`, letting boot-time `resume()` do the actual state rebuild — rather than a live
+in-place swap, because `comic-view.ts`/`console-view.ts` have no `reset()` today and a live restart
+would have to reset the Director's pose cycles and beat counters itself (the plan's existing hazard
+note) to avoid the new game opening with the old game's conversation state.
 
 ## Next Actions
 
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a–6.1d ✅ · 6.1f ✅ · 6.1g ✅ · 6.1h ✅ · 6.1i ✅ · 6.1j ✅ · 6.1k ✅ — **ADR 0010 is
-   fully built and M6.1's stated purpose is closed.** **6.1e ◐ is the only open item**: authored
-   dialogue across 110 rooms, committed as data (D1 sanctions the volume). The gazetteer is at 88
-   rooms; `BEAT_SCRIPT` at 12 beats / 70 authored exchanges. No exit criterion beyond "the user says
-   the product is ready" — pick it up when there's appetite for more authoring, or move to M6.2/M6.4
-   as filler.
+1. **M6.2 — save / load / restart.** ☐, **decided, ready to build — read `docs/DEVELOPMENT_PLAN.md`
+   §6.2 for both 2026-08-02 decisions before starting.** UI over the engine's existing save contract:
+   `/save [slot]`, `/load <slot>`, `/restart` in `main.ts`'s `handleShellCommand`, three named slots via
+   `persistence.ts`'s already-parametrized `createSessionStore(key, storage)`, reload-based (no new
+   `comic-view`/`console-view` reset methods needed for this pass). Left to the implementer per the
+   plan: derived vs typed slot names (derived recommended), whether `/restart` confirms (it should).
 
-   **⇒ NEXT SESSION: either resume 6.1e authoring, or pick up one of the independent M6 items below —
-   the user's call, since M6.1's mechanics are done.**
-2. **M6.2 — save / load / restart.** ☐ UI over the engine's existing save contract; three named
-   slots, browser storage only. Independent — good filler for an idle session.
+   **⇒ NEXT SESSION STARTS HERE: implement M6.2 as scoped above.**
+2. **M6.1 — the comic pane becomes a cartoon.** ◐ Mechanics closed (ADR 0010 fully built, v0.24.9).
+   **6.1e ◐ is the only open item**: authored dialogue across 110 rooms, committed as data (D1
+   sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70 authored
+   exchanges. No exit criterion beyond "the user says the product is ready" — pick up when there's
+   appetite for more authoring.
 3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐
    **Blocked on the user's `DESIGN.md` + mockups.**
 4. **M6.4 asset separation & neutral branding** (☐, independent of everything) · **M6.5 public

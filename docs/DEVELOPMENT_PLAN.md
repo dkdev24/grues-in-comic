@@ -224,6 +224,10 @@ Two known hazards from the existing notes, both live for this stage: **`Turn` is
 
 Left to the implementer: whether a slot stores a name the player types or one derived from room + score + moves (derived is cheaper and needs no dialog — recommend it, with rename deferred), and whether restart confirms (it should — it is the one destructive control on the screen).
 
+**Decided 2026-08-02: the UI is slash commands in the existing text input** (`/save [slot]`, `/load <slot>`, `/restart`), not separate buttons — keeps Zork's text interface as the sole input surface, no engine change. `main.ts:164`'s `handleShellCommand(command)` already intercepts bare `save`/`restore` before `session.command()` reaches the engine; this stage extends that same interception point rather than building a new one. Slash-prefixing is also a correctness improvement over the current bare-word match, which risks shadowing a real ZIL verb — `/` makes "this is a shell command, not game input" unambiguous.
+
+**Decided 2026-08-02: reload-based, not live in-place.** `/load` and `/restart` write to storage (or clear it) then `location.reload()`; boot-time `resume()` — the one path that already replays a saved session into both panes correctly — picks it up from there, same as today's `restore` message ("reload the page to resume"). Rejected for this stage: swapping state into the *running* page without a reload, because it needs new `reset()` methods on `comic-view.ts` and `console-view.ts` that do not exist yet, and must reset the Director's pose cycles and beat counters (the hazard paragraph above) or a loaded/restarted game opens carrying the old game's conversation state. Reload-based reuses the one resume/replay path that is already tested; live in-place is a fair v2 if the reload flicker turns out to bother anyone.
+
 ### 6.3 — The static site: landing page, about, changelog
 
 **Decided 2026-07-28: the landing page is a separate static page, not a route in the game app**, and it is one of **several** static pages — a public changelog and an about page named so far, more likely.
