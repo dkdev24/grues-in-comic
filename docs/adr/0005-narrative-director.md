@@ -3,6 +3,7 @@
 - **Status:** Proposed
 - **Date:** 2026-07-22
 - **Supersedes (in part):** ADR 0004 §3 (Guide presentation-only *trigger*), §6 (one panel per turn), §2/§2a (the Hero balloon is the canonical command)
+- **Superseded (in part):** 2026-08-01 — ADR 0010 recasts §1 *as an exclusivity* (the Hero also **declares his intent**; the resolved outcome becomes that declaration's garnish — §1's reason, that a balloon reading `n` is a play-log, is preserved and is the constraint ADR 0010 works under), and amends §3's traversal collapse *as an unconditional discard* (a collapsed run keeps one panel, but may no longer throw away the voice of every turn it swallowed). §2, §4 and the rest of §3 stand.
 - **Preserves:** ADR 0002 (the event contract — still consumed, still not extended), ADR 0004 §7 camera ladder, §10 affect ordering, §2 verbatim captions, and the property that made §5 testable: a **deterministic pure function of the event stream with no engine internals**
 - **Related:** `wiki/the-guide.md` (the Guide's settled identity — this ADR broadens its *trigger*, not its *character*)
 

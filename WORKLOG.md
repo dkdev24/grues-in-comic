@@ -10,6 +10,40 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.24.4 — 2026-08-01 — ADR 0010 is written, and it is two decisions
+
+`docs/adr/0010-the-hero-declares-his-move.md`, **Status: Proposed**. Nothing is built; the ADR needs
+acceptance first. It is written around the shape v0.24.3's measurements forced on it.
+
+- **§1 — the Hero declares his move.** The command re-voiced as table-talk, three tiers (directions,
+  intransitive verbs, transitive templates over the command's own nouns) as data in `script.ts`, with
+  the trigger and cursor in `mapper.ts`. **Supersedes ADR 0005 §1 as an *exclusivity* only** — §1's
+  reason (a balloon reading `n` is a play-log, the player is the author) is preserved verbatim as the
+  constraint the ADR works under, because the raw string and the re-voiced intent are different
+  claims and §1 only ever disposed of the first. `ACTION_SCRIPT` survives as garnish with a cooldown;
+  one Hero utterance per panel, declaration wins.
+- **§2 — the exchange, not the turn, is the panel's unit.** A declaration clone-appends into the
+  frame it answers (`PanelDelta.replacedLast`, which already ships). **6.1g's `isOrphaned` is recast
+  on ask-vs-answer** rather than same-turn — and the *line* carries the marker, so `page.ts` decides
+  it without learning the cast. The reader watching a drawn panel gain a balloon is accepted
+  deliberately and flagged as M6.2 state.
+- **§3 — the traversal collapse gives ground** (amends ADR 0005 §3). The collapse stays; the discard
+  goes. A run keeps one panel and one **journey line**, and a single traversal turn stops counting as
+  a run. This is the half that actually reaches the 60 walks the Director throws away, and it is
+  separable from §1 on purpose.
+- **§4 — D5 retires for D5′.** A turn rate stops meaning anything when the Hero speaks every turn
+  (~1.0 by construction), so the target becomes both-speakers as a share of **panels** — still a
+  band, both ends failing, **numbers set from the first slice's measurement rather than invented in
+  the document.**
+- **Alternatives are recorded with their reasons**, including the honest one: taking §1 without §3 is
+  legitimate, but taking it *believing* it fills the silence is not — which is why the 116/56
+  measurement sits in the ADR body.
+- **Housekeeping:** ADR 0005 gains the back-reference. **ADR 0009 gains a correction header** — every
+  figure in it was measured before the corpus repair and is void (its "154 wholly silent turns" is
+  136, of which 119 are one thing); its decisions stand.
+
+---
+
 ## v0.24.3 — 2026-08-01 — ADR 0010 input: the commands are voiceable, the panels are not free
 
 The user proposed that the Hero speak his *command* as table-talk, the way a player declares an

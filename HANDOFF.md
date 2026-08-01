@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.3** · Platform: **macOS only** (2026-07-28)
+**0.24.4** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -36,30 +36,24 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — ADR 0010 input, measured (v0.24.3)
+## Last Session — ADR 0010 written, both decisions (v0.24.4)
 
-**No code changed.** The user's command-as-table-talk proposal was measured before the ADR, per the
-standing method note. Narrative in `WORKLOG.md` v0.24.3.
+**`docs/adr/0010-the-hero-declares-his-move.md`, Status: Proposed.** It records **two separable
+decisions**, per v0.24.3's measurements: **§1 the Hero declares his move** (the command re-voiced as
+table-talk — supersedes ADR 0005 §1 *as an exclusivity*, keeping §1's actual reason as its
+constraint; the resolved-outcome line becomes garnish with a cooldown) and **§3 the traversal
+collapse gives ground** (amends ADR 0005 §3 — a run still collapses to one panel but keeps a
+*journey line*, and a single traversal turn stops being a "run"). Also **§2** the exchange, not the
+turn, becomes the panel's unit — declarations clone-append into the frame they answer, and 6.1g's
+`isOrphaned` is recast on **ask-vs-answer**, with the line carrying the marker so `page.ts` stays
+cast-agnostic. **§4 retires D5 for D5′** — both-speakers as a share of *panels*, band set from the
+first slice's measurement rather than invented.
 
-- **A — the commands are voiceable: 95.6%.** 611 commands, 183 distinct; an **86-entry** lexicon (22
-  directions, 22 intransitive, 42 transitive templates) phrases 584 of them at a mean of 19 chars.
-  Directions alone are **47.6%** of everything typed. The tail is **12 distinct commands / 27
-  occurrences**, all known kinds: `y` ×11 (disambiguation answers — a reply with no verb), `take
-  all` / `drop all`, `xyzzy` / `plugh`, bare `take` / `put`, four nouns typed alone.
-- **B — one line per turn costs +42% panels** (722 → 1025, page level against the real fit test; the
-  Director is outside the loop, so not the shipped 594 — the ratio is the point). 6.1d's limiters
-  cost +68% and were accepted. Panels carrying both speakers 172 → 286.
-- **C — the finding that re-shapes the proposal.** Its stated purpose was filling the 119 silent
-  revisit walks. **All 116 in the full game are buffered into traversal runs, which the Director
-  collapses to 56 panels** (ADR 0005 §3 keeps only a run's destination). **At most 56 can carry a
-  line; 60 are discarded before anyone reads them.** Speaking the command does not fill the silent
-  block unless the collapse also gives ground.
+Back-references added to ADR 0005; **ADR 0009 carries a correction header** — every figure in it
+predates the corpus repair and is void, the decisions are not.
 
-**So ADR 0010 is two decisions, not one** — *the Hero speaks his command*, and *the traversal
-collapse opens up*. Taking the first alone buys conversation everywhere except the place the census
-said was empty. The measurement tool was deleted (sessions 2–3 precedent); the lexicon is described
-in the WORKLOG rather than kept, since 86 template lines are cheap to re-author and an unreferenced
-tool would rot.
+**Nothing is built.** Four slices are listed; 1 and 2 are independently shippable, 3 is what makes
+the ADR deliver its stated purpose. The ADR needs the user's acceptance before any of it starts.
 
 ## Next Actions
 
@@ -74,38 +68,20 @@ tool would rot.
    2–3) and the two-shot at **158 of 274 in one panel**, both over a game that reaches the barrow.
    The corpus is 623 turns, 12 rows, `12-full-game.cmd` sourced from `fullGameCommands()`.
 
-   **⇒ First, the bigger question on the table (raised by the user, v0.24.2 session): should the
-   Hero speak his *command* as table-talk?** — "Let's go north", the way a player declares an action
-   to a DM, with the DM's result closing the exchange, and the conversational unit therefore
-   **straddling two turns** (DM describes on turn N, Hero answers on turn N+1). Analysed, not
-   decided. It would **supersede ADR 0005 §1** (the Hero balloon is the resolved *outcome*, never the
-   input — the decision that got the pane out of play-log territory), **recast 6.1g's `isOrphaned`
-   rule** (which forbids exactly the cross-turn joining this needs, on a different criterion:
-   ask-vs-answer rather than same-turn), and **subsume the a/b/c choice below** — every turn has a
-   command, so D5 goes to ~1.0 by construction, which is option (c) with a reason attached.
-   Mechanically the panel-update half is nearly free (`PanelDelta.replacedLast` already clone-appends
-   and `comic-view.ts` already redraws), and no engine change is needed (`Turn.command` is already in
-   the mapper's hands, so purity and parity hold).
+   **⇒ The stage's biggest open item is now an ADR awaiting acceptance: `docs/adr/0010-the-hero-
+   declares-his-move.md` (Proposed).** The Hero re-voices his command as table-talk ("Let's head
+   north"), the exchange rather than the turn becomes the panel's unit, and — separably — the
+   traversal collapse gives ground so the walks it swallows keep a voice. Measured before it was
+   written (v0.24.3): **95.6% voiceable** with an 86-entry lexicon, **+42% panels** against 6.1d's
+   accepted +68%, and **116 silent walks collapsing into 56 panels**, which is why §1 alone does not
+   reach the silence and §3 exists.
 
-   **Measured at v0.24.3, and the measurements say it is two decisions, not one:**
-
-   - **Voiceable — 95.6%** with an 86-entry lexicon, mean 19 chars; the tail is 12 distinct commands
-     (`y`, `take all`, `xyzzy`, bare nouns), all authorable by hand. **Not a blocker.**
-   - **Costly but precedented — +42% panels** (722 → 1025 at page level), against 6.1d's accepted
-     +68%. Panels carrying both speakers 172 → 286. **A price, not a blocker.**
-   - **It does not do what it was proposed to do, on its own.** All 116 silent walks are buffered
-     into traversal runs the Director collapses to **56 panels**; 60 are discarded before anyone
-     reads them. **Filling the silent block needs the collapse to give ground too** — a second
-     ADR-level change to ADR 0005 §3.
-
-   **So the next decision is the user's, and it is which of the two to take:** (i) the Hero speaks
-   his command everywhere the comic already has panels — conversation throughout, the silent
-   revisit walks still silent; (ii) that plus opening the traversal collapse, which is what actually
-   fills them and costs more panels again; (iii) neither, and fall back to the a/b/c choice below.
-   **Then write ADR 0010** — superseding ADR 0005 §1, recasting 6.1g's `isOrphaned` on ask-vs-answer,
-   and amending ADR 0005 §3 if (ii). The risk to name in it either way: "Let's head north." several
-   hundred times is the play-log tell in costume, and the silent reaction panels are the pane's
-   rhythm.
+   **What the user decides:** accept the ADR whole, accept §1/§2 without §3 (conversation everywhere
+   the comic already has panels; the collapsed walks stay silent), or decline it for the narrower
+   a/b/c choice below. **Nothing is built either way** — slices 1–4 are listed at the foot of the
+   ADR, 1 and 2 independently shippable. The risk the ADR names and cannot measure: "Let's head
+   north." several hundred times is the play-log tell ADR 0005 §1 removed, in costume — it is caught
+   by reading a playthrough, not by a counter.
 
    **The narrower open question, measured and priced — still live if the above is declined, and not
    a task an agent should take unasked.** The census (v0.24.1) says the silent block is **one
@@ -168,7 +144,7 @@ Three that apply to most sessions. Everything else is in `docs/PITFALLS.md`.
 | `docs/DEVELOPMENT_PLAN.md` | Milestones, stages, gates — **the authority on what to do next** |
 | `docs/PITFALLS.md` | Durable cautions by subsystem — read the relevant section before changing code |
 | `docs/FUTURE_WORK.md` | The deferred backlog + the pre-1.0.0 iteration protocol |
-| `docs/adr/` | ADRs 0001–0009. **0009 governs the comic pane from 6.1c on** |
+| `docs/adr/` | ADRs 0001–0010. **0009 governs the comic pane from 6.1c on; 0010 (Proposed) is the command-as-table-talk decision** |
 | `original-projects/`, `reference/` | Historical sources (tracked) · third-party reference (**gitignored**) |
 | `wiki/` | Hand-authored semantic notes (`the-hero.md`, `the-guide.md`, …) |
 | `WORKLOG.md` | Persistent history, one entry per version, never edited |
