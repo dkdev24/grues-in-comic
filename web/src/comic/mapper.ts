@@ -169,8 +169,15 @@ export function lineOf(panel: Panel, speaker: string): Line | null {
  * until M6.1a, which moved it out so the corpus replay could measure the shipped
  * tables rather than a throwaway.) The map may be empty and the mapper is
  * unchanged if it is — tests here supply their own scripts rather than the real one.
+ *
+ * **A room's entry may be a {@link BeatExchange} as of M6.1e**, so the Hero can
+ * answer the DM on a first visit instead of listening to him narrate. Measured,
+ * that is the one authored surface that cannot wear out — a room is entered for
+ * the first time exactly once — and it reaches every arrival in the corpus. A
+ * bare `string` stays the DM-only form, so every existing entry and every test
+ * script is unchanged.
  */
-export type GuideScript = ReadonlyMap<string, string>;
+export type GuideScript = ReadonlyMap<string, string | BeatExchange>;
 
 /**
  * One beat's authored **exchange** — ADR 0006 §4, Slice 2.
@@ -325,7 +332,7 @@ export interface Mapper {
 }
 
 export function createMapper(options: MapperOptions = {}): Mapper {
-  const guideScript = options.guideScript ?? new Map<string, string>();
+  const guideScript = options.guideScript ?? new Map<string, string | BeatExchange>();
   const guideCooldown = options.guideCooldown ?? 6;
   const names = options.names ?? new Map<string, string>();
   const roomTitles = options.roomTitles ?? new Map<string, string>();
@@ -637,10 +644,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
 
     // Then the room gazetteer, on first entry. Rule 3: uncooled since M6.1d, and
     // reached even on a turn the beat above was cooled out — the two tables no
-    // longer contend for one budget.
+    // longer contend for one budget. Since M6.1e the room may answer back: an
+    // entry is either the DM's line alone or the pair, and the pair needs no
+    // cooldown because a first visit does not come round again.
     if (firstVisit) {
       const roomLine = guideScript.get(roomId);
-      if (roomLine !== undefined) return { dm: roomLine, hero: null };
+      if (typeof roomLine === "string") return { dm: roomLine, hero: null };
+      if (roomLine !== undefined) return { dm: roomLine.dm ?? null, hero: roomLine.hero ?? null };
     }
     return silent;
   }

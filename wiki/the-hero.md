@@ -69,7 +69,14 @@ content is not authored yet.
 
 ## Coverage
 
-Unlike `GUIDE_SCRIPT`'s room gazetteer, the Hero's lines are **templates over object display names**
+**As of M6.1e session 2 he also answers the gazetteer.** Every one of the 88 rooms in `GUIDE_SCRIPT`
+now carries his reply beside the idol's line, so an arrival is an exchange rather than a monologue.
+These are the easiest of his lines to write and the safest to make specific: a room is entered for
+the first time exactly once, so unlike a beat reply they can never repeat. They react to the room —
+they never tell him what to do in it (rule 5), which matters more here than anywhere else, because a
+first visit is exactly when a hint would land.
+
+Unlike `GUIDE_SCRIPT`'s room gazetteer, his *action* lines are **templates over object display names**
 (ADR 0005 §1), so they must stay grammatical across every DESC the world holds — "leaflet",
 "jewel-encrusted egg", "nasty knife". The Slice 1 pair:
 

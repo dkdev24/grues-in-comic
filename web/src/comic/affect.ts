@@ -158,9 +158,18 @@ export const AFFECT_MARKERS: readonly AffectMarker[] = [
    * walking into a wall rather than fighting the vocabulary. It sits just above
    * the parser family because the two never co-occur and the order is then a
    * statement about which "no" is more specific.
+   *
+   * **Widened at M6.1e session 2** by the same method that found it: a census of
+   * the turns still carrying no marker turned up 10 more refusals in the map's
+   * voice rather than the parser's — "You would need a machete to go further
+   * west" and "There is no tree here suitable for climbing". Both are the world
+   * declining a move it understood perfectly, so they belong to this family and
+   * not to a new one. Two singletons were left alone deliberately ("There's no
+   * room", a full container; "That's difficult unless your eyes are prehensile"):
+   * one turn each in the whole corpus is not a beat, it is a coincidence.
    */
   prose("blocked-exit", 35,
-    /can't go that way|is impassable|are impassable|becomes impenetrable|block your way/i,
+    /can't go that way|is impassable|are impassable|becomes impenetrable|block your way|would need a machete|no tree here suitable/i,
     [emotion("BORED", 0.5, 35), emotion("SHRUG", 1.0, 34)]),
   /*
    * **The parser family, split three ways at M6.1e.** It was one marker until

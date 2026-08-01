@@ -10,6 +10,49 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.23.0 — 2026-08-01 — M6.1e session 2: the rooms answer back, and D5 becomes the constraint
+
+Session 1 left a number to act on and session 2 refused to act on it until it had been measured
+again — which was right, because **the number was wrong**. The standing method note earned its keep
+for the sixth time.
+
+- **The census, before any writing.** 56.6% of turns carrying no marker was a conflation of two
+  different counts. Measured directly: **220 of 606 turns (36.3%)** carry no marker — traversal 88,
+  ambient 87, arrival 45 — and the useful split is not by `PanelKind` at all but by who was already
+  speaking: **164 turns are wholly silent, and 56 are the DM narrating a room at a player who says
+  nothing back.**
+- **That killed the choice the last session framed.** The two candidate levers were "a fallback
+  keyed on `PanelKind`" (widest reach, risks generic lines) and "a Hero half for the gazetteer"
+  (narrow and safe, est. ~26 turns). The census says the safe one is not narrow: **every single
+  marker-less first visit — 45 of 45 — already had a gazetteer line and no reply.** The generic-line
+  risk was avoidable for free, so the fallback was not built.
+- **The gazetteer became an exchange.** `GuideScript` now takes a `BeatExchange` as well as a bare
+  string (every existing entry and test script unchanged), and all **88 rooms** were written a Hero
+  half. This is the one authored surface that **cannot wear out** — a first visit happens once, so
+  there is no run, no cooldown and no repeat to design around. It is now a `PITFALLS.md` rule,
+  because a future firing rule that let a room line repeat would put the only unprotected surface
+  into the class that needs protection.
+- **`blocked-exit` widened over 10 more turns** the census found in the map's voice rather than the
+  parser's — "You would need a machete to go further west", "There is no tree here suitable for
+  climbing". Two singletons were deliberately left silent: one turn in the whole corpus is a
+  coincidence, not a beat.
+- **Measured after:** corpus **2.5 → 2.0**, oracle **2.7 → 2.4**, and the scene that was the reason
+  for the session, `07-forest-and-tree`, **8.0 → 2.3**. No scene now reads worse than 2.3. Exchanges
+  241 → 300 of 606; two-shot 156 of 300.
+- **The finding that outlives the slice: 6.1e is now bounded by D5, not by effort.** The corpus sits
+  on the *bottom edge* of the 2–3 band, so the 154 turns still silent — composition known: 69 bare
+  walks with no prose at all, 22 container states on examine, 8 floor items, 8 re-looks, 7 lamp
+  toggles, 7 inventory listings, 6 waits, 5 score checks — cannot simply be given beats. Each one
+  now has to be **traded** against the refusal beats that fire 283 times, or the user moves the
+  band. That is a decision, not a task, and it is where the next session should start.
+- **Tests:** 271 web (+2: the room pair, and the DM-only entry it must not break), 139 engine, 198 IR, pixel gate clean at 17 cases, parity 143/143 strict. The
+  density baseline was re-accepted deliberately (99 counters moved).
+- **The census tool was written and then deleted on purpose.** It re-derived the mapper's affect
+  input to classify turns, which is the second-copy hazard `density.ts`'s own header warns about —
+  it would have agreed with the mapper right up until it didn't. The measurement lives here.
+
+---
+
 ## v0.22.0 — 2026-08-01 — M6.1e session 1: the refusals get a voice, and runs learn to cycle
 
 6.1d met D5 by volume. The first thing 6.1e measured was what that volume was made of, and the

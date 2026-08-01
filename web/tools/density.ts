@@ -174,7 +174,15 @@ function scriptTexts(): { beatDm: Set<string>; beatHero: Set<string>; gazetteer:
       if (variant.hero) beatHero.add(variant.hero);
     }
   }
-  return { beatDm, beatHero, gazetteer: new Set(GUIDE_SCRIPT.values()) };
+  // A room entry is the DM's line or the pair (M6.1e). Only the DM half belongs
+  // in `gazetteer`: it answers "which table did this *DM* balloon come from",
+  // and the Hero's half is attributed by register like every other reply.
+  const gazetteer = new Set<string>();
+  for (const entry of GUIDE_SCRIPT.values()) {
+    const dm = typeof entry === "string" ? entry : entry.dm;
+    if (dm) gazetteer.add(dm);
+  }
+  return { beatDm, beatHero, gazetteer };
 }
 
 function commandsOf(file: string): string[] {

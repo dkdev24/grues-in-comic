@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.22.0** · Platform: **macOS only** (2026-07-28)
+**0.23.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -29,30 +29,29 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
   `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d are done and D5 is met; 6.1e is in progress**.
 
-**Tests:** 269 web · 139 engine · 198 IR · parity 143/143 strict.
+**Tests:** 271 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — M6.1e session 1: the refusals get a voice (v0.22.0)
+## Last Session — M6.1e session 2: the rooms answer back (v0.23.0)
 
-6.1a–6.1d ✅ · **6.1e ◐ — session 1 of several.** Narrative in `WORKLOG.md` v0.22.0; the decisions
-are ADR 0009 §Implementation slices 3 and **an amendment to ADR 0006 §4 rule 4**.
+6.1a–6.1d ✅ · **6.1e ◐ — session 2 of several.** Narrative in `WORKLOG.md` v0.23.0; the decisions
+are in ADR 0009 §Implementation slices 3.
 
-- **6.1d met D5 by volume, and the volume was bad: 218 of 252 exchanges were a run's last line
-  repeating** (150 of them `parser-miss`). Density held at **2.5 corpus / 2.7 oracle** while the
-  worst-repeated line in a playthrough went **150 → 12** and distinct lines ~30 → **91**.
-- **The big markers now split on what happened.** `parser-miss` → `not-here` / `not-carried` /
-  `unknown-word` (measured ~95 / 54 / 11), and the map's own refusal → **`blocked-exit`: 114 turns
-  saying exactly "You can't go that way", which had no marker at all.** Everything downstream asks
-  **`markerFamily` / `isRefusal`**, never a marker name — that seam is what makes a fourth variant a
-  table edit.
-- **ADR 0006 §4 rule 4 amended:** a run may end in a **cycling tail** (`run` is the arc and is never
-  re-entered — the guarantee rule 4 actually wanted; `loop` cycles). And **a beat carries its own
-  cooldown**: at the table's 0 the refusals put the corpus at **1.6, past the *bottom* of D5's
-  band** — the ceiling assertion added at 6.1d is what caught it.
-- **The cooldown clock moved off `turn.status.moves`** (it does not advance on a refusal, so it was
-  no cooldown at all on the beats that needed one) onto the mapper's own read count. `PITFALLS.md`
-  → Web was revised, not appended to.
+- **The census came first, and corrected the figure the last session handed over.** Not 56.6% of
+  turns without a marker — **220 of 606 (36.3%)**: traversal 88, ambient 87, arrival 45. The split
+  that mattered was not `PanelKind` but who was already speaking: **164 wholly silent, 56 the DM
+  narrating a room at a player who says nothing.**
+- **That chose the lever.** The "narrow and safe" option was not narrow: **45 of 45 marker-less
+  first visits already had a gazetteer line and no reply.** So the gazetteer gained a Hero half —
+  `GuideScript` takes a `BeatExchange` now, all **88 rooms** written — and the `PanelKind` fallback
+  was **not** built, which keeps the generic-line risk off the table entirely.
+- **A room line cannot wear out** (a first visit happens once), which is now a `PITFALLS.md` rule:
+  it is the only authored surface with no run, no cooldown and no repeat to design around.
+- **`blocked-exit` widened** over 10 more turns in the map's voice ("would need a machete", "no tree
+  here suitable"). Two singletons left silent on purpose.
+- **Density: corpus 2.5 → 2.0, oracle 2.7 → 2.4, `07-forest-and-tree` 8.0 → 2.3**, no scene worse
+  than 2.3. Baseline re-accepted deliberately; 269 web / 139 engine tests green, gate clean.
 
 ## Next Actions
 
@@ -60,23 +59,19 @@ are ADR 0009 §Implementation slices 3 and **an amendment to ADR 0006 §4 rule 4
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
 1. **M6.1 — the comic pane becomes a cartoon.** ◐ **The most important item in M6** (user's
-   weighting). 6.1a–6.1d ✅ (D5 met) · **6.1e ◐ — continue writing the dialogue.** The mechanism is
-   finished as of v0.22.0; depth on the refusals is done. What is left is **the 56.6% of turns that
-   carry no affect marker at all** — ambient 191, traversal 89 of 606 — which is the last big block
-   of silence and the reason `07-forest-and-tree` reads one exchange every 8 turns while every
-   other scene sits at 2. Two levers, neither yet chosen:
-   - **A fallback keyed on `PanelKind`** (ambient / traversal), so a turn with no marker still has a
-     beat to answer. Widest reach, and the one that risks generic lines — the failure mode the
-     marker split was written to escape.
-   - **A Hero half for the gazetteer** (`exchangeFor` rule 3, still DM-only). Narrow and safe: it
-     only fires on first visits, so it cannot wear out, but it reaches ~26 turns of the corpus.
+   weighting). 6.1a–6.1d ✅ (D5 met) · **6.1e ◐ — and it is now blocked on a decision, not on
+   writing.** Every scene reads between 2.0 and 2.4; the corpus sits on the **bottom edge of D5's
+   2–3 band**, so the **154 turns that are still wholly silent cannot simply be given beats** —
+   each one is a trade against the refusal beats that fire 283 times.
 
-   **Measure the composition of those 287 turns before writing either** — the last two sessions both
-   turned on a distribution nobody had looked at. Then 6.1f (verify: golden re-pinned, gate
-   re-accepted **after looking at the images**, a playthrough read in the browser).
+   **The question for the user:** leave the remaining silence alone (a comic where the pair are
+   quiet on a bare walk is arguably right), trade some refusal turns for it, or move D5's band?
+   Their composition is measured and waiting either way: 69 bare walks with no prose at all, 22
+   container states on examine, 8 floor items noticed on entry, 8 room re-descriptions, 7 lamp
+   toggles, 7 inventory listings, 6 waits, 5 score checks, ~22 one-offs.
 
    Then 6.1f (verify: golden re-pinned, gate re-accepted **after looking at the images**, a
-   playthrough read in the browser).
+   playthrough read in the browser). **6.1f is schedulable now** — nothing above blocks it.
 2. **M6.2 — save / load / restart.** ☐ UI over the engine's existing save contract; three named
    slots, browser storage only. Independent — good filler for an idle session.
 3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐

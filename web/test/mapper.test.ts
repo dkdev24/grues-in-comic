@@ -611,6 +611,40 @@ describe("panel stream", () => {
     expect(talk(page.turn(session.start()))?.text).toBe("Boarded front door.");
   });
 
+  it("lets a room answer back, and only on its first visit (M6.1e)", () => {
+    // A gazetteer entry may be the pair rather than the DM's line alone — the
+    // lever the marker-less census chose, because 45 of 45 marker-less first
+    // visits had a DM line and no reply. There is no cooldown on this path and
+    // none is wanted: a first visit happens once, so the entry cannot repeat.
+    const guideScript = new Map([
+      ["WEST-OF-HOUSE", { dm: "Boarded front door.", hero: "They were thorough." }],
+    ]);
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ guideScript, guideCooldown: 0 });
+    const first = page.turn(session.start());
+    expect(talk(first)?.text).toBe("Boarded front door.");
+    expect(reply(first)?.text).toBe("They were thorough.");
+    // Leaving and coming back is not a first visit, so neither half fires again.
+    page.turn(session.command("north"));
+    const back = page.turn(session.command("south"));
+    expect(talk(back)).toBeNull();
+    expect(reply(back)).toBeNull();
+  });
+
+  it("keeps the DM-only room entry working unchanged (M6.1e)", () => {
+    // The bare string is still the DM-only form. Every test script and every
+    // tool fixture in the repo relies on it, and a pair with no `hero` degrades
+    // the same way — one balloon, never a wrong exchange (ADR 0006 §4).
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({
+      guideScript: new Map([["WEST-OF-HOUSE", { dm: "Boarded front door." }]]),
+      guideCooldown: 0,
+    });
+    const first = page.turn(session.start());
+    expect(talk(first)?.text).toBe("Boarded front door.");
+    expect(reply(first)).toBeNull();
+  });
+
   it("derives the Hero balloon: take, then drop, else nothing (ADR 0005 §1)", () => {
     const names = new Map([["LAMP", "brass lantern"]]);
     expect(heroBalloon("LAMP", null, names)).toEqual({

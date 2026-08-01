@@ -99,6 +99,11 @@ the Frigid River and the rainbow, the coal mine — plus the notable named rooms
 rooms (the maze cells, the dead ends, the stretch of identical forest) lean *into* the repetition:
 the joke is that he is as tired of them as the player.
 
+**Since M6.1e session 2 the gazetteer is an exchange, not a monologue**: every room entry carries
+[[the-hero]]'s answer beside his line, because a census of the still-silent turns found 45 arrivals
+where he narrated a room at a player who said nothing. His half is unchanged — the reply was added
+beside it, never in place of it.
+
 `BEAT_SCRIPT` is the second authored surface and a different shape: keyed by **affect marker**, each
 entry a **pair** with [[the-hero]]'s answer (Slice 2) and, since Slice 4, a **run** of such pairs
 walked one line per firing. Seven beats are scripted, two to four lines deep by how often each is

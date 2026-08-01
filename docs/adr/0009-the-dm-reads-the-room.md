@@ -249,7 +249,31 @@ Mapped to `docs/DEVELOPMENT_PLAN.md` §6.1, which stays the schedule of record.
    Measured after: density holds at **2.5 corpus / 2.7 oracle**, the worst-repeated line in a
    playthrough went **150 → 12**, distinct authored lines per playthrough ~30 → **91**. The
    cooldown clock also had to move off `turn.status.moves`, which does not advance on a refusal
-   — see `docs/PITFALLS.md` → Web. **Left for the next session:** the 56.6% of turns carrying no
-   marker at all, which is why `07-forest-and-tree` still reads one exchange every 8 turns.
+   — see `docs/PITFALLS.md` → Web.
+
+   **Session 2 (v0.23.0) — the rooms answer back, and D5 becomes the binding constraint.** The
+   silence left after session 1 was censused before anything was written, and the census
+   corrected the figure session 1 left behind: **220 turns of 606 carry no marker (36.3%)**, not
+   56.6% — traversal 88, ambient 87, arrival 45 — and **164 of them were wholly silent** while
+   56 had the DM narrating a room at a player who said nothing. That distribution chose between
+   the two levers on the table:
+   - **The gazetteer gained a Hero half** (`GuideScript` now takes a `BeatExchange`), authored
+     for all 88 rooms. It was the narrow-and-safe lever and the census made it the wide one: it
+     reaches **every** arrival, and a first visit happens once, so unlike a beat it **cannot wear
+     out** — no run, no cooldown, no repeat to design around.
+   - **`blocked-exit` widened** over 10 more turns the census turned up in the map's voice
+     ("would need a machete", "no tree here suitable for climbing"). Two singletons were left
+     alone on purpose: one turn in the whole corpus is a coincidence, not a beat.
+   - **The `PanelKind` fallback was not built**, and should not be built on today's numbers —
+     see below.
+
+   Measured after: corpus **2.5 → 2.0**, oracle **2.7 → 2.4**, `07-forest-and-tree` **8.0 →
+   2.3**, and no scene now reads worse than 2.3. **That puts the corpus on the bottom edge of
+   D5's band, which is the finding this session hands forward: the remaining silence is bounded
+   by D5, not by authoring effort.** 154 turns are still wholly silent and their composition is
+   known (69 bare walks with no prose at all, 22 container states on examine, 8 floor items on
+   entry, 8 room re-descriptions, 7 lamp toggles, 7 inventory listings, 6 waits, 5 score checks,
+   ~22 one-offs). Filling any of them now is a **trade** — a turn taken from the refusal beats,
+   which fire 283 times — or a decision by the user to move D5's band. It is not an addition.
 4. **6.1f — verify.** Golden dialogue sequence re-pinned, pixel gate re-accepted after
    looking at the images, a full playthrough read in the browser.

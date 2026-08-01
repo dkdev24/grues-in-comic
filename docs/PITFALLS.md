@@ -106,6 +106,18 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   a fold like everything else and advances once per turn whatever the engine thinks. **Anything that
   wants to measure elapsed play in the presentation layer has the same choice to make**, and the
   engine's counter is the wrong side of it.
+- **The room gazetteer is the only authored surface that cannot wear out** (M6.1e session 2). A
+  first visit happens once per room per playthrough, so a `GUIDE_SCRIPT` entry has no run, no
+  cooldown and no repeat to design around — which is why the Hero's half was added there and why a
+  line written for a room can be as specific as the author likes. Everything keyed on a *marker* has
+  the opposite property. **Do not add a firing rule that lets a room line fire twice**: it would put
+  the one surface with no repeat protection into the class that needs it.
+- **D5's band is the binding constraint on filling silence, not authoring effort** (M6.1e session 2).
+  The corpus sits at one exchange every **2.0** turns against a band of 2–3, so the 154 turns still
+  wholly silent (69 of them a bare walk with no prose at all) cannot simply be given beats: each one
+  added is a turn that has to come off something else, most plausibly the refusal beats that fire
+  283 times. **Measure before writing, then check the ceiling** — `density.test.ts` asserts both ends
+  precisely because "they never stop talking" fails D5 as hard as "they never start".
 - **How often a beat speaks is authored beside its lines, not tuned globally** (`BeatCycle.cooldown`,
   M6.1e). The two refusal families are 45% of all turns; at the table's default they push the corpus
   *past the bottom* of D5's band (1.6 against a floor of 2). D5 is a band, not a floor — a comic
