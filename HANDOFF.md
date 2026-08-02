@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.24.9** · Platform: **macOS only** (2026-07-28)
+**0.25.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -27,74 +27,61 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   cleared. ADRs 0004–0008 all built; 0008 is a cited port of the Comic Chat layout stack with a
   pixel gate.
 - **M6 ◐** — the road to 1.0.0 (repo public + website ships). Stages and the decision table are in
-  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f–6.1k are done; 6.1e is paused, the only open
-  item under M6.1.** The corpus is repaired, so **D5 and the two-shot are both met over a game that is
-  actually won** — every M6.1 figure quoted before v0.24.0 was measured over a losing replay and is
-  void. **ADR 0010 is Built (v0.24.9) — all four slices done.** The Hero declares his command as
-  table-talk on 98.3% of turns, that declaration answers the DM's still-open frame across the turn
-  boundary, a collapsed traversal run of two or more speaks its destination as one journey line, and
-  **D5′ (the share of emitted panels carrying both speakers) has a band, 25–60%, set from today's
-  43.7% measurement** and asserted in `density.test.ts`. This closes M6.1's stated purpose — the
-  remaining M6.1 work is 6.1e's authoring volume, which was always open-ended.
+  `docs/DEVELOPMENT_PLAN.md` §6. **6.1a–6.1d and 6.1f–6.1k are done; 6.2 is done (v0.25.0); 6.1e is
+  paused, the only open item under M6.1.** The corpus is repaired, so **D5 and the two-shot are both
+  met over a game that is actually won** — every M6.1 figure quoted before v0.24.0 was measured over a
+  losing replay and is void. **ADR 0010 is Built (v0.24.9) — all four slices done.** The Hero declares
+  his command as table-talk on 98.3% of turns, that declaration answers the DM's still-open frame
+  across the turn boundary, a collapsed traversal run of two or more speaks its destination as one
+  journey line, and **D5′ (the share of emitted panels carrying both speakers) has a band, 25–60%, set
+  from today's 43.7% measurement** and asserted in `density.test.ts`. This closes M6.1's stated purpose
+  — the remaining M6.1 work is 6.1e's authoring volume, which was always open-ended.
 
 **Tests:** 292 web · 139 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — room-order bug fixed; M6.2's UI shape decided (not built)
+## Last Session — M6.2 built: save / load / restart
 
-**Fixed a real bug in ADR 0010's declaration, found by the user in play (commit `7e2405c`).**
-`page.ts`'s `addScript()` stamped every line in a turn's script — including the Hero's declaration —
-with the *destination* room's `PanelContext`, so the declaration's own panel showed the new room's
-backdrop before the DM had said anything about it: the location visibly changed under his line instead
-of after it. Fixed with a per-line `PageLine.room` override (mapper.ts sets it to `roomAtEntry` on the
-declaration only when it differs from the turn's destination); `<Brk>` was already splitting these into
-two panels, so the fix is a relabeling, not a panel-count change — zero drift on either golden. Caught
-one `exactOptionalPropertyTypes` build error the first pass missed (`tsc --noEmit` alone doesn't use
-`tsconfig.build.json`; `npm run build` does) — fixed with a conditional spread, not `: undefined`.
-292/292 web tests green, build clean, dev server confirmed serving on `:8080`.
+**Implemented M6.2 exactly as scoped in `docs/DEVELOPMENT_PLAN.md` §6.2** (all six 2026-08-02
+decisions were already made; this session was code only, no new design). `web/src/main.ts`'s
+`handleShellCommand` now routes `/save [1-3]`, `/load [1-3]`, `/restart`, `/help`, replacing the old
+bare `save`/`restore` word-match at the same interception point. Three slots are separate
+`persistence.ts` `createSessionStore` keys (`grues-in-comic/save/v1/slot/1..3`) from the
+autosave/current-game key; `/load <n>` copies the slot's `{save, turns}` into the current-game key
+then `location.reload()`s, so boot-time `resume()` does the actual rebuild (no new `reset()` methods
+needed on either pane, per the decision). Slot labels are derived via a `slotLabel()` helper reading
+`SaveState.locations[PLAYER_ID]` / `globals["SCORE"]` / `turn` — the same fields `Session.load` already
+uses to rebuild the status line on restore, so the label can't drift from what loading would show.
+`/restart` arms on the first call, disarms on any other command, confirms and reloads on the second.
+A `[Type /help for save, load, and restart commands.]` system line now prints at session start.
 
-**M6.2 (save/load/restart): the UI shape is fully decided now, nothing is built yet.** The user
-proposed slash commands (`/save`, `/load`, `/restart`) in the existing text input rather than separate
-buttons — keeps Zork's text interface as the sole input surface. Feasibility check found the
-interception point already exists and is already load-bearing: `main.ts:164`'s `handleShellCommand()`
-intercepts bare `save`/`restore` before `session.command()` reaches the engine, today. All decisions
-recorded in `docs/DEVELOPMENT_PLAN.md` §6.2 (2026-08-02): slash commands extend that exact
-interception point (no engine change); `/load`/`/restart` are **reload-based** — write/clear storage
-then `location.reload()`, letting boot-time `resume()` do the actual rebuild — rather than a live
-in-place swap, because `comic-view.ts`/`console-view.ts` have no `reset()` today; slot labels stay
-derived (room + score + moves), not typed; **slots are addressed by number, 1–3**, and a bare
-`/save`/`/load` with no number lists all three slots and their labels instead of guessing a default;
-**`/restart` confirms by requiring immediate re-entry** (`Type /restart again to confirm`), not a
-dialog; and **discoverability is a one-line `[Type /help for …]` system message at session start plus
-a `/help` branch** listing every shell command, both through mechanisms the shell already has
-(`consoleView.appendSystem`, `handleShellCommand`). Nothing here is built — this is the last of the
-design pass; next session should be able to go straight to code.
+**Verified live in a browser via `agent-browser`, not just tests**: `/help`'s listing; bare
+`/save`/`/load` showing all-empty slots, then two saved labels; `/save 1` → walk → `/save 2` → `/save`
+showing both derived labels correctly; `/load 1` reloading back to the saved room with `[resumed — 1
+turns restored]`; `/load 3` on an empty slot reporting `Slot 3 is empty.`; `/restart` arming, a `north`
+in between disarming it, then a clean double-`/restart` actually clearing and reloading to score/move
+0. 292/292 web tests green throughout, `npm run build` clean. No test files changed — `main.ts` has no
+unit tests today (DOM bootstrap, no non-DOM logic this change pulled out worth extracting).
 
 ## Next Actions
 
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **M6.2 — save / load / restart.** ☐, **fully decided, nothing left to design — read
-   `docs/DEVELOPMENT_PLAN.md` §6.2 in full before starting, all six 2026-08-02 decisions apply.** UI
-   over the engine's existing save contract: `/save [1-3]`, `/load [1-3]`, `/restart`, `/help` in
-   `main.ts`'s `handleShellCommand`; bare `/save`/`/load` list the three slots and their derived labels;
-   `/restart` needs immediate re-entry to confirm; three slots via `persistence.ts`'s already-
-   parametrized `createSessionStore(key, storage)`; reload-based (no new `comic-view`/`console-view`
-   reset methods needed); a one-line `[Type /help for …]` system message at session start.
-
-   **⇒ NEXT SESSION STARTS HERE: implement M6.2 as fully scoped in the plan doc.**
-2. **M6.1 — the comic pane becomes a cartoon.** ◐ Mechanics closed (ADR 0010 fully built, v0.24.9).
+1. **M6.1 — the comic pane becomes a cartoon.** ◐ Mechanics closed (ADR 0010 fully built, v0.24.9).
    **6.1e ◐ is the only open item**: authored dialogue across 110 rooms, committed as data (D1
    sanctions the volume). The gazetteer is at 88 rooms; `BEAT_SCRIPT` at 12 beats / 70 authored
    exchanges. No exit criterion beyond "the user says the product is ready" — pick up when there's
    appetite for more authoring.
-3. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐
+
+   **⇒ NEXT SESSION STARTS HERE if there's authoring appetite; otherwise the next unblocked item
+   below.**
+2. **M6.3 — the static site** (landing, about, public changelog as separate static pages). ☐
    **Blocked on the user's `DESIGN.md` + mockups.**
-4. **M6.4 asset separation & neutral branding** (☐, independent of everything) · **M6.5 public
+3. **M6.4 asset separation & neutral branding** (☐, independent of everything) · **M6.5 public
    release** → tag `1.0.0` (☐, needs the rest).
-5. **ADR 0006 Slice 5 — session-recap PDF export.** ☐ The only open ADR slice, schedulable whenever.
+4. **ADR 0006 Slice 5 — session-recap PDF export.** ☐ The only open ADR slice, schedulable whenever.
    **The PDF is deliberately not WYSIWYG.**
 
 **The M6 list is open.** More items land as work proceeds; absence is not a scoping decision. **M6.1

@@ -10,6 +10,36 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.25.0 — 2026-08-02 — 6.2: save / load / restart built
+
+**M6.2 is built — UI over the engine's existing save contract, no engine change.** `web/src/main.ts`'s
+`handleShellCommand` (already the interception point bare `save`/`restore` used) now routes four
+slash commands: `/save [1-3]`, `/load [1-3]`, `/restart`, `/help`. Every shape decision was made last
+session (`docs/DEVELOPMENT_PLAN.md` §6.2, 2026-08-02); this session was implementation only.
+
+- **Three named slots** are separate `persistence.ts` `createSessionStore` keys
+  (`grues-in-comic/save/v1/slot/1..3`), distinct from the autosave/current-game key `resume()` reads
+  on boot — a named save can never collide with autosave, and `/load <n>` works by copying the slot's
+  `{save, turns}` envelope into the current-game key, then `location.reload()`, so the existing
+  resume/replay path (the only one that rebuilds both panes and the Director state correctly) does the
+  actual rebuild.
+- **Slot labels are derived, not stored**: `slotLabel()` reads a slot's `SaveState` directly
+  (`locations[PLAYER_ID]`, `globals["SCORE"]`, `turn`) through the same fields `Session.load` already
+  uses to rebuild the status line on restore, so `1: Troll Room, score 45, move 88` never drifts from
+  what `/load` would actually resume.
+- **`/restart` confirms by re-entry**: one `/restart` arms a `restartArmed` flag and prints the
+  confirmation line; any other command (including a malformed slash command) disarms it; a second
+  immediate `/restart` clears the current-game key and reloads.
+- **Discoverability**: a `[Type /help for save, load, and restart commands.]` system line at session
+  start, through the same `consoleView.appendSystem` channel `[missing routines: …]` already uses.
+- Verified live in a browser session with `agent-browser` (not just unit tests): `/help`'s listing,
+  bare `/save`/`/load` slot listing (all-empty and after saving two slots), `/save <n>` then `/load <n>`
+  round-tripping back to the saved room/score/move, `/load` on an empty slot reporting
+  `Slot n is empty.`, the disarm-on-other-command case, and the confirmed double-`/restart` actually
+  clearing to a fresh game. 292/292 web tests green, `tsc -p tsconfig.build.json` clean — no test
+  additions, since `main.ts` is DOM bootstrap with no unit tests today and nothing here moved logic out
+  of it worth extracting.
+
 ## v0.24.9 — 2026-08-01 — 6.1k: D5′ set and verified — ADR 0010 fully built
 
 **ADR 0010 slice 4 is built — all four slices are now built, and the ADR's status moves to Built.**

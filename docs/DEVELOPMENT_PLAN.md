@@ -144,7 +144,7 @@ Gates C and D are both cleared, so this milestone is no longer provisional. Its 
 | Stage | Task | Exit criteria | Status |
 |---|---|---|---|
 | 6.1 | **The comic pane becomes a cartoon** — the DM and the Hero converse in most scenes, in the same panel. **The most important item in M6** | A playthrough reads as two characters talking, measured not asserted: an agreed share of turns carries a real exchange, most of them in one panel | ◐ |
-| 6.2 | **Gameplay screen: save / load / restart** — UI over the engine's existing save contract; three named slots, browser storage only | A player can save, reload and restart from the browser without the console; state survives a reload | ☐ |
+| 6.2 | **Gameplay screen: save / load / restart** — UI over the engine's existing save contract; three named slots, browser storage only | A player can save, reload and restart from the browser without the console; state survives a reload | ✅ |
 | 6.3 | **The static site** — landing/home page, about, public changelog, alongside the gameplay screen; to `DESIGN.md` + mockups (user-supplied, pending) | Static pages ship, gameplay screen restyled to the same look & feel | ☐ |
 | 6.4 | **Asset separation & neutral branding** — engine, IR spec and ZIL importer extractable for standalone use | Reusable assets identified and separable; licensing/attribution settled (`THIRD_PARTY.md`) | ☐ |
 | 6.5 | **Public release** — repo made public, website shipped | Repo public + website live → tag `1.0.0` | ☐ |
@@ -233,6 +233,18 @@ Two known hazards from the existing notes, both live for this stage: **`Turn` is
 **Decided 2026-08-02: discoverability is two-layer, both already-precedented mechanisms.** (1) A one-line system message near session start, through the same channel `[missing routines: …]` already uses (`consoleView.appendSystem`): `[Type /help for save, load, and restart commands.]`. (2) `/help` itself, a fourth branch in `handleShellCommand`, listing every shell command with one-line usage. No new UI surface either way.
 
 **Decided 2026-08-02: reload-based, not live in-place.** `/load` and `/restart` write to storage (or clear it) then `location.reload()`; boot-time `resume()` — the one path that already replays a saved session into both panes correctly — picks it up from there, same as today's `restore` message ("reload the page to resume"). Rejected for this stage: swapping state into the *running* page without a reload, because it needs new `reset()` methods on `comic-view.ts` and `console-view.ts` that do not exist yet, and must reset the Director's pose cycles and beat counters (the hazard paragraph above) or a loaded/restarted game opens carrying the old game's conversation state. Reload-based reuses the one resume/replay path that is already tested; live in-place is a fair v2 if the reload flicker turns out to bother anyone.
+
+**Built (v0.25.0, 2026-08-02).** `web/src/main.ts`'s `handleShellCommand` now routes `/save`,
+`/load`, `/restart`, `/help` exactly as decided above; the bare `save`/`restore` word-match it
+replaced is gone. Three slot stores are separate `createSessionStore` keys
+(`${SAVE_KEY}/slot/1..3`) from the autosave/current-game key, so a named save never competes with
+autosave and `/load <n>` works by copying the slot's envelope into the current-game key before
+reloading. Verified in a running browser session (not just tests): `/help`, bare `/save`/`/load`
+listing, `/save <n>`, `/load <n>` reload-and-resume, `/load` on an empty slot, `/restart`'s
+re-entry confirmation (and that a command in between disarms it), and the second `/restart`
+actually clearing and reloading to a fresh game. 292/292 web tests green throughout — no test
+changes were needed since `main.ts` has no unit tests today (browser bootstrap, no non-DOM logic
+worth extracting).
 
 ### 6.3 — The static site: landing page, about, changelog
 

@@ -14,13 +14,16 @@ import { objectNameTable, roomNameTable } from "./status.js";
 import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
 import { createComicView, type ComicView } from "./comic-view.js";
-import { createSessionStore, StorageFullError } from "./persistence.js";
+import { createSessionStore, type SessionStore, StorageFullError } from "./persistence.js";
+import { PLAYER_ID } from "../../engine/src/state.js";
 
 /** Where `tools/serve.ts` mounts `ir/artifacts/`. ~1.8 MB, fetched once. */
 const WORLD_URL = "./world/zork1.world.json";
 /** Sheets and manifest from `art/tools/avbpack.ts`; ~330 KiB, five requests. */
 const COMIC_ASSETS = "./assets/comic";
 const SAVE_KEY = "grues-in-comic/save/v1";
+/** M6.2: three named slots, addressed by number — see `docs/DEVELOPMENT_PLAN.md` §6.2. */
+const SLOT_COUNT = 3;
 
 async function main(): Promise<void> {
   const consoleView = createConsoleView(requireEl("#console"));
@@ -52,6 +55,7 @@ async function main(): Promise<void> {
   if (missing.length > 0) {
     consoleView.appendSystem(`[missing routines: ${missing.join(", ")}]`);
   }
+  consoleView.appendSystem("[Type /help for save, load, and restart commands.]");
 
   // The comic pane is primary (§4) but it is also the only part of the shell
   // with assets to fetch, so the game stays playable if they fail: a null comic
@@ -72,6 +76,16 @@ async function main(): Promise<void> {
   // the rest of the game; the player is told once, and explicit `save` still
   // reports its own failures.
   let autosaveEnabled = true;
+
+  // Named slots (M6.2, `docs/DEVELOPMENT_PLAN.md` §6.2) are separate keys from
+  // `store` above: `store` is the autosave/current-game slot `resume()` reads
+  // on boot, slots are explicit player saves that never move under it.
+  const slotStores: readonly SessionStore[] = Array.from({ length: SLOT_COUNT }, (_, i) =>
+    createSessionStore(`${SAVE_KEY}/slot/${i + 1}`, localStorage),
+  );
+  // `/restart` confirms by immediate re-entry rather than a dialog; armed by
+  // one `/restart` and disarmed by anything else the player types next.
+  let restartArmed = false;
 
   const play = (turn: Turn): void => {
     // One session, one event stream, both panes. The comic never gets its own
@@ -161,30 +175,115 @@ async function main(): Promise<void> {
     return true;
   }
 
+  /**
+   * `/save`, `/load`, `/restart`, `/help` — slash-prefixed so a shell command
+   * can never shadow a real ZIL verb (M6.2, `docs/DEVELOPMENT_PLAN.md` §6.2).
+   */
   function handleShellCommand(command: string): boolean {
-    const word = command.toLowerCase();
-    if (word === "save") {
-      try {
-        store.write(session.save(), history);
-        autosaveEnabled = true;
-        consoleView.appendSystem("Ok.");
-      } catch (err) {
-        const why = err instanceof StorageFullError ? "browser storage is full" : message(err);
-        consoleView.appendSystem(`Save failed: ${why}`);
-      }
-      return true;
+    if (!command.startsWith("/")) return false;
+    const parts = command.slice(1).trim().split(/\s+/);
+    const cmd = (parts[0] ?? "").toLowerCase();
+    const arg = parts[1];
+
+    if (cmd !== "restart") restartArmed = false;
+
+    switch (cmd) {
+      case "save":
+        handleSave(arg);
+        return true;
+      case "load":
+        handleLoad(arg);
+        return true;
+      case "restart":
+        handleRestart();
+        return true;
+      case "help":
+        handleHelp();
+        return true;
+      default:
+        consoleView.appendSystem(`Unknown command: /${cmd}. Type /help for commands.`);
+        return true;
     }
-    if (word === "restore") {
-      // Restoring into a page that already has a strip would append a second
-      // game to the first. A reload replays cleanly through `resume()`, so this
-      // reports what to do rather than rendering something incoherent.
-      const saved = store.read();
-      consoleView.appendSystem(
-        saved === null ? "No saved game." : "Reload the page to resume the saved game.",
-      );
-      return true;
+  }
+
+  /** `n` in `1..SLOT_COUNT` for a well-formed slot argument, else `null`. */
+  function parseSlot(arg: string): number | null {
+    const n = Number(arg);
+    return Number.isInteger(n) && n >= 1 && n <= SLOT_COUNT ? n : null;
+  }
+
+  /** `1: empty` or `1: Troll Room, score 45, move 88` — derived, never typed. */
+  function slotLabel(n: number): string {
+    const saved = slotStores[n - 1]!.read();
+    if (saved === null) return `${n}: empty`;
+    const roomId = saved.save.locations[PLAYER_ID] ?? "";
+    const room = roomTitles.get(roomId) ?? roomId;
+    const score = Number(saved.save.globals["SCORE"] ?? 0);
+    return `${n}: ${room}, score ${score}, move ${saved.save.turn}`;
+  }
+
+  function listSlots(): void {
+    for (let n = 1; n <= SLOT_COUNT; n++) consoleView.appendSystem(slotLabel(n));
+  }
+
+  function handleSave(arg: string | undefined): void {
+    if (arg === undefined) {
+      listSlots();
+      return;
     }
-    return false;
+    const n = parseSlot(arg);
+    if (n === null) {
+      consoleView.appendSystem("Slot must be 1-3.");
+      return;
+    }
+    try {
+      slotStores[n - 1]!.write(session.save(), history);
+      consoleView.appendSystem("Ok.");
+    } catch (err) {
+      const why = err instanceof StorageFullError ? "browser storage is full" : message(err);
+      consoleView.appendSystem(`Save failed: ${why}`);
+    }
+  }
+
+  function handleLoad(arg: string | undefined): void {
+    if (arg === undefined) {
+      listSlots();
+      return;
+    }
+    const n = parseSlot(arg);
+    if (n === null) {
+      consoleView.appendSystem("Slot must be 1-3.");
+      return;
+    }
+    const saved = slotStores[n - 1]!.read();
+    if (saved === null) {
+      consoleView.appendSystem(`Slot ${n} is empty.`);
+      return;
+    }
+    // Reload-based (6.2, 2026-08-02): write the slot into the current-game key
+    // and let boot-time `resume()` do the actual rebuild, rather than swapping
+    // state into the running page — `comic-view.ts`/`console-view.ts` have no
+    // `reset()` today, and a live swap would leave the Director's pose cycles
+    // and beat counters carrying the old game's conversation state.
+    store.write(saved.save, saved.turns);
+    location.reload();
+  }
+
+  function handleRestart(): void {
+    if (!restartArmed) {
+      restartArmed = true;
+      consoleView.appendSystem("Type /restart again to confirm — this clears the current game.");
+      return;
+    }
+    store.clear();
+    location.reload();
+  }
+
+  function handleHelp(): void {
+    consoleView.appendSystem("/save [1-3] — save to a slot, or list all three slots");
+    consoleView.appendSystem("/load [1-3] — load a slot, or list all three slots");
+    consoleView.appendSystem("/restart — start a new game (type it twice to confirm)");
+    consoleView.appendSystem("/help — show this list");
   }
 
   input.focus();
