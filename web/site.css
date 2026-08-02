@@ -83,28 +83,6 @@ a {
   color: var(--accent);
 }
 
-.masthead .cursor {
-  display: inline-block;
-  width: 0.5em;
-  height: 1em;
-  margin-left: 0.15em;
-  background: var(--accent);
-  vertical-align: text-bottom;
-  animation: blink 1.06s steps(1) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .masthead .cursor {
-    animation: none;
-  }
-}
-
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-
 .masthead nav {
   display: flex;
   flex-wrap: wrap;
