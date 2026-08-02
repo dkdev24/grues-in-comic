@@ -378,7 +378,28 @@ export function createPage(options: PageOptions = {}): Page {
       panels.length < 2 ||
       // A bodiless line is never "already in" a panel; it is also always
       // `BM_ACTION`, so the caption case has already broken the panel above.
-      (line.bodiless !== true && avatarInPanel(old, line.speaker));
+      //
+      // An *answering* line only needs the weaker `avatarSpokeInPanel` test —
+      // but only when it is not *also* carrying a `room` override. A silent
+      // traversal turn stages the Hero's reaction body into the DM's one panel
+      // (`reactions`, below `addScript`'s per-line loop), which is exactly the
+      // still-open frame ADR 0010 §2 wants the *next* turn's declaration to
+      // land in — `AvatarInPanel`'s literal port (`:655`) does not distinguish
+      // a posed body from a spoken one, so without this exemption it forced a
+      // fresh panel purely because the Hero was already *standing* there,
+      // splitting the two-shot the declaration exists to make. But `line.room`
+      // exists precisely so a departure-room line reads correctly when it opens
+      // a *fresh* panel (`addScript`'s comment above); clone-appending it into
+      // an *older*, already-committed panel instead relabels that panel's room
+      // to wherever *this* line's own turn happened to depart from, which has
+      // nothing to do with the older panel's own room — found via the journey
+      // line inheriting a collapsed run's last step's departure room and
+      // mis-painting the run's arrival panel with it. A bodiless/room-less
+      // answering line is unaffected; only that combination is excluded.
+      (line.bodiless !== true &&
+        (line.answers === true && line.room === undefined
+          ? avatarSpokeInPanel(old, line.speaker)
+          : avatarInPanel(old, line.speaker)));
     const candidate = fresh ? emptyPanel(context) : clonePanel(old!, context);
     if (fresh) newPanel = false;
     const replaceLast = !fresh;
@@ -526,6 +547,15 @@ function replaceBody(panel: MutablePanel, speaker: string, emotion: readonly Emo
 /** `CPanel::AvatarInPanel` (`panel.cpp:655`). */
 function avatarInPanel(panel: Panel, speaker: string): boolean {
   return panel.bodies.some((body) => body.speaker === speaker);
+}
+
+/**
+ * Did `speaker` already get a *balloon* in this panel — as opposed to merely
+ * being staged (`<Chr>`/a reaction body, no balloon)? Ours, not a port; see the
+ * `answers` branch in `addLine` above for why the distinction matters.
+ */
+function avatarSpokeInPanel(panel: Panel, speaker: string): boolean {
+  return panel.speakers.some((line) => line.speaker === speaker);
 }
 
 /** A panel under construction — the arrays are `readonly` only once it is committed. */

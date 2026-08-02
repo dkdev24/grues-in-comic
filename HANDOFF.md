@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.25.0** · Platform: **macOS only** (2026-07-28)
+**0.25.1** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -41,28 +41,29 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — M6.2 built: save / load / restart
+## Last Session — declaration/reaction panel-split bug fixed (v0.25.1)
 
-**Implemented M6.2 exactly as scoped in `docs/DEVELOPMENT_PLAN.md` §6.2** (all six 2026-08-02
-decisions were already made; this session was code only, no new design). `web/src/main.ts`'s
-`handleShellCommand` now routes `/save [1-3]`, `/load [1-3]`, `/restart`, `/help`, replacing the old
-bare `save`/`restore` word-match at the same interception point. Three slots are separate
-`persistence.ts` `createSessionStore` keys (`grues-in-comic/save/v1/slot/1..3`) from the
-autosave/current-game key; `/load <n>` copies the slot's `{save, turns}` into the current-game key
-then `location.reload()`s, so boot-time `resume()` does the actual rebuild (no new `reset()` methods
-needed on either pane, per the decision). Slot labels are derived via a `slotLabel()` helper reading
-`SaveState.locations[PLAYER_ID]` / `globals["SCORE"]` / `turn` — the same fields `Session.load` already
-uses to rebuild the status line on restore, so the label can't drift from what loading would show.
-`/restart` arms on the first call, disarms on any other command, confirms and reloads on the second.
-A `[Type /help for save, load, and restart commands.]` system line now prints at session start.
+**Found in play by the user**: nearly every room visit split the DM's line and the Hero's reply across
+two panels instead of one two-shot, even though ADR 0010 §2 was built specifically to merge them.
+Root cause: a silent traversal turn stages the Hero's *body* (no balloon) into the DM's frame via
+`reactions`, and `AvatarInPanel`'s literal port (`panel.cpp:655`) doesn't distinguish a posed body from
+a spoken one — it blocked the *next* turn's declaration from answering that frame purely because the
+Hero was already standing there. Fixed in `page.ts`'s `addLine`: a line carrying `PageLine.answers`
+now takes the weaker `avatarSpokeInPanel` (checks balloons, not bodies), gated on `line.room ===
+undefined` after a second investigation found the unscoped version mislabels an *older* panel's room
+when a departure-room line (a collapsed traversal's journey line) clone-appends into it. Full details,
+including the corpus measurement and the two `director.test.ts` updates it required, are in
+`WORKLOG.md` v0.25.1 and `docs/PITFALLS.md` → Web & the comic pane (two new entries).
 
-**Verified live in a browser via `agent-browser`, not just tests**: `/help`'s listing; bare
-`/save`/`/load` showing all-empty slots, then two saved labels; `/save 1` → walk → `/save 2` → `/save`
-showing both derived labels correctly; `/load 1` reloading back to the saved room with `[resumed — 1
-turns restored]`; `/load 3` on an empty slot reporting `Slot 3 is empty.`; `/restart` arming, a `north`
-in between disarming it, then a clean double-`/restart` actually clearing and reloading to score/move
-0. 292/292 web tests green throughout, `npm run build` clean. No test files changed — `main.ts` has no
-unit tests today (DOM bootstrap, no non-DOM logic this change pulled out worth extracting).
+**A second, narrower cause of the identical visual pattern exists only at a session's opening 1-2
+panels** (`/restart` or first load) — a genuine, deliberate historical port (`m_panels.GetCount() < 2`)
+already pinned by a `mapper.test.ts` test. **Left as-is per the user's explicit choice** when asked:
+fixing it means retiring that fidelity-pinning test, and the recurring case (every room visit
+throughout play) is what got fixed. If the user later wants this revisited, `docs/PITFALLS.md`'s entry
+has the full mechanism.
+
+292/292 web tests green, build clean, `density:accept`/`gate:accept` re-baselined deliberately (D5 and
+D5′ both still in-band), verified live in a browser.
 
 ## Next Actions
 

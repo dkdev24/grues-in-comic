@@ -40,6 +40,39 @@ session (`docs/DEVELOPMENT_PLAN.md` §6.2, 2026-08-02); this session was impleme
   additions, since `main.ts` is DOM bootstrap with no unit tests today and nothing here moved logic out
   of it worth extracting.
 
+## v0.25.1 — 2026-08-02 — declaration/reaction panel-split bug fixed
+
+**Found in play by the user, not measurement**: on nearly every room visit, the DM's still-open frame
+(a silent traversal turn with nothing else to say, staged with the Hero's *body* but no balloon via
+`reactions`) refused to let the *next* turn's declaration answer it — `AvatarInPanel`'s literal port
+(`panel.cpp:655`) does not distinguish a posed body from a spoken one, so it forced a fresh panel
+purely because the Hero was already standing there, splitting what ADR 0010 §2 was built to make a
+two-shot. `page.ts`'s `addLine` now takes a weaker `avatarSpokeInPanel` (checks `panel.speakers`, not
+`panel.bodies`) for a line carrying `PageLine.answers`, gated on `line.room === undefined` — a
+departure-room line clone-appending into an older, already-committed panel was found (in the same
+investigation) to relabel that panel's `room` to wherever *this* line's own turn happened to depart
+from, exposed via a collapsed traversal's journey line mis-painting its run's arrival panel.
+
+- **Measured**: 43 of 1058 panels in the full-game corpus were declaration-vs-fit-driven splits before
+  this fix; with the real fit test, 32 remain (genuine balloon-space constraints — correct, unrelated
+  to this bug); under `ALWAYS_FITS` the pure-logic count dropped from 17 to 1. D5 stays 2.3, D5′ moves
+  from 46.6% to 44.1%, both inside their bands — `density:accept`/`gate:accept` re-baselined
+  deliberately, not blindly, after eyeballing the pixel diffs.
+- **A second, narrower cause of the same visual pattern exists only at a session's opening 1-2
+  panels** (`/restart` or first load) — `m_panels.GetCount() < 2` (`panel.cpp:1079`/`:1148`) is a
+  genuine, deliberate historical port, already pinned by `mapper.test.ts`. **Left as-is, the user's
+  explicit call**: fixing it means retiring that fidelity-pinning test, and the recurring, throughout-
+  play case is what this fix addresses. See `docs/PITFALLS.md` → Web & the comic pane for both entries.
+- `director.test.ts` updated in two places: the wordless-frame invariant now scopes the required
+  `roomTitle` to `kind === "traversal"` (a `kind === "terminal"` wordless reaction — the death/quit
+  shot — legitimately has none, newly exposed because a turn's own trailing content more often ends up
+  orphaned now that its declaration successfully reaches back); the back-and-forth-walk test's journey
+  line now correctly merges into the arrival's own DM balloon (2 speakers, not 1) since it carries no
+  `room` override to conflict with the fix's guard.
+- 292/292 web tests green, `tsc -p tsconfig.build.json` clean, verified live in a browser via
+  `agent-browser`: a real playthrough now draws the DM and Hero talking in one panel on an ordinary
+  room visit.
+
 ## v0.24.9 — 2026-08-01 — 6.1k: D5′ set and verified — ADR 0010 fully built
 
 **ADR 0010 slice 4 is built — all four slices are now built, and the ADR's status moves to Built.**

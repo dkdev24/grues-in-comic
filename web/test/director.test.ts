@@ -19,7 +19,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { WorldDocument } from "@grues-in-comic/ir";
 import { createSession } from "../src/session.js";
 import {
-  HERO, createMapper, journeyDeclaration, type JourneyCursor, type Panel, type TurnScript,
+  GUIDE, HERO, createMapper, journeyDeclaration, type JourneyCursor, type Panel, type TurnScript,
 } from "../src/comic/mapper.js";
 import { createDirector, speaks } from "../src/comic/director.js";
 import { BM_SAY, addScript, createPage, type PageLine } from "../src/comic/page.js";
@@ -194,11 +194,21 @@ describe("director (Slice 4 — traversal collapse)", () => {
     // to let `look`'s ambient narration clone-append silently into it — a body
     // with something to say behaves like every other panel (M6.1j supersedes
     // the one-panel merge this test pinned before the run had a voice).
+    //
+    // `flushed[0]` now carries *both* speakers, not the Hero alone (`page.ts`'s
+    // `answers`/`avatarSpokeInPanel` fix, M6.2 session): the arrival's own DM
+    // line staged the Hero into that frame only silently (`reactions`, no
+    // balloon), and the journey line — a synthesized `answers` line with no
+    // `room` override, since `SILENT_COMMANDS` leaves no declaration for
+    // `withJourneyLine` to swap text onto — is exactly the case that fix lets
+    // join a still-open frame instead of forcing a fresh one. The arrival's DM
+    // balloon and the journey line now read as one proper two-shot.
     expect(flushed).toHaveLength(2);
     expect(flushed[0]?.room).toBe("NORTH-OF-HOUSE"); // the run's destination
     expect(flushed[0]?.kind).toBe("traversal");
-    expect(flushed[0]?.speakers).toHaveLength(1);
-    expect(flushed[0]?.speakers[0]?.speaker).toBe(HERO);
+    expect(flushed[0]?.speakers).toHaveLength(2);
+    expect(flushed[0]?.speakers[0]?.speaker).toBe(GUIDE);
+    expect(flushed[0]?.speakers[1]?.speaker).toBe(HERO);
     expect(flushed[1]?.room).toBe("NORTH-OF-HOUSE"); // `look`'s own frame, same room
     expect(flushed[1]?.kind).toBe("ambient");
     expect(flushed[1]?.roomTitle).toBeNull(); // no room change from the run's own frame
@@ -274,6 +284,16 @@ describe("the wordless panel is deliberate (M6.1g)", () => {
    * What must never happen is the *actually* blank one: no balloon and no body.
    * A silent turn stages the Hero (`reactions`), so this holds today; the test
    * is here because nothing else would notice if that stopped being true.
+   *
+   * The room title is required only for the traversal-collapse's own wordless
+   * frame (`kind === "traversal"`) — it may be the reader's first sight of the
+   * destination, so it has to say where it is. A `"terminal"` wordless frame
+   * (the death/quit reaction shot, ADR 0005 §4) draws in a room the strip just
+   * established a moment ago and never needs one; `page.ts`'s `answers` fix
+   * (M6.2 session) made it common for a turn's own trailing content to end up
+   * orphaned (its declaration having reached back to answer the *previous*
+   * turn), and `addReaction` has no `answers` exception, so the guard armed by
+   * that orphaning now regularly gives the closing reaction its own panel.
    */
   it("never emits a frame with neither a balloon nor a body", () => {
     for (const file of cmdFiles()) {
@@ -286,6 +306,7 @@ describe("the wordless panel is deliberate (M6.1g)", () => {
       for (const panel of director.panels) {
         if (panel.speakers.length > 0) continue;
         expect(panel.bodies.length, `${file}: blank frame in ${panel.room}`).toBeGreaterThan(0);
+        if (panel.kind !== "traversal") continue;
         // …and it has to say where it is, or the wordless frame is unreadable.
         expect(panel.roomTitle, `${file}: untitled wordless frame in ${panel.room}`)
           .not.toBeNull();

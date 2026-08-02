@@ -237,6 +237,28 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   fix its wiring — that is a separate, unscoped change with its own pixel-gate blast radius across
   every panel — so it built `journeyRoomTitles` beside it instead (`director.ts`). If a future session
   wires the caption's table, check whether `journeyRoomTitles` can just become `roomTitles` again.
+- **`AvatarInPanel` (`panel.cpp:655`) does not distinguish a posed body from a spoken one, and a
+  silent turn's reaction (`reactions`, `mapper.ts`) stages the Hero's body into a panel he never got a
+  balloon in** (found in play, M6.2 session). ADR 0010 §2's whole point is that the *next* turn's
+  declaration answers that still-open frame — but the literal port blocked it anyway, because the
+  Hero's body was already *there*, even though he had not spoken. `page.ts`'s `addLine` now takes the
+  weaker `avatarSpokeInPanel` (checks `panel.speakers`, not `panel.bodies`) for a line carrying
+  `PageLine.answers`, scoped to that one line because `answers` is already the one thing ADR 0010 does
+  not port verbatim (ADR 0007 governs every other line). **This does not extend to `PageLine.room`:** a
+  departure-room line clone-appending into an *older*, already-committed panel relabels that panel's
+  `room` to wherever *this* line's own turn happened to depart from — found via a collapsed traversal's
+  journey line mis-painting the run's arrival panel with its own last step's departure room. The
+  `answers`-only exemption is further gated on `line.room === undefined`.
+- **The `m_panels.GetCount() < 2` guard (`panel.cpp:1079`/`:1148`) is a genuine, deliberate historical
+  port, pinned by `mapper.test.ts`'s `"opens the page one panel at a time"`** — looked at and kept in
+  the M6.2 session above. It still produces a 3-panel opening (instead of 2) whenever the very first
+  turn of a fresh page — session start or `/restart`, the only times `page.panels` is empty — has a
+  multi-line DM description: the run's first `<Chr>` bounces into a stray panel instead of the one it
+  was staged beside, which strands the Hero's body in what becomes the run's *last* panel and costs his
+  own reply a panel it should have joined. **Deliberately left as-is** (the user's call, M6.2 session):
+  it is a one-time artifact of a session's opening frames, not the recurring, throughout-play case the
+  `avatarSpokeInPanel` fix above addresses, and touching it means retiring a test that explicitly pins
+  fidelity to the cited C++ line. Revisit only with the user's explicit go-ahead.
 
 ## Art pipeline
 
