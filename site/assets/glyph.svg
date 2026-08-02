@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384" width="384" height="384" role="img" aria-label="Two glowing eyes in the dark">
+  <title>Grues in Comic</title>
+  <!--
+    docs/DESIGN.md §3.7 — the interim glyph: favicon, touch icon, OG card.
+
+    Original artwork. Traced from the user's generated raster
+    (docs/grues-in-comic-logo-glyph.png, 2026-08-02) by convex-hull extraction of
+    the green mask, then mirrored about x=192 so the halves are exact — the raster
+    was symmetric to within one pixel and this removes that last pixel.
+
+    Three things the trace fixed, all of them §3.7 requirements the raster missed:
+      · colour snapped to the §2 tokens (raster measured #6abf6e on #111113)
+      · the generator's watermark sparkle dropped (it survived to 16px as a dot)
+      · crop tightened — the mark now fills 88% of the width, was 66%
+
+    Two tones only, no gradient, no stroke, no third colour. Radius 0 (§2).
+  -->
+  <rect width="384" height="384" fill="#0c0c0e"/>
+  <path fill="#6fc36f" fill-rule="evenodd" d="
+    M 28.5 139.5 L 177.5 171.5 L 177.5 188.5 L 149.5 244.5 L 58.5 236.5 L 22.5 168.5 Z
+    M 70.5 179.5 L 141.5 194.5 L 132.5 213.5 L 76.5 208.5 L 68.5 191.5 Z
+    M 355.5 139.5 L 206.5 171.5 L 206.5 188.5 L 234.5 244.5 L 325.5 236.5 L 361.5 168.5 Z
+    M 313.5 179.5 L 242.5 194.5 L 251.5 213.5 L 307.5 208.5 L 315.5 191.5 Z
+  "/>
+</svg>

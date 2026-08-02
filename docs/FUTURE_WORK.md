@@ -150,6 +150,19 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   *Prerequisite:* an **ADR 0002 amendment** — a read-only query API (`objectsInScope()`, pull not
   push), leaving the event stream at 1.0.0. `engine/src/scope.ts` already computes the answer.
 
+- **Drawn logo mark, replacing the interim glyph.** `docs/DESIGN.md` §3.7 ships the site with a
+  terminal-text wordmark plus one small original glyph (favicon, touch icon, OG card). The user is
+  preparing a proper drawn logo.
+  *Why deferred (2026-08-02):* it is the only branch of the wordmark decision that blocks on an
+  asset rather than on a decision, and 6.3 must not wait for artwork.
+  *When it lands:* it supersedes the glyph on all three surfaces and **may** replace the masthead
+  wordmark — that is a `DESIGN.md` amendment at the time, not pre-granted. Also check it against
+  6.4: if anyone but the user drew it, it needs a `THIRD_PARTY.md` entry.
+  *Hard constraint either way:* **original work only** — not built from Comic Chat's bundled
+  character art or any Infocom asset. Both upstreams are MIT over the *software*; identity marks are
+  where "implies sponsorship" is arguable, and the game's own rendering of that art is a different
+  act from branding with it.
+
 ---
 
 ## 3. Not in this file

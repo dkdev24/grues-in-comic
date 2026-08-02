@@ -298,6 +298,16 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   pass.** Revisit only if the project gains a second machine or CI.
 - **Running `npx vitest` from the repo root times out `art/test/corpus.test.ts`** (its longer timeout
   lives in `art/vitest.config.ts`, unread by a root run). Use `npm --prefix <pkg> test`.
+- **Rasterizing SVG has no native tool here** (2026-08-02). No `rsvg-convert`, ImageMagick, Inkscape
+  or Python PIL on this machine; headless Chrome plus `sips` is the working path, and it has two
+  traps that both fail *silently*, producing a plausible file rather than an error:
+  1. **Screenshotting an `<img src="…svg">` yields a blank frame** — capture happens before the load
+     completes. Inline the SVG markup into the HTML wrapper, and pass `--virtual-time-budget=3000`.
+  2. **Chrome enforces a minimum window size**, so `--window-size=32,32` gives an empty image. Render
+     one large master (1024×1024) and downscale with `sips -z`.
+
+  Both were hit generating the §3.7 site glyph. **Always open the output and look at it** — neither
+  failure sets a non-zero exit code.
 
 ---
 

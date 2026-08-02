@@ -10,6 +10,90 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.25.3 — 2026-08-02 — 6.3 unblocked: `docs/DESIGN.md` written, site glyph built
+
+**No code shipped. This is the specification session that unblocks the static site.** M6.3 had been
+blocked since 2026-07-28 on a user-supplied `DESIGN.md` plus mockups; both halves are now resolved,
+the first by writing the document and the second by withdrawing the requirement.
+
+**`docs/DESIGN.md` (new).** The art direction rests on one rule that resolves every later conflict:
+*the terminal is the page's substrate; the comic is what is pinned to it.* Text lives on black in
+monospace (Zork's 1977–80 register); anything showing the game — panels, the CTA, screenshots — is a
+Comic Chat window on top of it, with its own grey chrome and cream interior. The two never mix inside
+one box. Explicitly excluded: ironic 90s pastiche, fake CRT scanlines, and Windows 95 widgets used
+for things that were never widgets. The retro is *cited* in the sense ADR 0007 uses.
+
+The token block reuses `web/style.css`'s `:root` verbatim so the site and the gameplay screen cannot
+drift, adding only `--ink`, `--amber`, `--halftone` and `--measure`. **Two accents total** — green
+belongs to the terminal era and marks interactive text; amber exists solely so the one CTA is the
+warmest thing on the page. No webfonts, no bundler, radius 0 everywhere, depth by 1px borders and
+two-tone bevels rather than blur.
+
+All six sections the user asked for are specified — introduction, CTA, features, background,
+changelog, copyright — plus responsive/motion/a11y rules and a file layout (`site/` beside `web/`,
+`/` and `/play` routed by `serve.ts`).
+
+**Every §7 open question was closed the same session:**
+
+- **Wordmark** — terminal text, not a drawn mark, plus one original glyph for the thumbnail surfaces
+  (Option D of four presented). A full drawn logo is coming from the user later and is recorded in
+  `docs/FUTURE_WORK.md` §2.4 as **explicitly not blocking 6.3**.
+- **Footer** — `A project by Daniel Kim`, linking to `danielkimdev24.com`. Authorship phrasing rather
+  than a `©` line, keeping the human note distinct from the three licence rows.
+- **Feature cards** — 1, 2 and 4 accepted as drafted. Card 3 was replaced: the 143/143 parity claim
+  is a *developer's* credibility line, meaningless to a visitor who has never played Zork, so the
+  save/resume card (M6.2, real since v0.25.0) took the slot and the parity claim moved to §3.4 and
+  the about page. A standing rule was added that **every card must be true on ship day** — the
+  unbuilt PDF export being the obvious temptation.
+- **H1** — `Play Zork I as a comic strip.` The user's proposal (*"Reimagining two historical
+  Microsoft open-source projects as a browser-native comic adventure"*, the `AGENTS.md` self-
+  description) was **relocated rather than dropped**: it has no verb to act on, withholds the two
+  names behind a category label, and wraps to three lines at H1 size — but it is exactly right as the
+  deck's opener, the meta description and the OG subtitle, which is where it now lives.
+- **Game URL** — `/play`, same origin. §6 records the four reasons the site and the game app stay
+  separate at all: different lifecycles (a typo fix must not re-run the pixel gate), load cost,
+  keeping the gated pane unreachable from site CSS, and 6.4's asset separation.
+
+**The mockup requirement was withdrawn (§8).** An image-generated page mockup was tried and returned
+a generic dark enterprise-SaaS page — pricing tiers, testimonials, *"REHOST YOUR LEGACY VAX/VMS
+APPLICATIONS"* — with none of the elements that make the design what it is. Traceable to the prompt
+(*"1980s DEC computer terminal"* pulled the model to VAX/VMS marketing), but the general lesson
+stands: a diffusion model cannot hold a twelve-element page spec. **The old §8 rule that "the mockup
+wins" was itself the hazard** — it would have let that misfire overwrite a considered design — so it
+is replaced by a narrower rule: a later mockup wins only where the document is silent, never against
+a dated decision.
+
+**The glyph is built** (`site/assets/`): `glyph.svg` master, `favicon-32.png`,
+`apple-touch-180.png`, `og-card.png` (1200×630) and its `og-card.source.html`. Subject is the grue's
+eyes in the dark, `--accent` on `--page-bg`. Single-subject generation worked first try where the
+page mockup failed.
+
+The SVG is a **trace** of the user's raster, not the raster: green mask → two connected components →
+convex hulls → 6 outer and 5 inner vertices per eye → mirrored about x=192 (the generated halves
+already agreed to within one pixel). Three defects fixed in the pass, each a §3.7 requirement the
+raster missed — colour snapped to the tokens (`#6abf6e` on `#111113` as measured), the generator's
+watermark sparkle removed (it survived to 16px as a visible dot), and **the crop tightened from 66%
+to 88% of frame width**. That last one is what matters: verified at 16px, the eyes stay distinct and
+the inner slits still read as notches, where the untightened raster became a green blob. The crop was
+the problem, not the drawing.
+
+**`docs/grues-favicon/` is committed as the user's backup, not as a shipping asset.** It is an
+earlier, different logo — a pixel-art grue face with "GRUES IN COMIC" lettering inside a border
+frame — and it violates three §3.7 rules (lettering, container shape, more than two tones); at 16px
+it is illegible. Its `site.webmanifest` also carries empty `name`/`short_name` and white
+`theme_color`/`background_color`, wrong for a dark-substrate site. Retained deliberately; see
+`docs/DESIGN.md` §3.7.
+
+**Also recorded:** `docs/PITFALLS.md` → Tooling gained the two headless-Chrome rasterizing traps
+(screenshotting an `<img src="…svg">` captures before load; Chrome enforces a minimum window size so
+small `--window-size` values yield empty frames). Both fail *silently* with a plausible file and no
+non-zero exit code, and both were hit generating these assets.
+
+**Documents touched:** `docs/DESIGN.md` (new), `docs/DEVELOPMENT_PLAN.md` (6.3 unblocked in three
+places), `docs/FUTURE_WORK.md` §2.4, `docs/PITFALLS.md`, `HANDOFF.md`.
+
+---
+
 ## v0.25.2 — 2026-08-02 — 6.6: HINT and HELP commands built
 
 **M6.6 is built — new stage, scoped and closed the same session.** New players unfamiliar with
