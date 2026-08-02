@@ -10,6 +10,86 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.26.3 — 2026-08-02 — Private beta deploy + first mobile-device UX pass
+
+**New plan entry, `docs/DEVELOPMENT_PLAN.md` §6.5-beta: deploy the pre-v1 site to Cloudflare Pages
+privately, so mobile UX could be checked on a real phone ahead of 1.0.0.** Deliberately scoped apart
+from 6.5's actual public-launch deployment story — no repo-visibility change, no version-1.0.0
+implication; §6.5 itself is untouched and will decide later whether this same Pages project is
+promoted or a fresh one made at launch.
+
+**Feasibility, confirmed before touching anything:** `wrangler whoami` showed an authenticated OAuth
+token (`pages:write`, `zone:read`); the `danielkimdev.com` zone was already on the same Cloudflare
+account (serving the unrelated `danielkimdev` Pages project); no Pages project yet existed for
+`grues-in-comic`.
+
+**Setup was dashboard-only, not scriptable.** Checked and recorded in `docs/PITFALLS.md` → Tooling &
+platform: `wrangler pages project create` only makes direct-upload projects — linking a GitHub repo
+for continuous deployment, and adding a custom domain (which also provisions its DNS record), both
+require the Cloudflare dashboard even with the GitHub App already installed on the repo. The user did
+that part by hand: Workers & Pages → Create → Pages → Connect to Git → `dkdev24/grues-in-comic`, root
+directory repo root, build command
+`npm --prefix web ci && npm --prefix web run build && mkdir -p web/world && cp ir/artifacts/zork1.world.json web/world/zork1.world.json`,
+output directory `web`, then Custom domains → `grues.danielkimdev.com`. The `/world/`-copy step exists
+only because the local dev server (`web/tools/serve.ts`) fakes that route by mounting
+`ir/artifacts/` at `/world/`; Pages serves the output directory verbatim, so without the copy `/play`
+would 404 fetching the world document with no build-time error — also recorded in `PITFALLS.md`.
+
+**Live: `grues.danielkimdev.com`, repo still private.** DNS resolves through Cloudflare's proxy;
+confirmed working in a real browser and on the user's Android phone.
+
+**First phone test found four mobile UX issues — a fifth (the on-screen keyboard covering both
+panes) is diagnosed but its fix is deferred to next session.** All four fixed and deployed this
+session:
+
+1. **Masthead blinking cursor read as a stray input prompt.** The `<span class="cursor">` after
+   "GRUES IN COMIC" and its `blink` keyframe animation were removed from all four pages
+   (`index.html`, `about.html`, `changelog.html`, its `changelog.template.html` source, and
+   `play/index.html`) and both stylesheets (`site.css`, `play/style.css`) — not a mobile-only
+   breakpoint fix, the element served no purpose on any screen size.
+2. **`/play`'s static "New to text adventures?" hint-note wasted vertical space** that matters most
+   on small screens. Removed (`play/index.html` markup, `.hint-note` in `play/style.css`); the
+   dynamic `[Type /help for commands...]` system message `main.ts` already prints at session start
+   covers the same ground without spending permanent layout space.
+3. **`/play`'s masthead header wasted a fixed 2.5rem strip** for a link that only ever went home.
+   Removed the `<header class="masthead">` entirely; the comic pane's own title bar ("Grues in
+   Comic") is now that link (`#comic h2 .wordmark` in `play/style.css`), and `#shell`'s height
+   calculation dropped the `- 2.5rem` it no longer needs to reserve.
+4. **Comic balloon/title text fell back to a generic font on Android Chrome.** The canvas font
+   stack (`BALLOON_FONT`/`TITLE_FONT` in `comic/balloon.ts`/`comic/render.ts`) was always
+   `"Comic Sans MS", "Comic Neue", ui-rounded, cursive` — correct in *intent*, but Android has
+   neither of the first two installed as a system font, so it fell all the way to generic cursive.
+   The real Comic Sans MS is a proprietary Microsoft core font and can't be vendored; **self-hosted
+   Comic Neue instead** (SIL Open Font License — see `THIRD_PARTY.md`), the code's own second
+   choice, as `comic-neue-400.woff2`/`comic-neue-700.woff2` under `web/assets/fonts/`, with
+   `@font-face` rules in `play/style.css`. Critically, `@font-face` alone never triggers a fetch for
+   a font that's only ever used on `<canvas>` and never in DOM text — so `main.ts` now does
+   `await Promise.all([document.fonts.load('13px "Comic Neue"'), document.fonts.load('bold 12px "Comic Neue"')]).catch(() => {})`
+   before `createComicView`'s first draw. Best-effort by design: a slow or failed font fetch still
+   leaves the existing CSS fallback chain to fall through to, same as before this fix. Verified with
+   an emulated Android (Pixel 7 viewport) session via `agent-browser`, not just assumed: played a
+   turn, screenshotted the balloon, confirmed the rounded Comic Neue glyphs render.
+5. **Diagnosed but not yet fixed: the on-screen keyboard covers roughly half the viewport**, hiding
+   both panes while typing. **Decided approach, not yet built:** dismiss the keyboard on submit
+   (blur `#command` in `main.ts`'s submit handler after a turn resolves) rather than resizing the
+   layout around the keyboard with the `visualViewport` API — keeps the change off the
+   ADR-0008-pixel-gated comic pane entirely. Trade-off named and accepted: one extra tap per turn to
+   reopen the keyboard, versus the alternative's larger surface area for a change that could
+   interact badly with the gate. Next session's first item.
+
+**A cache trap surfaced during verification, not a bug in the fix itself:** `main.js`/`style.css`
+serve `Cache-Control: public, max-age=14400`, both at Cloudflare's edge and in the phone's browser.
+After the font fix deployed, the phone kept showing the old fallback font until its browser cache
+was cleared by hand. Worth remembering for any future fix verified against this same beta URL.
+
+**Tests:** 293 web, unchanged — none of tonight's changes have test coverage (static markup/CSS, and
+`main.ts`'s font-loading bootstrap, which has no unit tests today for the same reason the rest of
+`main.ts` doesn't: browser bootstrap, no non-DOM logic worth extracting). Typecheck clean, build
+clean. Pixel gate untouched — nothing inside `#comic`'s or `#console`'s rendered markup changed,
+only chrome around them.
+
+---
+
 ## v0.26.2 — 2026-08-02 — `/hint` and `/help` become real shell commands, not game verbs
 
 **v0.26.1 forwarded `/hint` into the engine as a real command; the user rejected the whole

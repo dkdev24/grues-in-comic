@@ -18,6 +18,18 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.26.3] - 2026-08-02 — Mobile UX fixes
+
+### Fixed
+- The blinking cursor after the site title, which could be mistaken for an input prompt, is gone.
+- The gameplay screen no longer shows a redundant "New to text adventures?" note that ate space on
+  small screens, and its header has been folded into the comic pane's own title bar to free up more
+  vertical room.
+- Comic speech balloons now render in the same font on every device — previously they fell back to a
+  generic font on some phones.
+
+---
+
 ## [v0.26.2] - 2026-08-02 — `/hint` and `/help` as shell commands
 
 ### Changed
