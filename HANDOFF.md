@@ -117,9 +117,15 @@ Full detail in `WORKLOG.md` v0.25.3. No tests affected — nothing executable ch
       unstyled), then about + changelog pages, the changelog **generated, not hand-written** (§3.5).
 
    Iterate in the browser at real viewport sizes — §8 is explicit that the remaining decisions (line
-   length, wrap points, bevel weight, hero air) are not visible in a still image. **Decide the
-   custom domain before writing paths** (§6 gotcha 2): GitHub Pages project sites serve under
-   `/repo-name/`, which breaks every absolute path in the spec.
+   length, wrap points, bevel weight, hero air) are not visible in a still image.
+
+   **Origin is settled: `https://grues.danielkimdev24.com`** (custom domain on GitHub Pages, decided
+   2026-08-02). It serves from the domain root, so **every absolute path in `DESIGN.md` is correct as
+   written** — no base-path threading. Two setup items are still outstanding and are the user's:
+   a DNS `CNAME` record `grues` → `dkdev24.github.io`, and *Enforce HTTPS* in the repo's Pages
+   settings once the certificate provisions. Assembly must write a `CNAME` file **into the published
+   tree**, and must **not** publish `src/`, `test/`, `tools/` or any `.ts` — `web/` being both the
+   package and the website root makes that easy to get wrong (§6).
 3. **M6.4 asset separation & neutral branding** (☐, independent of everything) · **M6.5 public
    release** → tag `1.0.0` (☐, needs the rest).
 4. **ADR 0006 Slice 5 — session-recap PDF export.** ☐ The only open ADR slice, schedulable whenever.

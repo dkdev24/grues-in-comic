@@ -264,6 +264,9 @@ the two places text cannot go.
 | Social preview (OG/Twitter) | `web/assets/brand/og-card.png` | ✅ 1200×630 — glyph + §3.2 H1 + deck sentence, amber rule |
 | — its source | `web/assets/brand/og-card.source.html` | ✅ Re-render, don't hand-edit the PNG |
 
+**`og:image` must be an absolute URL** — relative paths are ignored by most scrapers. With the origin
+settled (§6) it is `https://grues.danielkimdev24.com/assets/brand/og-card.png`. Same for `og:url`.
+
 **How the master was made, and how to redo it.** The user generated a raster candidate; the SVG is a
 trace of it, not the raster itself. The green mask was extracted, split into two connected
 components, reduced to convex hulls, simplified to 6 outer and 5 inner vertices per eye, then
@@ -416,9 +419,17 @@ does not remove it.
 
 ### Deployment
 
-`tools/build-site.ts` runs `tsc -p web/tsconfig.build.json`, copies `web/` into `dist-site/`, and
-copies `ir/artifacts/` to `dist-site/world/`. A GitHub Action uploads `dist-site/`. No bundler,
-consistent with `web/README.md`.
+**Origin: `https://grues.danielkimdev24.com`** (decided 2026-08-02). GitHub Pages from the repo,
+served at the domain root — see gotcha 2 for the two things that must be true.
+
+`tools/build-site.ts` runs `tsc -p web/tsconfig.build.json`, copies `web/` into `dist-site/`, copies
+`ir/artifacts/` to `dist-site/world/`, and writes `dist-site/CNAME`. A GitHub Action uploads
+`dist-site/`. No bundler, consistent with `web/README.md`.
+
+**Exclude from the publish tree:** `src/`, `test/`, `tools/`, `node_modules/`, `tsconfig*.json`,
+`package*.json`, `graphify-out/`, `*.ts`. Only `dist/` ships, not the TypeScript it was built from —
+`web/` being both the package and the website root makes this an easy thing to get wrong, and
+publishing sources is how a not-yet-public repo leaks early.
 
 ### Four things that will bite
 
@@ -426,10 +437,13 @@ consistent with `web/README.md`.
    `./dist/…`); at `/play` those resolve one level too high. Redirect `/play` → `/play/` in
    `serve.ts`, and **the §4 CTA href is `/play/`**. The move also changes the game's script tag from
    `./dist/web/src/main.js` to `../dist/web/src/main.js`.
-2. **GitHub Pages project sites serve under `/repo-name/`**, which breaks every absolute path here.
-   Either use a custom domain — a subdomain of `danielkimdev24.com`, already owned per §3.6 — or
-   thread a base path through assembly. **The custom domain is far less work; decide before writing
-   the paths, not after.**
+2. ~~GitHub Pages project sites serve under `/repo-name/`.~~ **Resolved 2026-08-02 — the site is
+   `https://grues.danielkimdev24.com`.** A custom domain serves from the origin root, so **every
+   absolute path in this document is correct as written** and no base-path threading is needed. Two
+   things must be true or Pages will serve the project-site path instead: a **`CNAME` file
+   containing `grues.danielkimdev24.com` must be in the published root** (so assembly writes it into
+   `dist-site/`, not just into the repo), and DNS needs a **`CNAME` record `grues` →
+   `dkdev24.github.io`**. Enable *Enforce HTTPS* once the certificate provisions.
 3. **`@import url("/tokens.css")`** in both `site.css` and `play/style.css` keeps §2 single-source.
    Costs one blocking request; assembly can inline it later if that ever matters.
 4. **Cache headers invert on deploy.** Dev is deliberately `no-store` so a re-extracted world cannot
