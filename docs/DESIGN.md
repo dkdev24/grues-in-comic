@@ -174,8 +174,8 @@ Proposed four (final wording is the user's):
    from `WEST OF HOUSE` to `STONE BARROW`.
 3. **It remembers where you were.** Close the tab in the middle of the dungeon and come back to the
    same room. Three save slots and an autosave, kept in your browser — no account, no upload.
-4. **Kind to newcomers.** Never played a text adventure? `HELP` explains how commands work and
-   `HINT` shows what's around you, without spoiling a puzzle.
+4. **Kind to newcomers.** Never played a text adventure? `/help` explains how commands work and
+   `/hint` shows what's around you, without spoiling a puzzle.
 
 Cards do not link anywhere. They are claims, not navigation.
 

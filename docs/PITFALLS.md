@@ -63,12 +63,15 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 - **`game-over` may double-emit — unverified.** 22 events across 11 walkthroughs, two per walkthrough
   within one turn. Harmless to per-turn logic and the text-parity harness; would matter to a UI reacting
   to the event.
-- **A host-only verb (not a ZIL `SYNTAX` entry — e.g. `HINT`/`HELP`, v0.25.2) must be registered on the
-  lexicon, not just handled in `metaVerb`/a builtin.** `buildLexicon(doc)` only knows the words the
-  extracted `vocabulary` carries; an unregistered word never reaches dispatch — it fails at
-  `isKnownWord` in `parser.ts` with "I don't know the word", before any builtin gets a chance to run.
-  `engine.ts`'s `addHostVerb()` is the pattern: inject a zero-object `SyntaxRule` after
-  `buildLexicon(doc)` runs, so `buildLexicon` itself stays a pure, ZIL-faithful function.
+- **A host-only verb (not a ZIL `SYNTAX` entry) must be registered on the lexicon, not just handled
+  in `metaVerb`/a builtin.** `buildLexicon(doc)` only knows the words the extracted `vocabulary`
+  carries; an unregistered word never reaches dispatch — it fails at `isKnownWord` in `parser.ts`
+  with "I don't know the word", before any builtin gets a chance to run. `HINT`/`HELP` (v0.25.2) hit
+  this and were fixed with a lexicon-injection helper (`addHostVerb()`) — since removed, because
+  v0.26.2 moved both out of the engine entirely (they are shell commands, `/hint`/`/help`, never typed
+  as game verbs), but the trap is real for the next genuine host-only verb: inject a zero-object
+  `SyntaxRule` after `buildLexicon(doc)` runs, so `buildLexicon` itself stays a pure, ZIL-faithful
+  function.
 - **Nothing may be added to the opening turn's engine output** — it is diffed byte-for-byte against
   golden transcripts from a reference interpreter (143/143 strict). A "welcome"/instructions line
   belongs in host-side static content (`web/index.html`, styled by `style.css`), never an `EngineEvent`

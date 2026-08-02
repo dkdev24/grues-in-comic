@@ -34,6 +34,8 @@ export interface Session {
   save(): SaveState;
   load(save: SaveState): void;
   readonly status: Status;
+  /** Names of objects currently in scope — the shell's `/hint`. Not a turn. */
+  hint(): readonly string[];
 }
 
 export interface SessionOptions {
@@ -76,6 +78,9 @@ export function createSession(doc: WorldDocument, options: SessionOptions = {}):
     },
     save() {
       return engine.snapshot();
+    },
+    hint() {
+      return engine.hint();
     },
     load(save) {
       // The engine validates nothing about provenance, so the shell checks the

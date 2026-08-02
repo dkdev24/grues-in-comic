@@ -10,6 +10,45 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.26.2 — 2026-08-02 — `/hint` and `/help` become real shell commands, not game verbs
+
+**v0.26.1 forwarded `/hint` into the engine as a real command; the user rejected the whole
+premise.** "There's no such thing as 'HINT/HELP'" — `/help` and `/hint` are two separate system
+commands, and hint must be reachable **only** through `/hint`, never through plain `hint`. This is a
+bigger change than v0.26.1's routing patch: it moves HINT out of the engine entirely.
+
+**Engine (`engine/src/engine.ts`, `engine/src/builtins.ts`).** `V-HINT` and `V-HELP` are gone, and so
+are the `HINT`/`HELP` lexicon registrations (`addHostVerb`, now dead code, deleted). In their place,
+`Engine` gained `hint(): string[]` — a **query, not a turn**: it reads scope directly (the same
+filter `V-HINT` used — held + room, scenery/global excluded) without touching the turn counter, the
+event stream, or `command()`'s dispatch chain at all. `HELP`'s content was pure static text with no
+world-state dependency, so it needed no engine method — it moved to the shell outright.
+
+**Shell (`web/src/session.ts`, `web/src/main.ts`).** `Session` gained a `hint()` passthrough. `/hint`
+now calls it directly and prints to the console pane; `/help` absorbed the old `HELP` verb's "how to
+play" text alongside the existing save/load/restart listing. Neither produces a comic panel — that
+was already true of `/save`/`/load`/`/restart`, and it's the right consequence of hint no longer
+being a turn: the comic pane renders turns, and this isn't one.
+
+**Consequence, deliberate: plain `hint`/`help` typed as game commands now fail.** Neither was ever a
+real ZIL word, so removing the lexicon registration means the parser rejects them exactly like any
+other unknown word ("I don't know the word `hint`") — confirmed in the browser, and it does **not**
+cost a turn, same as any other parse rejection. `engine/test/hint.test.ts` rewritten: tests `hint()`
+as a query (returns the mailbox, leaves `turn`/`SCORE` untouched) and separately asserts the plain
+words are unrecognized. `docs/PITFALLS.md`'s host-verb entry updated — `addHostVerb()` no longer
+exists, but the trap it guarded against is still real for the next genuine host-only verb.
+
+**Copy updated everywhere it named the old mechanism:** the console's onboarding line, `play/index.html`'s
+static hint-note, the landing page's feature card, `docs/DESIGN.md` §3.3, `docs/DEVELOPMENT_PLAN.md`
+§6.6 (revision note, not a rewrite of the closed entry). `CHANGELOG.md` gained a new public entry
+rather than editing v0.25.2's.
+
+**Tests:** 142 engine (`hint.test.ts` rewritten) · 293 web (`session.test.ts` +1) · pixel gate 17/17
+— gate stayed clean because nothing inside `#comic`/`#console` markup changed, only the shell logic
+around them.
+
+---
+
 ## v0.26.1 — 2026-08-02 — 6.3 corrections: domain, upstream links, changelog source, `/hint`
 
 **Four fixes on top of v0.26.0, all from the user's first read of the shipped site.**

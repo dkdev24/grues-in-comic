@@ -38,11 +38,11 @@
           <span class="status-room"></span>
           <span class="status-score"></span>
         </div>
-        <!-- Static page chrome, not an engine event (stage 6.6): HINT/HELP are
-             engine commands, but the instruction pointing new players at them
-             has to live outside the event stream the golden harness compares,
-             so it sits here rather than in the opening turn's narration. -->
-        <p class="hint-note">New to text adventures? Type <strong>HELP</strong> for how commands work, or <strong>HINT</strong> to see what's around you.</p>
+        <!-- Static page chrome, not an engine event (stage 6.6): /help and /hint
+             are shell commands (main.ts), not part of the turn stream the golden
+             harness compares, so this instruction lives here rather than in the
+             opening turn's narration. -->
+        <p class="hint-note">New to text adventures? Type <strong>/help</strong> for how commands work, or <strong>/hint</strong> to see what's around you.</p>
         <div class="transcript" role="log" aria-live="polite"></div>
         <details id="inspector" aria-label="Event stream">
           <summary>Event stream <small>ADR 0002 contract</small></summary>

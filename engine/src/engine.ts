@@ -30,17 +30,9 @@ import { exitFor, resolveExit } from "./movement.js";
 import { describeCandidates, parse, splitSentences, type ParseResult } from "./parser.js";
 import { Rng } from "./rng.js";
 import { emit, emitOn, flush, tell, type RuntimeContext } from "./runtime.js";
-import { here, move, PLAYER_ID, truthy, type GameState, type WorldIndex } from "./state.js";
-import { buildLexicon, truncate, type Lexicon } from "./vocabulary.js";
-
-/**
- * Register a bare, zero-object verb (`V-<word>`) that the extracted vocabulary
- * never defines because it isn't a ZIL verb — see HINT/HELP, stage 6.6.
- */
-function addHostVerb(lexicon: Lexicon, word: string): void {
-  lexicon.canonical.set(truncate(word), word);
-  lexicon.verbs.set(word, [{ verb: word, objects: [], action: `V-${word}` }]);
-}
+import { hasFlag, here, move, PLAYER_ID, truthy, type GameState, type WorldIndex } from "./state.js";
+import { scope } from "./scope.js";
+import { buildLexicon, type Lexicon } from "./vocabulary.js";
 
 export interface EngineOptions extends LoadOptions {
   /** Fixes the random sequence. Same seed + same commands ⇒ same events. */
@@ -79,17 +71,19 @@ export interface Engine {
   missingRoutines(): string[];
   snapshot(): SaveState;
   restore(save: SaveState): void;
+  /**
+   * Names of the objects currently in scope (held + room, scenery/global
+   * excluded) — the shell's `/hint` (stage 6.6). A query, not a turn: unlike
+   * `command()` it touches neither the turn counter nor the event stream, so
+   * the host can offer it without it costing the player anything.
+   */
+  hint(): string[];
 }
 
 export function createEngine(doc: WorldDocument, options: EngineOptions = {}): Engine {
   const { seed, ...loadOptions } = options;
   const { world, state } = loadWorld(doc, loadOptions);
   const lexicon = buildLexicon(doc);
-  // HINT and HELP (stage 6.6) are not ZIL verbs, so they cannot come from the
-  // extracted vocabulary — register them on the lexicon directly, the same
-  // way the corpus's own SYNTAX entries would, so the parser accepts them.
-  addHostVerb(lexicon, "HINT");
-  addHostVerb(lexicon, "HELP");
   const routines = new Map<string, BehaviorRoutine>(
     (doc.routines ?? []).map((r) => [r.id, r]),
   );
@@ -280,6 +274,13 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
     missingRoutines: () => [...missingRoutines].sort(),
     snapshot: () => snapshot(state, rng),
     restore: (save) => restore(state, rng, save),
+
+    hint: () =>
+      scope(world, state)
+        .filter((e) => e.origin !== "global")
+        .filter((e) => !hasFlag(state, e.id, "NDESCBIT") && !hasFlag(state, e.id, "INVISIBLE"))
+        .map((e) => world.objects.get(e.id)?.name)
+        .filter((name): name is string => name !== undefined),
   };
 }
 

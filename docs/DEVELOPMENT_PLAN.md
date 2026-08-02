@@ -154,6 +154,15 @@ Gates C and D are both cleared, so this milestone is no longer provisional. Its 
 
 **6.6 closed 2026-08-02.** `HINT`/`HELP` are console-pane only, by the user's explicit choice — the comic pane does not render the hint listing.
 
+**Revised 2026-08-02 (v0.26.2), same session as 6.3's corrections.** `HINT` and `HELP` shipped v1 as
+ZIL-style host verbs — typed plain, dispatched through `command()` like any other turn. The user
+rejected that: `/hint` and `/help` are shell commands, like `/save`/`/load`/`/restart`, not game verbs,
+and hint must be reachable **only** via `/hint`. Both are now shell-side (`main.ts`): `/hint` calls
+the engine's new non-turn query `Engine.hint()` (doesn't touch the turn counter or the comic pane);
+`/help` absorbed the old `HELP` verb's static "how to play" text alongside the existing
+save/load/restart listing. Plain `hint`/`help` typed as game commands are no longer recognized —
+neither was ever a real ZIL word, so they now fail the same way any other unknown word does.
+
 ---
 
 ### 6.1 — The comic pane becomes a cartoon

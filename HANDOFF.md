@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.26.1** · Platform: **macOS only** (2026-07-28)
+**0.26.2** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -36,38 +36,40 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   journey line, and **D5′ (the share of emitted panels carrying both speakers) has a band, 25–60%, set
   from today's 43.7% measurement** and asserted in `density.test.ts`. This closes M6.1's stated purpose
   — the remaining M6.1 work is 6.1e's authoring volume, which was always open-ended.
-- **M6.6 ✅** (closed v0.25.2) `HINT`/`HELP` in-fiction commands, for players unfamiliar with
-  text-adventure trial-and-error. Console pane only, by the user's explicit choice.
+- **M6.6 ✅** (closed v0.25.2, revised v0.26.2) `/hint`/`/help` for players unfamiliar with
+  text-adventure trial-and-error. **Shell commands now, not game verbs** — `/hint` is
+  `Engine.hint()`, a non-turn query; plain `hint`/`help` typed in the transcript are unknown words.
+  Console pane only, by the user's explicit choice.
 - **M6.3 ✅** (closed v0.26.0, corrected v0.26.1) The static site — landing, about, generated
   changelog — built per `docs/DESIGN.md`, verified in the browser at real viewport sizes. `web/` is
   now the website root; the game moved to `web/play/`. **Local only** — nothing deployed until 6.5.
   Recorded origin is `https://grues.danielkimdev.com` (corrected from a wrong domain in v0.26.0).
 
-**Tests:** 292 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate 17/17 clean.
+**Tests:** 293 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate 17/17 clean.
 
 ---
 
-## Last Session — 6.3 corrections: domain, upstream links, changelog source, `/hint` (v0.26.1)
+## Last Session — `/hint`/`/help` are shell commands, not game verbs (v0.26.2)
 
-**Four fixes from the user's first read of the v0.26.0 site**, all applied and browser-verified:
+**Corrects v0.26.1's fix, not just the site.** v0.26.1 made `/hint` work by forwarding it into the
+engine as a real turn. The user rejected the premise: "/hint" and "/help" are two separate system
+commands, and hint must be reachable **only** via `/hint`, never via plain `hint`.
 
-1. **Wrong personal domain.** Recorded origin was `danielkimdev24.com`; corrected to
-   `danielkimdev.com` everywhere it appeared (`DESIGN.md`, `DEVELOPMENT_PLAN.md`, `WORKLOG.md`, every
-   static page, `package.json`). Origin is now `https://grues.danielkimdev.com`.
-2. **Upstream repos added to "Where this came from"** (landing + about) —
-   `github.com/historicalsource/zork1` and `github.com/microsoft/comic-chat`.
-3. **The changelog generator read the wrong file.** It parsed `WORKLOG.md` (verbose internal
-   history) instead of `CHANGELOG.md` (the purpose-built public one, "Keep a Changelog" format) —
-   which had itself gone stale, unversioned since `v0.17.2` with all of M6 sitting in
-   `[Unreleased]`. Fixed both: `build-changelog.ts` now parses `CHANGELOG.md`, and `CHANGELOG.md`
-   gained real entries for `v0.24.9`–`v0.26.0`. **`CHANGELOG.md` is now the source of truth for the
-   site's changelog — keep it current going forward, not `WORKLOG.md`.**
-4. **`/hint` reported "Unknown command."** `HINT`/`HELP` are typed without a slash (M6.6); `/save`
-   `/load` `/restart` `/help` are slash-prefixed shell commands (M6.2). A player mixing the two
-   patterns hit the shell's `default` case. Fixed by forwarding `/hint` to the engine
-   (`main.ts`, new `runGameCommand` helper); `/help`'s listing now says HINT/HELP need no slash.
+**HINT moved out of the engine entirely.** `V-HINT`/`V-HELP` and the `HINT`/`HELP` lexicon
+registrations (`addHostVerb`, now unused, deleted) are gone. `Engine` gained `hint(): string[]` — a
+**query, not a turn**: same scope filter as the old `V-HINT`, but it never touches the turn counter,
+the event stream, or `command()`. `HELP`'s text was always static, so it needed no engine method at
+all — it's pure shell content now.
 
-Full detail in `WORKLOG.md` v0.26.1. Tests: 292 web (unchanged), pixel gate 17/17.
+**`Session.hint()`** passes it through; `main.ts`'s `/hint` prints it directly, `/help` absorbed
+the old `HELP` verb's text alongside the save/load/restart list. Neither produces a comic panel —
+consistent with `/save`/`/load`/`/restart`: the comic pane renders turns, and these aren't turns.
+
+**Deliberate consequence: plain `hint`/`help` now fail as unknown words**, exactly like any other
+non-ZIL word typed at the prompt — confirmed in the browser, doesn't cost a turn.
+
+Full detail in `WORKLOG.md` v0.26.2. Tests: 142 engine (`hint.test.ts` rewritten) · 293 web
+(`session.test.ts` +1) · pixel gate 17/17.
 
 ## Next Actions
 

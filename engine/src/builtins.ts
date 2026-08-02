@@ -362,41 +362,6 @@ export function createBuiltins(): Map<string, Builtin> {
   b.set("V-VERSION", () => true);
 
   /*
-   * HINT / HELP (stage 6.6) — not ZIL verbs; the corpus never defines them, so
-   * `engine.ts` registers the words HINT and HELP on the lexicon itself and
-   * routes them here like any other verb default. Kept deliberately shallow:
-   * scope only tells us *what* is here, not which verb usefully applies to it
-   * (that is runtime behavior, not a static property of the object), so V-HINT
-   * names objects and stops there rather than guessing at "useful" commands.
-   */
-  b.set("V-HINT", (ctx) => {
-    const items = scope(ctx.world, ctx.state)
-      .filter((e) => e.origin !== "global")
-      .filter((e) => !hasFlag(ctx.state, e.id, "NDESCBIT") && !hasFlag(ctx.state, e.id, "INVISIBLE"))
-      .map((e) => ctx.world.objects.get(e.id)?.name)
-      .filter((name): name is string => name !== undefined);
-
-    if (items.length === 0) {
-      tell(ctx, "Nothing here stands out to try commands on. Type HELP for the kinds of things you can do.\n");
-    } else {
-      tell(ctx, `Things you can try commands on here: ${items.join(", ")}.\n`);
-      tell(ctx, "HINT only lists what's around, not what to do with it — that part is up to you.\n");
-    }
-    return true;
-  });
-
-  b.set("V-HELP", (ctx) => {
-    tell(
-      ctx,
-      "This is a text adventure: type short commands, usually a verb and an object.\n" +
-        "Examples: NORTH (or N), LOOK, EXAMINE LAMP, TAKE SWORD, OPEN DOOR, PUT COIN IN SLOT,\n" +
-        "READ BOOK, ATTACK TROLL WITH SWORD, INVENTORY (or I), SAVE, RESTORE, QUIT.\n" +
-        "Type HINT any time to see what you can currently interact with.\n",
-    );
-    return true;
-  });
-
-  /*
    * gmain.zil's turn loop, which `GO` tail-calls and which never returns.
    *
    * ADR 0002 gives the loop to the engine: the *host* decides when a turn

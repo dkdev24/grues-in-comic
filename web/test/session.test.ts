@@ -76,6 +76,13 @@ describe("session", () => {
     const save = { ...session.save(), contractVersion: "2.0.0" };
     expect(() => session.load(save)).toThrow(/contract/);
   });
+
+  it("hint() lists what's in scope without costing a turn", () => {
+    const session = createSession(doc, { seed: 1234 });
+    session.start();
+    expect(session.hint()).toContain("small mailbox");
+    expect(session.status.moves).toBe(0);
+  });
 });
 
 function text(turn: { events: readonly { type: string }[] }): string {

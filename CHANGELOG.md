@@ -18,6 +18,15 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.26.2] - 2026-08-02 — `/hint` and `/help` as shell commands
+
+### Changed
+- `/hint` and `/help` are now shell commands, like `/save`, `/load` and `/restart` — not plain game
+  commands. `/hint` shows what's around you without spending a turn; `/help` explains how to play and
+  lists the shell commands.
+
+---
+
 ## [v0.26.0] - 2026-08-02 — A public website
 
 ### Added

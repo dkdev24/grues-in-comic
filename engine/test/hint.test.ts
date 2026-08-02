@@ -1,9 +1,11 @@
 /**
- * Stage 6.6 — HINT and HELP.
+ * Stage 6.6 (revised) — `/hint`.
  *
- * Neither is a ZIL verb; both are registered on the lexicon by `engine.ts`
- * (see `addHostVerb`) and dispatched as ordinary builtins. These tests cover
- * the parser accepting the words and the two builtins' output, not gameplay.
+ * HINT was never a ZIL verb, and it is no longer dispatched as one either:
+ * `engine.hint()` is a query, not a turn (the shell's `/hint`, not a typed
+ * command a player could stumble into). HELP moved out of the engine
+ * entirely — its text is static and needs no world state, so it is now
+ * pure shell-side content (`main.ts`'s `/help`).
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -24,27 +26,28 @@ beforeEach(() => {
 
 const text = (events: EngineEvent[]): string => transcriptText(events);
 
-describe("HINT", () => {
-  it("lists objects in scope at the start room without naming a verb", () => {
+describe("hint()", () => {
+  it("lists objects in scope at the start room", () => {
     engine.start();
-    const out = text(engine.command("hint").events);
-    expect(out).toMatch(/mailbox/i);
-    expect(out).not.toMatch(/\bTAKE\b|\bOPEN\b|\bEXAMINE\b/);
+    expect(engine.hint()).toContain("small mailbox");
   });
 
-  it("does not advance real time, only the turn count like other verbs", () => {
+  it("is not a turn — the turn counter and score are untouched", () => {
     engine.start();
-    const before = engine.snapshot().globals["SCORE"];
-    engine.command("hint");
-    expect(engine.snapshot().globals["SCORE"]).toBe(before);
+    const before = engine.snapshot();
+    engine.hint();
+    const after = engine.snapshot();
+    expect(after.turn).toBe(before.turn);
+    expect(after.globals["SCORE"]).toBe(before.globals["SCORE"]);
   });
 });
 
-describe("HELP", () => {
-  it("explains command syntax and points to HINT", () => {
+describe("HINT and HELP as typed commands", () => {
+  it("are not recognized — neither is a ZIL verb, and neither is host-registered anymore", () => {
     engine.start();
-    const out = text(engine.command("help").events);
-    expect(out).toMatch(/verb/i);
-    expect(out).toMatch(/\bHINT\b/);
+    const hint = text(engine.command("hint").events);
+    const help = text(engine.command("help").events);
+    expect(hint).toMatch(/don't know the word/i);
+    expect(help).toMatch(/don't know the word/i);
   });
 });

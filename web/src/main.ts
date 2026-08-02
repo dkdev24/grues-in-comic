@@ -57,7 +57,7 @@ async function main(): Promise<void> {
   if (missing.length > 0) {
     consoleView.appendSystem(`[missing routines: ${missing.join(", ")}]`);
   }
-  consoleView.appendSystem("[Type /help for save, load, and restart commands.]");
+  consoleView.appendSystem("[Type /help for commands, or /hint to see what's around you.]");
 
   // The comic pane is primary (§4) but it is also the only part of the shell
   // with assets to fetch, so the game stays playable if they fail: a null comic
@@ -197,16 +197,11 @@ async function main(): Promise<void> {
       case "help":
         handleHelp();
         return true;
-      // HINT and HELP are ZIL-side host verbs (M6.6), typed without a slash —
-      // but a player who has just learned /save, /load and /restart reasonably
-      // guesses /hint too. Forward it rather than reporting it as unknown.
       case "hint":
-        runGameCommand("hint");
+        handleHint();
         return true;
       default:
-        consoleView.appendSystem(
-          `Unknown command: /${cmd}. Type /help for shell commands, or HINT / HELP (no slash) for game commands.`,
-        );
+        consoleView.appendSystem(`Unknown command: /${cmd}. Type /help for commands.`);
         return true;
     }
   }
@@ -294,11 +289,34 @@ async function main(): Promise<void> {
   }
 
   function handleHelp(): void {
+    consoleView.appendSystem(
+      "This is a text adventure: type short commands, usually a verb and an object.",
+    );
+    consoleView.appendSystem(
+      "Examples: NORTH (or N), LOOK, EXAMINE LAMP, TAKE SWORD, OPEN DOOR, PUT COIN IN SLOT,",
+    );
+    consoleView.appendSystem("READ BOOK, ATTACK TROLL WITH SWORD, INVENTORY (or I), QUIT.");
+    consoleView.appendSystem("/hint — see what you can currently interact with");
     consoleView.appendSystem("/save [1-3] — save to a slot, or list all three slots");
     consoleView.appendSystem("/load [1-3] — load a slot, or list all three slots");
     consoleView.appendSystem("/restart — start a new game (type it twice to confirm)");
     consoleView.appendSystem("/help — show this list");
-    consoleView.appendSystem("HINT, HELP — game commands, typed without a slash");
+  }
+
+  /**
+   * `/hint` (M6.6, revised): a shell-level query, not a ZIL-style turn — it
+   * reads `session.hint()` directly rather than going through `session.command()`,
+   * so it costs the player nothing and never reaches the comic pane (§4a: the
+   * comic renders turns, and this isn't one, by the user's explicit choice).
+   */
+  function handleHint(): void {
+    const items = session.hint();
+    if (items.length === 0) {
+      consoleView.appendSystem("Nothing here stands out to try commands on. Type /help for the kinds of things you can do.");
+    } else {
+      consoleView.appendSystem(`Things you can try commands on here: ${items.join(", ")}.`);
+      consoleView.appendSystem("/hint only lists what's around, not what to do with it — that part is up to you.");
+    }
   }
 
   input.focus();
