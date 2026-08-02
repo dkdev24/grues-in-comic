@@ -10,6 +10,36 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.25.2 — 2026-08-02 — 6.6: HINT and HELP commands built
+
+**M6.6 is built — new stage, scoped and closed the same session.** New players unfamiliar with
+text-adventure trial-and-error get two new in-fiction commands, alongside the existing `/help`
+shell command (M6.2, save/load/restart — unrelated, slash-prefixed so it can never shadow a real
+verb). `HINT` and `HELP` are typed bare, like any other verb, and are dispatched by the parser like
+one.
+
+- **`HINT`** (`engine/src/builtins.ts` `V-HINT`) lists everything currently in scope — held items
+  plus the room's own objects — by name, via `scope()` filtered to drop `origin === "global"`
+  (the always-in-scope pool: hands, walls, the grue) and anything flagged `NDESCBIT`/`INVISIBLE`.
+  Deliberately shallow: which verb usefully applies to an object is runtime behavior the routines
+  decide, not a static property scope can answer, so `HINT` names things and stops — no verb, no
+  effect, nothing spoiled.
+- **`HELP`** (`V-HELP`) is a static command-syntax primer (verb + object, a few worked examples)
+  that points at `HINT`.
+- **Neither is a ZIL verb**, so neither can come from the extracted vocabulary. `engine.ts`'s new
+  `addHostVerb()` registers both words on the lexicon directly at `createEngine`, the same shape a
+  real `SYNTAX` entry would take (zero object slots, action `V-<WORD>`) — `buildLexicon(doc)` itself
+  stays untouched and ZIL-faithful.
+- **The start-of-game pointer is static HTML** (`web/index.html`'s `.hint-note`, styled in
+  `style.css`), not an engine event: the opening turn's text is diffed byte-for-byte against golden
+  transcripts (143/143 strict), so anything new there would show up as a parity regression against
+  a reference interpreter that never printed it. Same reasoning that keeps the copyright banner
+  host-side.
+- **Console pane only, by the user's explicit choice** — no comic-pane rendering of the hint
+  listing.
+- New `engine/test/hint.test.ts`. 142/142 engine tests green, `tsc --noEmit` clean, parity still
+  143/143 strict (`npm run replay`).
+
 ## v0.25.0 — 2026-08-02 — 6.2: save / load / restart built
 
 **M6.2 is built — UI over the engine's existing save contract, no engine change.** `web/src/main.ts`'s

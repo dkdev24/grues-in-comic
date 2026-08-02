@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.25.1** · Platform: **macOS only** (2026-07-28)
+**0.25.2** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -36,34 +36,36 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   journey line, and **D5′ (the share of emitted panels carrying both speakers) has a band, 25–60%, set
   from today's 43.7% measurement** and asserted in `density.test.ts`. This closes M6.1's stated purpose
   — the remaining M6.1 work is 6.1e's authoring volume, which was always open-ended.
+- **M6.6 ✅** (closed v0.25.2) `HINT`/`HELP` in-fiction commands, for players unfamiliar with
+  text-adventure trial-and-error. Console pane only, by the user's explicit choice.
 
-**Tests:** 292 web · 139 engine · 198 IR · parity 143/143 strict.
+**Tests:** 292 web · 142 engine · 198 IR · parity 143/143 strict.
 
 ---
 
-## Last Session — declaration/reaction panel-split bug fixed (v0.25.1)
+## Last Session — 6.6: HINT and HELP commands built (v0.25.2)
 
-**Found in play by the user**: nearly every room visit split the DM's line and the Hero's reply across
-two panels instead of one two-shot, even though ADR 0010 §2 was built specifically to merge them.
-Root cause: a silent traversal turn stages the Hero's *body* (no balloon) into the DM's frame via
-`reactions`, and `AvatarInPanel`'s literal port (`panel.cpp:655`) doesn't distinguish a posed body from
-a spoken one — it blocked the *next* turn's declaration from answering that frame purely because the
-Hero was already standing there. Fixed in `page.ts`'s `addLine`: a line carrying `PageLine.answers`
-now takes the weaker `avatarSpokeInPanel` (checks balloons, not bodies), gated on `line.room ===
-undefined` after a second investigation found the unscoped version mislabels an *older* panel's room
-when a departure-room line (a collapsed traversal's journey line) clone-appends into it. Full details,
-including the corpus measurement and the two `director.test.ts` updates it required, are in
-`WORKLOG.md` v0.25.1 and `docs/PITFALLS.md` → Web & the comic pane (two new entries).
+**New stage, scoped and closed the same session** (`docs/DEVELOPMENT_PLAN.md` §6.6): the user wanted a
+way for players new to text adventures — trial-and-error frustration was the concern — to see what's
+around them without a full walkthrough-grade hint. `HINT` (`engine/src/builtins.ts` `V-HINT`) lists
+everything currently in scope (held + room, via `scope()`, dropping `origin === "global"` and
+`NDESCBIT`/`INVISIBLE` objects) by name only — no verb, no effect, so it can't spoil a puzzle. `HELP`
+(`V-HELP`) is a static command-syntax primer that points at `HINT`. Neither is a ZIL verb, so neither
+comes from the extracted vocabulary; `engine.ts`'s new `addHostVerb()` registers both words on the
+lexicon directly at `createEngine`, in the same shape a real `SYNTAX` entry would take, leaving
+`buildLexicon(doc)` itself untouched and ZIL-faithful.
 
-**A second, narrower cause of the identical visual pattern exists only at a session's opening 1-2
-panels** (`/restart` or first load) — a genuine, deliberate historical port (`m_panels.GetCount() < 2`)
-already pinned by a `mapper.test.ts` test. **Left as-is per the user's explicit choice** when asked:
-fixing it means retiring that fidelity-pinning test, and the recurring case (every room visit
-throughout play) is what got fixed. If the user later wants this revisited, `docs/PITFALLS.md`'s entry
-has the full mechanism.
+**The start-of-game pointer to both commands is static HTML** (`web/index.html`'s `.hint-note`), not
+an engine event — the opening turn's text is diffed byte-for-byte against golden transcripts (143/143
+strict), so anything added there reads as a parity regression against a reference interpreter that
+never printed it. Same reasoning that already keeps the copyright banner host-side. **Console pane
+only, by the user's explicit choice** — the comic pane does not render the hint listing. This is
+unrelated to the pre-existing `/help` *shell* command (M6.2, save/load/restart) — that one is
+slash-prefixed specifically so it can never shadow a real verb; `HINT`/`HELP` are typed bare and
+dispatched by the parser like any other command.
 
-292/292 web tests green, build clean, `density:accept`/`gate:accept` re-baselined deliberately (D5 and
-D5′ both still in-band), verified live in a browser.
+New `engine/test/hint.test.ts`; full details in `WORKLOG.md` v0.25.2. 142/142 engine tests green,
+`tsc --noEmit` clean, parity still 143/143 strict (`npm run replay`).
 
 ## Next Actions
 

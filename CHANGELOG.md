@@ -13,6 +13,12 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ## [Unreleased]
 
+### Added
+- Two new commands for players unfamiliar with text-adventure trial-and-error: `HINT` lists what's
+  currently around you (held items and the room's own objects) by name, without saying which command
+  helps or what it does; `HELP` explains how commands are written. Both are pointed to from the start
+  of the game. Console pane only.
+
 ### Changed
 - The Hero no longer ends most of his lines the same way. Picking something up used to produce one
   fixed phrase every time; he now has a rotation of them, and the handful of written lines that had

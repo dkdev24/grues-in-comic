@@ -31,7 +31,16 @@ import { describeCandidates, parse, splitSentences, type ParseResult } from "./p
 import { Rng } from "./rng.js";
 import { emit, emitOn, flush, tell, type RuntimeContext } from "./runtime.js";
 import { here, move, PLAYER_ID, truthy, type GameState, type WorldIndex } from "./state.js";
-import { buildLexicon, type Lexicon } from "./vocabulary.js";
+import { buildLexicon, truncate, type Lexicon } from "./vocabulary.js";
+
+/**
+ * Register a bare, zero-object verb (`V-<word>`) that the extracted vocabulary
+ * never defines because it isn't a ZIL verb — see HINT/HELP, stage 6.6.
+ */
+function addHostVerb(lexicon: Lexicon, word: string): void {
+  lexicon.canonical.set(truncate(word), word);
+  lexicon.verbs.set(word, [{ verb: word, objects: [], action: `V-${word}` }]);
+}
 
 export interface EngineOptions extends LoadOptions {
   /** Fixes the random sequence. Same seed + same commands ⇒ same events. */
@@ -76,6 +85,11 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
   const { seed, ...loadOptions } = options;
   const { world, state } = loadWorld(doc, loadOptions);
   const lexicon = buildLexicon(doc);
+  // HINT and HELP (stage 6.6) are not ZIL verbs, so they cannot come from the
+  // extracted vocabulary — register them on the lexicon directly, the same
+  // way the corpus's own SYNTAX entries would, so the parser accepts them.
+  addHostVerb(lexicon, "HINT");
+  addHostVerb(lexicon, "HELP");
   const routines = new Map<string, BehaviorRoutine>(
     (doc.routines ?? []).map((r) => [r.id, r]),
   );

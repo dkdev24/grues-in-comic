@@ -60,7 +60,7 @@ Goal: populate the IR from the parsed AST, subsystem by subsystem. Deterministic
 | 3.2 | **Objects** — objects, properties, flags, containment, initial locations | All objects in IR with validator passing | ☑ |
 | 3.3 | **Vocabulary & syntax** — verbs, synonyms, adjectives, parser syntax rules | Vocabulary tables extracted to IR | ☑ |
 | 3.4 | **Action routines (simple)** — object/room action handlers with straightforward logic | Majority of handlers represented; complex ones catalogued | ☑ |
-| 3.5 | **Complex behavior** — puzzles, daemons/timers (thief, troll, lamp, matches), scoring, death/resurrection | Each system extracted with a written behavioral spec cross-checked against golden transcripts | ☐ |
+| 3.5 | **Complex behavior** — puzzles, daemons/timers (thief, troll, lamp, matches), scoring, death/resurrection | Each system extracted with a written behavioral spec cross-checked against golden transcripts | ☑ |
 
 Stages 3.4–3.5 may split into multiple sessions per batch of routines — track batches in `HANDOFF.md`.
 
@@ -148,8 +148,11 @@ Gates C and D are both cleared, so this milestone is no longer provisional. Its 
 | 6.3 | **The static site** — landing/home page, about, public changelog, alongside the gameplay screen; to `DESIGN.md` + mockups (user-supplied, pending) | Static pages ship, gameplay screen restyled to the same look & feel | ☐ |
 | 6.4 | **Asset separation & neutral branding** — engine, IR spec and ZIL importer extractable for standalone use | Reusable assets identified and separable; licensing/attribution settled (`THIRD_PARTY.md`) | ☐ |
 | 6.5 | **Public release** — repo made public, website shipped | Repo public + website live → tag `1.0.0` | ☐ |
+| 6.6 | **`HINT`/`HELP` commands** — v1: `HINT` lists what's currently in scope (held + room, scenery/global excluded) so a new player sees what to try commands on, without naming which verb helps or what it does; `HELP` documents command syntax generally and points to `HINT`. Wire both into the start-of-game instructions. | `HINT` lists in-scope objects by name; `HELP` explains command syntax and mentions `HINT`; both appear in the opening instructions | ☑ |
 
-**Ordering.** 6.1 first, by the user's own weighting and because it is the only stage that can invalidate an ADR. 6.2 is independent of everything and can fill an idle session. 6.3 is blocked on `DESIGN.md` and the mockups, not on us. 6.4 is independent of 6.1–6.3. 6.5 needs all of them.
+**Ordering.** 6.1 first, by the user's own weighting and because it is the only stage that can invalidate an ADR. 6.2 is independent of everything and can fill an idle session. 6.3 is blocked on `DESIGN.md` and the mockups, not on us. 6.4 is independent of 6.1–6.3. 6.6 is independent, like 6.2. 6.5 needs all of them.
+
+**6.6 closed 2026-08-02.** `HINT`/`HELP` are console-pane only, by the user's explicit choice — the comic pane does not render the hint listing.
 
 ---
 
