@@ -18,6 +18,23 @@
 
 ---
 
+## Comic Neue
+
+- Source: Google Fonts (https://fonts.google.com/specimen/Comic+Neue), designed by Craig Rozynski
+- License: SIL Open Font License 1.1
+- Imported: 2026-08-02
+- Purpose: Self-hosted balloon/title font for the comic pane (`web/assets/fonts/`).
+  The real Comic Sans MS is a proprietary Microsoft core font and cannot be
+  vendored; Comic Neue is an open, freely redistributable redraw and was
+  already second in the code's font fallback chain (`web/src/comic/balloon.ts`,
+  `render.ts`). Self-hosting fixes canvas text rendering on platforms — Android
+  Chrome, notably — that have neither Comic Sans MS nor Comic Neue installed
+  as a system font.
+- Files vendored: `comic-neue-400.woff2`, `comic-neue-700.woff2` (regular +
+  bold, Latin subset only)
+
+---
+
 # Build & Verification Tools
 
 The following are **external tools invoked by the verification pipeline**. No

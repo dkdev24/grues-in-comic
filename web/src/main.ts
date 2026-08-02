@@ -59,6 +59,17 @@ async function main(): Promise<void> {
   }
   consoleView.appendSystem("[Type /help for commands, or /hint to see what's around you.]");
 
+  // Comic Sans MS isn't installed on every platform (Android Chrome, notably),
+  // so the balloon/title canvas text falls back to whatever the OS has unless
+  // the self-hosted fallback (THIRD_PARTY.md → Comic Neue) is loaded before
+  // the first draw — @font-face alone doesn't trigger a fetch for a font only
+  // ever used on <canvas>, never in DOM text. Best-effort: a slow or failed
+  // fetch still leaves the CSS fallback chain to fall through to, same as today.
+  await Promise.all([
+    document.fonts.load('13px "Comic Neue"'),
+    document.fonts.load('bold 12px "Comic Neue"'),
+  ]).catch(() => {});
+
   // The comic pane is primary (§4) but it is also the only part of the shell
   // with assets to fetch, so the game stays playable if they fail: a null comic
   // degrades to 5.2's text shell rather than to a blank page.

@@ -11,6 +11,28 @@
 
 @import url("/tokens.css");
 
+/* Comic Sans MS is not installed on every platform (Android, notably), so the
+   balloon/title font falls back to whatever the OS has — which is not the
+   iconic look Comic Chat needs. Self-hosting the open-license fallback that
+   was already second in the canvas font stack (`comic/balloon.ts`,
+   `comic/render.ts`) makes that fallback identical everywhere instead of
+   depending on the OS. See THIRD_PARTY.md → Comic Neue. */
+@font-face {
+  font-family: "Comic Neue";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/comic-neue-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Comic Neue";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/comic-neue-700.woff2") format("woff2");
+}
+
 :root {
   --status-bg: #d8d8d8;
   --status-fg: #000;
