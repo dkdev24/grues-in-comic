@@ -233,7 +233,7 @@ hurry.
 
 Substrate, `--console-dim`, 0.85rem, one line per item, no columns:
 
-- **`A project by Daniel Kim`** — the name links to `https://danielkimdev24.com` (decided
+- **`A project by Daniel Kim`** — the name links to `https://danielkimdev.com` (decided
   2026-08-02). This covers the project's own code and authored dialogue, under this repository's
   licence. Phrased as authorship rather than a `©` line: it reads as a person's project, which is
   what it is, and it keeps the one warm human note away from the three licence rows below it.
@@ -265,7 +265,7 @@ the two places text cannot go.
 | — its source | `web/assets/brand/og-card.source.html` | ✅ Re-render, don't hand-edit the PNG |
 
 **`og:image` must be an absolute URL** — relative paths are ignored by most scrapers. With the origin
-settled (§6) it is `https://grues.danielkimdev24.com/assets/brand/og-card.png`. Same for `og:url`.
+settled (§6) it is `https://grues.danielkimdev.com/assets/brand/og-card.png`. Same for `og:url`.
 
 **How the master was made, and how to redo it.** The user generated a raster candidate; the SVG is a
 trace of it, not the raster itself. The green mask was extracted, split into two connected
@@ -428,7 +428,7 @@ through the existing dev server and nothing else.
 alongside making the repo public. 6.3's deliverable is the pages themselves, served by
 `web/tools/serve.ts` as it stands.
 
-**The origin is recorded, not activated: `https://grues.danielkimdev24.com`** (chosen 2026-08-02).
+**The origin is recorded, not activated: `https://grues.danielkimdev.com`** (chosen 2026-08-02).
 It stays written down here because two decisions already depend on knowing it, and both are cheaper
 to get right now than to retrofit:
 
@@ -458,7 +458,7 @@ decision, and the person who writes the deploy script months from now will not r
    `serve.ts`, and **the §4 CTA href is `/play/`**. The move also changes the game's script tag from
    `./dist/web/src/main.js` to `../dist/web/src/main.js`.
 2. ~~GitHub Pages project sites serve under `/repo-name/`.~~ **Resolved 2026-08-02 — the origin will
-   be `https://grues.danielkimdev24.com`, which serves from the domain root, so every absolute path
+   be `https://grues.danielkimdev.com`, which serves from the domain root, so every absolute path
    in this document is correct as written.** Nothing is deployed until 6.5 (see Deployment above);
    the decision is recorded now only because retrofitting a base path through every stylesheet and
    meta tag later would be far more work than choosing correctly today.
@@ -492,7 +492,7 @@ released-build risk for no gain.
    from the user later and will supersede the glyph — tracked in `docs/FUTURE_WORK.md` §2.4, and
    **it must not block 6.3**.
 2. ~~**Copyright holder line:** personal name or entity?~~ **Decided 2026-08-02: `A project by
-   Daniel Kim`, linking to `https://danielkimdev24.com`.** See §3.6.
+   Daniel Kim`, linking to `https://danielkimdev.com`.** See §3.6.
 3. ~~**Feature card titles.**~~ **Partly decided 2026-08-02:** cards 1, 2 and 4 accepted as drafted.
    Card 3 was replaced — the parity claim was a developer's credibility line, not a player's reason
    to click — and is now the save/resume card (§3.3), with the parity claim relocated to §3.4 and

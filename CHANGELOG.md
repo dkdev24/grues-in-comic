@@ -13,32 +13,52 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ## [Unreleased]
 
+Toward public launch (`1.0.0`): separation of the reusable assets (engine, IR spec, ZIL importer)
+under neutral branding, and the public release itself — repo public + website live.
+
+---
+
+## [v0.26.0] - 2026-08-02 — A public website
+
+### Added
+- A website: a landing page introducing the project, an about page, and this changelog. The game
+  itself now lives at `/play/`.
+
+---
+
+## [v0.25.2] - 2026-08-02 — HINT and HELP commands
+
 ### Added
 - Two new commands for players unfamiliar with text-adventure trial-and-error: `HINT` lists what's
-  currently around you (held items and the room's own objects) by name, without saying which command
-  helps or what it does; `HELP` explains how commands are written. Both are pointed to from the start
-  of the game. Console pane only.
+  currently around you by name, without saying which command helps or what it does; `HELP` explains
+  how commands are written. Both are pointed to from the start of the game.
 
-### Changed
-- The Hero no longer ends most of his lines the same way. Picking something up used to produce one
-  fixed phrase every time; he now has a rotation of them, and the handful of written lines that had
-  picked up the same tic have been reworded.
+---
+
+## [v0.25.1] - 2026-08-02 — Comic pane dialogue fixes
 
 ### Fixed
 - The comic pane no longer puts the Hero's reply in the same frame as the *next* turn's line from the
   Dungeon Master, so a split exchange can't read as him answering the wrong question.
-- A death is drawn in the room it happened in, rather than under the name and backdrop of the room
-  the player is resurrected into.
-- The pair repeat themselves far less on treasure and take/drop turns — the acknowledgement lines had
-  been recycling on consecutive panels during long collecting runs.
-- More exchanges land in a single panel as a facing two-shot instead of being split across two, on
-  the arrival turns that show a location name.
+- A death is drawn in the room it happened in, rather than the room the player is resurrected into.
+- Fewer repeated acknowledgement lines during long item pickup/drop runs.
+- More exchanges land in a single panel as a facing two-shot instead of being split across two.
 
-Toward public launch (`1.0.0`), now Milestone 6: the comic pane becoming a true cartoon (the Dungeon
-Master and the Hero conversing in most scenes), save/load/restart on the gameplay screen, a proper
-landing page, separation of the reusable assets (engine, IR spec, ZIL importer) under neutral
-branding, and the public release itself — repo public + website. More items to come. Milestone 5
-(comic presentation) is complete: the game is completable in the browser.
+---
+
+## [v0.25.0] - 2026-08-02 — Save, load and restart
+
+### Added
+- Three save slots and an autosave, kept in your browser. No account, no upload.
+
+---
+
+## [v0.24.9] - 2026-08-01 — The Hero speaks his own commands
+
+### Changed
+- The Hero now says what he's doing as part of the comic dialogue, instead of the Dungeon Master
+  narrating his moves for him. He also no longer ends most of his lines the same way — a rotation of
+  phrasing replaced the single fixed one.
 
 ---
 

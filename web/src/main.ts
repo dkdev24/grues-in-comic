@@ -134,14 +134,9 @@ async function main(): Promise<void> {
     // are Z-machine interpreter commands, and this shell is the interpreter.
     if (handleShellCommand(command)) return;
 
-    try {
-      play(session.command(command));
-      autosave();
-    } catch (err) {
-      // A crashed turn must not take the page with it — the transcript so far
-      // is the bug report.
-      consoleView.appendSystem(`[engine error: ${message(err)}]`);
-    }
+    // A crashed turn must not take the page with it — the transcript so far
+    // is the bug report.
+    runGameCommand(command);
   });
 
   /**
@@ -202,9 +197,26 @@ async function main(): Promise<void> {
       case "help":
         handleHelp();
         return true;
-      default:
-        consoleView.appendSystem(`Unknown command: /${cmd}. Type /help for commands.`);
+      // HINT and HELP are ZIL-side host verbs (M6.6), typed without a slash —
+      // but a player who has just learned /save, /load and /restart reasonably
+      // guesses /hint too. Forward it rather than reporting it as unknown.
+      case "hint":
+        runGameCommand("hint");
         return true;
+      default:
+        consoleView.appendSystem(
+          `Unknown command: /${cmd}. Type /help for shell commands, or HINT / HELP (no slash) for game commands.`,
+        );
+        return true;
+    }
+  }
+
+  function runGameCommand(command: string): void {
+    try {
+      play(session.command(command));
+      autosave();
+    } catch (err) {
+      consoleView.appendSystem(`[engine error: ${message(err)}]`);
     }
   }
 
@@ -286,6 +298,7 @@ async function main(): Promise<void> {
     consoleView.appendSystem("/load [1-3] — load a slot, or list all three slots");
     consoleView.appendSystem("/restart — start a new game (type it twice to confirm)");
     consoleView.appendSystem("/help — show this list");
+    consoleView.appendSystem("HINT, HELP — game commands, typed without a slash");
   }
 
   input.focus();

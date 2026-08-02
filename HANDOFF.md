@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.26.0** · Platform: **macOS only** (2026-07-28)
+**0.26.1** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -38,44 +38,36 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   — the remaining M6.1 work is 6.1e's authoring volume, which was always open-ended.
 - **M6.6 ✅** (closed v0.25.2) `HINT`/`HELP` in-fiction commands, for players unfamiliar with
   text-adventure trial-and-error. Console pane only, by the user's explicit choice.
-- **M6.3 ✅** (closed v0.26.0) The static site — landing, about, generated changelog — built per
-  `docs/DESIGN.md`, verified in the browser at real viewport sizes. `web/` is now the website root;
-  the game moved to `web/play/`. **Local only** — nothing deployed until 6.5.
+- **M6.3 ✅** (closed v0.26.0, corrected v0.26.1) The static site — landing, about, generated
+  changelog — built per `docs/DESIGN.md`, verified in the browser at real viewport sizes. `web/` is
+  now the website root; the game moved to `web/play/`. **Local only** — nothing deployed until 6.5.
+  Recorded origin is `https://grues.danielkimdev.com` (corrected from a wrong domain in v0.26.0).
 
 **Tests:** 292 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate 17/17 clean.
 
 ---
 
-## Last Session — 6.3 built: the static site ships, local only (v0.26.0)
+## Last Session — 6.3 corrections: domain, upstream links, changelog source, `/hint` (v0.26.1)
 
-**M6.3 is closed.** Built the `HANDOFF.md` build order end to end: moved the game to `web/play/`,
-extracted `web/tokens.css`, built the six-section landing page (`web/index.html` + `web/site.css`),
-redirected `/play` → `/play/` in `serve.ts`, built `about.html` and a generated `changelog.html`, and
-verified every page in a real browser at desktop and 375px widths.
+**Four fixes from the user's first read of the v0.26.0 site**, all applied and browser-verified:
 
-**Two real bugs, both caught only by loading pages in a browser, exactly as `DESIGN.md` §8 said
-to.** (1) `serve.ts`'s `resolvePath` only ever mapped the site *root* to `index.html` — every other
-directory 404'd, which would have broken the `/play/` redirect's own target. Fixed to resolve
-`index.html` for any path ending in `/`. (2) `main.ts`'s `WORLD_URL` / `COMIC_ASSETS` were relative
-(`./world/…`), correct only when the game lived at the site root; at `/play/` they 404'd one level
-below the real `/world/` mount. Both became absolute paths. Neither was catchable by the type
-checker — both were valid strings, just wrong ones.
+1. **Wrong personal domain.** Recorded origin was `danielkimdev24.com`; corrected to
+   `danielkimdev.com` everywhere it appeared (`DESIGN.md`, `DEVELOPMENT_PLAN.md`, `WORKLOG.md`, every
+   static page, `package.json`). Origin is now `https://grues.danielkimdev.com`.
+2. **Upstream repos added to "Where this came from"** (landing + about) —
+   `github.com/historicalsource/zork1` and `github.com/microsoft/comic-chat`.
+3. **The changelog generator read the wrong file.** It parsed `WORKLOG.md` (verbose internal
+   history) instead of `CHANGELOG.md` (the purpose-built public one, "Keep a Changelog" format) —
+   which had itself gone stale, unversioned since `v0.17.2` with all of M6 sitting in
+   `[Unreleased]`. Fixed both: `build-changelog.ts` now parses `CHANGELOG.md`, and `CHANGELOG.md`
+   gained real entries for `v0.24.9`–`v0.26.0`. **`CHANGELOG.md` is now the source of truth for the
+   site's changelog — keep it current going forward, not `WORKLOG.md`.**
+4. **`/hint` reported "Unknown command."** `HINT`/`HELP` are typed without a slash (M6.6); `/save`
+   `/load` `/restart` `/help` are slash-prefixed shell commands (M6.2). A player mixing the two
+   patterns hit the shell's `default` case. Fixed by forwarding `/hint` to the engine
+   (`main.ts`, new `runGameCommand` helper); `/help`'s listing now says HINT/HELP need no slash.
 
-**The strip sample on the landing page is real engine output** (`web/assets/strip-sample.png`),
-rendered via `tools/render-panel.ts` against `02-house-entry.cmd` and stitched from three picked
-panels — not a mockup, per §3.2's own requirement.
-
-**The changelog is generated, not hand-written** (§3.5) — new `web/tools/build-changelog.ts` parses
-`WORKLOG.md`'s own `## vX.Y.Z — DATE — summary` headers, `npm run changelog` to re-run it after any
-future worklog entry.
-
-**Gameplay screen restyling stayed inside §6's scope** — masthead wordmark + shared token file only,
-panes untouched. Pixel gate stayed clean (17/17).
-
-**Nothing is deployed.** No `build-site.ts`, no `dist-site/`, no GitHub Action — all 6.5, per
-`DESIGN.md` §6's explicit deferral. The `website/` rename is still deferred (`FUTURE_WORK.md` §2.4).
-
-Full detail in `WORKLOG.md` v0.26.0. Tests: 292 web (unchanged), pixel gate 17/17.
+Full detail in `WORKLOG.md` v0.26.1. Tests: 292 web (unchanged), pixel gate 17/17.
 
 ## Next Actions
 

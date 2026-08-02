@@ -1,7 +1,7 @@
 {
   "name": "@grues-in-comic/web",
   "version": "0.1.0",
-  "description": "The website — static pages at the root and the game at /play/, the browser shell over the ADR 0002 event stream (stages 5.2–5.3, 6.3). Local only until the 1.0.0 release; the recorded origin is https://grues.danielkimdev24.com. Folder rename to `website/` deferred, see docs/FUTURE_WORK.md",
+  "description": "The website — static pages at the root and the game at /play/, the browser shell over the ADR 0002 event stream (stages 5.2–5.3, 6.3). Local only until the 1.0.0 release; the recorded origin is https://grues.danielkimdev.com. Folder rename to `website/` deferred, see docs/FUTURE_WORK.md",
   "type": "module",
   "license": "Apache-2.0",
   "private": true,

@@ -10,6 +10,45 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.26.1 — 2026-08-02 — 6.3 corrections: domain, upstream links, changelog source, `/hint`
+
+**Four fixes on top of v0.26.0, all from the user's first read of the shipped site.**
+
+**Wrong personal domain throughout.** The recorded origin was `danielkimdev24.com`; the user's actual
+domain is `danielkimdev.com`. Corrected everywhere it appeared — `docs/DESIGN.md`, `docs/
+DEVELOPMENT_PLAN.md`, `WORKLOG.md`, `web/index.html`, `web/about.html`, `web/changelog.html`,
+`web/tools/changelog.template.html`, `web/package.json`. The recorded origin is now
+`https://grues.danielkimdev.com`.
+
+**Upstream repositories added to "Where this came from."** §3.4 named both source projects but never
+linked to them. Added `github.com/historicalsource/zork1` and `github.com/microsoft/comic-chat` —
+the same two repos `WORKLOG.md`'s own licence-verification entry (2026-07-xx) already cites — to both
+the landing page's background section and the about page's opening paragraph.
+
+**The changelog was generated from the wrong file.** `tools/build-changelog.ts` parsed `WORKLOG.md`,
+the verbose internal engineering log, and put that detail on a public page — exactly what
+`DESIGN.md` §3.5 warned against, just aimed at the wrong source. The project already has a
+purpose-built public changelog, `CHANGELOG.md` ("Keep a Changelog" format), that had simply gone
+stale — unversioned since `v0.17.2`, with all of Milestone 6 sitting in `[Unreleased]`. Fixed both
+halves: the generator now parses `CHANGELOG.md`'s `## [vX.Y.Z] - DATE — summary` headers instead, and
+`CHANGELOG.md` gained real versioned entries for `v0.24.9` through `v0.26.0` (Hero speaks his own
+commands, save/load/restart, comic-pane dialogue fixes, HINT/HELP, the static site itself), each a
+short player-facing summary rather than a slice-by-slice narrative. `[Unreleased]` now holds only
+what's still ahead of `1.0.0`.
+
+**`/hint` was reported broken; the command was not.** `HINT` and `HELP` (M6.6, built v0.25.2) are
+ZIL-side host verbs, typed without a slash, as the console's own onboarding line says. But `/save`,
+`/load`, `/restart` and `/help` are all slash-prefixed shell commands (M6.2), and a player who just
+learned that pattern reasonably tries `/hint` next — which fell into `handleShellCommand`'s `default`
+case and reported "Unknown command." Fixed by forwarding `/hint` to the engine as a real command
+(`main.ts`, new `runGameCommand` helper shared with the plain submit path) rather than teaching the
+player a syntax the game doesn't use twice. `/help`'s own listing and the unknown-command message
+both now say HINT/HELP are typed without a slash.
+
+**Tests:** 292 web, pixel gate 17/17 — unchanged, none of this touched engine or render code.
+
+---
+
 ## v0.26.0 — 2026-08-02 — 6.3 built: the static site ships (local only)
 
 **M6.3 is built**, following the build order `HANDOFF.md` left at session end: the layout move, the
@@ -31,7 +70,7 @@ wordmark, blinking cursor, nav), introduction (H1, deck, amber CTA, secondary li
 window holding a strip sample), features (4 cards, 2×2 → 1-up below 720px), background (two-column
 eras + joining thesis + parity claim), changelog (latest 3, generated), footer (authorship line,
 licence rows, non-affiliation, `THIRD_PARTY.md` link). Meta description, OG tags and canonical URL
-all use the recorded origin `https://grues.danielkimdev24.com`, absolute per §6 gotcha 2.
+all use the recorded origin `https://grues.danielkimdev.com`, absolute per §6 gotcha 2.
 
 **The strip sample is real engine output, not a mockup** (§3.2's own requirement): rendered via
 `tools/render-panel.ts` against `02-house-entry.cmd`, three panels picked (the classic opening, a
@@ -108,7 +147,7 @@ changelog, copyright — plus responsive/motion/a11y rules and a file layout (`s
 - **Wordmark** — terminal text, not a drawn mark, plus one original glyph for the thumbnail surfaces
   (Option D of four presented). A full drawn logo is coming from the user later and is recorded in
   `docs/FUTURE_WORK.md` §2.4 as **explicitly not blocking 6.3**.
-- **Footer** — `A project by Daniel Kim`, linking to `danielkimdev24.com`. Authorship phrasing rather
+- **Footer** — `A project by Daniel Kim`, linking to `danielkimdev.com`. Authorship phrasing rather
   than a `©` line, keeping the human note distinct from the three licence rows.
 - **Feature cards** — 1, 2 and 4 accepted as drafted. Card 3 was replaced: the 143/143 parity claim
   is a *developer's* credibility line, meaningless to a visitor who has never played Zork, so the
