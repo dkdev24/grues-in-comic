@@ -9,19 +9,13 @@
  * shell.
  */
 
+@import url("/tokens.css");
+
 :root {
-  --console-bg: #000;
-  --console-fg: #d8d8d8;
-  --console-dim: #8a8a8a;
   --status-bg: #d8d8d8;
   --status-fg: #000;
-  --accent: #6fc36f;
   --panel-bg: #1b1b1f;
   --panel-fg: #c9c9d1;
-  --rule: #3a3a42;
-  --comic-chrome: #c0c0c0;
-  --comic-edge: #808080;
-  --comic-paper: #efece2;
   --mono: "SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
 }
 
@@ -36,11 +30,55 @@ body {
 }
 
 body {
-  background: #0c0c0e;
+  background: var(--page-bg);
   color: var(--console-fg);
   font-family: var(--mono);
   font-size: 15px;
   line-height: 1.45;
+}
+
+/* ---------------- masthead (DESIGN.md §3.1, §6 gameplay-screen scope) ---------------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.masthead .wordmark {
+  color: var(--console-fg);
+  text-decoration: none;
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  font-size: 0.9rem;
+}
+
+.masthead .wordmark:hover {
+  color: var(--accent);
+}
+
+.masthead .cursor {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 0.15em;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  animation: blink 1.06s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .masthead .cursor {
+    animation: none;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }
 
 #shell {
@@ -50,7 +88,7 @@ body {
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 0.75rem;
   padding: 0.75rem;
-  height: 100dvh;
+  height: calc(100dvh - 2.5rem);
 }
 
 section {

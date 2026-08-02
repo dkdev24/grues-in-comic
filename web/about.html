@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About — Grues in Comic</title>
+    <meta
+      name="description"
+      content="How Grues in Comic joins Zork I's ZIL sources and Microsoft Comic Chat's layout engine — the method, the parity guarantee, and what it deliberately isn't."
+    />
+    <link rel="canonical" href="https://grues.danielkimdev24.com/about" />
+    <link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-180.png" />
+    <link rel="stylesheet" href="/site.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="wrap">
+      <header class="masthead">
+        <a href="/" class="wordmark">GRUES IN COMIC<span class="cursor" aria-hidden="true"></span></a>
+        <nav>
+          <a href="/about">about</a>
+          <a href="/changelog">changelog</a>
+          <a href="https://github.com/dkdev24/grues-in-comic">source</a>
+        </nav>
+      </header>
+    </div>
+
+    <div class="wrap page-header">
+      <h1>About this project</h1>
+    </div>
+
+    <main id="main">
+      <div class="wrap prose">
+        <p>
+          <strong>Grues in Comic</strong> joins two historical Microsoft open-source projects,
+          released seventeen years apart, so that one narrates and the other draws: Zork I's
+          original ZIL sources, and Microsoft Comic Chat's comic-strip layout engine.
+        </p>
+
+        <h2>Not a source port</h2>
+        <p>
+          This project does not recreate either historical runtime. Zork I's ZIL is understood,
+          then its semantics are extracted into an intermediate representation (the IR) that stays
+          independent of ZIL, browser APIs and rendering technology. A browser-native engine
+          executes that IR. Comic Chat's C++ layout logic — how panels are chosen, how balloons are
+          placed, how figures are posed — is read and cited, then rebuilt for the browser; nothing
+          of the original binary or its bundled art ships here.
+        </p>
+
+        <h2>Parity with the original game</h2>
+        <p>
+          The engine's output is checked turn-by-turn against <code>dfrotz</code>, a reference Zork
+          I interpreter, across 143 full walkthroughs covering the game's puzzles, combat and
+          endings. Every one matches byte for byte. That figure is a developer's credibility claim
+          more than a player's reason to click, which is why it lives here rather than on the
+          landing page — but it is the strongest evidence the reconstruction is faithful to the
+          original game, not just inspired by it.
+        </p>
+
+        <h2>Licensing and trademarks</h2>
+        <p>
+          Zork I's ZIL source (© 2025 Microsoft) and Microsoft Comic Chat's C++ source (© Microsoft
+          Corporation) are both released under the MIT licence. <em>Zork</em> is a trademark of its
+          respective owner; this project is not affiliated with or endorsed by Microsoft, Activision
+          or Infocom. No Microsoft, Infocom or Zork logo or wordmark is used anywhere on this site —
+          names appear in plain text only. See
+          <a href="https://github.com/dkdev24/grues-in-comic/blob/main/THIRD_PARTY.md">THIRD_PARTY.md</a>
+          for the full attribution set.
+        </p>
+
+        <h2>Source</h2>
+        <p>
+          The project's own code, IR and authored dialogue are on
+          <a href="https://github.com/dkdev24/grues-in-comic">GitHub</a>.
+        </p>
+      </div>
+    </main>
+
+    <div class="wrap">
+      <footer>
+        <p><a href="https://danielkimdev24.com" rel="me">A project by Daniel Kim</a></p>
+      </footer>
+    </div>
+  </body>
+</html>

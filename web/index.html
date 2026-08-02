@@ -3,65 +3,190 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Grues in Comic</title>
-    <link rel="stylesheet" href="./style.css" />
+    <title>Grues in Comic — Play Zork I as a comic strip</title>
+    <meta
+      name="description"
+      content="Reimagining two historical Microsoft open-source projects as a browser-native comic adventure. Zork I's original ZIL sources supply the world; Microsoft Comic Chat's layout engine draws it. It runs in your browser — nothing to install."
+    />
+    <link rel="canonical" href="https://grues.danielkimdev24.com/" />
+
+    <link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-180.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://grues.danielkimdev24.com/" />
+    <meta property="og:title" content="Grues in Comic — Play Zork I as a comic strip" />
+    <meta
+      property="og:description"
+      content="Reimagining two historical Microsoft open-source projects as a browser-native comic adventure. Zork I's original ZIL sources supply the world; Microsoft Comic Chat's layout engine draws it. It runs in your browser — nothing to install."
+    />
+    <meta property="og:image" content="https://grues.danielkimdev24.com/assets/brand/og-card.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="stylesheet" href="/site.css" />
   </head>
   <body>
-    <!--
-      Stage 5.3: the comic pane takes the primary slot ADR 0004 §4 assigns it,
-      and the console keeps its role unchanged — subordinate but always complete,
-      because narration is accompanied, never replaced (§2). Both panes stay
-      visible when the grid stacks (§4a); neither becomes a drawer.
+    <a class="skip-link" href="#main">Skip to content</a>
 
-      The event inspector moves inside the console pane as a collapsed details.
-      It is 5.2's most useful half — it renders exactly the event types the
-      console drops, which are the ones the comic draws — so it stays reachable
-      without competing with the comic for the primary slot.
-    -->
-    <main id="shell">
-      <section id="comic" aria-label="Comic">
-        <h2>Grues in Comic <small>Comic Chat on IRC</small></h2>
-        <!-- The cast bar is Comic Chat's member list (5.4). Labels come from
-             `castLabel` (comic-view.ts), not from the manifest: the manifest
-             only knows which drawings were cast (ADR 0004 §11), and the
-             character names are ADR 0006 Slice 3's. -->
-        <div class="comic-cast" aria-label="Cast"></div>
-        <div class="comic-strip"></div>
-      </section>
+    <div class="wrap">
+      <header class="masthead">
+        <a href="/" class="wordmark">GRUES IN COMIC<span class="cursor" aria-hidden="true"></span></a>
+        <nav>
+          <a href="/about">about</a>
+          <a href="/changelog">changelog</a>
+          <a href="https://github.com/dkdev24/grues-in-comic">source</a>
+        </nav>
+      </header>
+    </div>
 
-      <section id="console" aria-label="Game transcript">
-        <div class="status-line">
-          <span class="status-room"></span>
-          <span class="status-score"></span>
-        </div>
-        <!-- Static page chrome, not an engine event (stage 6.6): HINT/HELP are
-             engine commands, but the instruction pointing new players at them
-             has to live outside the event stream the golden harness compares,
-             so it sits here rather than in the opening turn's narration. -->
-        <p class="hint-note">New to text adventures? Type <strong>HELP</strong> for how commands work, or <strong>HINT</strong> to see what's around you.</p>
-        <div class="transcript" role="log" aria-live="polite"></div>
-        <details id="inspector" aria-label="Event stream">
-          <summary>Event stream <small>ADR 0002 contract</small></summary>
-          <div class="inspector-body">
-            <div class="inspector-block">
-              <h3>Mix so far</h3>
-              <div class="mix"></div>
-            </div>
-            <div class="inspector-block">
-              <h3>Last turn</h3>
-              <div class="last-events"></div>
+    <main id="main">
+      <section id="intro" aria-labelledby="intro-h1">
+        <div class="wrap">
+          <div>
+            <h1 id="intro-h1">Play Zork I as a comic strip.</h1>
+            <p class="deck">
+              Reimagining two historical Microsoft open-source projects as a browser-native comic
+              adventure. Zork I's original ZIL sources supply the world; Microsoft Comic Chat's
+              layout engine draws it. It runs in your browser — nothing to install.
+            </p>
+            <a class="cta" href="/play/">▶ START PLAYING</a>
+            <a class="secondary-link" href="#background">Where this came from ↓</a>
+          </div>
+          <div class="comic-window">
+            <div class="titlebar">Grues in Comic — sample strip</div>
+            <div class="cast-strip">Guide · Hero</div>
+            <div class="interior">
+              <img
+                src="/assets/strip-sample.png"
+                width="1452"
+                height="400"
+                alt="Three panels from the game: the Hero stands in the field west of the house as the Guide narrates the classic opening; the Hero says 'Let's head north'; the Hero and Guide face each other in the Living Room beside the trophy case as the Guide describes the lamp and sword and the Hero says 'Let's grab the lamp.'"
+              />
             </div>
           </div>
-        </details>
-        <form id="command-form" autocomplete="off">
-          <label class="prompt" for="command">&gt;</label>
-          <input id="command" name="command" type="text" autocomplete="off"
-                 autocapitalize="none" autocorrect="off" spellcheck="false"
-                 aria-label="Command" />
-        </form>
+        </div>
+      </section>
+
+      <section id="features" aria-labelledby="features-h2">
+        <div class="wrap">
+          <h2 id="features-h2">What it does</h2>
+          <div class="cards">
+            <div class="card">
+              <div class="titlebar">It draws itself.</div>
+              <p>
+                Every turn becomes panels — figures, poses, balloons — chosen by the same layout
+                logic Comic Chat used, ported and cited.
+              </p>
+            </div>
+            <div class="card">
+              <div class="titlebar">The whole game, unabridged.</div>
+              <p>
+                All 110 rooms, 137 objects, the thief and the troll. Completable from
+                <em>West of House</em> to the <em>Stone Barrow</em>.
+              </p>
+            </div>
+            <div class="card">
+              <div class="titlebar">It remembers where you were.</div>
+              <p>
+                Close the tab in the middle of the dungeon and come back to the same room. Three
+                save slots and an autosave, kept in your browser — no account, no upload.
+              </p>
+            </div>
+            <div class="card">
+              <div class="titlebar">Kind to newcomers.</div>
+              <p>
+                Never played a text adventure? <code>HELP</code> explains how commands work and
+                <code>HINT</code> shows what's around you, without spoiling a puzzle.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="background" aria-labelledby="background-h2">
+        <div class="wrap">
+          <h2 id="background-h2" style="text-align: center">Where this came from</h2>
+          <div class="columns">
+            <div>
+              <span class="era-label">ZORK I · 1980</span>
+              <p>
+                Infocom, written in ZIL by Marc Blank, Dave Lebling, Bruce Daniels and Tim
+                Anderson. Microsoft released the source under the MIT licence (© 2025 Microsoft).
+              </p>
+            </div>
+            <div>
+              <span class="era-label">COMIC CHAT · 1996</span>
+              <p>
+                Microsoft's IRC client that rendered conversation as an automatically composed
+                comic strip; shipped with Internet Explorer 3.0, discontinued in the early 2000s.
+                Its source is likewise MIT (© Microsoft Corporation).
+              </p>
+            </div>
+          </div>
+          <p class="thesis">
+            This is not a source port and does not recreate either historical runtime. The ZIL is
+            understood, its semantics extracted into an intermediate representation, and the IR
+            executed by a browser-native engine; the comic layer is a cited port of Comic Chat's
+            layout logic. The engine's output matches the original game's reference interpreter
+            on every one of 143 walkthroughs, byte for byte — see the
+            <a href="/about">about page</a> for the detail.
+          </p>
+          <p class="links">
+            <a href="https://github.com/dkdev24/grues-in-comic">This project's repository</a>
+            <a href="/about">About this project</a>
+          </p>
+        </div>
+      </section>
+
+      <section id="changelog" aria-labelledby="changelog-h2">
+        <div class="wrap">
+          <h2 id="changelog-h2" style="text-align: center">Changelog</h2>
+          <div class="changelog-list" id="changelog-preview">
+            <!-- CHANGELOG:START — generated by tools/build-changelog.ts from WORKLOG.md. Do not hand-edit. -->
+            <div class="changelog-row">
+              <span class="version">0.25.3</span>
+              <span class="date">2026-08-02</span>
+              <span class="summary">6.3 unblocked: docs/DESIGN.md written, site glyph built</span>
+            </div>
+            <div class="changelog-row">
+              <span class="version">0.25.2</span>
+              <span class="date">2026-08-02</span>
+              <span class="summary">6.6: HINT and HELP commands built</span>
+            </div>
+            <div class="changelog-row">
+              <span class="version">0.25.0</span>
+              <span class="date">2026-08-02</span>
+              <span class="summary">6.2: save / load / restart built</span>
+            </div>
+            <!-- CHANGELOG:END -->
+          </div>
+          <a class="view-full" href="/changelog">view full changelog →</a>
+          <a class="cta cta-repeat" href="/play/">▶ START PLAYING</a>
+        </div>
       </section>
     </main>
 
-    <script type="module" src="./dist/web/src/main.js"></script>
+    <div class="wrap">
+      <footer>
+        <p><a href="https://danielkimdev24.com" rel="me">A project by Daniel Kim</a></p>
+        <p>
+          <em>Zork I</em> source © 2025 Microsoft, MIT licence. See
+          <a href="https://github.com/dkdev24/grues-in-comic/blob/main/original-projects/zork1-zil/README.original.md"
+            >the original licence</a
+          >.
+        </p>
+        <p>
+          Microsoft Comic Chat source © Microsoft Corporation, MIT licence. See
+          <a href="https://github.com/dkdev24/grues-in-comic/blob/main/original-projects/comic-chat/README.original.md"
+            >the original licence</a
+          >.
+        </p>
+        <p>
+          <em>Zork</em> is a trademark of its respective owner. This project is not affiliated
+          with or endorsed by Microsoft, Activision or Infocom.
+        </p>
+        <p><a href="https://github.com/dkdev24/grues-in-comic/blob/main/THIRD_PARTY.md">Full attribution (THIRD_PARTY.md)</a></p>
+      </footer>
+    </div>
   </body>
 </html>

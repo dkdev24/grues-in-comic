@@ -35,7 +35,16 @@ const CONTENT_TYPES: Record<string, string> = {
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
   const pathname = decodeURIComponent(url.pathname);
-  const target = resolvePath(pathname);
+
+  // The game's HTML uses relative paths (`./style.css`, `../dist/…`); at `/play`
+  // (no trailing slash) those resolve one level too high and the page loads
+  // unstyled (DESIGN.md §6 gotcha 1).
+  if (pathname === "/play") {
+    res.writeHead(301, { location: "/play/" + url.search }).end();
+    return;
+  }
+
+  let target = resolvePath(pathname);
 
   if (target === null) {
     res.writeHead(403).end("Forbidden");
@@ -45,8 +54,19 @@ const server = createServer((req, res) => {
   try {
     stats = statSync(target);
   } catch {
-    res.writeHead(404).end("Not found");
-    return;
+    // Extensionless pages (`/about`, `/changelog`) are served from their
+    // `.html` file — DESIGN.md §6 writes them without an extension.
+    const withHtml = extname(target) === "" ? `${target}.html` : null;
+    try {
+      stats = withHtml === null ? undefined : statSync(withHtml);
+    } catch {
+      stats = undefined;
+    }
+    if (stats === undefined) {
+      res.writeHead(404).end("Not found");
+      return;
+    }
+    target = withHtml as string;
   }
   if (stats.isDirectory()) {
     res.writeHead(404).end("Not found");
@@ -73,6 +93,9 @@ const server = createServer((req, res) => {
  * it rewrites `/world/x` to `\world\x`, so normalizing first made the `/world`
  * mount never match (404 on the world document) and `/` never resolve to
  * `index.html`.
+ *
+ * Any path ending in `/` — not just the root — resolves to that directory's
+ * `index.html` (needed for `/play/`, DESIGN.md §6 gotcha 1).
  */
 function resolvePath(pathname: string): string | null {
   const [root, raw] =
@@ -80,7 +103,9 @@ function resolvePath(pathname: string): string | null {
       ? [WORLD_ROOT, pathname.slice("/world".length)]
       : [WEB_ROOT, pathname];
   const rest = normalize(raw).replace(/^(\.\.[/\\])+/, "");
-  const file = join(root, rest === "" || rest === "/" || rest === sep ? "index.html" : rest);
+  const withIndex =
+    rest === "" || rest === "/" || rest === sep || rest.endsWith(sep) ? join(rest, "index.html") : rest;
+  const file = join(root, withIndex);
   return file === root || file.startsWith(root.endsWith(sep) ? root : root + sep) ? file : null;
 }
 

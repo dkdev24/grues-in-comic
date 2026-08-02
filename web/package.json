@@ -16,7 +16,8 @@
     "gate": "tsx tools/gate.ts",
     "gate:accept": "tsx tools/gate.ts --accept",
     "density": "tsx tools/density.ts",
-    "density:accept": "tsx tools/density.ts --accept"
+    "density:accept": "tsx tools/density.ts --accept",
+    "changelog": "tsx tools/build-changelog.ts"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.2",

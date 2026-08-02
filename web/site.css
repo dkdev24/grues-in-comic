@@ -1,0 +1,407 @@
+/*
+ * Static pages (DESIGN.md §2–§6): landing, about, changelog. Shares tokens
+ * with `play/style.css` via `tokens.css` so the two never drift.
+ *
+ * The rule that resolves every layout decision here: the terminal is the
+ * page's substrate (text on black, monospace); anything showing the game is
+ * a Comic Chat window pinned on top, with its own chrome and paper interior.
+ * Never mixed inside one box (§1).
+ */
+
+@import url("/tokens.css");
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--console-fg);
+  font-family: var(--mono);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+a {
+  color: var(--accent);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--console-bg);
+  color: var(--accent);
+  padding: 0.5rem 1rem;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------------- masthead (§3.1) ---------------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 0;
+  min-height: 3.5rem;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.masthead .wordmark {
+  color: var(--console-fg);
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.masthead .wordmark:hover {
+  color: var(--accent);
+}
+
+.masthead .cursor {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 0.15em;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  animation: blink 1.06s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .masthead .cursor {
+    animation: none;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.masthead nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.masthead nav a {
+  text-decoration: none;
+}
+
+.masthead nav a:hover {
+  text-decoration: underline;
+}
+
+section {
+  padding: 64px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+section:last-of-type {
+  border-bottom: none;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: normal;
+  margin: 0 0 16px;
+}
+
+/* ---------------- 1. introduction ---------------- */
+
+#intro .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  #intro .wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+#intro h1 {
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  color: var(--console-fg);
+  max-width: var(--measure);
+}
+
+#intro .deck {
+  color: var(--console-dim);
+  max-width: var(--measure);
+  margin: 0 0 24px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 24px;
+  background: var(--amber);
+  color: var(--ink);
+  font-family: system-ui, "Segoe UI", Tahoma, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border: 2px solid;
+  border-color: #fff3 var(--comic-edge) var(--comic-edge) #fff3;
+  border-radius: 0;
+}
+
+.cta:hover {
+  filter: brightness(1.06);
+}
+
+.cta:active {
+  border-color: var(--comic-edge) #fff3 #fff3 var(--comic-edge);
+  transform: translate(1px, 1px);
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.secondary-link {
+  display: block;
+  margin-top: 12px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.secondary-link:hover {
+  text-decoration: underline;
+}
+
+/* the pinned artifact: a Comic Chat window */
+
+.comic-window {
+  background: var(--comic-chrome);
+  border: 1px solid var(--comic-edge);
+  box-shadow: inset 1px 1px 0 #fff6;
+}
+
+.comic-window .titlebar {
+  background: var(--titlebar);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Tahoma, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 4px 8px;
+}
+
+.comic-window .cast-strip {
+  background: var(--comic-chrome);
+  border-bottom: 1px solid var(--comic-edge);
+  padding: 4px 8px;
+  font-family: system-ui, "Segoe UI", Tahoma, sans-serif;
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+
+.comic-window .interior {
+  background: var(--comic-paper);
+  padding: 6px;
+}
+
+.comic-window img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------------- 2. features ---------------- */
+
+#features .cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  #features .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--comic-paper);
+  border: 1px solid var(--comic-edge);
+  color: var(--ink);
+}
+
+.card .titlebar {
+  background: var(--comic-chrome);
+  border-bottom: 1px solid var(--comic-edge);
+  font-family: system-ui, "Segoe UI", Tahoma, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 6px 10px;
+}
+
+.card p {
+  margin: 0;
+  padding: 12px 16px 16px;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+}
+
+/* ---------------- 3. background ---------------- */
+
+#background .columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  max-width: var(--measure);
+  margin: 0 auto 24px;
+}
+
+@media (max-width: 720px) {
+  #background .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+#background .era-label {
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+#background .thesis {
+  max-width: var(--measure);
+  margin: 0 auto;
+  text-align: center;
+  color: var(--console-fg);
+}
+
+#background .links {
+  text-align: center;
+  margin-top: 16px;
+}
+
+#background .links a {
+  margin: 0 12px;
+}
+
+/* ---------------- 4. changelog ---------------- */
+
+.changelog-list {
+  max-width: var(--measure);
+  margin: 0 auto 16px;
+}
+
+.changelog-row {
+  display: grid;
+  grid-template-columns: 6rem 8rem 1fr;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.changelog-row .version {
+  color: var(--accent);
+}
+
+.changelog-row .date {
+  color: var(--console-dim);
+}
+
+#changelog .view-full {
+  display: block;
+  max-width: var(--measure);
+  margin: 0 auto;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+#changelog .view-full:hover {
+  text-decoration: underline;
+}
+
+#changelog .cta-repeat {
+  display: block;
+  width: max-content;
+  margin: 24px auto 0;
+}
+
+/* ---------------- 5. footer ---------------- */
+
+footer {
+  padding: 40px 0 64px;
+  color: var(--console-dim);
+  font-size: 0.85rem;
+}
+
+footer p {
+  margin: 0 0 4px;
+}
+
+footer a {
+  color: var(--accent);
+}
+
+/* ---------------- about / changelog inner pages ---------------- */
+
+.page-header {
+  padding: 40px 0 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-header h1 {
+  font-size: 1.8rem;
+}
+
+.prose {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.prose h2 {
+  color: var(--console-fg);
+  font-size: 1.1rem;
+  margin-top: 40px;
+}
+
+.prose p {
+  color: var(--console-fg);
+}
+
+.prose a {
+  color: var(--accent);
+}

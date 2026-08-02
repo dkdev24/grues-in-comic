@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grues in Comic</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!--
+      Stage 5.3: the comic pane takes the primary slot ADR 0004 §4 assigns it,
+      and the console keeps its role unchanged — subordinate but always complete,
+      because narration is accompanied, never replaced (§2). Both panes stay
+      visible when the grid stacks (§4a); neither becomes a drawer.
+
+      The event inspector moves inside the console pane as a collapsed details.
+      It is 5.2's most useful half — it renders exactly the event types the
+      console drops, which are the ones the comic draws — so it stays reachable
+      without competing with the comic for the primary slot.
+    -->
+    <header class="masthead">
+      <a href="/" class="wordmark">GRUES IN COMIC<span class="cursor" aria-hidden="true"></span></a>
+    </header>
+
+    <main id="shell">
+      <section id="comic" aria-label="Comic">
+        <h2>Grues in Comic <small>Comic Chat on IRC</small></h2>
+        <!-- The cast bar is Comic Chat's member list (5.4). Labels come from
+             `castLabel` (comic-view.ts), not from the manifest: the manifest
+             only knows which drawings were cast (ADR 0004 §11), and the
+             character names are ADR 0006 Slice 3's. -->
+        <div class="comic-cast" aria-label="Cast"></div>
+        <div class="comic-strip"></div>
+      </section>
+
+      <section id="console" aria-label="Game transcript">
+        <div class="status-line">
+          <span class="status-room"></span>
+          <span class="status-score"></span>
+        </div>
+        <!-- Static page chrome, not an engine event (stage 6.6): HINT/HELP are
+             engine commands, but the instruction pointing new players at them
+             has to live outside the event stream the golden harness compares,
+             so it sits here rather than in the opening turn's narration. -->
+        <p class="hint-note">New to text adventures? Type <strong>HELP</strong> for how commands work, or <strong>HINT</strong> to see what's around you.</p>
+        <div class="transcript" role="log" aria-live="polite"></div>
+        <details id="inspector" aria-label="Event stream">
+          <summary>Event stream <small>ADR 0002 contract</small></summary>
+          <div class="inspector-body">
+            <div class="inspector-block">
+              <h3>Mix so far</h3>
+              <div class="mix"></div>
+            </div>
+            <div class="inspector-block">
+              <h3>Last turn</h3>
+              <div class="last-events"></div>
+            </div>
+          </div>
+        </details>
+        <form id="command-form" autocomplete="off">
+          <label class="prompt" for="command">&gt;</label>
+          <input id="command" name="command" type="text" autocomplete="off"
+                 autocapitalize="none" autocorrect="off" spellcheck="false"
+                 aria-label="Command" />
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="../dist/web/src/main.js"></script>
+  </body>
+</html>

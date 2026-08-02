@@ -10,6 +10,76 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.26.0 — 2026-08-02 — 6.3 built: the static site ships (local only)
+
+**M6.3 is built**, following the build order `HANDOFF.md` left at session end: the layout move, the
+shared token file, the six-section landing page, `/play` redirect, about + generated changelog, all
+verified in the browser at real viewport sizes. Nothing is deployed — local-only via `serve.ts`,
+per `docs/DESIGN.md` §6, until the user calls 6.5.
+
+**Layout moved per DESIGN.md §6.** `web/index.html` → `web/play/index.html`, `web/style.css` →
+`web/play/style.css`, script tag `./dist/…` → `../dist/…`. `web/` is now the website root; the
+landing page lives at `/`.
+
+**`web/tokens.css`** holds the exact §2 `:root` block. Both `web/site.css` and `web/play/style.css`
+`@import url("/tokens.css")`; `play/style.css`'s own `:root` now only keeps what tokens.css doesn't
+cover (`--status-bg/fg`, `--panel-bg/fg`, `--mono`), and `body`'s hardcoded `#0c0c0e` became
+`var(--page-bg)`.
+
+**Landing page** (`web/index.html` + `web/site.css`): all six §3 sections — masthead (live text
+wordmark, blinking cursor, nav), introduction (H1, deck, amber CTA, secondary link, a Comic Chat
+window holding a strip sample), features (4 cards, 2×2 → 1-up below 720px), background (two-column
+eras + joining thesis + parity claim), changelog (latest 3, generated), footer (authorship line,
+licence rows, non-affiliation, `THIRD_PARTY.md` link). Meta description, OG tags and canonical URL
+all use the recorded origin `https://grues.danielkimdev24.com`, absolute per §6 gotcha 2.
+
+**The strip sample is real engine output, not a mockup** (§3.2's own requirement): rendered via
+`tools/render-panel.ts` against `02-house-entry.cmd`, three panels picked (the classic opening, a
+Hero traversal line, a both-speakers close-up in the Living Room) and stitched into
+`web/assets/strip-sample.png` with `@napi-rs/canvas`.
+
+**Changelog is generated, not hand-written** (§3.5). New `web/tools/build-changelog.ts` parses
+`## vX.Y.Z — DATE — summary` headers out of `WORKLOG.md`, rewrites the `CHANGELOG:START…END` block
+in `index.html` with the latest 3, and renders the full list into `changelog.html` from
+`tools/changelog.template.html`. Wired as `npm run changelog`. Two hand-kept changelogs cannot
+diverge because there is only one written by hand.
+
+**`about.html`** carries the fuller history, the parity claim (143/143 walkthroughs byte for byte,
+relocated here per the session that wrote `DESIGN.md`), the licence/trademark statement, and the
+repo link.
+
+**`serve.ts` gained two capabilities it didn't have.** (1) A 301 redirect `/play` → `/play/` — DESIGN
+§6 gotcha 1 flagged this as necessary but `resolvePath` had a second, undocumented gap that would
+have broken it anyway: **only the site root `/` resolved to `index.html`; every other directory
+404'd**, including the redirect's own target. Fixed by resolving `index.html` for any path ending in
+`/`, not just the root. (2) Extensionless routes (`/about`, `/changelog`) resolve to their `.html`
+file on a 404 retry, since DESIGN.md §6 writes those paths without an extension.
+
+**One real bug caught by browser verification, not by the type checker.** `main.ts`'s `WORLD_URL`
+and `COMIC_ASSETS` were relative (`./world/…`, `./assets/comic`), correct only when the game's HTML
+lived at the site root. At `/play/` they resolved to `/play/world/…`, one level below the actual
+`/world/` mount, and the game failed to boot (`Could not start: world document: HTTP 404`). Both
+became absolute paths. Caught by loading `/play/` in a real browser per DESIGN.md §8's own
+instruction to iterate there rather than trust a still image — a type-only check would not have
+caught it, since both were valid strings.
+
+**Gameplay screen restyling, scoped per §6 as directed:** only the masthead wordmark treatment and
+the shared token file, panes untouched. A `.masthead` header (same wordmark + cursor markup as the
+site's) sits above `#shell`; `#shell`'s height became `calc(100dvh - 2.5rem)` to make room. The pixel
+gate stayed clean (`npm run gate` — 17/17) because nothing inside `#comic` or `#console` changed.
+
+**Verified in the browser at real viewport sizes** (DESIGN.md §8's explicit instruction — a still
+image cannot resolve these): desktop and 375px-wide renders of `/`, `/play/`, `/about`; one real
+defect found and fixed there — the masthead wordmark wrapped mid-word and the nav links crowded it
+at 375px, fixed with `flex-wrap` on both the masthead and its nav.
+
+**Not built, on purpose:** `build-site.ts`, `dist-site/`, a GitHub Action, `CNAME`, DNS — all 6.5.
+The `website/` rename is still deferred (`docs/FUTURE_WORK.md` §2.4).
+
+**Tests:** 292 web (unchanged) · pixel gate 17/17 clean.
+
+---
+
 ## v0.25.3 — 2026-08-02 — 6.3 unblocked: `docs/DESIGN.md` written, site glyph built
 
 **No code shipped. This is the specification session that unblocks the static site.** M6.3 had been

@@ -17,10 +17,12 @@ import { createComicView, type ComicView } from "./comic-view.js";
 import { createSessionStore, type SessionStore, StorageFullError } from "./persistence.js";
 import { PLAYER_ID } from "../../engine/src/state.js";
 
-/** Where `tools/serve.ts` mounts `ir/artifacts/`. ~1.8 MB, fetched once. */
-const WORLD_URL = "./world/zork1.world.json";
+/** Where `tools/serve.ts` mounts `ir/artifacts/`. ~1.8 MB, fetched once.
+ *  Absolute, not relative: the game lives at `/play/`, one level below the
+ *  site root the mount is rooted at (DESIGN.md §6). */
+const WORLD_URL = "/world/zork1.world.json";
 /** Sheets and manifest from `art/tools/avbpack.ts`; ~330 KiB, five requests. */
-const COMIC_ASSETS = "./assets/comic";
+const COMIC_ASSETS = "/assets/comic";
 const SAVE_KEY = "grues-in-comic/save/v1";
 /** M6.2: three named slots, addressed by number — see `docs/DEVELOPMENT_PLAN.md` §6.2. */
 const SLOT_COUNT = 3;

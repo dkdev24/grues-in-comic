@@ -1,0 +1,27 @@
+/*
+ * Shared design tokens (DESIGN.md §2). Imported by both `site.css` (the
+ * static pages) and `play/style.css` (the gameplay screen) so the two never
+ * drift. Site-only additions are marked ✚ below, same as the spec.
+ */
+
+:root {
+  /* substrate — the terminal */
+  --console-bg: #000;
+  --console-fg: #d8d8d8;
+  --console-dim: #8a8a8a;
+  --accent: #6fc36f; /* phosphor green — the one saturated colour */
+  --rule: #3a3a42;
+  --page-bg: #0c0c0e; /* body, one step off black */
+
+  /* the pinned artifact — a Comic Chat window */
+  --comic-chrome: #c0c0c0;
+  --comic-edge: #808080;
+  --comic-paper: #efece2;
+  --titlebar: linear-gradient(90deg, #1c2f6b, #4a6bbd);
+
+  /* ✚ site-only */
+  --ink: #14140f; /* text on --comic-paper; never pure black */
+  --amber: #e8b04b; /* second-era accent: used ONLY for CTA + focus */
+  --halftone: rgba(0, 0, 0, 0.06);
+  --measure: 68ch; /* max line length for prose */
+}
