@@ -417,19 +417,39 @@ gitignored; `ir/artifacts/zork1.world.json` is 1.8 MB, generated, and lives outs
 publish tree under any arrangement. This layout makes that script two copies instead of three — it
 does not remove it.
 
-### Deployment
+### Deployment — deferred to 6.5. Local only until then.
 
-**Origin: `https://grues.danielkimdev24.com`** (decided 2026-08-02). GitHub Pages from the repo,
-served at the domain root — see gotcha 2 for the two things that must be true.
+**Decided 2026-08-02: nothing is published, anywhere, until the user calls the 1.0.0 release.** No
+GitHub Pages, no custom domain in service, no CI deploy. The site is built and viewed on localhost
+through the existing dev server and nothing else.
 
-`tools/build-site.ts` runs `tsc -p web/tsconfig.build.json`, copies `web/` into `dist-site/`, copies
-`ir/artifacts/` to `dist-site/world/`, and writes `dist-site/CNAME`. A GitHub Action uploads
-`dist-site/`. No bundler, consistent with `web/README.md`.
+**This removes work from 6.3, it does not add any.** There is no `build-site.ts` to write, no
+`dist-site/` tree, no GitHub Action, and no `CNAME` file — those belong to **6.5 (public release)**,
+alongside making the repo public. 6.3's deliverable is the pages themselves, served by
+`web/tools/serve.ts` as it stands.
 
-**Exclude from the publish tree:** `src/`, `test/`, `tools/`, `node_modules/`, `tsconfig*.json`,
-`package*.json`, `graphify-out/`, `*.ts`. Only `dist/` ships, not the TypeScript it was built from —
-`web/` being both the package and the website root makes this an easy thing to get wrong, and
-publishing sources is how a not-yet-public repo leaks early.
+**The origin is recorded, not activated: `https://grues.danielkimdev24.com`** (chosen 2026-08-02).
+It stays written down here because two decisions already depend on knowing it, and both are cheaper
+to get right now than to retrofit:
+
+- **Absolute paths are safe.** A custom domain serves from the origin root, so `/tokens.css`,
+  `/world/`, `/play/` and `/assets/…` are correct as written. Had this been a GitHub Pages *project*
+  site (`/grues-in-comic/…`), every one of them would need a base path threaded through.
+- **`og:image` / `og:url` need the absolute URL** (§3.7). Write them now; they are inert until the
+  site is reachable.
+
+**When 6.5 arrives**, deployment is: a script that runs `tsc -p web/tsconfig.build.json`, copies
+`web/` to `dist-site/`, copies `ir/artifacts/` to `dist-site/world/`, and writes `dist-site/CNAME`;
+a GitHub Action to upload it; a DNS `CNAME` record `grues` → `dkdev24.github.io`; and *Enforce HTTPS*
+once the certificate provisions. No bundler, consistent with `web/README.md`. **Do not build any of
+this before 6.5** — an unused deploy pipeline rots, and a repo that is not public cannot be tested
+against Pages anyway.
+
+**Exclude from the publish tree, when there is one:** `src/`, `test/`, `tools/`, `node_modules/`,
+`tsconfig*.json`, `package*.json`, `graphify-out/`, `*.ts`. Only `dist/` ships, not the TypeScript it
+was built from — `web/` being both the package and the website root makes this an easy thing to get
+wrong. Noted here rather than left to 6.5 because the hazard is created by *this* section's layout
+decision, and the person who writes the deploy script months from now will not re-derive it.
 
 ### Four things that will bite
 
@@ -437,13 +457,11 @@ publishing sources is how a not-yet-public repo leaks early.
    `./dist/…`); at `/play` those resolve one level too high. Redirect `/play` → `/play/` in
    `serve.ts`, and **the §4 CTA href is `/play/`**. The move also changes the game's script tag from
    `./dist/web/src/main.js` to `../dist/web/src/main.js`.
-2. ~~GitHub Pages project sites serve under `/repo-name/`.~~ **Resolved 2026-08-02 — the site is
-   `https://grues.danielkimdev24.com`.** A custom domain serves from the origin root, so **every
-   absolute path in this document is correct as written** and no base-path threading is needed. Two
-   things must be true or Pages will serve the project-site path instead: a **`CNAME` file
-   containing `grues.danielkimdev24.com` must be in the published root** (so assembly writes it into
-   `dist-site/`, not just into the repo), and DNS needs a **`CNAME` record `grues` →
-   `dkdev24.github.io`**. Enable *Enforce HTTPS* once the certificate provisions.
+2. ~~GitHub Pages project sites serve under `/repo-name/`.~~ **Resolved 2026-08-02 — the origin will
+   be `https://grues.danielkimdev24.com`, which serves from the domain root, so every absolute path
+   in this document is correct as written.** Nothing is deployed until 6.5 (see Deployment above);
+   the decision is recorded now only because retrofitting a base path through every stylesheet and
+   meta tag later would be far more work than choosing correctly today.
 3. **`@import url("/tokens.css")`** in both `site.css` and `play/style.css` keeps §2 single-source.
    Costs one blocking request; assembly can inline it later if that ever matters.
 4. **Cache headers invert on deploy.** Dev is deliberately `no-store` so a re-extracted world cannot

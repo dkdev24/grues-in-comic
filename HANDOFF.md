@@ -119,13 +119,13 @@ Full detail in `WORKLOG.md` v0.25.3. No tests affected — nothing executable ch
    Iterate in the browser at real viewport sizes — §8 is explicit that the remaining decisions (line
    length, wrap points, bevel weight, hero air) are not visible in a still image.
 
-   **Origin is settled: `https://grues.danielkimdev24.com`** (custom domain on GitHub Pages, decided
-   2026-08-02). It serves from the domain root, so **every absolute path in `DESIGN.md` is correct as
-   written** — no base-path threading. Two setup items are still outstanding and are the user's:
-   a DNS `CNAME` record `grues` → `dkdev24.github.io`, and *Enforce HTTPS* in the repo's Pages
-   settings once the certificate provisions. Assembly must write a `CNAME` file **into the published
-   tree**, and must **not** publish `src/`, `test/`, `tools/` or any `.ts` — `web/` being both the
-   package and the website root makes that easy to get wrong (§6).
+   **Nothing is deployed. Local only until the user calls 1.0.0** (decided 2026-08-02). No
+   `build-site.ts`, no `dist-site/`, no GitHub Action, no `CNAME`, no DNS — **all of that is 6.5**,
+   and building it early only rots. 6.3's deliverable is the pages, served by `serve.ts` as it
+   stands. The origin **`https://grues.danielkimdev24.com` is recorded, not activated**: it serves
+   from the domain root, so absolute paths (`/tokens.css`, `/world/`, `/play/`, `/assets/…`) are
+   correct as written, and `og:image`/`og:url` should be written with the full URL now — inert until
+   the site is reachable, and far cheaper than retrofitting a base path later.
 3. **M6.4 asset separation & neutral branding** (☐, independent of everything) · **M6.5 public
    release** → tag `1.0.0` (☐, needs the rest).
 4. **ADR 0006 Slice 5 — session-recap PDF export.** ☐ The only open ADR slice, schedulable whenever.
