@@ -86,6 +86,11 @@ Full detail in `WORKLOG.md` v0.26.2. Tests: 142 engine (`hint.test.ts` rewritten
    appetite for more authoring.
 3. **M6.4 asset separation & neutral branding** (☐, independent of everything) · **M6.5 public
    release** → tag `1.0.0` (☐, needs the rest — 6.3's deliverable is now part of what it packages).
+   **6.5-beta ✅ closed 2026-08-02**: private-repo Cloudflare Pages beta live at
+   `grues.danielkimdev.com` — Git-linked `grues-in-comic` Pages project, custom domain resolving,
+   confirmed working on a phone. Repo stays private; not the 1.0.0 launch. Setup detail in
+   `docs/DEVELOPMENT_PLAN.md` §6.5-beta and the `/world/`-copy gotcha in `docs/PITFALLS.md` →
+   Tooling & platform.
 4. **ADR 0006 Slice 5 — session-recap PDF export.** ☐ The only open ADR slice, schedulable whenever.
    **The PDF is deliberately not WYSIWYG.**
 

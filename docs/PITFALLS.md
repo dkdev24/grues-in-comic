@@ -311,6 +311,18 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 
   Both were hit generating the §3.7 site glyph. **Always open the output and look at it** — neither
   failure sets a non-zero exit code.
+- **`/play`'s world fetch (`WORLD_URL = "/world/zork1.world.json"`, `web/src/main.ts`) only exists
+  locally because `web/tools/serve.ts` mounts `ir/artifacts/` at `/world/`.** Cloudflare Pages (or
+  any static host) serves the build output directory verbatim — there is no server-side route
+  mapping. A Pages build must physically copy `ir/artifacts/zork1.world.json` into the output
+  directory at `world/zork1.world.json`, or `/play` 404s on boot with no build-time error. Confirmed
+  2026-08-02 setting up the `grues.danielkimdev.com` beta deploy — see `docs/DEVELOPMENT_PLAN.md` §6.5.
+- **Wrangler cannot create or configure a Git-connected Pages project** (checked 2026-08-02,
+  wrangler 4.118.0). `wrangler pages project create` only makes a direct-upload project; linking a
+  GitHub repo for continuous deployment (branch, build command, output directory, custom domain) is
+  dashboard-only, even with the Cloudflare GitHub App already installed on the repo. `wrangler pages
+  project list` / `deployment list` can inspect an existing Git-linked project afterward, just not
+  create one.
 
 ---
 
