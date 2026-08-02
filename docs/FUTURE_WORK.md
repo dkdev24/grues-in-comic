@@ -150,6 +150,15 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   *Prerequisite:* an **ADR 0002 amendment** — a read-only query API (`objectsInScope()`, pull not
   push), leaving the event stream at 1.0.0. `engine/src/scope.ts` already computes the answer.
 
+- **Rename `web/` → `website/`.** `docs/DESIGN.md` §6 makes `web/` the website root — the landing
+  page at its root, the game nested at `web/play/` — so the folder name now undersells what it holds.
+  *Why deferred (2026-08-02):* the rename touches `package.json`, `tsconfig.build.json`, the
+  `dist/web/src/…` output path, test imports and possibly the pixel-gate golden. That is mechanical
+  churn against a 292-test, gated package for a naming win, and it is **fully separable** from the
+  layout decision itself.
+  *When:* after 6.3 ships and the pixel gate has been run once on the new layout. Until then, fix
+  `web/package.json`'s description so it says "the website", not only the game shell.
+
 - **Drawn logo mark, replacing the interim glyph.** `docs/DESIGN.md` §3.7 ships the site with a
   terminal-text wordmark plus one small original glyph (favicon, touch icon, OG card). The user is
   preparing a proper drawn logo.

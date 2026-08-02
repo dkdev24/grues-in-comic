@@ -258,11 +258,11 @@ the two places text cannot go.
 
 | Surface | Asset | State |
 |---|---|---|
-| Master | `site/assets/glyph.svg` | ✅ 384×384 viewBox, one `<path>`, `fill-rule="evenodd"` |
-| Favicon | `site/assets/favicon-32.png` | ✅ 32×32 |
-| Apple touch icon | `site/assets/apple-touch-180.png` | ✅ 180×180 |
-| Social preview (OG/Twitter) | `site/assets/og-card.png` | ✅ 1200×630 — glyph + §3.2 H1 + deck sentence, amber rule |
-| — its source | `site/assets/og-card.source.html` | ✅ Re-render, don't hand-edit the PNG |
+| Master | `web/assets/brand/glyph.svg` | ✅ 384×384 viewBox, one `<path>`, `fill-rule="evenodd"` |
+| Favicon | `web/assets/brand/favicon-32.png` | ✅ 32×32 |
+| Apple touch icon | `web/assets/brand/apple-touch-180.png` | ✅ 180×180 |
+| Social preview (OG/Twitter) | `web/assets/brand/og-card.png` | ✅ 1200×630 — glyph + §3.2 H1 + deck sentence, amber rule |
+| — its source | `web/assets/brand/og-card.source.html` | ✅ Re-render, don't hand-edit the PNG |
 
 **How the master was made, and how to redo it.** The user generated a raster candidate; the SVG is a
 trace of it, not the raster itself. The green mask was extracted, split into two connected
@@ -330,6 +330,8 @@ game app.
 - Hover: face lightens 6%. **Active: the bevel inverts** (dark top-left) and the label shifts 1px
   down-right — the 1996 press. Focus-visible: 2px `--amber` outline at 2px offset, never removed.
 - Minimum hit area 44×44px. Label is a link (`<a>`), not a `<button>` — it navigates.
+- **`href="/play/"`, with the trailing slash** (§6 gotcha 1). Without it the game's relative asset
+  paths resolve one level too high and the page loads unstyled.
 - It repeats **once** at the end of the page, after the changelog, and nowhere else.
 - No "no install required" badge, no counter, no marketing sub-label beyond one line of ≤ 8 words.
 
@@ -360,41 +362,88 @@ a theme toggle.
 
 ## 6. Where the files live
 
-Recommendation, to be settled when 6.3 starts (§6.3 lists this as an open consequence):
+**Decided 2026-08-02: one served root, with the game nested inside it.** There is no parallel
+top-level site folder. `web/` *is* the website; the landing page sits at its root and the game moves
+down one level into `play/`.
 
 ```
-site/                 ← new: the public static site
-  index.html          landing
-  about.html
-  changelog.html
-  site.css            imports the shared token block
-  assets/strip-sample.png
-  assets/glyph.svg    ← §3.7; plus favicon-32.png, apple-touch-180.png, og-card.png
-web/                  ← unchanged: the game app
+web/                    ← the website root; serve.ts already mounts this at /
+  index.html            landing                     →  /
+  about.html                                        →  /about
+  changelog.html                                    →  /changelog
+  site.css              the static pages' styles
+  tokens.css            §2, imported by both stylesheets
+  assets/
+    brand/              §3.7 — glyph.svg, favicon-32.png,
+                        apple-touch-180.png, og-card.png (+ its .source.html)
+    strip-sample.png    the §3.2 product photograph
+    comic/              (existing) the game's figure art
+  play/
+    index.html          the game                    →  /play/
+    style.css           (existing, moved down)
+  dist/ src/ test/ tools/                           (existing, unmoved)
+
+ir/artifacts/           mounted at /world/ (existing)
 ```
 
-`web/tools/serve.ts` routes both in URL space: `/` → `site/index.html`, `/play` → `web/index.html`
-(**`/play` decided 2026-08-02** — same origin, not a subdomain, so the CTA is a plain relative link
-and there is no second certificate, no CORS, no cookie-scope question). The token block in §2 is the
-single source of truth; extract it to a file both stylesheets import rather than copying the values.
+**The directory tree is the URL space.** That is the whole point of this layout: there is no routing
+table to keep in sync with a copy script, because the paths are the same object. `serve.ts` needs no
+new mount — it already resolves `/` to `index.html` and already serves `/world/`.
 
-**Why separate at all**, since they share tokens and an origin. Four reasons, heaviest first:
+### The earlier rationale was wrong, and is withdrawn
 
-1. **Different lifecycles.** The game app is a built artifact — `tsc` → `web/dist`, the ADR 0008
-   pixel gate, the 143/143 parity replay. The site is hand-written HTML and CSS with no build step.
-   Fused, a typo fix in the intro paragraph re-runs the gate that guards released builds.
-2. **Load cost.** Booting the game pulls `zork1.world.json`, the engine modules and the art. A
-   visitor reading *what is this* should not download the dungeon to find out.
-3. **The gated pane stays untouchable.** One stylesheet serving both surfaces is exactly how a
-   cosmetic site tweak reaches the comic pane and fails the pixel gate. Separate files make that
-   leak impossible rather than merely discouraged — which is why §6's restyling note says to adopt
-   the shared token file and nothing else.
-4. **6.4 asset separation.** The engine, IR and importer are meant to be extractable for standalone
-   use. Marketing copy living inside `web/` is one more thing to unpick when that stage arrives.
+An earlier draft of this section put the site in a parallel `site/` folder and gave four reasons.
+**Three of them do not survive scrutiny and are struck:**
 
-This is separation of *concerns*, not of deployments: one server, one origin, one token file, two
-independent build stories. It also matches the decision already recorded in `DEVELOPMENT_PLAN.md`
-§6.3 on 2026-07-28 — the landing page is a separate static page, not a route in the game app.
+| Struck reason | Why it fails |
+|---|---|
+| *"A typo fix would re-run the pixel gate"* | The gate is a manual script and there is no CI. Even with CI, a path filter solves it. |
+| *"Load cost — visitors shouldn't download the dungeon"* | An argument for separate **entry points**, not separate folders. A landing page in the same folder loads nothing extra. |
+| *"Keeps site CSS off the gated pane"* | An argument for separate **stylesheets**, which this layout still has. |
+| *"6.4 asset separation"* | The extractable set is engine, IR and importer. `web/` is not in it. |
+
+The one surviving concern is cosmetic: `web/` is an npm package with a tsconfig, vitest and native
+devDependencies, and calling that same folder "the website" reads oddly. That is a **naming** problem,
+addressed below, not an architecture one.
+
+### What is actually irreducible
+
+**The assembly step exists because of build outputs, not folder layout.** `dist/` is generated and
+gitignored; `ir/artifacts/zork1.world.json` is 1.8 MB, generated, and lives outside `web/` on purpose
+(so the page fetches the same document the parity harness replays). Those must be gathered into a
+publish tree under any arrangement. This layout makes that script two copies instead of three — it
+does not remove it.
+
+### Deployment
+
+`tools/build-site.ts` runs `tsc -p web/tsconfig.build.json`, copies `web/` into `dist-site/`, and
+copies `ir/artifacts/` to `dist-site/world/`. A GitHub Action uploads `dist-site/`. No bundler,
+consistent with `web/README.md`.
+
+### Four things that will bite
+
+1. **`/play` must have a trailing slash.** The game's HTML uses relative paths (`./style.css`,
+   `./dist/…`); at `/play` those resolve one level too high. Redirect `/play` → `/play/` in
+   `serve.ts`, and **the §4 CTA href is `/play/`**. The move also changes the game's script tag from
+   `./dist/web/src/main.js` to `../dist/web/src/main.js`.
+2. **GitHub Pages project sites serve under `/repo-name/`**, which breaks every absolute path here.
+   Either use a custom domain — a subdomain of `danielkimdev24.com`, already owned per §3.6 — or
+   thread a base path through assembly. **The custom domain is far less work; decide before writing
+   the paths, not after.**
+3. **`@import url("/tokens.css")`** in both `site.css` and `play/style.css` keeps §2 single-source.
+   Costs one blocking request; assembly can inline it later if that ever matters.
+4. **Cache headers invert on deploy.** Dev is deliberately `no-store` so a re-extracted world cannot
+   go stale (`serve.ts`). Production wants a long cache on the 1.8 MB world document, with a rename
+   on change.
+
+### The `website/` rename is deferred, not rejected
+
+The user's preferred name for this folder is `website/`. **Not done now**: renaming touches
+`package.json`, `tsconfig.build.json`, the `dist/web/src/…` output path, test imports and possibly
+the pixel-gate golden — mechanical churn against a 292-test, gated package, for a naming win. It is
+**separable from this layout decision** and can happen after 6.3 ships and the gate has been run
+once. Tracked in `docs/FUTURE_WORK.md` §2.4. Until then, `web/package.json`'s description should say
+this package is the website, not only the game shell.
 
 **Gameplay screen restyling.** §6.3 notes this document also governs the game screen. Under this
 spec the change there is small and deliberate: the existing screen already *is* the terminal + Comic
