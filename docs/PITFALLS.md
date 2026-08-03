@@ -246,6 +246,15 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   frozen per panel, so every repaint is idempotent. Get (2) wrong and the bug is invisible until
   someone scrolls a long strip back up and the bodies have changed —
   `web/test/select-figures.test.ts` is what pins it.
+- **Any programmatic scroll of a pane must be instant, and any reader-intent signal must come from the
+  gesture rather than the scroll** (v0.26.6, `jump.ts`). Two traps, both invisible in a short game.
+  *Smooth* is not a free upgrade once the strip is virtualized: an animated scroll across the history
+  paints every panel it passes, so a smooth jump to the beginning is a full-strip repaint dressed as a
+  nicety (the per-turn `scrollTo` may stay smooth — it moves one panel height). And **both panes scroll
+  themselves on every turn** to follow the newest, so anything that treats a `scroll` event as "the
+  reader is browsing" fires once per command — which is why `ScrollPane` exposes `onReaderScroll`
+  (wheel/touchmove/pointerdown/keydown) beside `onScroll` (geometry). Related: a control faded with
+  `opacity` alone stays in the tab order, so the fade must carry `visibility` too.
 - **The face/torso join is implemented twice on purpose** — pixels in `art/src/composite.ts`, sheet
   sub-rects in `web/src/comic/figure.ts` — because merging drags the decoder into the browser.
   `web/test/figure.test.ts` runs both over the real cast pose-for-pose; do not weaken it.

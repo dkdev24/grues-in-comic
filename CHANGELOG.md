@@ -18,6 +18,16 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.26.6] - 2026-08-03 — Jump to either end of a long game
+
+### Added
+- **Jump to beginning** and **Jump to latest** buttons, which move the comic and the transcript
+  together. They appear over the comic when you start scrolling and fade away when you stop, so they
+  take no room from the panel while you are playing. Scrolling a pane by hand still leaves the other
+  pane where you left it.
+
+---
+
 ## [v0.26.5] - 2026-08-03 — Faster loading for long games
 
 ### Changed

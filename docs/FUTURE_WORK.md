@@ -91,15 +91,18 @@ without asking.
   A cooldown of 3 plus a longer loop took repeats within 20 panels from 70 to 6, and the tightest
   real gap from 1 to 30. The refusal families, which M6.1f blamed, were never the tight ones.
 
-- **A long strip is cheap to hold and still long to travel.** v0.26.5 virtualized the panel bitmaps,
-  which was the memory problem; it does nothing about the fact that a completed game is a few hundred
-  panels of scrollbar in both panes.
-  *Why deferred:* the failure it would prevent (a tab discarded on a phone) is fixed, and what is left
-  is navigation comfort — real, but not a defect, and the honest version of it is a page policy, which
-  is ADR 0004 §5 territory rather than an afternoon.
-  *Done looks like:* either a jump-to-latest control plus room markers in the strip (small, covers most
-  of the pain), or a paged history that makes §5's "a page is a layout policy over the stream" true on
-  screen as well as in the type. The console pane needs the same question asked of it.
+- **Finding a *moment* in a long history — the half of strip navigation the jump control does not
+  reach.** v0.26.5 made a few hundred panels cheap to hold and v0.26.6 put both *ends* one tap away
+  (`jump.ts`), for both panes at once. Neither helps a reader looking for the room they were in ten
+  minutes ago.
+  *Why deferred:* the ends are where readers actually go, and the honest version of the rest is a page
+  policy — ADR 0004 §5 territory rather than an afternoon.
+  *Done looks like:* room/chapter markers in the strip, and/or a paged history that makes §5's "a page
+  is a layout policy over the stream" true on screen as well as in the type. **The cheap first step is
+  discrete panel→transcript linking**: `Panel.turn` already records which turn each panel came from,
+  so tapping a panel could scroll the transcript to that turn — a jump, not a coupling, which is what
+  makes the non-monotonic turn↔panel mapping stop mattering (see `jump.ts`'s header for why the
+  continuous version is not on the table).
 
 - **The `Turn[]` autosave grows without bound.** `persistence.ts` already anticipates the wall —
   `StorageFullError` exists and autosave switches itself off with a message — but nothing bounds the

@@ -10,6 +10,60 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.26.6 — 2026-08-03 — One jump control, both panes
+
+**v0.26.5 made a long strip cheap to hold; this makes it possible to travel.** A completed game is a
+few hundred panels and a transcript to match, and the only way to either end was a long drag in
+whichever pane you happened to be in.
+
+**One control, not one per pane, and manual scrolling stays unsynchronized** — both by the user's
+decision, and both for the same reason. The panes are two registers of a single turn stream (ADR 0004
+§2), so "back to the start" and "back to now" are one intent; but a *continuous* coupling would have
+to map transcript position to panel position, and that mapping is not monotonic — a turn yields 0..N
+panels (ADR 0005 drops refusals and collapses traversal runs), so five turns of transcript can be one
+panel. The two edges need no mapping at all: "the top" and "the end" mean the same thing in both
+panes whatever the density between them is. `web/src/jump.ts` is the whole mechanism; `main.ts` owns
+the wiring because it is the only place that knows both panes.
+
+**Rejected: slash commands as the control** (`/top`, `/latest`, proposed as the zero-area option).
+They are nearly free to add, and they are the wrong shape on the device that has the problem: typing
+one means tapping the input, which raises the on-screen keyboard over both panes — the thing v0.26.4
+went to trouble to dismiss — to perform a scroll. An overlaid button costs no layout space either
+(`position: absolute`, no reflow), and costs one tap with nothing covered. The user also ruled out
+adding them as a secondary path: a desktop player has a mouse.
+
+**Revealed by scrolling, faded after two seconds of stillness.** Shown-when-useful alone was not
+enough: there is history above from the second turn onward, so "Jump to beginning" would have been
+permanently over the newest panel — paying the comic something on every turn to be useful on a few.
+A gesture the reader is already making when they start browsing is a cheap price. Both rules apply
+together: a button must be *useful* (some pane is off that edge) and the control must be *awake* (a
+reader gesture within `IDLE_MS`, or it holds focus).
+
+**Two details that are load-bearing rather than cosmetic:**
+
+- **The wake signal is the gesture, not the scroll.** Both panes scroll themselves to follow the
+  newest turn, so waking on `scroll` would flash the control over the comic once per command.
+  `ScrollPane.onReaderScroll` (wheel/touchmove/pointerdown/keydown) is separate from `onScroll`
+  (geometry) for exactly this.
+- **The jump is instant, never smooth** — a virtualization requirement, not a preference. Animating a
+  scroll across the whole strip paints every panel it passes, which is what v0.26.5 exists to avoid;
+  measured at the jump, 3 of 57 panels held a bitmap on arrival at the top.
+
+Fading is `opacity` *and* `visibility`: a faded-but-focusable button is an invisible stop on the tab
+order. `focusin`/`focusout` keep it open for a keyboard user, and the idle timer refuses to hide the
+control while it holds focus.
+
+**Corrected a claim from the v0.26.5 session:** `console-view.ts`'s unconditional `scrollToEnd` on
+append is not a bug and was not "inconsistent with the comic pane" — `comic-view.ts`'s `render` scrolls
+to the newest panel unconditionally too. Both panes follow the newest turn on append; `pinned` governs
+the resize path in both. Nothing was changed there.
+
+Tests: 296 web, unchanged — `jump.ts` is DOM-only and the web suite is deliberately canvas- and
+DOM-free (it runs in Node). Verified in Chrome at a 390×844 phone viewport over a 57-panel game:
+reveal, fade, both-pane sync in both directions, and the panel count still resident after a jump.
+
+---
+
 ## v0.26.5 — 2026-08-03 — The comic strip is virtualized
 
 **Found in play on a phone: resuming a saved game took seconds, and the cost grows with the save.**

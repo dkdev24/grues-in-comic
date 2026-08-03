@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.26.5** · Platform: **macOS only** (2026-07-28)
+**0.26.6** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -61,7 +61,31 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — The comic strip is virtualized (v0.26.5)
+## Last Session — Virtualized strip (v0.26.5) + one jump control for both panes (v0.26.6)
+
+### v0.26.6 — Jump to beginning / Jump to latest
+
+**One control, moving both panes, overlaying the comic pane's bottom-right** (`web/src/jump.ts`,
+wired in `main.ts` because it is the only place that knows both panes). Manual scrolling stays
+unsynchronized, by the user's decision: the transcript↔panel mapping is not monotonic (a turn yields
+0..N panels), while "the top" and "the end" need no mapping at all.
+
+**Revealed by a reader gesture, faded after `IDLE_MS` (2s).** Shown-when-useful alone would have put
+"Jump to beginning" permanently over the newest panel — there is history above from turn 2. Two rules
+compose: *useful* (some pane is off that edge) and *awake* (recent gesture, or holds focus).
+
+**Slash commands were considered and rejected** for this — typing one raises the on-screen keyboard
+over both panes to perform a scroll, and the user ruled out a secondary path since desktop has a
+mouse.
+
+**`ScrollPane.onReaderScroll` is separate from `onScroll` on purpose**: both panes scroll themselves
+on every turn, so waking on `scroll` would flash the control once per command. And **the jump is
+instant, never smooth** — a smooth scroll across the strip would paint every panel it passes.
+
+Tests: 296 web, unchanged (`jump.ts` is DOM-only; the web suite runs in Node and is DOM-free).
+Verified in Chrome at 390×844 over a 57-panel game.
+
+### v0.26.5 — The comic strip is virtualized
 
 **Resuming a long save was slow on a phone, and the real ceiling was memory.** Every emitted panel got
 a canvas of its own on arrival, and a canvas costs `w × h × dpr² × 4` bytes on or off screen. Measured
@@ -84,8 +108,9 @@ pane.
 
 Tests: 296 web (3 new), pixel gate 17/17 clean. Engine, IR and parity untouched.
 
-**Not done, and deliberately separate:** a 500-panel strip is now cheap to *hold* but still long to
-*scroll*, and the `Turn[]` autosave still grows without bound against a ~5 MB quota. Both are in
+**Not done, and deliberately separate:** the jump control reaches the two *ends*; finding a *moment*
+in the middle (room markers, paged history, panel→transcript linking via `Panel.turn`) is untouched,
+as is the `Turn[]` autosave growing without bound against a ~5 MB quota. Both are in
 `docs/FUTURE_WORK.md`.
 
 ## Next Actions
@@ -95,9 +120,9 @@ Tests: 296 web (3 new), pixel gate 17/17 clean. Engine, IR and parity untouched.
 
 1. **Mobile UX.** ✅ All five issues from the v0.26.3 phone pass are closed (the last, the on-screen
    keyboard, in v0.26.4). **v0.26.5 closes the sixth, found later: the strip is virtualized**, so
-   resuming a long save no longer scales its canvas memory with the panel count. What that leaves is
-   **scroll length** — a few hundred panels are cheap to hold and still long to travel; a
-   jump-to-latest control or paged history is the next honest step, and both are in
+   resuming a long save no longer scales its canvas memory with the panel count, and **v0.26.6 adds
+   the jump control** — one overlay, both panes, revealed by scrolling. What that leaves is finding a
+   *moment* rather than an end (room markers, paged history, `Panel.turn` linking), which is in
    `docs/FUTURE_WORK.md` rather than scheduled here.
 2. **M6.3 — the static site.** ✅ Closed v0.26.0, mobile-UX revised v0.26.3–v0.26.4. Landing, about and a
    generated changelog are built and verified in the browser; the game lives at `/play/`.
