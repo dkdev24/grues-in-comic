@@ -91,6 +91,25 @@ without asking.
   A cooldown of 3 plus a longer loop took repeats within 20 panels from 70 to 6, and the tightest
   real gap from 1 to 30. The refusal families, which M6.1f blamed, were never the tight ones.
 
+- **A long strip is cheap to hold and still long to travel.** v0.26.5 virtualized the panel bitmaps,
+  which was the memory problem; it does nothing about the fact that a completed game is a few hundred
+  panels of scrollbar in both panes.
+  *Why deferred:* the failure it would prevent (a tab discarded on a phone) is fixed, and what is left
+  is navigation comfort — real, but not a defect, and the honest version of it is a page policy, which
+  is ADR 0004 §5 territory rather than an afternoon.
+  *Done looks like:* either a jump-to-latest control plus room markers in the strip (small, covers most
+  of the pain), or a paged history that makes §5's "a page is a layout policy over the stream" true on
+  screen as well as in the type. The console pane needs the same question asked of it.
+
+- **The `Turn[]` autosave grows without bound.** `persistence.ts` already anticipates the wall —
+  `StorageFullError` exists and autosave switches itself off with a message — but nothing bounds the
+  history against a ~5 MB quota.
+  *Why deferred:* no observed failure yet, and every bound is a decision about what a saved game *is*
+  (a full replay log is what makes resume renderer-independent — see the module header before
+  trimming anything).
+  *Done looks like:* a measured panel/byte budget for a completed game, then either compression or a
+  bounded window that keeps `SaveState` authoritative and degrades the *strip*, not the world.
+
 - **Panel grammar (ADR 0004) — open authoring judgement.** Page composition (§5), §4a breakpoints,
   PDF byte size, pane-scroll coupling. Amend the ADR, not the discussion doc.
   *Why deferred:* each becomes urgent only when the surface it governs is touched.

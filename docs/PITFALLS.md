@@ -233,6 +233,19 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   function of panel width, §4a). **Resume replays turns, it does not re-execute them** — `SaveState`
   stays the only source of world truth; if a future change makes `play()` mutate engine state, resume
   double-applies it.
+- **The strip is virtualized, and the round-robin is advanced at strip-join, not at first draw**
+  (v0.26.5). A canvas costs `w × h × dpr² × 4` bytes on or off screen — ~1.5 MB per panel at a phone's
+  DPR — so a completed game's few hundred panels are hundreds of megabytes of live bitmap, which a
+  mobile browser answers by discarding the tab. `comic-view.ts` therefore paints only what is within
+  `SCROLL_HEADROOM` of the viewport and zeroes the rest. Two rules fall out and neither is optional:
+  **(1) only the bitmap is virtual** — the element, its CSS size and its `aria-label` always exist, or
+  the scroll height, the grid flow and the screen-reader reading of the strip all start lying;
+  **(2) anything that advances per-panel state must do it when the panel joins the strip**, because
+  paint order is now the reader's scroll path. The cycle is advanced by `selectFigures` (the
+  width-free half of `renderPanel`, exported for exactly this) and the state it advanced *from* is
+  frozen per panel, so every repaint is idempotent. Get (2) wrong and the bug is invisible until
+  someone scrolls a long strip back up and the bodies have changed —
+  `web/test/select-figures.test.ts` is what pins it.
 - **The face/torso join is implemented twice on purpose** — pixels in `art/src/composite.ts`, sheet
   sub-rects in `web/src/comic/figure.ts` — because merging drags the decoder into the browser.
   `web/test/figure.test.ts` runs both over the real cast pose-for-pose; do not weaken it.

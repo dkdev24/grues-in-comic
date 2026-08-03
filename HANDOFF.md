@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.26.4** · Platform: **macOS only** (2026-07-28)
+**0.26.5** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -57,34 +57,48 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   `setTimeout` since Android Chrome ignores a synchronous `blur()` inside the submit handler). Detail
   in `WORKLOG.md` v0.26.3 and v0.26.4. **All five phone-test issues are now closed.**
 
-**Tests:** 293 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate 17/17 clean.
+**Tests:** 296 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate 17/17 clean.
 
 ---
 
-## Last Session — Mobile UX: dismiss keyboard on submit (v0.26.4)
+## Last Session — The comic strip is virtualized (v0.26.5)
 
-**Closed the one item left open from v0.26.3's phone pass.** `web/src/main.ts`'s command-form submit
-handler now blurs `#command` after every submit, so the on-screen keyboard closes and both panes are
-visible again; tapping the field re-opens the keyboard for the next command.
+**Resuming a long save was slow on a phone, and the real ceiling was memory.** Every emitted panel got
+a canvas of its own on arrival, and a canvas costs `w × h × dpr² × 4` bytes on or off screen. Measured
+in Chrome over a real 68-panel autosave: **28.15 MB of backing store before, 2.48 MB after** (6 panels
+resident, not 68). Flat in the length of the game now; it was linear, and a completed game is a few
+hundred panels.
 
-**Plain `input.blur()` inside the submit handler did not dismiss the keyboard on Android Chrome.**
-Deferred the call with `setTimeout(() => input.blur(), 0)` — Android Chrome ignores a `blur()`
-invoked synchronously in the same event-handler tick as `submit`; pushing it to the next tick
-released the keyboard. Verified on the same Android phone used for the v0.26.3 pass.
+`comic-view.ts` now paints a panel when an `IntersectionObserver` puts it within `SCROLL_HEADROOM`
+(one screen) of the strip and zeroes its intrinsic size when it leaves. **Elements, CSS sizes and
+`aria-label`s are never virtualized** — only bitmaps are, so scroll height, grid flow and the
+screen-reader reading of the strip are unchanged. No `IntersectionObserver` ⇒ paint everything, which
+is the old behaviour.
 
-All five issues found by that first real-device pass (blinking-cursor prompt, wasted `/play` note,
-wasted masthead strip, canvas font fallback, on-screen keyboard) are now closed. Full detail in
-`WORKLOG.md` v0.26.3 and v0.26.4. Tests: 293 web, unchanged (no coverage exists for input-focus/
-keyboard behavior).
+**The pose round-robin moved from first-draw to strip-join**, because lazy painting is out of order
+and a round-robin cannot survive that. `renderPanel`'s width-free body-selection step is exported as
+`selectFigures`; the view runs it as each panel joins and freezes the cycle state it chose from, so
+every repaint is idempotent. `web/test/select-figures.test.ts` pins it, including a back-to-front
+repaint. Detail in `WORKLOG.md` v0.26.5; the durable rule is in `docs/PITFALLS.md` → Web & the comic
+pane.
+
+Tests: 296 web (3 new), pixel gate 17/17 clean. Engine, IR and parity untouched.
+
+**Not done, and deliberately separate:** a 500-panel strip is now cheap to *hold* but still long to
+*scroll*, and the `Turn[]` autosave still grows without bound against a ~5 MB quota. Both are in
+`docs/FUTURE_WORK.md`.
 
 ## Next Actions
 
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **Mobile UX — dismiss keyboard on submit.** ✅ Closed v0.26.4. `main.ts`'s submit handler blurs
-   `#command` (deferred one tick via `setTimeout`, needed for Android Chrome). Verified on the same
-   Android phone as the v0.26.3 pass. All five phone-test issues from that pass are now closed.
+1. **Mobile UX.** ✅ All five issues from the v0.26.3 phone pass are closed (the last, the on-screen
+   keyboard, in v0.26.4). **v0.26.5 closes the sixth, found later: the strip is virtualized**, so
+   resuming a long save no longer scales its canvas memory with the panel count. What that leaves is
+   **scroll length** — a few hundred panels are cheap to hold and still long to travel; a
+   jump-to-latest control or paged history is the next honest step, and both are in
+   `docs/FUTURE_WORK.md` rather than scheduled here.
 2. **M6.3 — the static site.** ✅ Closed v0.26.0, mobile-UX revised v0.26.3–v0.26.4. Landing, about and a
    generated changelog are built and verified in the browser; the game lives at `/play/`.
 3. **M6.1 — the comic pane becomes a cartoon.** ◐ Mechanics closed (ADR 0010 fully built, v0.24.9).

@@ -10,6 +10,48 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.26.5 — 2026-08-03 — The comic strip is virtualized
+
+**Found in play on a phone: resuming a saved game took seconds, and the cost grows with the save.**
+Restore replays every turn through `play()` (that is the whole design of `persistence.ts` — the turn
+history is persisted, never the rendered output), and `comic-view.ts` drew each emitted panel into a
+canvas of its own on arrival. A completed game is a few hundred panels, so the pane was heading for a
+few hundred canvases.
+
+**The binding cost is memory, not time.** A canvas holds `width × height × dpr² × 4` bytes of backing
+store whether or not it is on screen — ~1.5 MB at a phone's DPR for one panel — and a mobile browser
+answers hundreds of megabytes of live bitmap by discarding the tab, not by getting slower. Measured
+in Chrome over a real 68-panel autosave: **28.15 MB of backing store before, 2.48 MB after**, with 6
+panels resident instead of 68. The after figure is flat in the length of the game; the before figure
+is linear, and extrapolates to ~165 MB at 400 panels.
+
+**ADR 0004 §5 is what made the fix cheap.** The panel *stream* is the canonical data structure and a
+page is a layout policy over it, so a `Panel` is data and its canvas is a disposable view of that
+data. An `IntersectionObserver` over the strip now paints a panel when it comes within
+`SCROLL_HEADROOM` (one screen) of the viewport and zeroes its intrinsic size when it leaves. **Every
+panel keeps its element, its CSS size and its `aria-label`** — the grid geometry, the scroll height
+and the screen-reader reading of the strip are not virtualized, only the bitmaps are.
+
+**The pose round-robin had to move, and this is the part worth remembering.** The cycle (§8,
+`m_lastTorso + 1`) advanced on a panel's *first draw*, which was safe only while first-draw order and
+happening order were the same thing. Lazy painting breaks that: a panel scrolled back to would
+re-pose, and the reader would find a different comic on the way up than the one they read on the way
+down. `renderPanel`'s body-selection step is now exported as `selectFigures` — it takes no width, so
+it can run without a canvas — and the view calls it as each panel *joins the strip*, freezing the
+cycle state the panel was chosen from. Paint reads that frozen copy, so it is idempotent by
+construction. `web/test/select-figures.test.ts` pins all three properties, including a strip repainted
+back-to-front.
+
+**A browser without `IntersectionObserver` paints every panel** — exactly the previous behaviour, the
+same shape as the existing missing-2D-context fallback. That fallback is also what made the
+before/after measurement possible: deleting `IntersectionObserver` at page-init reproduces the old
+build on the same save.
+
+Tests: 296 web (3 new), pixel gate 17/17 clean. Engine, IR and parity untouched. Verified in Chrome
+against a real autosave: restore, scroll-back, resize and reload.
+
+---
+
 ## v0.26.4 — 2026-08-03 — Mobile UX: dismiss keyboard on submit
 
 **Closed the one item left open from v0.26.3's phone pass.** `web/src/main.ts`'s command-form submit

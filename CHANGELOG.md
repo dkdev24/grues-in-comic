@@ -18,6 +18,16 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.26.5] - 2026-08-03 — Faster loading for long games
+
+### Changed
+- The comic strip now draws only the panels near what you are looking at, and redraws the others as
+  you scroll to them. A long game reloads quickly instead of redrawing its whole comic first, and the
+  page uses a small, steady amount of memory however far into the game you are — which matters most
+  on phones, where the browser could previously drop the tab.
+
+---
+
 ## [v0.26.3] - 2026-08-02 — Mobile UX fixes
 
 ### Fixed
