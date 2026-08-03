@@ -11,7 +11,7 @@ not belong here.
 ---
 
 ## Current Version
-**0.26.3** · Platform: **macOS only** (2026-07-28)
+**0.26.4** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -46,66 +46,46 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   `https://grues.danielkimdev.com` (corrected from a wrong domain in v0.26.0).
 - **M6.5-beta ✅** (closed 2026-08-02, v0.26.3) Private Cloudflare Pages beta live at
   `grues.danielkimdev.com` — repo stays private, not the 1.0.0 launch. First real-device (Android
-  phone) test surfaced four mobile-UX issues, all fixed and deployed same session: the masthead's
-  blinking cursor read as a stray input prompt (removed everywhere); `/play`'s static "New to text
-  adventures?" note wasted vertical space (removed); `/play`'s masthead header wasted a fixed 2.5rem
-  strip (removed — its home link folded into the comic pane's own title bar); and comic balloon text
-  fell back to a generic font on Android, which has neither Comic Sans MS nor Comic Neue installed
-  (fixed by self-hosting Comic Neue as a woff2 web font, loaded explicitly before the first canvas
-  draw since `@font-face` alone never fires for canvas-only text). Detail in `WORKLOG.md` v0.26.3.
-  **Still open, not yet attempted:** dismiss-the-keyboard-on-submit, the fix these four were
-  prerequisites for (`main.ts`'s command-form submit handler should blur `#command` after a turn).
+  phone) test surfaced five mobile-UX issues, all fixed and deployed: the masthead's blinking cursor
+  read as a stray input prompt (removed everywhere); `/play`'s static "New to text adventures?" note
+  wasted vertical space (removed); `/play`'s masthead header wasted a fixed 2.5rem strip (removed —
+  its home link folded into the comic pane's own title bar); comic balloon text fell back to a
+  generic font on Android, which has neither Comic Sans MS nor Comic Neue installed (fixed by
+  self-hosting Comic Neue as a woff2 web font, loaded explicitly before the first canvas draw since
+  `@font-face` alone never fires for canvas-only text); and the on-screen keyboard covered both panes
+  while typing (fixed v0.26.4 — `main.ts`'s submit handler now blurs `#command`, deferred one tick via
+  `setTimeout` since Android Chrome ignores a synchronous `blur()` inside the submit handler). Detail
+  in `WORKLOG.md` v0.26.3 and v0.26.4. **All five phone-test issues are now closed.**
 
 **Tests:** 293 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate 17/17 clean.
 
 ---
 
-## Last Session — Private beta deploy + first mobile-device UX pass (v0.26.3)
+## Last Session — Mobile UX: dismiss keyboard on submit (v0.26.4)
 
-**Deployed the pre-v1 site to Cloudflare Pages, privately, so mobile UX could be checked on a real
-phone before 1.0.0** — new plan entry `docs/DEVELOPMENT_PLAN.md` §6.5-beta, distinct from 6.5's
-actual public-launch deployment story (no repo-visibility change, no version-1.0.0 implication). CF
-Pages project `grues-in-comic` is Git-linked to `main`; custom domain `grues.danielkimdev.com` is
-live. **wrangler cannot create a Git-linked Pages project or manage DNS** — both are dashboard-only;
-confirmed and recorded in `docs/PITFALLS.md` → Tooling & platform.
+**Closed the one item left open from v0.26.3's phone pass.** `web/src/main.ts`'s command-form submit
+handler now blurs `#command` after every submit, so the on-screen keyboard closes and both panes are
+visible again; tapping the field re-opens the keyboard for the next command.
 
-**First phone test found four issues, all fixed this session:**
-1. Masthead's blinking cursor after "GRUES IN COMIC" read as a stray input prompt — removed (span +
-   CSS animation) from all pages, all screen sizes.
-2. `/play`'s static "New to text adventures?" note ate vertical space that matters most on small
-   screens — removed.
-3. On-screen keyboard covers half the viewport on Android, hiding both panes while typing. **Decided
-   approach: dismiss the keyboard on submit** (blur `#command` after a turn), not resize-around-the-
-   keyboard — keeps the change off the ADR-0008-gated comic pane. **Not yet implemented** — see Next
-   Actions.
-4. `/play`'s masthead header wasted a fixed 2.5rem strip for a link that only ever went home —
-   removed; the comic pane's own title bar ("Grues in Comic") is now that link.
-5. Comic balloon/title text fell back to a generic font on Android Chrome — it has neither Comic
-   Sans MS nor Comic Neue installed, the two names in the canvas font stack (`comic/balloon.ts`,
-   `comic/render.ts`). Fixed by self-hosting Comic Neue (SIL OFL, `THIRD_PARTY.md`) as a woff2 web
-   font and loading it explicitly in `main.ts` before the comic pane's first draw — `@font-face`
-   alone never fires a fetch for a font only ever used on `<canvas>`, never in DOM text. Verified
-   with an emulated Android (Pixel 7) session: balloon text renders in Comic Neue.
+**Plain `input.blur()` inside the submit handler did not dismiss the keyboard on Android Chrome.**
+Deferred the call with `setTimeout(() => input.blur(), 0)` — Android Chrome ignores a `blur()`
+invoked synchronously in the same event-handler tick as `submit`; pushing it to the next tick
+released the keyboard. Verified on the same Android phone used for the v0.26.3 pass.
 
-**Cache trap hit during verification, not a bug:** `main.js`/`style.css` serve `max-age=14400` —
-after the font fix deployed, the phone kept rendering the old fallback font until its browser cache
-was cleared. Confirmed working after that.
-
-Full detail in `WORKLOG.md` v0.26.3. Tests: 293 web (unchanged — no test coverage exists for
-static markup/CSS or the font-loading bootstrap) · pixel gate untouched (nothing inside
-`#comic`/`#console` markup changed).
+All five issues found by that first real-device pass (blinking-cursor prompt, wasted `/play` note,
+wasted masthead strip, canvas font fallback, on-screen keyboard) are now closed. Full detail in
+`WORKLOG.md` v0.26.3 and v0.26.4. Tests: 293 web, unchanged (no coverage exists for input-focus/
+keyboard behavior).
 
 ## Next Actions
 
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **Mobile UX — dismiss keyboard on submit.** ☐ The decided fix for the on-screen keyboard covering
-   both panes (v0.26.3 session, item 3 above): blur `#command` in `main.ts`'s submit handler after a
-   turn resolves, so both panes are visible again; tapping the field re-opens the keyboard for the
-   next command. The four prerequisite fixes (cursor, hint-note, header, font) are done — this is the
-   next actual behavior change, unstarted. Verify on the same Android phone once built.
-2. **M6.3 — the static site.** ✅ Closed v0.26.0, mobile-UX revised v0.26.3. Landing, about and a
+1. **Mobile UX — dismiss keyboard on submit.** ✅ Closed v0.26.4. `main.ts`'s submit handler blurs
+   `#command` (deferred one tick via `setTimeout`, needed for Android Chrome). Verified on the same
+   Android phone as the v0.26.3 pass. All five phone-test issues from that pass are now closed.
+2. **M6.3 — the static site.** ✅ Closed v0.26.0, mobile-UX revised v0.26.3–v0.26.4. Landing, about and a
    generated changelog are built and verified in the browser; the game lives at `/play/`.
 3. **M6.1 — the comic pane becomes a cartoon.** ◐ Mechanics closed (ADR 0010 fully built, v0.24.9).
    **6.1e ◐ is the only open item**: authored dialogue across 110 rooms, committed as data (D1

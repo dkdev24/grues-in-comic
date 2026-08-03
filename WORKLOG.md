@@ -10,6 +10,22 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.26.4 — 2026-08-03 — Mobile UX: dismiss keyboard on submit
+
+**Closed the one item left open from v0.26.3's phone pass.** `web/src/main.ts`'s command-form submit
+handler now blurs `#command` after every submit, so the on-screen keyboard closes and both panes are
+visible again; tapping the field re-opens the keyboard for the next command.
+
+**First attempt (plain `input.blur()` in the submit handler) did not dismiss the keyboard on Android
+Chrome.** Deferred the call with `setTimeout(() => input.blur(), 0)` — Android Chrome ignores a
+`blur()` invoked synchronously inside the same event-handler tick as the `submit` event; pushing it to
+the next tick released the keyboard. Verified on the same Android phone used for the v0.26.3 pass.
+
+Tests: 293 web, unchanged (no coverage exists for input-focus/keyboard behavior). No other files
+touched.
+
+---
+
 ## v0.26.3 — 2026-08-02 — Private beta deploy + first mobile-device UX pass
 
 **New plan entry, `docs/DEVELOPMENT_PLAN.md` §6.5-beta: deploy the pre-v1 site to Cloudflare Pages
