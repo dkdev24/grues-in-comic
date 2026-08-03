@@ -15,6 +15,7 @@ import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
 import { createComicView, type ComicView } from "./comic-view.js";
 import { createSessionStore, type SessionStore, StorageFullError } from "./persistence.js";
+import { createJumpControls } from "./jump.js";
 import { PLAYER_ID } from "../../engine/src/state.js";
 
 /** Where `tools/serve.ts` mounts `ir/artifacts/`. ~1.8 MB, fetched once.
@@ -80,6 +81,14 @@ async function main(): Promise<void> {
     consoleView.appendSystem(`[comic pane unavailable: ${message(err)}]`);
   }
 
+  // One control, both panes (`jump.ts`) — and this is the only place that knows
+  // both, which is why it is wired here rather than owned by either pane. A
+  // failed comic leaves the transcript's own jumps working.
+  const jump = createJumpControls(
+    requireEl(".jump-controls"),
+    comic ? [comic.pane, consoleView.pane] : [consoleView.pane],
+  );
+
   // The replay log behind autosave. Every turn `play()` renders is a turn a
   // resumed session has to render again, so it is appended here and nowhere
   // else — one list, written on the single path both panes go through.
@@ -108,6 +117,11 @@ async function main(): Promise<void> {
     comic?.appendTurn(turn);
     inspector.update(turn);
     history.push(turn);
+    // A turn changes both panes' scroll geometry. The panes' own scroll events
+    // cover most of it, but a pane whose content still fits emits none, so the
+    // control is told outright. `refresh` coalesces, so a replay of hundreds of
+    // turns costs one layout read.
+    jump.refresh();
   };
 
   /** Render a turn without recording it: replay is already in the history. */
@@ -115,6 +129,7 @@ async function main(): Promise<void> {
     consoleView.appendTurn(turn);
     comic?.appendTurn(turn);
     inspector.update(turn);
+    jump.refresh();
   };
 
   function autosave(): void {

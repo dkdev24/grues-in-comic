@@ -85,6 +85,68 @@ section {
      dimensions — the chrome stretches, the figures do not distort. */
   background: var(--comic-chrome);
   border-color: var(--comic-edge);
+  /* The containing block for the jump control, which overlays the strip. */
+  position: relative;
+}
+
+/* Jump to beginning / jump to latest — one control for both panes (`jump.ts`).
+   Absolutely positioned on purpose: it must cost the panel no height, because a
+   portrait phone has none to give (the cast bar is hidden there for the same
+   reason). Bottom-right keeps it under the thumb and clear of the newest panel's
+   balloons, which sit high. */
+.jump-controls {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  /* Revealed by scrolling, gone when the reader stops (`jump.ts`). Visibility,
+     not opacity alone: a faded-out button that is still focusable is an
+     invisible stop on the tab order. It is delayed out and immediate in, so the
+     fade plays on the way down and the control is reachable the instant it is
+     asked for. */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.jump-controls.awake {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.12s ease, visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jump-controls {
+    transition: none;
+  }
+}
+
+.jump-controls[hidden],
+.jump-controls button[hidden] {
+  display: none;
+}
+
+.jump-controls button {
+  /* Sized to the 44px tap target a phone needs, in ems so it tracks the label. */
+  min-height: 2.75rem;
+  padding: 0.4rem 0.8rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: #f4f4f4;
+  background: rgb(28 47 107 / 88%);
+  border: 1px solid var(--comic-edge);
+  border-radius: 0.2rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 35%);
+  cursor: pointer;
+}
+
+.jump-controls button:hover,
+.jump-controls button:focus-visible {
+  background: rgb(74 107 189 / 95%);
 }
 
 #comic h2 {

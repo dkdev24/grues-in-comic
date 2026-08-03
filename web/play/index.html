@@ -27,6 +27,14 @@
              character names are ADR 0006 Slice 3's. -->
         <div class="comic-cast" aria-label="Cast"></div>
         <div class="comic-strip"></div>
+        <!-- One control for both panes (`jump.ts`). It overlays the strip rather
+             than taking a row: on a portrait phone every pixel of permanent
+             chrome comes off the panel. Each button hides itself when it has
+             nothing to do, so ordinary play shows neither. -->
+        <div class="jump-controls" hidden>
+          <button type="button" data-jump="beginning" hidden>Jump to beginning</button>
+          <button type="button" data-jump="latest" hidden>Jump to latest</button>
+        </div>
       </section>
 
       <section id="console" aria-label="Game transcript">

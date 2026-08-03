@@ -20,8 +20,11 @@
 import type { EngineEvent } from "../../engine/src/events.js";
 import type { Status } from "./status.js";
 import type { Turn } from "./session.js";
+import { createScrollPane, type ScrollPane } from "./jump.js";
 
 export interface ConsoleView {
+  /** The transcript as something the shared jump control can move (`jump.ts`). */
+  pane: ScrollPane;
   /** Append a turn: the echoed command, then its player-visible lines. */
   appendTurn(turn: Turn): void;
   /** Print a line in the interpreter's own voice (errors, save confirmations). */
@@ -68,6 +71,7 @@ export function createConsoleView(root: HTMLElement): ConsoleView {
   observer.observe(transcript);
 
   return {
+    pane: createScrollPane(transcript),
     appendTurn(turn) {
       if (turn.command !== null) line("echo", `>${turn.command}`);
       for (const e of turn.events) {

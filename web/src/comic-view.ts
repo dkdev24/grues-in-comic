@@ -36,8 +36,11 @@ import type { PanelDelta } from "./comic/page.js";
 import { backdropFor } from "./comic/backdrop.js";
 import { layoutStrip, UNIT } from "./comic/layout.js";
 import { drawPortrait, portraitCrop, PORTRAIT } from "./comic/portrait.js";
+import { createScrollPane, type ScrollPane } from "./jump.js";
 
 export interface ComicView {
+  /** The strip as something the shared jump control can move (`jump.ts`). */
+  pane: ScrollPane;
   /** Draw the panels this turn produced — 0..N (ADR 0005: a turn may be dropped,
    * buffered, or collapsed into a following panel). */
   appendTurn(turn: Turn): void;
@@ -167,6 +170,7 @@ export async function createComicView(
   );
 
   return {
+    pane: createScrollPane(strip),
     appendTurn(turn: Turn) {
       // A turn yields 0..N panels (ADR 0005): the Director may drop a noise turn,
       // buffer a traversal, or flush a collapsed run ahead of this panel.
