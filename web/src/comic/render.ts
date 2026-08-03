@@ -169,21 +169,7 @@ export function renderPanel(
 
   drawBackdrop(ctx, cast, width, height, shot, options.backdrop);
 
-  // The bodies to lay out are the panel's on-stage participants (`m_bodies`,
-  // `panel.cpp:734`), filtered to those that earn the stage — `IsSpeaker`, applied
-  // before any dimension is read, exactly as the original discards non-speakers
-  // ahead of `GetDimInfo` (`panel.cpp:741-749`). Each figure's pose comes from its
-  // **own** body's emotion (ADR 0008 §2) — the DM's neutral set, the Hero's
-  // world-derived affect — so N participants pose independently, never sharing one
-  // panel emotion. Unknown speaker ids (no sheet) are skipped.
-  const bodies: Array<{ body: Body; figure: Figure }> = [];
-  for (const body of panel.bodies) {
-    if (!isSpeaker(body, panel.speakers)) continue;
-    const avatar = cast.manifest.cast[body.speaker];
-    if (!avatar || !cast.sheets.get(body.speaker)) continue;
-    const figure = figureFor(avatar, body.emotion, cycleFor(cycles, body.speaker));
-    if (figure) bodies.push({ body, figure });
-  }
+  const bodies = selectFigures(panel, cast, cycles);
 
   const placed = layoutAvatars(bodies, width, height, shot, widthCap);
 
@@ -334,6 +320,38 @@ export function layoutAvatars(
     x += w + margin;
   }
   return placed;
+}
+
+/**
+ * Who is on stage in this panel, and posed how.
+ *
+ * The bodies to lay out are the panel's on-stage participants (`m_bodies`,
+ * `panel.cpp:734`), filtered to those that earn the stage — `IsSpeaker`, applied
+ * before any dimension is read, exactly as the original discards non-speakers
+ * ahead of `GetDimInfo` (`panel.cpp:741-749`). Each figure's pose comes from its
+ * **own** body's emotion (ADR 0008 §2) — the DM's neutral set, the Hero's
+ * world-derived affect — so N participants pose independently, never sharing one
+ * panel emotion. Unknown speaker ids (no sheet) are skipped.
+ *
+ * **Exported because it is the step that advances `cycles`, and it takes no
+ * width.** Pose choice happens before any layout arithmetic, so a caller that
+ * needs a panel's round-robin advanced without drawing it — a virtualized strip,
+ * which stages every panel but paints only the ones on screen
+ * (`comic-view.ts`) — can call this and get exactly what `renderPanel` would
+ * have consumed. Calling it does mutate `cycles`; pass a copy to avoid that.
+ */
+export function selectFigures(
+  panel: Panel, cast: Cast, cycles: Map<string, PoseCycle>,
+): Array<{ body: Body; figure: Figure }> {
+  const bodies: Array<{ body: Body; figure: Figure }> = [];
+  for (const body of panel.bodies) {
+    if (!isSpeaker(body, panel.speakers)) continue;
+    const avatar = cast.manifest.cast[body.speaker];
+    if (!avatar || !cast.sheets.get(body.speaker)) continue;
+    const figure = figureFor(avatar, body.emotion, cycleFor(cycles, body.speaker));
+    if (figure) bodies.push({ body, figure });
+  }
+  return bodies;
 }
 
 function cycleFor(cycles: Map<string, PoseCycle>, role: string): PoseCycle {
