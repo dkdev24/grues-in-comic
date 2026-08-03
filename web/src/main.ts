@@ -143,8 +143,10 @@ async function main(): Promise<void> {
 
     // On-screen keyboards cover half the viewport on mobile, hiding both
     // panes while typing — dismiss it on every submit rather than resizing
-    // around it, which would touch the ADR-0008-gated comic pane.
-    input.blur();
+    // around it, which would touch the ADR-0008-gated comic pane. Android
+    // Chrome ignores a blur() called synchronously inside the submit
+    // handler, so it's deferred to the next tick.
+    setTimeout(() => input.blur(), 0);
 
     // Save and restore are the shell's, not the game's: ZIL's SAVE/RESTORE
     // are Z-machine interpreter commands, and this shell is the interpreter.
