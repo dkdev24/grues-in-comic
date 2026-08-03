@@ -141,6 +141,11 @@ async function main(): Promise<void> {
     if (command === "") return;
     input.value = "";
 
+    // On-screen keyboards cover half the viewport on mobile, hiding both
+    // panes while typing — dismiss it on every submit rather than resizing
+    // around it, which would touch the ADR-0008-gated comic pane.
+    input.blur();
+
     // Save and restore are the shell's, not the game's: ZIL's SAVE/RESTORE
     // are Z-machine interpreter commands, and this shell is the interpreter.
     if (handleShellCommand(command)) return;
