@@ -126,6 +126,19 @@ Rule 4 is the answer to "what is the Hero doing in the second panel", and it is 
 because it makes the *arrival* — the most characterful beat in the game — end on the facing
 two-shot D5 is asking for, instead of opening on one and trailing into monologue.
 
+**Amended (mobile-UX pass, post-v0.26.6): the trigger is the narration's *shape*, not "the
+player moved."** `readAloud`'s boolean argument (renamed `readWhole`) was `moved` because a
+room move was the only turn whose narration was a list-or-full-description rather than one
+event to comment on. `inventory`/`i` and `look`/`l` produce the same shape without moving the
+player — the engine's own inventory format is a header line plus one item per line
+(`"You are carrying:\n  A leaflet\n"`), and the old rule's "otherwise" branch (§2) took only
+the first line, silently dropping every item after it (found via a real-device mobile-UX
+report: the DM's balloon showed "You are carrying:" and stopped). The mapper now passes
+`moved || isListLikeCommand(turn.command)`, bare-verb only (`"look at lamp"` is a template
+match on a noun phrase, not a room re-description, and must not trip this). Everything in
+rules 1–4 above is unchanged and already generic over the reason `readWhole` is true — this
+is a wider trigger on existing machinery, not new machinery.
+
 ### 5. The Director drops a refusal only when it has nothing to say (D5's largest lever)
 
 ADR 0005 §3 drops every `refusal` turn as noise. That was measured when a refusal carried no

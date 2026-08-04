@@ -1051,6 +1051,15 @@ describe("the read-aloud register (ADR 0009 §2)", () => {
     expect(readAloud(long, null, true)).toEqual([long]);
   });
 
+  it("reads a whole list aloud, not just its header (§2 amendment)", () => {
+    // The engine's own format for INVENTORY/the mailbox's contents: a header
+    // line, then one item per line. `sentences()` splits on newlines too, so
+    // before the amendment `readWhole=false` kept only "You are carrying:" and
+    // silently dropped every item after it.
+    const said = readAloud("You are carrying:\n  A brass lantern\n  A sword\n", null, true);
+    expect(said.join(" ")).toBe("You are carrying: A brass lantern A sword");
+  });
+
   it("leaves a parser refusal to the Hero (D2)", () => {
     // The routing decision, asserted on the *script* rather than on the panels: a
     // panel's context is its newest line's, so a clone-appended refusal can land
@@ -1070,6 +1079,37 @@ describe("the read-aloud register (ADR 0009 §2)", () => {
       expect(script.lines.filter((l) => l.speaker === GUIDE)).toEqual([]);
     }
     expect(refusals).toBeGreaterThan(0);
+  });
+
+  it("reads the whole carried-items list on bare `inventory`", () => {
+    // The mobile-UX report: the DM's balloon showed "You are carrying:" and
+    // stopped there. `inventory` never moves the player, so this exercises the
+    // list-like-command trigger end to end, not just `readAloud` in isolation.
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ commandScript: SILENT_COMMANDS });
+    page.turn(session.start());
+    page.turn(session.command("open mailbox"));
+    page.turn(session.command("take leaflet"));
+    const shot = page.turn(session.command("inventory"));
+    expect(readsAloud(shot)?.text).toBe("You are carrying: A leaflet");
+  });
+
+  it("reads the whole room aloud on a bare `look` that did not move the player", () => {
+    // Re-`look`ing a room you are already standing in is not a `player-moved`
+    // turn, so before the amendment this fell into the "one sentence" branch
+    // and dropped everything after the opening clause — same bug as inventory,
+    // different verb.
+    const session = createSession(doc, { seed: SEED });
+    const page = strip({ commandScript: SILENT_COMMANDS });
+    page.turn(session.start());
+    page.turn(session.command("open mailbox"));
+    const shot = page.turn(session.command("look"));
+    const said = shot.lines
+      .filter((l) => l.speaker === GUIDE && l.register === "narration")
+      .map((l) => l.text)
+      .join(" ");
+    expect(said).toMatch(/small mailbox here/i);
+    expect(said).toMatch(/mailbox contains/i);
   });
 });
 

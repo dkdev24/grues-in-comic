@@ -539,7 +539,7 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // in one panel or four is `page.ts`'s decision, not this module's.
       const readAloudLines = isRefusal(affect.marker)
         ? []
-        : readAloud(prose, affect.matched, moved);
+        : readAloud(prose, affect.matched, moved || isListLikeCommand(turn.command));
       // What the Hero did, then what he says back — ADR 0009 §6 retired the
       // exclusion and kept the ordering: the action is derived from events and
       // cannot be wrong, the reply is authored garnish, and garnish goes second.
@@ -1059,6 +1059,23 @@ export function heroBalloon(
 }
 
 /**
+ * Bare `inventory`/`i` and bare `look`/`l` — the two commands whose narration
+ * is a *list or a full description* rather than one event to comment on (§2
+ * amendment below `readAloud`). Bare, on purpose: `heroDeclaration` (below)
+ * only treats these as their intransitive selves when the command is exactly
+ * one word — `"look at lamp"` is a template match on a noun phrase (or, for
+ * `at`, no match at all), not a room re-description, so it must not trip this.
+ * Same tokenization as `heroDeclaration` (trim, lowercase, split on whitespace).
+ */
+const LIST_LIKE_VERBS = new Set(["inventory", "i", "look", "l"]);
+
+function isListLikeCommand(command: string | null): boolean {
+  if (command === null) return false;
+  const words = command.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  return words.length === 1 && LIST_LIKE_VERBS.has(words[0]!);
+}
+
+/**
  * The **read-aloud register** — ADR 0009 §2, and the slice that retired the box.
  *
  * ADR 0006 §2 settled that the caption *is* the DM reading the module aloud; it
@@ -1071,10 +1088,16 @@ export function heroBalloon(
  *
  * Two selections, because a turn's narration is two different things:
  *
- * - **The player moved: he reads the room.** The whole narration, packed into
+ * - **`readWhole`: he reads the whole thing.** The whole narration, packed into
  *   balloons — an arrival's description runs to 588 characters where the box only
  *   ever showed its opening clause (p50 24). This is what D2/D3 mean by "the DM
  *   speaks the room description", and it is new text on the panel, not a re-route.
+ *   True on a turn that moved the player, and (§2 amendment, M6.1-mobile-UX-2)
+ *   on `inventory`/`i` and `look`/`l` too — narration shaped as a *list or a full
+ *   description* rather than one event to comment on, and clipping it to one
+ *   sentence silently drops every item after the first. Naming it after those
+ *   two verbs would have been the alternative; the flag is deliberately about
+ *   the *shape of the narration*, not the command, so the caller decides.
  * - **Otherwise: the sentence the panel is about** — the one the §10 marker
  *   matched, else the turn's first, which is the pre-0009 rule unchanged. A
  *   parser refusal is skipped here: it is the Hero's register now (D2), and until
@@ -1095,8 +1118,8 @@ export function heroBalloon(
  */
 export const READ_ALOUD_MAX = 200;
 
-export function readAloud(text: string, matched: string | null, moved: boolean): string[] {
-  const parts = moved ? sentences(text) : [matched ?? sentences(text)[0] ?? ""].filter(Boolean);
+export function readAloud(text: string, matched: string | null, readWhole: boolean): string[] {
+  const parts = readWhole ? sentences(text) : [matched ?? sentences(text)[0] ?? ""].filter(Boolean);
   const out: string[] = [];
   for (const sentence of parts) {
     const last = out[out.length - 1];

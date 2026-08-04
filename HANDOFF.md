@@ -29,17 +29,24 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   - **6.4 (asset separation), 6.5 (public 1.0.0 release) ☐** not started.
 - **ADR 0006 Slice 5 (session-recap PDF export) ☐** the only open ADR slice, schedulable whenever.
 
-**Tests:** 296 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate 17/17 clean.
+**Tests:** 299 web (3 new) · 142 engine · 198 IR · parity 143/143 strict. Pixel gate: 2 geometry
+diffs pending macOS re-accept (below) — 17/17 pixel hashes unaffected beyond the known non-macOS
+platform mismatch.
 
 ---
 
-## Last Session — Mobile input focus fixed for desktop (unreleased)
+## Last Session — Two mobile-UX bugs fixed (unreleased)
 
-The v0.26.4 keyboard-dismiss `blur()` on submit (`web/src/main.ts`) fired on every layout, including
-desktop, breaking continuous command entry there. Gated it behind
-`window.matchMedia("(max-width: 720px)")`, the same breakpoint `style.css` uses to stack `#shell` —
-so the blur now only fires on the stacked mobile layout, never on the side-by-side desktop one. Not
-yet versioned or logged to `WORKLOG.md`.
+**Desktop lost input focus on submit.** v0.26.4's keyboard-dismiss `blur()` (`main.ts`) fired on
+every layout. Gated behind `matchMedia("(max-width: 720px)")`, the breakpoint that stacks `#shell`.
+
+**`inventory`/`look` truncated the DM's balloon to its header line.** `readAloud` (`mapper.ts`) only
+read a full narration on `player-moved`; otherwise one sentence, and the engine's list format
+(`"You are carrying:\n  A leaflet\n"`) splits on the newline, dropping every item. Widened the
+trigger to bare `inventory`/`i`/`look`/`l` too — ADR 0009 §4 amended. `density` baseline re-accepted
+(D5′ still 42.8%, in band). **Pixel gate's `wk01-p02`/`wk01-p09` geometry now differ — expected, from
+`01-west-of-house.cmd`'s bare `look`s — needs `gate:accept` on macOS**, never this Windows session.
+Not yet versioned or logged to `WORKLOG.md`.
 
 ## Next Actions
 
