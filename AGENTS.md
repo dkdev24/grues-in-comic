@@ -17,7 +17,7 @@ rendering technology. Game logic never becomes browser-specific.
 
 | Document | When | Rule |
 |---|---|---|
-| `HANDOFF.md` | **Read in full at session start; update at session end.** | Current state, next actions, live decisions — nothing else. Replace Last Session (moving the outgoing one to `WORKLOG.md` first); never stack "Prior Session" entries. **Revise stale claims rather than appending around them.** |
+| `HANDOFF.md` | **Read in full at session start; update at session end.** | Current state, next actions, live decisions — nothing else. Replace Last Session (moving the outgoing one to `WORKLOG.md` first); never stack "Prior Session" entries. **Revise stale claims rather than appending around them. Hard cap: 100 lines** — if a session's update would cross it, cut narrative (compress Project Status to one clause per closed milestone, point at `WORKLOG.md`) before cutting facts. |
 | `WORKLOG.md` | Do not load at session start. | Persistent history, newest first, **one entry per version, never edited.** Add one when a version milestone is reached. |
 | `docs/DEVELOPMENT_PLAN.md` | Read when choosing work. | Milestones, stages, gates. **The authority on what to do next.** Mark stages done here as they finish. |
 | `docs/PITFALLS.md` | **Read the section for the subsystem you are about to change.** | Durable cautions, by subsystem. Each entry was paid for by a bug or a wrong released build. New long-lived rules go here, not into `HANDOFF.md`. |
