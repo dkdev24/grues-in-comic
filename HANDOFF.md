@@ -42,25 +42,23 @@ engine does **not** write `globals["LIT"]`; the derived answer rides on `SaveSta
 
 **Three panel rules came out of it, all in `docs/PITFALLS.md` → Web:** a light change breaks the
 panel and `clonePanel` keeps its own `dark`; `titleOwed` pays a dark arrival's suppressed location
-box on the first lit frame; and `PageLine.dark`, below. The first two came out of rendering the
-cellar descent and looking at it, the third out of play testing — **no rule test saw any of them.**
-`density` D5′ 42.6%, gate 7 `wk04-dark-*` cases, both accepted on macOS.
-**Umami analytics verified on the beta deploy** (2026-08-06); nothing outstanding.
+box on the first lit frame; and `PageLine.dark`, below. All three came from looking at renders, not
+from tests — **no rule test saw any of them.** `density` D5′ 42.6%, gate 7 `wk04-dark-*` cases,
+accepted on macOS. **Umami verified on the beta deploy** (2026-08-06); nothing outstanding.
 
 **v0.27.1 (from play testing): the light belongs to the frame, not to the turn.** `Panel.dark` came
-from end-of-turn status, so the declaration — ADR 0010 §2's answer to the *previous* frame — changed
-light a frame early both ways. `PageLine.dark` is the light half of `PageLine.room`'s exception.
+from end-of-turn status, so the declaration changed light a frame early both ways. `PageLine.dark`
+is the light half of `PageLine.room`'s exception.
 
 ## Next Actions
 
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **Mobile UX ✅** — closed. Left: finding a *moment*, in `docs/FUTURE_WORK.md`, not scheduled.
-2. **6.1e — dialogue authoring.** ◐ Open-ended; no exit criterion beyond "user says it's ready."
-3. **6.4 asset separation & neutral branding.** ☐ Independent of everything else.
-4. **6.5 public release → tag `1.0.0`.** ☐ Needs 6.4 and the rest of M6.1's stated purpose done.
-5. **ADR 0006 Slice 5 — PDF export.** ☐ Schedulable whenever. Deliberately not WYSIWYG.
+1. **6.1e — dialogue authoring.** ◐ Open-ended; no exit criterion beyond "user says it's ready."
+2. **6.4 asset separation & neutral branding.** ☐ Independent of everything else.
+3. **6.5 public release → tag `1.0.0`.** ☐ Needs 6.4 and the rest of M6.1's stated purpose done.
+4. **ADR 0006 Slice 5 — PDF export.** ☐ Schedulable whenever. Deliberately not WYSIWYG.
 
 **The M6 list is open.** More items land as work proceeds; absence is not a scoping decision.
 
@@ -68,8 +66,10 @@ light a frame early both ways. `PageLine.dark` is the light half of `PageLine.ro
 
 ## Standing Rules
 
-Three that apply to most sessions. Everything else is in `docs/PITFALLS.md`.
+Four that apply to most sessions. Everything else is in `docs/PITFALLS.md`.
 
+- **Token discipline — every machine, Windows included.** Locate with `graphify`/Grep, then Read with
+  `offset`+`limit`. Never whole-file to find something, never re-read context; wide sweeps → Explore.
 - **Read `docs/PITFALLS.md` for the subsystem you are about to change, before you change it.** Each
   entry was paid for by a bug or a wrong released build.
 - **Measure before proposing rules.** Five plausible panel-grammar proposals died that way. The
