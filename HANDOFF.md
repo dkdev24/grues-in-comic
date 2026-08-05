@@ -37,8 +37,8 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 **An unlit room now renders black.** `light-changed { lit }` joins the ADR 0002 vocabulary (contract
 **1.1.0**, additive; parity unmoved) — baseline on the opening turn, then flips only, at the turn
-boundary. `Status.lit` → `Panel.dark` → `renderPanel` fills `#0b0b0b` and skips the figures. The
-engine does **not** write `globals["LIT"]`; the derived answer rides on `SaveState.lit` instead.
+boundary. `Status.lit` → `Panel.dark` → `renderPanel` fills `#0b0b0b`, skipping the figures. The
+engine does **not** write `globals["LIT"]`; the derived answer rides on `SaveState.lit`.
 
 **Three panel rules came out of it, all in `docs/PITFALLS.md` → Web:** a light change breaks the
 panel and `clonePanel` keeps its own `dark`; `titleOwed` pays a dark arrival's suppressed location
@@ -56,8 +56,7 @@ light a frame early both ways. `PageLine.dark` is the light half of `PageLine.ro
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **Mobile UX ✅** — all known issues closed. Left: finding a *moment* rather than an end, in
-   `docs/FUTURE_WORK.md`, not scheduled.
+1. **Mobile UX ✅** — closed. Left: finding a *moment*, in `docs/FUTURE_WORK.md`, not scheduled.
 2. **6.1e — dialogue authoring.** ◐ Open-ended; no exit criterion beyond "user says it's ready."
 3. **6.4 asset separation & neutral branding.** ☐ Independent of everything else.
 4. **6.5 public release → tag `1.0.0`.** ☐ Needs 6.4 and the rest of M6.1's stated purpose done.
