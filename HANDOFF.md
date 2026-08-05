@@ -45,9 +45,9 @@ every item. Widened to bare `inventory`/`i`/`look`/`l` — ADR 0009 §4 amended,
 (D5′ still 42.8%). **Pixel gate's `wk01-p02`/`wk01-p09` geometry now differ — expected, from
 `01-west-of-house.cmd`'s bare `look`s — needs `gate:accept` on macOS**, never on Windows.
 
-**Umami analytics.** Cookieless tag in `<head>` of `index`/`about`/`play/index` and
-`tools/changelog.template.html` (`changelog.html` regenerated, not hand-edited); dev-only
-`gallery.html` untagged. Unverified until a deploy puts a hit in the dashboard.
+**Umami analytics.** Cookieless tag in `<head>` of `index`/`about`/`play/index` + the changelog
+template (`changelog.html` is generated — edit the template; dev-only `gallery.html` untagged). Both
+`/play/` CTAs emit a `start-playing` event with `position` hero|footer. Unverified until a deploy.
 
 ## Next Actions
 
