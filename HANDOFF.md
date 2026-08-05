@@ -48,9 +48,8 @@ cellar descent and looking at it, the third out of play testing — **no rule te
 **Umami analytics verified on the beta deploy** (2026-08-06); nothing outstanding.
 
 **v0.27.1 (from play testing): the light belongs to the frame, not to the turn.** `Panel.dark` came
-from end-of-turn status, so the declaration — which ADR 0010 §2 has answering the *previous* frame —
-changed light a frame early in both directions. `PageLine.dark` is now the light half of the
-per-line exception `PageLine.room` already was. Two v0.27.0 tests had asserted the bug.
+from end-of-turn status, so the declaration — ADR 0010 §2's answer to the *previous* frame — changed
+light a frame early both ways. `PageLine.dark` is the light half of `PageLine.room`'s exception.
 
 ## Next Actions
 
