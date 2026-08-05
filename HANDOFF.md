@@ -49,7 +49,8 @@ or the room is never named at all. Found by rendering the cellar descent and loo
 Gate gained 7 `wk04-dark-*` cases and was accepted on macOS, clearing the two `wk01` diffs that had
 been pending since the previous session.
 
-**Unverified:** the previous session's Umami analytics still needs a deploy to confirm.
+**Umami analytics verified on the beta deploy** (2026-08-06): visitor tracking and the
+`start-playing` event both land. Nothing outstanding from the previous session.
 
 ## Next Actions
 
