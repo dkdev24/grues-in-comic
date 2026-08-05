@@ -29,24 +29,25 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   - **6.4 (asset separation), 6.5 (public 1.0.0 release) ☐** not started.
 - **ADR 0006 Slice 5 (session-recap PDF export) ☐** the only open ADR slice, schedulable whenever.
 
-**Tests:** 299 web (3 new) · 142 engine · 198 IR · parity 143/143 strict. Pixel gate: 2 geometry
-diffs pending macOS re-accept (below) — 17/17 pixel hashes unaffected beyond the known non-macOS
-platform mismatch.
+**Tests:** 299 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate: 2 geometry diffs
+pending macOS re-accept (below); 17/17 hashes unaffected beyond the known non-macOS mismatch.
 
 ---
 
-## Last Session — Two mobile-UX bugs fixed (unreleased)
+## Last Session — Two mobile-UX fixes + site analytics (unreleased, not in `WORKLOG.md`)
 
 **Desktop lost input focus on submit.** v0.26.4's keyboard-dismiss `blur()` (`main.ts`) fired on
 every layout. Gated behind `matchMedia("(max-width: 720px)")`, the breakpoint that stacks `#shell`.
 
-**`inventory`/`look` truncated the DM's balloon to its header line.** `readAloud` (`mapper.ts`) only
-read a full narration on `player-moved`; otherwise one sentence, and the engine's list format
-(`"You are carrying:\n  A leaflet\n"`) splits on the newline, dropping every item. Widened the
-trigger to bare `inventory`/`i`/`look`/`l` too — ADR 0009 §4 amended. `density` baseline re-accepted
-(D5′ still 42.8%, in band). **Pixel gate's `wk01-p02`/`wk01-p09` geometry now differ — expected, from
-`01-west-of-house.cmd`'s bare `look`s — needs `gate:accept` on macOS**, never this Windows session.
-Not yet versioned or logged to `WORKLOG.md`.
+**`inventory`/`look` truncated the DM's balloon to its header line.** `readAloud` (`mapper.ts`) read
+a full narration only on `player-moved`, and the engine's list format splits on the newline, dropping
+every item. Widened to bare `inventory`/`i`/`look`/`l` — ADR 0009 §4 amended, `density` re-accepted
+(D5′ still 42.8%). **Pixel gate's `wk01-p02`/`wk01-p09` geometry now differ — expected, from
+`01-west-of-house.cmd`'s bare `look`s — needs `gate:accept` on macOS**, never on Windows.
+
+**Umami analytics.** Cookieless tag in `<head>` of `index`/`about`/`play/index` and
+`tools/changelog.template.html` (`changelog.html` regenerated, not hand-edited); dev-only
+`gallery.html` untagged. Unverified until a deploy puts a hit in the dashboard.
 
 ## Next Actions
 
