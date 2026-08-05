@@ -53,6 +53,13 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   `LIT?` did this in v0.8.0 and cost every dark-room turn until excluded by `ENGINE_IMPLEMENTED`.
   `DO-WALK`/`THIS-IS-IT` are currently both extracted *and* builtins and happen to agree — **re-check
   whenever the extraction frontier moves**; the failure is total, silent, and uncatalogued.
+- **The `LIT` global is the story file's, not the engine's** (v0.27.0). `light-changed` recomputes
+  ZIL `LIT?` at the turn boundary and reports it; it must **not** write `state.globals["LIT"]` on the
+  way past. The extracted routines both set and branch on that global at their own moments, so
+  "correcting" it to serve a UI is an engine behavior change with no test asking for it. The same
+  reasoning is why the derived answer is stored on `SaveState.lit` rather than read back out of
+  `globals` on restore — that global can lag a turn, and the save is the one place a host cannot
+  fold the stream instead.
 - **`state.parser` is outside the save contract** (orphan questions / "it" referent are mid-sentence
   scratch); `restore` clears them.
 - **Pronoun with no referent diverges in one case:** West of House "READ IT" could resolve to the
@@ -107,6 +114,18 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 - **`roomTitle` is the one panel field that does not take the incoming context** (`clonePanel`).
   The location box is metadata about *where the panel is*, not about its newest balloon, so a later
   same-room turn appending into it must not erase it.
+- **`dark` is the second such field, and a light change breaks the panel** (v0.27.0). Both were paid
+  for by rendering the cellar descent and looking at it — no rule test could see either. Without the
+  break, the Hero's next-turn declaration clone-appends into the frame that said "It is pitch black"
+  and `clonePanel` takes the incoming context: the darkness beat is not *followed* by the reveal, it
+  is **replaced** by it (`replacedLast`). A frame is drawn in the light it opened in. A dark panel
+  also refuses an incoming `roomTitle` — the box belongs to the turn that lit the room. **Anything
+  that adds a panel-level fact should ask which of the two rules it follows**, newest-line-wins or
+  fixed-at-open; the default is the first and it is wrong for anything describing the *frame*.
+- **A room entered in the dark still owes the reader its name** (`titleOwed`, v0.27.0). ADR 0009 §3
+  draws the location box on the turn the room changes, and an unlit arrival suppresses it — but the
+  room never changes again, so without the debt the box is never drawn at all and the reader never
+  learns they are in the Cellar. Held until the room is first seen, then paid once, on a lit frame.
 - **Two of the DM's balloons can never share a panel** (`AvatarInPanel`, `panel.cpp:1088`), which
   is what makes a long description into a panel run — and also means **an extra DM line costs a
   panel**. The Hero is staged through that run with `<Chr>`; without it he is absent from every

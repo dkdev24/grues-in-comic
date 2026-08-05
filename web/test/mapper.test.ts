@@ -1229,3 +1229,63 @@ describe("a death is set where it happened, not where the player woke up (M6.1g)
     expect(firstPanel().roomTitle).toBe("The Troll Room");
   });
 });
+
+describe("an unlit room makes a dark panel", () => {
+  /**
+   * The one piece of world state the panel cannot get from the prose. Driven
+   * through a real session rather than synthesized: darkness is the *engine's*
+   * answer (ZIL `LIT?` over everything in scope), and a hand-built `status.lit`
+   * would only prove that the mapper copies a boolean.
+   */
+  function cellarStrip(): { lit: Panel[]; dark: Panel[]; page: Panel[] } {
+    const session = createSession(doc, { seed: SEED });
+    const strip_ = strip({ roomTitles: new Map([["CELLAR", "Cellar"]]) });
+    strip_.turn(session.start());
+    for (const command of ["n", "e", "open window", "enter window", "w", "take lamp",
+      "move rug", "open trap door"]) {
+      strip_.turn(session.command(command));
+    }
+    const dark = [...strip_.turn(session.command("down")).panels];
+    const lit = [...strip_.turn(session.command("turn on lamp")).panels];
+    return { lit, dark, page: [...strip_.panels] };
+  }
+
+  it("marks the panel dark on the turn the player walks into the dark", () => {
+    const { dark } = cellarStrip();
+    expect(dark.length).toBeGreaterThan(0);
+    expect(dark.every((p) => p.dark)).toBe(true);
+  });
+
+  it("shows no location box in the dark — the engine printed no room name either", () => {
+    expect(cellarStrip().dark.every((p) => p.roomTitle === null)).toBe(true);
+  });
+
+  it("clears both again when the lamp is lit", () => {
+    const { lit } = cellarStrip();
+    expect(lit.length).toBeGreaterThan(0);
+    expect(lit.every((p) => p.dark)).toBe(false);
+  });
+
+  /**
+   * Both of these were found by rendering the sequence and looking at it, not
+   * by a failing rule — which is the failure mode the pixel gate exists for and
+   * the reason `docs/PITFALLS.md` says to look at the images.
+   */
+  it("keeps the black frame in the strip after the lamp is lit", () => {
+    const { page } = cellarStrip();
+    // Without the light break and `clonePanel`'s sticky `dark`, the Hero's
+    // "let's switch on the lamp" clone-appends into the panel that said "It is
+    // pitch black" and re-renders it lit: the darkness beat is not followed by
+    // the reveal, it is replaced by it.
+    expect(page.filter((p) => p.dark).length).toBeGreaterThan(1);
+    const lastDark = page.map((p) => p.dark).lastIndexOf(true);
+    expect(page.slice(lastDark + 1).some((p) => !p.dark)).toBe(true);
+  });
+
+  it("pays the location box the dark arrival owed, on the frame that reveals the room", () => {
+    const { page } = cellarStrip();
+    const box = page.find((p) => p.roomTitle === "Cellar");
+    expect(box).toBeDefined();
+    expect(box!.dark).toBe(false);
+  });
+});

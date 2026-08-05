@@ -167,7 +167,8 @@ export function renderPanel(
   ctx.rect(0, 0, width, height);
   ctx.clip();
 
-  drawBackdrop(ctx, cast, width, height, shot, options.backdrop);
+  if (panel.dark) drawDarkness(ctx, width, height);
+  else drawBackdrop(ctx, cast, width, height, shot, options.backdrop);
 
   const bodies = selectFigures(panel, cast, cycles);
 
@@ -188,9 +189,16 @@ export function renderPanel(
     options.trace.stacked = false;
   }
 
-  for (const item of placed) {
-    const sheet = cast.sheets.get(item.speaker);
-    if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale, item.mirror);
+  // The figures are laid out in the dark and then not drawn — deliberately, and
+  // in that order. The balloons are placed *over their speakers* (`drawBalloons`
+  // reads `placed`), so skipping the layout would move every balloon in an unlit
+  // panel and the tails would point at nothing. What darkness removes is what
+  // the reader can see, not where anyone is standing.
+  if (!panel.dark) {
+    for (const item of placed) {
+      const sheet = cast.sheets.get(item.speaker);
+      if (sheet) drawFigure(ctx, sheet, item.figure, item.x, item.y, item.scale, item.mirror);
+    }
   }
 
   // Metadata, over the figures and under nothing: it owns its band (see
@@ -365,6 +373,24 @@ function cycleFor(cycles: Map<string, PoseCycle>, role: string): PoseCycle {
 
 export function fit(figure: Figure, height: number, fill: number, widthCap = Infinity): number {
   return Math.min((height * fill) / figure.height, MAX_SCALE, widthCap / figure.width);
+}
+
+/**
+ * An unlit room: the frame is black, and that is the whole drawing.
+ *
+ * Not a dimmed backdrop and not a silhouette. Zork's dark is total — the engine
+ * refuses to describe the room at all — so a panel that let the reader make out
+ * the walls would be showing them something the Hero is being told he cannot
+ * see, and the pane would contradict the prose beside it. The balloons still
+ * draw over this, which is the panel's only content: a black frame with the DM
+ * saying it is pitch black is the comic reading of that turn.
+ *
+ * `#0b0b0b` rather than `#000` so the panel border (a 2px `#000` stroke) still
+ * reads as a border against it on a page of black frames.
+ */
+function drawDarkness(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+  ctx.fillStyle = "#0b0b0b";
+  ctx.fillRect(0, 0, width, height);
 }
 
 function drawBackdrop(

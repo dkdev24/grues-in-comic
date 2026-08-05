@@ -14,7 +14,7 @@
  * Version of the engine↔UI contract (not the engine, not the IR).
  * Consumers should refuse an event stream whose major version they don't know.
  */
-export const CONTRACT_VERSION = "1.0.0";
+export const CONTRACT_VERSION = "1.1.0";
 
 /** How a UI should style a narration line without parsing its text. */
 export type NarrationChannel = "room-title" | "prose" | "system";
@@ -29,6 +29,19 @@ export type EngineEvent =
   /** An object's containment changed (take/drop/put; thief steals). */
   | { type: "object-moved"; object: string; from: string; to: string }
   | { type: "score-changed"; score: number; delta: number }
+  /**
+   * Whether the player can see (v1.1.0). Emitted on the opening turn and
+   * thereafter only when the answer *changes* — walking into the dark, striking
+   * a match, a lamp burning out. `lit: false` is the state in which the game
+   * refuses to describe the room and a grue may eat you.
+   *
+   * It is a **derived** fact (ZIL's `LIT?`: the room's own ONBIT, or any lit
+   * source in scope), not the `LIT` global — that global is maintained by the
+   * extracted routines at their own moments and can lag a turn. Recomputing it
+   * at the turn boundary is what makes this event trustworthy for a UI that
+   * paints darkness rather than merely prints it.
+   */
+  | { type: "light-changed"; lit: boolean }
   | { type: "game-over"; outcome: "victory" | "death" | "quit"; text: string }
   /** Parser needs clarification; next command answers it. */
   | { type: "question"; text: string };

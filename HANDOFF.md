@@ -12,7 +12,7 @@ condensed to one clause outranks a fact told as a story. `WORKLOG.md` already ha
 ---
 
 ## Current Version
-**0.26.6** · Platform: **macOS only** (2026-07-28)
+**0.27.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -24,38 +24,39 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 - **M6 ◐** — road to 1.0.0 (repo public + website ships). Detail table: `docs/DEVELOPMENT_PLAN.md` §6.
   - **6.1 (comic pane) ◐** — mechanics closed, ADR 0010 fully built (v0.24.9). **6.1e is the only open
     item**: authored dialogue, 88/110 rooms gazetteered. Open-ended; pick up on appetite.
-  - **6.2 (save/load/restart), 6.3 (static site), 6.6 (`/hint`/`/help`) ✅** all closed.
-  - **6.5-beta ✅** private Cloudflare Pages beta live at `grues.danielkimdev.com`, repo stays private.
+  - **6.2, 6.3, 6.6 ✅** closed. **6.5-beta ✅** private Pages beta at `grues.danielkimdev.com`.
   - **6.4 (asset separation), 6.5 (public 1.0.0 release) ☐** not started.
 - **ADR 0006 Slice 5 (session-recap PDF export) ☐** the only open ADR slice, schedulable whenever.
 
-**Tests:** 299 web · 142 engine · 198 IR · parity 143/143 strict. Pixel gate: 2 geometry diffs
-pending macOS re-accept (below); 17/17 hashes unaffected beyond the known non-macOS mismatch.
+**Tests:** 324 web · 147 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS
+(clean), never re-accept on Windows.
 
 ---
 
-## Last Session — Two mobile-UX fixes + site analytics (unreleased, not in `WORKLOG.md`)
+## Last Session — v0.27.0, darkness reaches the panel (in `WORKLOG.md`)
 
-**Desktop lost input focus on submit.** v0.26.4's keyboard-dismiss `blur()` (`main.ts`) fired on
-every layout. Gated behind `matchMedia("(max-width: 720px)")`, the breakpoint that stacks `#shell`.
+**An unlit room now renders black.** `light-changed { lit }` joins the ADR 0002 vocabulary (contract
+**1.1.0**, additive; parity unmoved) — baseline on the opening turn, then flips only, at the turn
+boundary. `Status.lit` → `Panel.dark` → `renderPanel` fills `#0b0b0b` and skips the figures. The
+engine does **not** write `globals["LIT"]`; the derived answer rides on `SaveState.lit` instead.
 
-**`inventory`/`look` truncated the DM's balloon to its header line.** `readAloud` (`mapper.ts`) read
-a full narration only on `player-moved`, and the engine's list format splits on the newline, dropping
-every item. Widened to bare `inventory`/`i`/`look`/`l` — ADR 0009 §4 amended, `density` re-accepted
-(D5′ still 42.8%). **Pixel gate's `wk01-p02`/`wk01-p09` geometry now differ — expected, from
-`01-west-of-house.cmd`'s bare `look`s — needs `gate:accept` on macOS**, never on Windows.
+**Two panel rules came out of it** (both in `docs/PITFALLS.md` → Web): a light change breaks the
+panel and `clonePanel` keeps its own `dark`, or the reveal *replaces* the black frame instead of
+following it; and `titleOwed` pays a dark arrival's suppressed location box on the first lit frame,
+or the room is never named at all. Found by rendering the cellar descent and looking at it.
 
-**Umami analytics.** Cookieless tag in `<head>` of `index`/`about`/`play/index` + the changelog
-template (`changelog.html` is generated — edit the template; dev-only `gallery.html` untagged). Both
-`/play/` CTAs emit a `start-playing` event with `position` hero|footer. Unverified until a deploy.
+**Gates.** `density` moved only on `04-lamp-and-darkness.cmd` (46 → 47 panels; D5′ 42.6%), accepted.
+Gate gained 7 `wk04-dark-*` cases and was accepted on macOS, clearing the two `wk01` diffs that had
+been pending since the previous session.
+
+**Unverified:** the previous session's Umami analytics still needs a deploy to confirm.
 
 ## Next Actions
 
 **We are in M6.** Stage detail, the D1–D5 decision table and the 6.1 slices live in
 `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
 
-1. **Mobile UX ✅** — all known issues closed, including this session's desktop-focus regression. Left:
-   finding a *moment* rather than an end (room markers, paged history, `Panel.turn` linking), in
+1. **Mobile UX ✅** — all known issues closed. Left: finding a *moment* rather than an end, in
    `docs/FUTURE_WORK.md`, not scheduled.
 2. **6.1e — dialogue authoring.** ◐ Open-ended; no exit criterion beyond "user says it's ready."
 3. **6.4 asset separation & neutral branding.** ☐ Independent of everything else.

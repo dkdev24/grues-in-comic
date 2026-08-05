@@ -172,7 +172,7 @@ function productionPanels(file: string): Panel[] {
 function mobPanels(roles: readonly string[]): Panel[] {
   const context: PanelContext = {
     turn: 1, camera: "medium", emphatic: false, room: "TROLL-ROOM",
-    focus: null, marker: null, kind: "action", roomTitle: null,
+    focus: null, marker: null, kind: "action", roomTitle: null, dark: false,
   };
   const said: Record<string, string> = {
     hero: "I take the lamp and go west.",
@@ -212,6 +212,27 @@ export async function gateCases(): Promise<GateCase[]> {
   for (const [i, panel] of productionPanels("01-west-of-house.cmd").entries()) {
     cases.push({
       name: `wk01-p${String(i).padStart(2, "0")}-${panel.camera}`,
+      panel, cast: shipped, backdrop: backdropFor(panel.room),
+    });
+  }
+
+  /*
+   * The darkness run, which `01-west-of-house.cmd` cannot reach: an unlit panel
+   * is a flat black fill with balloons over it, and every rule test around it
+   * would stay green if the fill went away. Pinned as the *sequence* rather than
+   * a single frame — going dark, speaking in the dark, and the lit reveal that
+   * pays the location box — because the light break and `clonePanel`'s sticky
+   * `dark` are what put those three in three separate panels, and a one-panel
+   * case would pin neither.
+   */
+  const lamp = productionPanels("04-lamp-and-darkness.cmd");
+  const dark = lamp.map((panel) => panel.dark);
+  const from = dark.indexOf(true);
+  // ...through the first lit frame after the last dark one: the reveal.
+  const to = dark.lastIndexOf(true) + 2;
+  for (const [i, panel] of lamp.slice(from, to).entries()) {
+    cases.push({
+      name: `wk04-dark-p${String(from + i).padStart(2, "0")}-${panel.camera}`,
       panel, cast: shipped, backdrop: backdropFor(panel.room),
     });
   }

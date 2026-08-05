@@ -47,6 +47,7 @@ function panel(n: number, camera: CameraPreset, speaking: number, gated = false)
     camera,
     emphatic: false,
     room: "TROLL-ROOM",
+    dark: false,
     focus: null,
     bodies: gated
       ? [

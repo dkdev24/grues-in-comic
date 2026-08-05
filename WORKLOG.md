@@ -10,6 +10,51 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.0 — 2026-08-06 — Darkness crosses the contract
+
+**The comic pane was contradicting the game.** Zork's unlit rooms refuse to be described — "It is
+pitch black. You are likely to be eaten by a grue." — while the panel beside that sentence drew the
+room, the backdrop and both figures. The engine knew (ZIL `LIT?`, `builtins.ts`); nothing it knew
+ever reached the renderer.
+
+**The fix is an event, not a lookup.** `light-changed { lit }` joins the ADR 0002 vocabulary
+(`contractVersion` 1.0.0 → 1.1.0, additive — `transcriptText` ignores it and parity stayed 143/143
+strict), emitted as a baseline on the opening turn and thereafter only on a flip, at the turn
+boundary so a lamp that burned out in a daemon has already done so. `Status.lit` folds it, `Panel.dark`
+carries it, `renderPanel` fills `#0b0b0b` and skips the figures — laying them out first anyway, since
+the balloons are placed over their speakers and skipping the layout would move every balloon in an
+unlit panel.
+
+**It deliberately does not write `state.globals["LIT"]`.** That global is the story file's: the
+extracted routines set it at their own moments and branch on it, so correcting it to serve the UI
+would be an engine behavior change with no test asking for it. The derived answer is stored on
+`SaveState.lit` instead (optional, so 1.0.x saves still load), because `restore()` emits no events
+and the alternative was a second implementation of `LIT?` in the browser, free to drift.
+
+**Two defects that only rendering the sequence could find**, both now in `docs/PITFALLS.md`. The
+Hero's next-turn declaration clone-appends across the panel boundary and `clonePanel` takes the
+incoming context — so lighting the lamp re-rendered the frame that said "It is pitch black" as a lit
+cellar (`replacedLast: true`): the darkness beat was not followed by the reveal, it was *replaced* by
+it. Fixed with a `<Brk>` on a light change (the treatment a room change already gets) and a sticky
+`dark` in `clonePanel` — a frame is drawn in the light it opened in. And the location box, suppressed
+on an unlit arrival, was then never drawn at all, because the room never changes again; `titleOwed`
+holds the debt and the first lit frame in that room pays it. The finished strip reads: black frame
+"It is pitch black…" → still-black frame "Let's switch on the lamp." → lit cellar, **Cellar** box,
+"The brass lantern is now on."
+
+**Gates.** `density` drift was exactly `04-lamp-and-darkness.cmd` (46 → 47 panels, one fewer
+both-speaker panel — the light break, nothing else); D5′ 42.8% → 42.6%, inside 25–60%. The pixel gate
+gained seven `wk04-dark-*` cases pinning the whole sequence rather than one frame, and was accepted
+on macOS — which also cleared the two `wk01` geometry diffs left pending by the previous session.
+Engine 147 · web 324 · IR 198 · parity 143/143 strict.
+
+**Also in this release**, from the previous (unreleased) session: the desktop input-focus regression
+from v0.26.4's mobile keyboard-dismiss `blur()`, now gated behind the 720px breakpoint; `inventory`
+and `look` no longer truncating the DM's balloon to its header line (ADR 0009 §4 amended); and
+cookieless Umami analytics on the site pages.
+
+---
+
 ## v0.26.6 — 2026-08-03 — One jump control, both panes
 
 **v0.26.5 made a long strip cheap to hold; this makes it possible to travel.** A completed game is a

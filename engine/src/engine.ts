@@ -56,6 +56,20 @@ export interface SaveState {
   tables: Record<string, { kind: string; elements: unknown[]; pure: boolean }>;
   visited: string[];
   clock: string[];
+  /**
+   * Whether the player could see when the game was saved (contract v1.1.0).
+   *
+   * Derived, like the `light-changed` event and for the same reason: `restore`
+   * emits no events, so a host whose state is folded from the stream has to
+   * read the light out of the save. It is stored rather than recomputed by the
+   * host because recomputing means a second implementation of ZIL's `LIT?` in
+   * the browser, free to drift from the one the engine runs.
+   *
+   * Optional: saves written against contract 1.0.0 predate it, and a host that
+   * finds it missing should assume the game is lit — the state most rooms and
+   * every opening turn are in.
+   */
+  lit?: boolean;
 }
 
 export interface Engine {
@@ -199,6 +213,34 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
   state.globals["LIT"] = true; // recomputed on the first describe, below
 
   /**
+   * The last `light-changed` value the host was told (contract v1.1.0).
+   *
+   * The event is a *change* notification, so the engine has to remember what it
+   * last said. `undefined` means nothing has been said yet — the opening turn
+   * therefore always reports, which is what gives a host its initial value.
+   */
+  let lastLit: boolean | undefined;
+
+  /** ZIL LIT? for the player's current room, recomputed rather than read. */
+  const lightNow = (): boolean => isLit({ world, state }, here(state));
+
+  /**
+   * Report the light if it moved, at the turn boundary.
+   *
+   * Deliberately **does not write `state.globals["LIT"]`**: that global is
+   * ZIL's, set by GOTO and by the extracted lamp routines at the moments the
+   * story file chose, and several routines branch on it. Writing it here would
+   * be an engine-side behavior change wearing a UI feature's clothes. The event
+   * carries the derived truth; the global stays the story file's business.
+   */
+  const reportLight = (ctx: RuntimeContext): void => {
+    const lit = lightNow();
+    if (lit === lastLit) return;
+    lastLit = lit;
+    emit(ctx, { type: "light-changed", lit });
+  };
+
+  /**
    * Run the game's own initialization, and keep what it printed for `start()`.
    *
    * ZIL's `GO` (1dungeon.zil) is the real entry point: it queues the five
@@ -237,6 +279,7 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
       const override = loadOptions.start;
       if (override === undefined || here(state) === override) {
         flush(goCtx);
+        reportLight(goCtx);
         return { events: goCtx.events, turn: state.turn };
       }
       state.globals["HERE"] = override;
@@ -247,6 +290,7 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
     state.globals["LIT"] = isLit(ctx, here(state));
     describeRoom(ctx, here(state), true);
     flush(ctx);
+    reportLight(ctx);
     return { events: ctx.events, turn: state.turn };
   })();
 
@@ -268,12 +312,24 @@ export function createEngine(doc: WorldDocument, options: EngineOptions = {}): E
       }
       reconcileScore(ctx, scoreBefore);
       flush(ctx);
+      // At the boundary, after every daemon has run: a lamp that burned out
+      // this turn has already done so, and the report is the turn's outcome
+      // rather than a snapshot from the middle of it.
+      reportLight(ctx);
       return { events: ctx.events, turn: state.turn };
     },
 
     missingRoutines: () => [...missingRoutines].sort(),
-    snapshot: () => snapshot(state, rng),
-    restore: (save) => restore(state, rng, save),
+    snapshot: () => ({ ...snapshot(state, rng), lit: lightNow() }),
+    restore: (save) => {
+      restore(state, rng, save);
+      // `restore` emits nothing, so no `light-changed` reaches the host here.
+      // Re-baselining stops the *next* turn from reporting a change that only
+      // ever existed relative to the pre-restore game. A host that derives its
+      // state from the stream reads the light out of the save instead — the
+      // same route it already takes for room, score and moves.
+      lastLit = lightNow();
+    },
 
     hint: () =>
       scope(world, state)

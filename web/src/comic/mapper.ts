@@ -140,6 +140,8 @@ export interface Panel {
   room: string;
   /** The location title to draw, or `null` — ADR 0009 §3. See {@link PanelContext}. */
   roomTitle: string | null;
+  /** The room is unlit: paint the frame black. See {@link PanelContext.dark}. */
+  dark: boolean;
   /** Object id rung 4 focused on, when the camera is a close-up. */
   focus: string | null;
   /**
@@ -413,6 +415,19 @@ export function createMapper(options: MapperOptions = {}): Mapper {
   /** The run cursor for the Hero's declaration ({@link COMMAND_SCRIPT}, ADR 0010 §1). */
   const declarationCursor: DeclarationCursor = { direction: 0, verb: new Map(), template: new Map() };
   let room = "";
+  /** The light the last panel was drawn in, so "the light changed" is answerable. */
+  let dark = false;
+  /**
+   * A room entered in the dark still owes the reader its name.
+   *
+   * ADR 0009 §3 shows the location box on the turn the room changes, and an
+   * unlit arrival suppresses it — the engine printed no room name either. But
+   * the debt does not go away: without this, walking into the cellar in the dark
+   * and lighting the lamp there means the box is *never* drawn, and the reader
+   * is left to work out where they are from the walls. Held until the room is
+   * first seen, then paid once.
+   */
+  let titleOwed: string | null = null;
 
   return {
     read(turn: Turn): TurnScript {
@@ -423,6 +438,17 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       const titleText = roomTitleText(turn.events);
       /** Where the turn started, so "the room changed" is answerable (ADR 0009 §3). */
       const roomAtEntry = room;
+      /*
+       * Read off the folded status, not re-derived here: `status.lit` is already
+       * the fold of `light-changed` over this same stream, so the mapper stays a
+       * pure function of (events + static config) and `replayPanels` still
+       * holds. Compared against `false` rather than negated, so a fixture that
+       * omits the field is lit — a test that never mentions light is not making
+       * a claim about darkness.
+       */
+      const wasDark = dark;
+      dark = turn.status.lit === false;
+      const lightChanged = dark !== wasDark;
       // Read off the channel, not out of the prose (ADR 0002's actual purpose).
       const systemChannel = turn.events.some(
         (event) => event.type === "narration" && event.channel === "system",
@@ -593,7 +619,19 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // (`:1067`) is the port's own way to say "not in that one". It comes after
       // the declaration on purpose: the declaration answers the room being left,
       // and the break is what cuts to the one being entered.
-      if (roomChanged) lines.push({ speaker: GUIDE, modes: BM_SAY, text: BRK, emotion: [] });
+      /*
+       * **A light change starts a panel too**, and for the same reason a room
+       * change does. `clonePanel` takes the newest line's context, so without
+       * the break the turn that strikes the lamp re-renders the panel that said
+       * "It is pitch black" as a lit room — the darkness beat is not merely
+       * followed by the reveal, it is *replaced* by it (`replacedLast`). The
+       * break is what makes going dark and coming back two frames, which is
+       * what they are: the reveal only reads as a reveal if the reader saw the
+       * black frame it comes after.
+       */
+      if (roomChanged || lightChanged) {
+        lines.push({ speaker: GUIDE, modes: BM_SAY, text: BRK, emotion: [] });
+      }
 
       // The DM's balloons for this turn: what he reads aloud, then what he says
       // (ADR 0009 §2's two registers, in that order — the module first, the table
@@ -672,6 +710,37 @@ export function createMapper(options: MapperOptions = {}): Mapper {
         ? [{ speaker: HERO, emotion: affect.options }]
         : [];
 
+      /**
+       * ADR 0009 §3 / D4 — the box names the room on the turn the room changes —
+       * plus the two clauses darkness adds.
+       *
+       * A death always shows a box, even when the killing blow fell in the room
+       * the turn started in and even in the dark: the reader is about to be
+       * moved somewhere else, and the frame has to say where this happened. The
+       * grue is precisely the killer they would otherwise not be able to place.
+       * The title cannot come from `titleText` there — that is the engine
+       * printing the *resurrection* room's name.
+       *
+       * Otherwise an unlit room shows nothing and {@link titleOwed} remembers
+       * the debt, which the first lit panel in that room pays.
+       */
+      function locationBox(): string | null {
+        if (died) return roomTitles.get(panelRoom) || panelRoom;
+        const name = titleText || roomTitles.get(room) || room;
+        if (dark) {
+          if (roomChanged) titleOwed = name;
+          return null;
+        }
+        if (roomChanged) {
+          titleOwed = null;
+          return name;
+        }
+        if (titleOwed === null) return null;
+        const owed = titleOwed;
+        titleOwed = null;
+        return owed;
+      }
+
       return {
         lines,
         reactions,
@@ -689,9 +758,8 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           // reader is about to be moved somewhere else, and the frame has to say
           // where this happened. And the title can't come from `titleText` —
           // that is the engine printing the *resurrection* room's name.
-          roomTitle: died
-            ? (roomTitles.get(panelRoom) || panelRoom)
-            : roomChanged ? (titleText || roomTitles.get(room) || room) : null,
+          dark,
+          roomTitle: locationBox(),
           focus: camera === "close-up" ? (salientMove?.object ?? null) : null,
           marker: affect.marker,
           kind: panelKind({

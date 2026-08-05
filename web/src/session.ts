@@ -97,7 +97,15 @@ export function createSession(doc: WorldDocument, options: SessionOptions = {}):
       // consumer rather than a reach into engine internals. The running event
       // mix is deliberately *not* rewound: it censuses this session's stream,
       // and the turns before a restore were still observed.
-      status.reset(save.locations[PLAYER_ID] ?? "", Number(save.globals["SCORE"] ?? 0), save.turn);
+      // `save.lit` is the derived light (contract 1.1.0); a 1.0.x save predates
+      // the field and is assumed lit, which is where all but a handful of rooms
+      // are and what the next flip will correct anyway.
+      status.reset(
+        save.locations[PLAYER_ID] ?? "",
+        Number(save.globals["SCORE"] ?? 0),
+        save.turn,
+        save.lit ?? true,
+      );
     },
   };
 }

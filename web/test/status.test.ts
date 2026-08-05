@@ -76,8 +76,21 @@ describe("status tracker", () => {
     // Finding 3: derived UI state cannot be folded from a stream that is empty.
     const tracker = createStatusTracker(names);
     tracker.observe([{ type: "player-moved", from: "X", to: "NORTH-OF-HOUSE" }], 9);
-    const status = tracker.reset("WEST-OF-HOUSE", 25, 4);
-    expect(status).toEqual({ room: "West of House", score: 25, moves: 4 });
+    const status = tracker.reset("WEST-OF-HOUSE", 25, 4, true);
+    expect(status).toEqual({ room: "West of House", score: 25, moves: 4, lit: true });
+  });
+
+  it("folds light-changed, and holds the value until it flips", () => {
+    const tracker = createStatusTracker(names);
+    expect(tracker.observe([{ type: "light-changed", lit: false }], 1).lit).toBe(false);
+    // The engine reports only flips, so a quiet turn must not relight the room.
+    expect(tracker.observe([], 2).lit).toBe(false);
+    expect(tracker.observe([{ type: "light-changed", lit: true }], 3).lit).toBe(true);
+  });
+
+  it("restores into the dark, because a save can be made there", () => {
+    const tracker = createStatusTracker(names);
+    expect(tracker.reset("CELLAR", 25, 4, false).lit).toBe(false);
   });
 
   it("returns a copy, so a caller cannot mutate the tracker's state", () => {

@@ -39,6 +39,7 @@ export const ALL_EVENT_KINDS: readonly EventKind[] = [
   "player-moved",
   "object-moved",
   "score-changed",
+  "light-changed",
   "game-over",
   "question",
 ];
@@ -79,6 +80,8 @@ export function describeEvent(e: EngineEvent): string {
       return `${e.object}: ${e.from} → ${e.to}`;
     case "score-changed":
       return `${e.score} (${e.delta >= 0 ? "+" : ""}${e.delta})`;
+    case "light-changed":
+      return e.lit ? "lit" : "dark";
     case "game-over":
       return `${e.outcome} · ${summarize(e.text)}`;
     case "question":

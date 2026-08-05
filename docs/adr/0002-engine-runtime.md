@@ -4,6 +4,7 @@
 - **Date:** 2026-07-18
 - **Amended:** 2026-07-19 — added "Alternatives Considered: existing Z-machine interpreters" (no change to the decision)
 - **Amended:** 2026-07-20 — added "Scope of Portability: source frontends, not story files" (no change to the decision)
+- **Amended:** 2026-08-06 — `light-changed` added to the event vocabulary; `contractVersion` 1.0.0 → 1.1.0 (additive, the growth this ADR anticipated)
 - **Stage:** 2.3 (⚑ **Gate B resolution**; see `docs/DEVELOPMENT_PLAN.md`)
 - **Related:** ADR 0001 (behavior representation), `docs/gemini-analysis-on-plan-and-strategy.md` (interface-first recommendation)
 
@@ -60,6 +61,8 @@ type EngineEvent =
   /** An object's containment changed (take/drop/put; thief steals). */
   | { type: "object-moved"; object: string; from: string; to: string }
   | { type: "score-changed"; score: number; delta: number }
+  /** Whether the player can see. Baseline on the opening turn, then on flips only. */
+  | { type: "light-changed"; lit: boolean }
   | { type: "game-over"; outcome: "victory" | "death" | "quit"; text: string }
   /** Parser needs clarification; next command answers it. */
   | { type: "question"; text: string };
@@ -69,6 +72,14 @@ Contract rules:
 
 - **Events are semantic, never presentational.** `speech` carries a speaker id, not a bubble position; `player-moved` carries room ids, not panel layouts. The text UI (stage 5.2) renders `narration`/`speech`/`question` and ignores the rest; the comic renderer (stage 5.3) maps the same events to panels. Gate D may *add* event metadata (e.g. emotion hints) — additively, under `contractVersion`.
 - **The event vocabulary above is the architectural shape, not a frozen list.** Milestone 4 will grow payloads/variants additively as systems land (inventory listing, light/darkness, daemon messages); breaking changes bump `contractVersion`.
+- **A derived fact crosses the contract as an event, not as a global.** `light-changed` (v1.1.0, the
+  "light/darkness" growth named above) reports ZIL's `LIT?` — the room's own ONBIT or any lit source
+  in scope — recomputed at the turn boundary. It is deliberately *not* the `LIT` global: that global
+  belongs to the extracted routines, which set it at the moments the story file chose and branch on
+  it, so the engine writing it to serve a UI would be a behavior change wearing a feature's clothes.
+  The same fact is stored on `SaveState.lit` (optional; absent in a 1.0.x save), because `restore()`
+  emits no events and a host whose state is folded from the stream would otherwise have to
+  reimplement `LIT?` on its own side.
 - **Narration fidelity comes first**: golden-transcript parity is measured on the concatenated `narration`/`speech`/`question` text of each turn, which must reproduce dfrotz output (modulo the sanctioned banner/ordering diffs noted in HANDOFF).
 
 ## Alternatives Considered: existing Z-machine interpreters

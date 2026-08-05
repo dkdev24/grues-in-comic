@@ -100,7 +100,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "95e334d2e2a01927c1fc17fa83ad028ace0686cce528236534c1e66a5c03b52a",
+    "sha256": "aecd8a7fb4f2e457e7be2f3a23c0414464ce82e5ae948cb3fc69b8e2ffb12911",
     "trace": {
       "bodies": [
         {
@@ -124,10 +124,10 @@
           "box": {
             "x": 10,
             "y": 14,
-            "width": 265.9,
-            "height": 65
+            "width": 366,
+            "height": 50
           },
-          "lines": 3,
+          "lines": 2,
           "tail": {
             "x": 111,
             "y": 149.6
@@ -136,12 +136,12 @@
         {
           "speaker": "hero",
           "box": {
-            "x": 153.4,
-            "y": 79,
-            "width": 216.6,
-            "height": 35
+            "x": 143.1,
+            "y": 64,
+            "width": 163.3,
+            "height": 50
           },
-          "lines": 1,
+          "lines": 2,
           "tail": {
             "x": 269.9,
             "y": 149.6
@@ -492,7 +492,7 @@
       "hero",
       "guide"
     ],
-    "sha256": "c4eb878cc3004e9137aba5d5bf1bdbb4de170729d286ea756cafcf633463f6c8",
+    "sha256": "18a2e83ee7191aacce150f9675df0a5126e5c05dd706c51fde26a442d644fc52",
     "trace": {
       "bodies": [
         {
@@ -530,10 +530,10 @@
           "box": {
             "x": 112.7,
             "y": 49,
-            "width": 271.4,
-            "height": 50
+            "width": 276.5,
+            "height": 80
           },
-          "lines": 2,
+          "lines": 4,
           "tail": {
             "x": 292,
             "y": 149.6
@@ -561,6 +561,376 @@
         }
       ],
       "balloons": [],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p19-establishing",
+    "camera": "establishing",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "93eb24827c1cb76e69699b5eed337dbc82dbca06023269fccf173bcae005ac6d",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 157.1,
+          "y": 170,
+          "scale": 0.4,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 196.9,
+            "y": 14,
+            "width": 123.9,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 205.4,
+            "y": 170
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p20-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "06e47c2543c38530eee517fd27b346b91b894a5b7d6a36ec2b6bf68b9aa58b41",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 362,
+            "height": 65
+          },
+          "lines": 3,
+          "tail": {
+            "x": 111,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 178,
+            "y": 79,
+            "width": 171.4,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 269.9,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p21-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "71c52157fd126f3e09371b7a0cdb03cc9572456be994a6e92490822f1bd0ba24",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 10,
+            "y": 36,
+            "width": 127.8,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 111,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 205.9,
+            "y": 36,
+            "width": 164.1,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 269.9,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p22-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "3b722043f859b5c1740a54bda92ac0037e0d23f3b71e077ee245090e2f4541df",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.4,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.6,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 379.3,
+            "height": 65
+          },
+          "lines": 3,
+          "tail": {
+            "x": 111.2,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 183,
+            "y": 79,
+            "width": 187,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 272.1,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p23-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "3c0134403da908581119be08ff6931a560823883db98334a84a324c075236c80",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.4,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.6,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 147,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 111.2,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 207.1,
+            "y": 14,
+            "width": 146.4,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 272.1,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p24-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "0624589b6c543c514a46c9a075261df854639b89d20412cc6d9c8bfcccaf62e4",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 22.9,
+            "y": 14,
+            "width": 205.8,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 111,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 191.5,
+            "y": 64,
+            "width": 94.8,
+            "height": 50
+          },
+          "lines": 2,
+          "tail": {
+            "x": 269.9,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p25-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "47aaaf6801838d6bbf8b1e33eb2e697194d2bcf7c84ecb6752318201cc9e5993",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 14.5,
+            "y": 14,
+            "width": 188.9,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 111,
+            "y": 149.6
+          }
+        }
+      ],
       "stacked": false
     }
   },

@@ -32,6 +32,7 @@ function panelOf(turn: number, roles: readonly string[]): Panel {
     emphatic: false,
     room: "WEST-OF-HOUSE",
     roomTitle: null,
+    dark: false,
     focus: null,
     bodies: fixtureBodies(roles),
     speakers: roles.map((speaker) => ({

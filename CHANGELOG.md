@@ -18,6 +18,26 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.27.0] - 2026-08-06 — The dark is dark
+
+### Added
+- **A pitch-black room now looks pitch black.** Walk into the cellar without a lamp and the comic
+  panel goes black: no room drawn, no figures, just the balloons over the dark. Until now the panel
+  cheerfully showed you the cellar while the narration insisted you could not see a thing. Striking
+  the lamp is its own panel — the reveal reads as a reveal, and the room finally gets its name box.
+
+### Fixed
+- Typing a command on a desktop browser no longer loses the input focus (a regression from the
+  mobile keyboard-dismiss fix).
+- `inventory` and `look` no longer cut the Dungeon Master's balloon down to its first line.
+
+### Changed
+- The comic pane's title now tells you which version you are playing — **Grues in Comic** v0.27.0
+  BETA — instead of naming the software it was built from.
+- Cookieless visitor analytics on the site pages. No cookies, no personal data.
+
+---
+
 ## [v0.26.6] - 2026-08-03 — Jump to either end of a long game
 
 ### Added

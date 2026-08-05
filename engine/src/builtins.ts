@@ -466,7 +466,7 @@ function globalIn(ctx: RuntimeContext, obj: string, room: string): boolean {
  * Is the room lit? Its own ONBIT, the ALWAYS-LIT debug global, or any object in
  * scope that is currently providing light (ONBIT, and flame-lit sources).
  */
-export function isLit(ctx: RuntimeContext, room: string): boolean {
+export function isLit(ctx: Pick<RuntimeContext, "world" | "state">, room: string): boolean {
   if (truthy(ctx.state.globals["ALWAYS-LIT"])) return true;
   if (hasFlag(ctx.state, room, "ONBIT")) return true;
   for (const entry of scope(ctx.world, ctx.state)) {

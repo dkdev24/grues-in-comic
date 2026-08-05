@@ -4,7 +4,10 @@
  * verbose internal history). Using `WORKLOG.md` put engineering-level detail
  * on a public page; `CHANGELOG.md`'s own version headers are already a
  * one-line, public-appropriate summary. Writes `changelog.html` (full list)
- * and rewrites the CHANGELOG:START…END block in `index.html` (latest 3).
+ * and rewrites the CHANGELOG:START…END block in `index.html` (latest 3). It also
+ * writes the newest version into the comic pane's title label
+ * (`play/index.html`, VERSION:START…END) — same source, so the gameplay screen
+ * cannot disagree with the changelog about what the player is running.
  *
  * Usage:  tsx tools/build-changelog.ts
  */
@@ -67,10 +70,37 @@ if (!marker.test(indexHtml)) {
 }
 writeFileSync(indexPath, indexHtml.replace(marker, replacement));
 
+/*
+ * The comic pane's title label: the version the player is actually looking at,
+ * and whether it is still a beta.
+ *
+ * Generated from the same newest entry the preview above reads, because the
+ * alternative — a hand-typed version on the gameplay screen — is a claim that
+ * silently rots at the next release. **`BETA` is derived, not written**: the
+ * project's own rule is that `1.0.0` is public launch (`AGENTS.md`), so the
+ * label drops it exactly when the tag says the launch happened, with nobody
+ * having to remember this file at that moment.
+ */
+const latest = entries[0]!;
+const beta = Number(latest.version.split(".")[0]) < 1 ? " BETA" : "";
+const playPath = join(WEB_ROOT, "play", "index.html");
+const playHtml = readFileSync(playPath, "utf8");
+const versionMarker = /<!-- VERSION:START -->[\s\S]*?<!-- VERSION:END -->/;
+if (!versionMarker.test(playHtml)) {
+  throw new Error("play/index.html is missing the VERSION:START…END marker block");
+}
+writeFileSync(
+  playPath,
+  playHtml.replace(versionMarker, `<!-- VERSION:START -->v${latest.version}${beta}<!-- VERSION:END -->`),
+);
+
 // changelog.html: full list
 const changelogPath = join(WEB_ROOT, "changelog.html");
 const rows = entries.map(row).join("\n");
 const template = readFileSync(join(WEB_ROOT, "tools", "changelog.template.html"), "utf8");
 writeFileSync(changelogPath, template.replace("<!-- CHANGELOG:ROWS -->", rows));
 
-process.stdout.write(`wrote ${entries.length} entries → index.html (top 3) + changelog.html (all)\n`);
+process.stdout.write(
+  `wrote ${entries.length} entries → index.html (top 3) + changelog.html (all)\n` +
+  `wrote v${latest.version}${beta} → play/index.html (comic pane title)\n`,
+);

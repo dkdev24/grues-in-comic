@@ -32,6 +32,16 @@ export interface Status {
   room: string;
   score: number;
   moves: number;
+  /**
+   * Whether the player can see (contract v1.1.0). The comic pane paints the
+   * panel black when this is false; the console pane ignores it, because the
+   * engine's own prose already says "It is pitch black".
+   *
+   * Folded from `light-changed`, which the engine emits on the opening turn and
+   * then only on a flip — so the fold is a plain assignment and the initial
+   * value below is only ever seen before the first turn is observed.
+   */
+  lit: boolean;
 }
 
 export interface StatusTracker {
@@ -45,7 +55,7 @@ export interface StatusTracker {
    *
    * Takes a room **id**, like the events do, not a display name.
    */
-  reset(roomId: string, score: number, moves: number): Status;
+  reset(roomId: string, score: number, moves: number, lit: boolean): Status;
 }
 
 /**
@@ -54,14 +64,15 @@ export interface StatusTracker {
  *   reading `EW-PASSAGE` is a visible bug report, where an empty one hides it.
  */
 export function createStatusTracker(roomNames: ReadonlyMap<string, string>): StatusTracker {
-  const status: Status = { room: "", score: 0, moves: 0 };
+  const status: Status = { room: "", score: 0, moves: 0, lit: true };
 
   return {
     status,
-    reset(roomId, score, moves) {
+    reset(roomId, score, moves, lit) {
       status.room = nameOf(roomNames, roomId);
       status.score = score;
       status.moves = moves;
+      status.lit = lit;
       return { ...status };
     },
     observe(events, turn) {
@@ -74,6 +85,8 @@ export function createStatusTracker(roomNames: ReadonlyMap<string, string>): Sta
         } else if (e.type === "score-changed") {
           // The event carries the running total; `delta` is for the UI to flash.
           status.score = e.score;
+        } else if (e.type === "light-changed") {
+          status.lit = e.lit;
         }
       }
       status.moves = turn;

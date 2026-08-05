@@ -140,6 +140,16 @@ export interface PanelContext {
    * carries the persistent answer.
    */
   roomTitle: string | null;
+  /**
+   * The panel is set in an unlit room: the Hero cannot see, and neither can the
+   * reader. The renderer paints the frame black instead of drawing the room's
+   * backdrop and figures.
+   *
+   * Panel-level like {@link roomTitle}, and it takes the newest line's context
+   * like everything else here — striking a match mid-panel lights the frame the
+   * reader is looking at, which is the moment the panel depicts.
+   */
+  dark: boolean;
 }
 
 /**
@@ -508,7 +518,19 @@ function clonePanel(panel: Panel, context: PanelContext): MutablePanel {
     // (ADR 0009 §3). A later same-room turn clone-appending into the panel that
     // opened the room would otherwise erase the box — and a room *change* cannot
     // reach here at all, because the mapper breaks the panel on one.
-    roomTitle: context.roomTitle ?? panel.roomTitle,
+    // ...and a dark panel takes no box at all: the incoming one belongs to the
+    // turn that lit the room, so letting it land here would put the room's name
+    // on the frame that says it cannot be seen. A death in the dark still shows
+    // its box — that one is set when the panel opens, not clone-appended.
+    roomTitle: panel.dark ? panel.roomTitle : context.roomTitle ?? panel.roomTitle,
+    // The second field that does not take the incoming context, and for a
+    // neighbouring reason: a frame is drawn in the light it *opened* in. The
+    // mapper breaks the panel on a light change, so the only line that can
+    // arrive carrying a different answer is one that clone-appends across that
+    // boundary — the Hero's declaration, which he says in the room as it was
+    // when he spoke. Taking the incoming value there would relight the panel
+    // that said "It is pitch black" and delete the darkness beat from the strip.
+    dark: panel.dark,
     bodies: [...panel.bodies],
     speakers: [...panel.speakers],
   };

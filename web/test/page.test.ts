@@ -18,7 +18,7 @@ import type { TurnScript } from "../src/comic/mapper.js";
 
 const CONTEXT: PanelContext = {
   turn: 1, camera: "medium", emphatic: false, room: "WEST-OF-HOUSE",
-  focus: null, marker: null, kind: "ambient", roomTitle: null,
+  focus: null, marker: null, kind: "ambient", roomTitle: null, dark: false,
 };
 
 function line(speaker: string, text: string, modes = BM_SAY): PageLine {
