@@ -45,12 +45,9 @@ panel and `clonePanel` keeps its own `dark`, or the reveal *replaces* the black 
 following it; and `titleOwed` pays a dark arrival's suppressed location box on the first lit frame,
 or the room is never named at all. Found by rendering the cellar descent and looking at it.
 
-**Gates.** `density` moved only on `04-lamp-and-darkness.cmd` (46 → 47 panels; D5′ 42.6%), accepted.
-Gate gained 7 `wk04-dark-*` cases and was accepted on macOS, clearing the two `wk01` diffs that had
-been pending since the previous session.
-
-**Umami analytics verified on the beta deploy** (2026-08-06): visitor tracking and the
-`start-playing` event both land. Nothing outstanding from the previous session.
+**Gates.** `density` moved only on `04-lamp-and-darkness.cmd` (D5′ 42.6%), accepted. Gate gained 7
+`wk04-dark-*` cases, accepted on macOS — which also cleared the two `wk01` diffs left pending.
+**Umami analytics verified on the beta deploy** (2026-08-06); nothing outstanding.
 
 ## Next Actions
 
