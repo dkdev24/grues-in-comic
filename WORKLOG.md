@@ -10,6 +10,36 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.1 — 2026-08-06 — The light belongs to the frame, not to the turn
+
+**Reported from play: the panel changed light one frame early, in both directions.** v0.27.0 took
+`Panel.dark` from `turn.status.lit`, which is the light at the *end* of the turn. That is the right
+answer for every line the turn narrates and the wrong one for exactly one line — the Hero's
+declaration, which ADR 0010 §2 has speaking for the *previous* frame. So "down looks right", said
+standing in the lit living room he has not left yet, opened a black panel; and on the way out of the
+dark the same line would have opened a lit one.
+
+**The fix is the light half of an exception that already existed.** `PageLine.room` gives the
+declaration its own room for precisely this reason ("that room has not been entered yet at the moment
+he says the words"); `PageLine.dark` now gives it its own light, carried only on a turn that changed
+it, and `addScript` applies either override to the line's context. Nothing else in the pipeline
+moved: the fold, the light break, `clonePanel`'s sticky `dark` and `titleOwed` are all v0.27.0's and
+all unchanged.
+
+**Two v0.27.0 tests were asserting the bug** — "every panel of the descent turn is dark" and "more
+than one dark panel survives the reveal" — both written before the boundary frame was understood.
+They now state the invariant that was actually meant: the *arrival* panel is dark, and the black
+frame survives the reveal *with its own line still on it*, followed by a lit one. Two new cases pin
+the boundary in both directions; the way out of the dark is synthetic, because the corpus cannot walk
+it (the trap door bars the way back up and everything past it is unlit too).
+
+**Gates.** `density` unchanged — this moves a panel's light, not where the panels break. The gate
+case set now starts one frame earlier, at the declaration, since that is the frame the bug was
+about: `wk04-dark-p19` re-accepted showing a lit living room. Engine 147 · web 326 · IR 198 ·
+parity 143/143 strict.
+
+---
+
 ## v0.27.0 — 2026-08-06 — Darkness crosses the contract
 
 **The comic pane was contradicting the game.** Zork's unlit rooms refuse to be described — "It is

@@ -94,6 +94,19 @@ export interface PageLine {
    */
   room?: string;
   /**
+   * Overrides {@link PanelContext.dark} for this line alone — the light half of
+   * the same exception {@link room} is the place half of.
+   *
+   * The turn's `dark` is the light at the *end* of the turn, which is the right
+   * answer for every line the turn narrates and the wrong one for the
+   * declaration: he says "down looks right" standing in the lit room he is
+   * about to leave, and the panel that opens for those words would otherwise be
+   * black a frame early (and, going the other way, lit a frame early on the way
+   * out of the dark). Set only on a turn that changed the light — `undefined`
+   * elsewhere, so the shared context is reused unchanged.
+   */
+  dark?: boolean;
+  /**
    * Where the words came from — ADR 0009 §2's two registers, as a fact on the
    * line instead of a thing the reader has to infer from the text.
    *
@@ -232,12 +245,17 @@ export interface Page {
 export function addScript(page: Page, script: TurnScript): PanelDelta {
   const out: PanelDelta = { replacedLast: false, appended: [] };
   for (const line of script.lines) {
-    // `PageLine.room` overrides the room (and blanks the box) for this one
-    // line — the declaration's departure-room exception. `undefined` is the
-    // overwhelmingly common case, so the shared context is reused as-is then.
-    const context = line.room === undefined
+    // `PageLine.room` and `PageLine.dark` override the place and the light for
+    // this one line — the declaration's departure exception, which is a fact
+    // about both. `undefined` is the overwhelmingly common case for each, so
+    // the shared context is reused as-is then.
+    const context = line.room === undefined && line.dark === undefined
       ? script.context
-      : { ...script.context, room: line.room, roomTitle: null };
+      : {
+        ...script.context,
+        ...(line.room !== undefined ? { room: line.room, roomTitle: null } : {}),
+        ...(line.dark !== undefined ? { dark: line.dark } : {}),
+      };
     mergeDelta(out, page.addLine(line, context));
   }
   for (const body of script.reactions) {

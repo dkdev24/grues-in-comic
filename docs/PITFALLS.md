@@ -122,6 +122,13 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   also refuses an incoming `roomTitle` — the box belongs to the turn that lit the room. **Anything
   that adds a panel-level fact should ask which of the two rules it follows**, newest-line-wins or
   fixed-at-open; the default is the first and it is wrong for anything describing the *frame*.
+- **`turn.status` is the state at the *end* of the turn, and the declaration does not live there**
+  (v0.27.1, reported from play). `Panel.dark` read `status.lit` directly, so the Hero's "down looks
+  right" — which ADR 0010 §2 has answering the *previous* frame, standing in the room he has not left
+  yet — opened a black panel a frame early, and a lit one a frame early on the way out. `PageLine.dark`
+  is the light half of the per-line exception `PageLine.room` already was. **Any future panel fact
+  derived from `turn.status` has the same question to answer**: is it true of the turn, or of the
+  frame? The declaration is where the two differ, and it is one line in the script.
 - **A room entered in the dark still owes the reader its name** (`titleOwed`, v0.27.0). ADR 0009 §3
   draws the location box on the turn the room changes, and an unlit arrival suppresses it — but the
   room never changes again, so without the debt the box is never drawn at all and the reader never

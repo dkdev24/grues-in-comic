@@ -1250,10 +1250,13 @@ describe("an unlit room makes a dark panel", () => {
     return { lit, dark, page: [...strip_.panels] };
   }
 
-  it("marks the panel dark on the turn the player walks into the dark", () => {
+  it("marks the arrival panel dark on the turn the player walks into the dark", () => {
     const { dark } = cellarStrip();
-    expect(dark.length).toBeGreaterThan(0);
-    expect(dark.every((p) => p.dark)).toBe(true);
+    // Not *every* panel of that turn: the declaration frame ahead of it is
+    // still set in the lit room he is leaving (see the two cases at the end).
+    const arrival = dark.filter((p) => p.room === "CELLAR");
+    expect(arrival.length).toBeGreaterThan(0);
+    expect(arrival.every((p) => p.dark)).toBe(true);
   });
 
   it("shows no location box in the dark — the engine printed no room name either", () => {
@@ -1276,9 +1279,11 @@ describe("an unlit room makes a dark panel", () => {
     // Without the light break and `clonePanel`'s sticky `dark`, the Hero's
     // "let's switch on the lamp" clone-appends into the panel that said "It is
     // pitch black" and re-renders it lit: the darkness beat is not followed by
-    // the reveal, it is replaced by it.
-    expect(page.filter((p) => p.dark).length).toBeGreaterThan(1);
+    // the reveal, it is replaced by it. So the black frame must survive *with
+    // its own line still on it*, and a lit frame must come after it.
     const lastDark = page.map((p) => p.dark).lastIndexOf(true);
+    expect(lastDark).toBeGreaterThan(-1);
+    expect(page[lastDark]!.speakers.some((l) => l.text.includes("pitch black"))).toBe(true);
     expect(page.slice(lastDark + 1).some((p) => !p.dark)).toBe(true);
   });
 
@@ -1287,5 +1292,37 @@ describe("an unlit room makes a dark panel", () => {
     const box = page.find((p) => p.roomTitle === "Cellar");
     expect(box).toBeDefined();
     expect(box!.dark).toBe(false);
+  });
+
+  /**
+   * The light changes at the *end* of the turn, which is the right answer for
+   * every line the turn narrates and the wrong one for the Hero's declaration:
+   * he says "down looks right" standing in the room he has not left yet. ADR
+   * 0010 §2 already gives that line its own `room` for exactly this reason;
+   * these two pin the light half of the same exception, in both directions.
+   */
+  it("keeps the declaration frame lit on the way into the dark", () => {
+    const [first] = cellarStrip().dark;
+    expect(first!.speakers.some((line) => line.text.includes("Down"))).toBe(true);
+    expect(first!.dark).toBe(false);
+  });
+
+  it("keeps the declaration frame dark on the way out of it", () => {
+    // Synthetic, because the corpus cannot walk out of the dark: the trap door
+    // bars the way back up and everything past it is unlit too.
+    const turnOf = (command: string | null, events: Turn["events"], lit: boolean): Turn =>
+      ({ command, events, status: { room: "", score: 0, moves: 3, lit }, mix: {} }) as unknown as Turn;
+
+    const page = strip();
+    page.turn(turnOf(null, [
+      { type: "object-moved", object: PLAYER_ID, from: "CELLAR", to: "CELLAR" },
+    ] as unknown as Turn["events"], false));
+    const shot = page.turn(turnOf("up", [
+      { type: "player-moved", from: "CELLAR", to: "LIVING-ROOM" },
+      { type: "narration", channel: "prose", text: "Living Room" },
+    ] as unknown as Turn["events"], true));
+
+    expect(shot.panels[0]!.dark).toBe(true);
+    expect(shot.panels.some((p) => !p.dark)).toBe(true);
   });
 });

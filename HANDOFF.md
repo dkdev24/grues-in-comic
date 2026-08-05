@@ -12,7 +12,7 @@ condensed to one clause outranks a fact told as a story. `WORKLOG.md` already ha
 ---
 
 ## Current Version
-**0.27.0** · Platform: **macOS only** (2026-07-28)
+**0.27.1** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -28,26 +28,29 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   - **6.4 (asset separation), 6.5 (public 1.0.0 release) ☐** not started.
 - **ADR 0006 Slice 5 (session-recap PDF export) ☐** the only open ADR slice, schedulable whenever.
 
-**Tests:** 324 web · 147 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS
+**Tests:** 326 web · 147 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS
 (clean), never re-accept on Windows.
 
 ---
 
-## Last Session — v0.27.0, darkness reaches the panel (in `WORKLOG.md`)
+## Last Session — v0.27.0–v0.27.1, darkness reaches the panel (in `WORKLOG.md`)
 
 **An unlit room now renders black.** `light-changed { lit }` joins the ADR 0002 vocabulary (contract
 **1.1.0**, additive; parity unmoved) — baseline on the opening turn, then flips only, at the turn
 boundary. `Status.lit` → `Panel.dark` → `renderPanel` fills `#0b0b0b` and skips the figures. The
 engine does **not** write `globals["LIT"]`; the derived answer rides on `SaveState.lit` instead.
 
-**Two panel rules came out of it** (both in `docs/PITFALLS.md` → Web): a light change breaks the
-panel and `clonePanel` keeps its own `dark`, or the reveal *replaces* the black frame instead of
-following it; and `titleOwed` pays a dark arrival's suppressed location box on the first lit frame,
-or the room is never named at all. Found by rendering the cellar descent and looking at it.
-
-**Gates.** `density` moved only on `04-lamp-and-darkness.cmd` (D5′ 42.6%), accepted. Gate gained 7
-`wk04-dark-*` cases, accepted on macOS — which also cleared the two `wk01` diffs left pending.
+**Three panel rules came out of it, all in `docs/PITFALLS.md` → Web:** a light change breaks the
+panel and `clonePanel` keeps its own `dark`; `titleOwed` pays a dark arrival's suppressed location
+box on the first lit frame; and `PageLine.dark`, below. The first two came out of rendering the
+cellar descent and looking at it, the third out of play testing — **no rule test saw any of them.**
+`density` D5′ 42.6%, gate 7 `wk04-dark-*` cases, both accepted on macOS.
 **Umami analytics verified on the beta deploy** (2026-08-06); nothing outstanding.
+
+**v0.27.1 (from play testing): the light belongs to the frame, not to the turn.** `Panel.dark` came
+from end-of-turn status, so the declaration — which ADR 0010 §2 has answering the *previous* frame —
+changed light a frame early in both directions. `PageLine.dark` is now the light half of the
+per-line exception `PageLine.room` already was. Two v0.27.0 tests had asserted the bug.
 
 ## Next Actions
 

@@ -18,6 +18,15 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.27.1] - 2026-08-06 — Darkness falls on the right panel
+
+### Fixed
+- The panel went black one frame too early on the way into a dark room, and lit up one frame too
+  early on the way out. The Hero's "down looks right" is said standing in the lit room he has not
+  left yet, and now looks like it.
+
+---
+
 ## [v0.27.0] - 2026-08-06 — The dark is dark
 
 ### Added

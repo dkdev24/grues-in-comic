@@ -609,6 +609,12 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           // `exactOptionalPropertyTypes` is why this is a conditional spread
           // rather than `room: ... : undefined`.
           ...(roomAtEntry !== panelRoom ? { room: roomAtEntry } : {}),
+          // ...and in the light that room was in, for the same reason: the lamp
+          // he is about to strike has not been struck yet, and the dark he is
+          // about to climb out of is still around him. Carried only when the
+          // turn changed the light, so an ordinary declaration keeps the
+          // context's own answer.
+          ...(lightChanged ? { dark: wasDark } : {}),
         });
       }
       // **A new location starts a panel.** Until 6.1c the caption did this on

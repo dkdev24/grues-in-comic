@@ -227,7 +227,10 @@ export async function gateCases(): Promise<GateCase[]> {
    */
   const lamp = productionPanels("04-lamp-and-darkness.cmd");
   const dark = lamp.map((panel) => panel.dark);
-  const from = dark.indexOf(true);
+  // From the frame *before* the first dark one: that is the Hero's declaration,
+  // still standing in the lit room he is leaving, and it went black a frame
+  // early until v0.27.1. The boundary is the part worth pinning.
+  const from = Math.max(0, dark.indexOf(true) - 1);
   // ...through the first lit frame after the last dark one: the reveal.
   const to = dark.lastIndexOf(true) + 2;
   for (const [i, panel] of lamp.slice(from, to).entries()) {
