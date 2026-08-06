@@ -17,6 +17,7 @@ import { createComicView, type ComicView } from "./comic-view.js";
 import { createSessionStore, type SessionStore, StorageFullError } from "./persistence.js";
 import { createJumpControls } from "./jump.js";
 import { PLAYER_ID } from "../../engine/src/state.js";
+import { track, crossedMilestones } from "./analytics.js";
 
 /** Where `tools/serve.ts` mounts `ir/artifacts/`. ~1.8 MB, fetched once.
  *  Absolute, not relative: the game lives at `/play/`, one level below the
@@ -109,6 +110,11 @@ async function main(): Promise<void> {
   // one `/restart` and disarmed by anything else the player types next.
   let restartArmed = false;
 
+  // Tracks score-milestone crossings across live turns only (below). Synced
+  // to the resumed/starting score once boot decides which of those this is,
+  // so a reload past an already-crossed milestone can't refire it.
+  let trackedScore = 0;
+
   const play = (turn: Turn): void => {
     // One session, one event stream, both panes. The comic never gets its own
     // engine handle — that is what makes §2's "accompanied, never replaced" a
@@ -122,6 +128,18 @@ async function main(): Promise<void> {
     // control is told outright. `refresh` coalesces, so a replay of hundreds of
     // turns costs one layout read.
     jump.refresh();
+
+    // Analytics fire only for turns actually played (never `replay()`, so a
+    // resumed session's history can't be double-counted on reload).
+    for (const e of turn.events) {
+      if (e.type === "game-over") {
+        track("game-over", { outcome: e.outcome, score: turn.status.score, moves: turn.status.moves });
+      }
+    }
+    for (const threshold of crossedMilestones(trackedScore, turn.status.score)) {
+      track("score-milestone", { score: threshold, moves: turn.status.moves });
+    }
+    trackedScore = turn.status.score;
   };
 
   /** Render a turn without recording it: replay is already in the history. */
@@ -148,6 +166,8 @@ async function main(): Promise<void> {
   if (!resume()) {
     play(session.start());
     autosave();
+  } else {
+    trackedScore = session.status.score;
   }
 
   form.addEventListener("submit", (event) => {

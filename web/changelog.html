@@ -34,7 +34,14 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
-          <summary>August 2026 <span class="count">(12 releases)</span></summary>
+          <summary>August 2026 <span class="count">(13 releases)</span></summary>
+      <article class="changelog-entry" id="v0.27.3">
+        <h3><a href="#v0.27.3"><span class="version">v0.27.3</span> <span class="date">2026-08-06</span> — Umami events for game-over and score milestones</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li><strong>Two new Umami events</strong>, on top of the existing "start playing" click. <code>game-over</code> fires with <code>outcome</code> (<code>victory</code> / <code>death</code> / <code>quit</code>), <code>score</code>, and <code>moves</code> whenever the engine ends the game. <code>score-milestone</code> fires with <code>score</code> and <code>moves</code> each time a live turn crosses a quarter of Zork I's 350-point max (25/50/75/100%), so drop-off short of a win is visible too. Both fire only for turns actually played — a resumed session's replayed history can't double-count on reload.</li>
+        </ul>
+      </article>
       <article class="changelog-entry" id="v0.27.2">
         <h3><a href="#v0.27.2"><span class="version">v0.27.2</span> <span class="date">2026-08-06</span> — robots.txt, sitemap.xml, and a real changelog page</a></h3>
         <h4>Added</h4>

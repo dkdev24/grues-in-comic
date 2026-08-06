@@ -12,7 +12,7 @@ condensed to one clause outranks a fact told as a story. `WORKLOG.md` already ha
 ---
 
 ## Current Version
-**0.27.2** · Platform: **macOS only** (2026-07-28)
+**0.27.3** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -28,27 +28,26 @@ modernized to a browser-native comic adventure via an IR the engine executes.
   - **6.4 (asset separation), 6.5 (public 1.0.0 release) ☐** not started.
 - **ADR 0006 Slice 5 (session-recap PDF export) ☐** the only open ADR slice, schedulable whenever.
 
-**Tests:** 326 web · 147 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS
+**Tests:** 331 web · 147 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS
 (clean), never re-accept on Windows.
 
 ---
 
-## Last Session — v0.27.2, robots.txt / sitemap.xml / real changelog detail (in `WORKLOG.md`)
+## Last Session — v0.27.3, Umami events for game-over and score milestones (in `WORKLOG.md`)
 
-**Site discoverability pass.** `web/robots.txt` (new): allows normal crawling, blocks known
-AI-training crawlers, allows on-demand/search AI agents, states the same via `Content-Signal:`.
-`web/sitemap.xml` (new), built by `web/tools/build-sitemap.ts` (`npm run sitemap`) from each public
-page's own canonical tag; `play/index.html` gained the canonical tag it was missing so `/play/`
-could be listed. Declined as not applicable: `Link` response headers (no API to advertise) and
-Cloudflare "Markdown for Agents" (needs a paid zone plan — check whether `danielkimdev.com`'s zone
-is Pro/Business/Enterprise before revisiting).
+**Two new events beyond the existing "start playing" click.** `web/src/analytics.ts` (new):
+`track()` wraps `window.umami?.track()` (no-op if blocked/unloaded — can't affect gameplay);
+`crossedMilestones(prevScore, newScore)` is pure, tests in `web/test/analytics.test.ts`. Wired into
+`play()` in `main.ts` (never `replay()`, so a resumed session's history can't double-count on
+reload): `game-over` carries `{ outcome, score, moves }`; `score-milestone` fires at 25/50/75/100%
+of Zork I's 350-point max, carrying `{ score, moves }`. `trackedScore` syncs to the resumed score
+right after `resume()` so a reload past an already-crossed milestone can't refire it. 331/331 web
+tests pass, `tsc`/`build` clean. Live-browser check blocked by this sandbox's network restrictions
+(external Umami script hung headless Chrome) — not a code concern.
 
-**`/changelog` now shows real detail.** `build-changelog.ts` was discarding every `### Added` /
-`Fixed` / `Changed` bullet under each `CHANGELOG.md` header, rendering only the one-line summary. It
-now renders the full body, grouped by month via `<details>` (current month open, rest collapsed but
-still in the DOM/searchable) so the page stays readable as versions accumulate. Homepage preview
-(latest 3, one line) unchanged. Also fixed: local dev server (`web/tools/serve.ts`) was missing
-`.txt`/`.xml` MIME types.
+**Prior session (v0.27.2): `robots.txt`, `sitemap.xml`, real `/changelog` detail** — full account in
+`WORKLOG.md`. Still open from it: Cloudflare "Markdown for Agents" needs a paid zone plan — check
+`danielkimdev.com`'s tier before revisiting.
 
 ## Next Actions
 

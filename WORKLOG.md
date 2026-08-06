@@ -10,6 +10,37 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.3 — 2026-08-06 — Umami events for game-over and score milestones
+
+**The only Umami tracking so far was a declarative click event** (`data-umami-event="start-playing"`
+on the homepage CTA). Everything that happens *after* the player clicks through — whether they
+finish, how far they get, whether they quit — was invisible. Two more events close that gap, both
+fired from the single point every live turn already passes through: `play()` in `web/src/main.ts`.
+
+**`web/src/analytics.ts` (new)** is a thin, testable wrapper: `track(event, data)` calls
+`window.umami?.track(...)`, a no-op if the script is blocked or hasn't loaded yet, so a slow or
+missing analytics script can never affect gameplay. `crossedMilestones(prevScore, newScore)` is pure
+— no DOM, no `window.umami` — and answers which quarter-of-350 thresholds (25/50/75/100%) a turn's
+score newly crosses; 5 unit tests in `web/test/analytics.test.ts` pin it, including the case where a
+single big-deposit turn crosses more than one threshold at once, and the case where a death's score
+loss must not look like a crossing.
+
+**Wired into `play()`**, not `replay()`, deliberately: `main.ts` calls `replay()` for a resumed
+session's saved history and `play()` only for turns actually taken in the current tab, so a page
+reload can't refire `game-over` or a milestone the player already passed in a prior session.
+`trackedScore` — the running "last score analytics has seen" — is synced to `session.status.score`
+right after `resume()` succeeds, for the same reason: without that sync, the first live turn after a
+reload would compare against 0 and spuriously refire every threshold the player had already crossed
+before the reload.
+
+`game-over` carries `{ outcome, score, moves }` (`outcome` is the engine's own `"victory" | "death" |
+"quit"`); `score-milestone` carries `{ score, moves }`. 331/331 web tests pass (was 326); `tsc
+--noEmit` and `npm run build` clean. A live-browser check was attempted but blocked by this
+sandbox's network restrictions (the external Umami script hung the headless browser); not a code
+concern given the optional-chaining guard above.
+
+---
+
 ## v0.27.2 — 2026-08-06 — robots.txt, sitemap.xml, and a real changelog page
 
 **AI-agent/crawler discoverability, plus a changelog page that was quietly throwing away detail

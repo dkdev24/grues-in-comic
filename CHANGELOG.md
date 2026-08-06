@@ -18,6 +18,17 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.27.3] - 2026-08-06 — Umami events for game-over and score milestones
+
+### Added
+- **Two new Umami events**, on top of the existing "start playing" click. `game-over` fires with
+  `outcome` (`victory` / `death` / `quit`), `score`, and `moves` whenever the engine ends the game.
+  `score-milestone` fires with `score` and `moves` each time a live turn crosses a quarter of Zork
+  I's 350-point max (25/50/75/100%), so drop-off short of a win is visible too. Both fire only for
+  turns actually played — a resumed session's replayed history can't double-count on reload.
+
+---
+
 ## [v0.27.2] - 2026-08-06 — robots.txt, sitemap.xml, and a real changelog page
 
 ### Added
