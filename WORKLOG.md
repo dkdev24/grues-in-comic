@@ -10,6 +10,44 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.2 — 2026-08-06 — robots.txt, sitemap.xml, and a real changelog page
+
+**AI-agent/crawler discoverability, plus a changelog page that was quietly throwing away detail
+already written into `CHANGELOG.md`.** Three small pieces landed together because they were all
+raised in the same review pass.
+
+**`web/robots.txt` (new)** allows normal crawling, disallows `/dist/`, `/tools/`, and the internal
+`gallery.html` QA tool, and states an explicit AI-crawler policy: known training crawlers (`GPTBot`,
+`Google-Extended`, `ClaudeBot`, `CCBot`, `Bytespider`, `Applebot-Extended`, `Meta-ExternalAgent`)
+disallowed; on-demand fetch/search agents (`OAI-SearchBot`, `ChatGPT-User`, `Claude-User`,
+`Claude-Web`, `Claude-SearchBot`, `PerplexityBot`) allowed. A `Content-Signal:` line
+(`search=yes, ai-input=yes, ai-train=no`, per contentsignals.org) states the same policy in the
+newer machine-readable form. Two related items surfaced in the same review were explicitly declined
+as not applicable: `Link` response headers for API discovery (the site has no API), and Cloudflare's
+"Markdown for Agents" (needs a paid zone plan — account-level, not a code question).
+
+**`web/sitemap.xml` (new)**, built by `web/tools/build-sitemap.ts` (`npm run sitemap`) from each
+public page's own `<link rel="canonical">` tag — one source of truth, so the sitemap can't list a
+URL the page itself disagrees with. `lastmod` comes from `git log`'s date for that file, not build
+time, so re-running the script without content changes doesn't bump every page's date.
+`play/index.html` got the canonical tag the other public pages already had, so `/play/` could be
+listed. `gallery.html` has no canonical tag by design and is skipped, not hardcoded-excluded.
+Referenced from `robots.txt`.
+
+**The full changelog page was rebuilt to actually show detail.** `web/tools/build-changelog.ts`
+previously read only the one-line summary out of each `## [vX.Y.Z] - date — summary` header and
+discarded the `### Added`/`Fixed`/`Changed` bullets underneath, even though `CHANGELOG.md` already
+carried that detail. It now parses the full entry body (intro paragraph + sections + bullets, with
+wrapped continuation lines rejoined), renders `**bold**`/`` `code` ``/`*italic*` inline markdown, and
+groups entries by month on `/changelog` using native `<details>`— current month open, older months
+collapsed but still in the DOM (so in-page/browser search still finds them) — so the page doesn't
+grow into an unreadable wall as versions accumulate. The homepage preview (`index.html`, latest 3,
+one line each) is untouched — same `row()` renderer, same marker block. Also fixed along the way:
+`web/tools/serve.ts` was missing `.txt`/`.xml` MIME types, so `robots.txt` and `sitemap.xml` served
+as `application/octet-stream` under the local dev server instead of `text/plain`/`application/xml`.
+
+---
+
 ## v0.27.1 — 2026-08-06 — The light belongs to the frame, not to the turn
 
 **Reported from play: the panel changed light one frame early, in both directions.** v0.27.0 took

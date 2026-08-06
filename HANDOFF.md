@@ -12,7 +12,7 @@ condensed to one clause outranks a fact told as a story. `WORKLOG.md` already ha
 ---
 
 ## Current Version
-**0.27.1** · Platform: **macOS only** (2026-07-28)
+**0.27.2** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -33,22 +33,22 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — v0.27.0–v0.27.1, darkness reaches the panel (in `WORKLOG.md`)
+## Last Session — v0.27.2, robots.txt / sitemap.xml / real changelog detail (in `WORKLOG.md`)
 
-**An unlit room now renders black.** `light-changed { lit }` joins the ADR 0002 vocabulary (contract
-**1.1.0**, additive; parity unmoved) — baseline on the opening turn, then flips only, at the turn
-boundary. `Status.lit` → `Panel.dark` → `renderPanel` fills `#0b0b0b`, skipping the figures. The
-engine does **not** write `globals["LIT"]`; the derived answer rides on `SaveState.lit`.
+**Site discoverability pass.** `web/robots.txt` (new): allows normal crawling, blocks known
+AI-training crawlers, allows on-demand/search AI agents, states the same via `Content-Signal:`.
+`web/sitemap.xml` (new), built by `web/tools/build-sitemap.ts` (`npm run sitemap`) from each public
+page's own canonical tag; `play/index.html` gained the canonical tag it was missing so `/play/`
+could be listed. Declined as not applicable: `Link` response headers (no API to advertise) and
+Cloudflare "Markdown for Agents" (needs a paid zone plan — check whether `danielkimdev.com`'s zone
+is Pro/Business/Enterprise before revisiting).
 
-**Three panel rules came out of it, all in `docs/PITFALLS.md` → Web:** a light change breaks the
-panel and `clonePanel` keeps its own `dark`; `titleOwed` pays a dark arrival's suppressed location
-box on the first lit frame; and `PageLine.dark`, below. All three came from looking at renders, not
-from tests — **no rule test saw any of them.** `density` D5′ 42.6%, gate 7 `wk04-dark-*` cases,
-accepted on macOS. **Umami verified on the beta deploy** (2026-08-06); nothing outstanding.
-
-**v0.27.1 (from play testing): the light belongs to the frame, not to the turn.** `Panel.dark` came
-from end-of-turn status, so the declaration changed light a frame early both ways. `PageLine.dark`
-is the light half of `PageLine.room`'s exception.
+**`/changelog` now shows real detail.** `build-changelog.ts` was discarding every `### Added` /
+`Fixed` / `Changed` bullet under each `CHANGELOG.md` header, rendering only the one-line summary. It
+now renders the full body, grouped by month via `<details>` (current month open, rest collapsed but
+still in the DOM/searchable) so the page stays readable as versions accumulate. Homepage preview
+(latest 3, one line) unchanged. Also fixed: local dev server (`web/tools/serve.ts`) was missing
+`.txt`/`.xml` MIME types.
 
 ## Next Actions
 

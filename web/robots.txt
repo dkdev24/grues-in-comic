@@ -1,0 +1,52 @@
+# Default policy: search indexing yes, AI training no, on-demand AI fetches yes.
+# (contentsignals.org — a machine-readable preference, not enforcement.)
+User-agent: *
+Allow: /
+Disallow: /dist/
+Disallow: /tools/
+Disallow: /gallery.html
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+
+# --- AI training crawlers: blocked, per the ai-train=no signal above ---
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+# --- On-demand / search AI crawlers: allowed (real-time fetch or answer for a
+# user's specific query, not bulk training) ---
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://grues.danielkimdev.com/sitemap.xml

@@ -337,6 +337,88 @@ h3 {
   margin: 24px auto 0;
 }
 
+/* full changelog page: month groups, one <details> each */
+
+.changelog-full {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+.changelog-month {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.changelog-month > summary {
+  cursor: pointer;
+  padding: 12px 0;
+  color: var(--console-fg);
+  font-size: 1rem;
+  list-style: revert;
+}
+
+.changelog-month > summary .count {
+  color: var(--console-dim);
+  font-weight: normal;
+}
+
+.changelog-entry {
+  padding: 16px 0 16px 1.2em;
+  border-top: 1px solid var(--rule);
+}
+
+.changelog-entry h3 {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+}
+
+.changelog-entry h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.changelog-entry h3 a:hover {
+  text-decoration: underline;
+}
+
+.changelog-entry h3 .version {
+  color: var(--accent);
+}
+
+.changelog-entry h3 .date {
+  color: var(--console-dim);
+  font-weight: normal;
+}
+
+.changelog-entry p {
+  color: var(--console-fg);
+  margin: 0 0 8px;
+}
+
+.changelog-entry h4 {
+  color: var(--console-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 12px 0 4px;
+}
+
+.changelog-entry ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.changelog-entry li {
+  color: var(--console-fg);
+  margin-bottom: 4px;
+}
+
+.changelog-entry code {
+  font-family: inherit;
+  color: var(--accent);
+}
+
 /* ---------------- 5. footer ---------------- */
 
 footer {
