@@ -1,0 +1,21 @@
+# Grues in Comic
+
+> Grues in Comic reimagines two historical Microsoft open-source projects —
+> Zork I's ZIL sources and Microsoft Comic Chat's layout engine — as a
+> browser-native comic adventure. Zork I supplies the world; Comic Chat's
+> layout engine draws it as a comic strip. It runs entirely in the browser,
+> nothing to install.
+
+This site may be fetched on-demand to answer a user's specific query.
+Bulk crawling for AI training is not permitted — see /robots.txt.
+
+## Pages
+
+- [Home](https://grues.danielkimdev.com/): overview and the sample comic strip
+- [Play](https://grues.danielkimdev.com/play/): play the game in the browser
+- [About](https://grues.danielkimdev.com/about): background on the project and its two source projects
+- [Changelog](https://grues.danielkimdev.com/changelog): version history
+
+## Source
+
+- [GitHub repository](https://github.com/dkdev24/grues-in-comic)
