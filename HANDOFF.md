@@ -33,15 +33,16 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — v0.27.3 (no bump), PageSpeed Insights mobile fixes (in `WORKLOG.md`)
+## Last Session — v0.27.3 (no bump), Google Analytics tag added
 
-**Three PageSpeed-flagged issues, no gameplay code touched.** Oversized hero image
-(`strip-sample.png`, 1452×400/656KB for a 613×169 slot) resized to 1226×338 and served as
-`strip-sample.webp` (111KB) via `<picture>`, PNG fallback `pngquant`-compressed to 174KB. Blocking
-`@import url("/tokens.css")` chain in `site.css`/`play/style.css` fixed with `<link rel="preload"
-href="/tokens.css" as="style">` ahead of the stylesheet link on all 5 HTML entry points. Added
-missing `web/llms.txt` (H1 + page links, consistent with `robots.txt`'s `ai-train=no`). Verified
-green on a PageSpeed re-run. Committed as `b2264dc`, not yet pushed.
+**GA4 gtag.js wired into all 6 web entry points** (`index.html`, `about.html`, `gallery.html`,
+`changelog.html`, `play/index.html`, `tools/changelog.template.html`), inserted immediately after
+`<head>`, tag ID `G-JL3PJ65QL3`. No CSP exists anywhere in the project (checked — no meta tag, no
+`_headers`/`netlify.toml`), so nothing currently blocks the GA requests; noted for whoever adds a CSP
+later that `googletagmanager.com`/`google-analytics.com` will need allowing.
+
+**Prior session (v0.27.3, PageSpeed Insights mobile fixes)** — oversized hero image resized/webp'd,
+blocking `@import` chain fixed with preload, `web/llms.txt` added. Full account in `WORKLOG.md`.
 
 **Prior session (v0.27.3, Umami events)** — game-over and score-milestone tracking wired into
 `play()`; full account in `WORKLOG.md`.
