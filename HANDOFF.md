@@ -33,19 +33,20 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — v0.27.3, Umami events for game-over and score milestones (in `WORKLOG.md`)
+## Last Session — v0.27.3 (no bump), PageSpeed Insights mobile fixes (in `WORKLOG.md`)
 
-**Two new events beyond the existing "start playing" click.** `web/src/analytics.ts` (new):
-`track()` wraps `window.umami?.track()` (no-op if blocked/unloaded — can't affect gameplay);
-`crossedMilestones(prevScore, newScore)` is pure, tests in `web/test/analytics.test.ts`. Wired into
-`play()` in `main.ts` (never `replay()`, so a resumed session's history can't double-count on
-reload): `game-over` carries `{ outcome, score, moves }`; `score-milestone` fires at 25/50/75/100%
-of Zork I's 350-point max, carrying `{ score, moves }`. `trackedScore` syncs to the resumed score
-right after `resume()` so a reload past an already-crossed milestone can't refire it. 331/331 web
-tests pass, `tsc`/`build` clean. Live-browser check blocked by this sandbox's network restrictions
-(external Umami script hung headless Chrome) — not a code concern.
+**Three PageSpeed-flagged issues, no gameplay code touched.** Oversized hero image
+(`strip-sample.png`, 1452×400/656KB for a 613×169 slot) resized to 1226×338 and served as
+`strip-sample.webp` (111KB) via `<picture>`, PNG fallback `pngquant`-compressed to 174KB. Blocking
+`@import url("/tokens.css")` chain in `site.css`/`play/style.css` fixed with `<link rel="preload"
+href="/tokens.css" as="style">` ahead of the stylesheet link on all 5 HTML entry points. Added
+missing `web/llms.txt` (H1 + page links, consistent with `robots.txt`'s `ai-train=no`). Verified
+green on a PageSpeed re-run. Committed as `b2264dc`, not yet pushed.
 
-**Prior session (v0.27.2): `robots.txt`, `sitemap.xml`, real `/changelog` detail** — full account in
+**Prior session (v0.27.3, Umami events)** — game-over and score-milestone tracking wired into
+`play()`; full account in `WORKLOG.md`.
+
+**Before that (v0.27.2): `robots.txt`, `sitemap.xml`, real `/changelog` detail** — full account in
 `WORKLOG.md`. Still open from it: Cloudflare "Markdown for Agents" needs a paid zone plan — check
 `danielkimdev.com`'s tier before revisiting.
 

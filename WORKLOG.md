@@ -39,6 +39,17 @@ before the reload.
 sandbox's network restrictions (the external Umami script hung the headless browser); not a code
 concern given the optional-chaining guard above.
 
+**Same version, same day: PageSpeed Insights mobile fixes.** Three issues, no code paths touched:
+`web/assets/strip-sample.png` (1452×400, 656KB) was oversized for its 613×169 display — resized to
+1226×338 (2x) and re-encoded as `strip-sample.webp` (111KB) served through a `<picture>` element with
+the (now `pngquant`-compressed, 174KB) PNG as fallback, in `index.html`. `site.css`/`play/style.css`
+both pull shared tokens via `@import url("/tokens.css")`, which the browser can't discover until it's
+already downloaded and parsed the parent stylesheet — added `<link rel="preload" href="/tokens.css"
+as="style">` ahead of the stylesheet link on all five HTML entry points (`index`, `about`,
+`changelog`, `tools/changelog.template`, `play/index`) so it fetches in parallel instead. Added
+`web/llms.txt` (was missing entirely) with an H1 and links to every page, consistent with `robots.txt`'s
+`ai-train=no` signal. Verified green on a PageSpeed Insights re-run.
+
 ---
 
 ## v0.27.2 — 2026-08-06 — robots.txt, sitemap.xml, and a real changelog page
