@@ -127,6 +127,18 @@ without asking.
   *Why deferred:* no observed need; both are cost without a symptom.
   *Revisit only if* a real need appears in a running page.
 
+- **A dedicated win-screen render for entering `STONE-BARROW`.** Today the winning moment renders as
+  an ordinary panel (`script.ts` beat + `backdropFor("STONE-BARROW")` → `barrow-exterior`) — there is
+  no distinct ending scene. The `barrow-interior` backdrop asset exists (`BackdropId`, `cast.json`)
+  but nothing references it, because the original ZIL never modeled a room for stepping inside the
+  barrow (`STONE-BARROW-FCN` fires the win directly, per `1dungeon.zil:1254`).
+  *Why deferred:* 2026-08-07 gap-table review (`docs/backdrop-generation-plan.md` audit) found the
+  asset orphaned; building a second render step for the win moment is new engine work, not a mapping
+  fix, and no iteration has asked for a distinct ending screen yet.
+  *Done looks like:* a win-specific panel/beat that draws `barrow-interior` when `WON-FLAG` fires,
+  or — if this stays out of scope — `barrow-interior` deleted from `BackdropId` and `cast.json` as
+  dead art.
+
 ### 2.2 Port leftovers (ADR 0008 scoped these out on purpose)
 
 ADR 0008 is complete. What it left open is only what it declared out of scope — both items below

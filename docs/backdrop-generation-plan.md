@@ -1,11 +1,40 @@
-# Backdrop Generation Plan — 30 Backdrops for Full Game Coverage
+# Backdrop Generation Plan — Full Game Coverage, Capped Reuse
 
-**Strategy**: 3 images × 2×5 grid = 30 backdrops total — all newly generated. The three MVP
-backdrop *IDs* (`pastoral`, `field`, `room`) are reused, but the art is regenerated so the whole
-set shares one idiom; the shipped conservatory `room8bs` is not carried forward.  
-Each cell = 512×512 px (Comic Chat native 315×315 upscaled ~1.6×, then padded to a 512 power-of-two
-cell for crisp rendering and a clean crop grid).  
-Woodring hatch idiom, 1-bit polarity (pinned by `art/test/polarity.test.ts`).
+**Status:** the 30-backdrop set below (Images 1–3) is shipped and is the live mapping in
+`web/src/comic/backdrop.ts` — every one of Zork I's 110 rooms is assigned, none fall through to the
+`room` fallback. This doc was originally written *ahead of* that implementation and drifted out of
+sync with it; the tables below were corrected against the shipped code on 2026-08-07 (see
+**Sync corrections**).
+
+**New in this revision — the diversity pass (Image 4).** Three backdrops were shipped as heavy
+catch-alls: `cave-system` (25 rooms), `pastoral` (22 rooms), `maze` (20 rooms). Reused art at that
+scale means readers see the same room repeatedly under different names. **Rule going forward: no
+backdrop may cover more than 5 rooms.** Applying that cap to the three offenders requires **11 new
+backdrops** (§ Image 4), splitting each catch-all into 4–5 backdrops of ≤5 rooms apiece. Every other
+existing backdrop is already at or under the cap and is untouched.
+
+Woodring hatch idiom, 1-bit polarity (pinned by `art/test/polarity.test.ts`), 512×512 px cells,
+2×5 grid sheets, same as the shipped set.
+
+---
+
+## Sync corrections (against `web/src/comic/backdrop.ts`, 2026-08-07)
+
+The original mapping block below (now replaced) predated the shipped implementation and had drifted:
+
+- **Room id fixes:** the temple complex is `NORTH-TEMPLE` / `SOUTH-TEMPLE` in the world document, not
+  a single `TEMPLE` plus a separate `ALTAR`. The squeaky room's ZIL id is `SQUEEKY-ROOM` (the
+  original's own spelling), not `SQUEAKY-ROOM`.
+- **Regrouping fix:** `SHAFT-ROOM`, `LADDER-TOP`, `LADDER-BOTTOM`, and `LOWER-SHAFT` draw
+  `timber-room`, not `cave-system` — they're part of the timbered mine shaft, not the natural cave
+  network.
+- **Coverage:** this doc's old mapping block only assigned ~55 of 110 rooms and left the rest to the
+  `room` fallback. The shipped table assigns all 110 explicitly; see `backdrop.ts` for the untouched
+  portion (everything outside `cave-system`/`pastoral`/`maze`, which is unchanged by this pass).
+- **`barrow-interior` is shipped but orphaned** — no room in the world document maps to it (entering
+  `STONE-BARROW` triggers the win ending directly; there is no separate interior room). Tracked in
+  `docs/FUTURE_WORK.md` §2.1 as a possible future win-screen backdrop. Left as-is, not part of this
+  pass.
 
 ---
 
@@ -52,7 +81,7 @@ Woodring hatch idiom, 1-bit polarity (pinned by `art/test/polarity.test.ts`).
 | 2 | `atlantis` | `23-atlantis.png` | **Lost Atlantis** | Woodring hatch style, 1-bit b&w. Submerged city glimpsed: columns, domes, seaweed, shafts of light through water, cross-hatched architecture, stippled aquatic atmosphere, mythic scale. No figures. |
 | 3 | `hades-entrance` | `24-hades-entrance.png` | **Entrance to Hades** | Woodring hatch style, 1-bit b&w. River Styx shore, Charon's boat, grim cavern, ghostly light, cross-hatched water, stippled mist, ominous hatching, underworld threshold. No figures. |
 | 4 | `land-of-living-dead` | `25-land-of-living-dead.png` | **Land of the Living Dead** | Woodring hatch style, 1-bit b&w. Gray misty plain, standing stones, silent figures suggested by negative space, cross-hatched fog, stippled desolation, bleak eternal twilight. No figures. |
-| 5 | `barrow-interior` | `26-barrow-interior.png` | **Barrow Interior** | Woodring hatch style, 1-bit b&w. Stone slab tomb, coffin, treasure, ancient seal, cross-hatched stone, stippled dust of ages, sacred darkness, single beam of light. No figures. |
+| 5 | `barrow-interior` | `26-barrow-interior.png` | **Barrow Interior** | Woodring hatch style, 1-bit b&w. Stone slab tomb, coffin, treasure, ancient seal, cross-hatched stone, stippled dust of ages, sacred darkness, single beam of light. No figures. *(Shipped, currently orphaned — see Sync corrections above and `docs/FUTURE_WORK.md` §2.1.)* |
 | 6 | `maintenance-room` | `27-maintenance-room.png` | **Maintenance Room** | Woodring hatch style, 1-bit b&w. Utility corridor, pipe junctions, valve wheels, tool board, leak stains, cross-hatched metal, stippled industrial grime, functional ugliness. No figures. |
 | 7 | `loud-room` | `28-loud-room.png` | **Loud Room** | Woodring hatch style, 1-bit b&w. Echoing chamber, sound waves visualized as concentric hatching lines, vibrating walls, cross-hatched resonance pattern, stippled acoustic chaos. No figures. |
 | 8 | `engravings-cave` | `29-engravings-cave.png` | **Engravings Cave** | Woodring hatch style, 1-bit b&w. Cave walls covered in ancient carvings: hunters, beasts, symbols, cross-hatched petroglyphs, stippled torchlight revealing art, prehistoric narrative. No figures. |
@@ -60,105 +89,133 @@ Woodring hatch idiom, 1-bit polarity (pinned by `art/test/polarity.test.ts`).
 
 ---
 
-## Backdrop ID → Room Mapping (for `web/src/comic/backdrop.ts`)
+## Image 4: Diversity Pass — new backdrops to cap reuse at 5 (cells 0–9, plus one overflow cell)
 
-> **Rename note:** the existing table is named `OUTDOORS` (exported as `OUTDOOR_BACKDROPS`) because
-> it only held outdoor rooms. This plan extends it with dungeon, temple, cave, and endgame rooms, so
-> rename it to `ROOM_BACKDROPS` (export `ROOM_BACKDROPS`) when landing — the old name would lie.
-> `backdropFor` stays total: `ROOM_BACKDROPS.get(room) ?? "room"`.
+These 11 are **not yet generated.** They split `cave-system` (4 new + the existing one),
+`pastoral` (4 new + the existing one), and `maze` (3 new + the existing one) so no backdrop in the
+game covers more than 5 rooms. `coal-mine`, `chasm-cave`, `winding-passage`, and `small-cave` share
+the existing `cave-system` idiom (natural limestone caverns); `highlands`, `rainbow-falls`, `river`,
+and `shoreline` share the existing `pastoral` idiom (outdoor, high-contrast landscape); `maze-deep`
+and `maze-twisting` share the existing `maze` idiom (repeating stone passages) and `maze-dead-ends`
+is its terminal variant.
+
+| Cell | Backdrop ID | Filename | Title | Image Generation Prompt |
+|------|-------------|----------|-------|-------------------------|
+| 0 | `coal-mine` | `31-coal-mine.png` | **Coal Mine Tunnels** | Woodring hatch style, 1-bit b&w. Rough-hewn mine shaft, ore cart tracks, pickaxes leaning on the wall, timber supports, coal dust texture, cross-hatched rock, stippled coal glints, cramped industrial-era mining feel. No figures. |
+| 1 | `chasm-cave` | `32-chasm-cave.png` | **Chasm Cavern** | Woodring hatch style, 1-bit b&w. Yawning chasm splitting the cave floor, jagged rock bridge, echoing depths below, stalactites overhead, cross-hatched chasm walls, stippled void shadows, vertiginous scale. No figures. |
+| 2 | `winding-passage` | `33-winding-passage.png` | **Winding Passage** | Woodring hatch style, 1-bit b&w. Narrow twisting tunnel, uneven low ceiling, rough-cut rock, single bend disappearing from view, cross-hatched stone walls, stippled tight shadows, claustrophobic passage. No figures. |
+| 3 | `small-cave` | `34-small-cave.png` | **Small Cave** | Woodring hatch style, 1-bit b&w. Tight natural chamber, low ceiling, a few stalagmites, single narrow exit, cross-hatched rock, stippled close shadows, unremarkable transitional cave. No figures. |
+| 4 | `highlands` | `35-highlands.png` | **Rocky Highlands** | Woodring hatch style, 1-bit b&w. Rugged canyon rim, sheer drop-offs, wind-scoured stone, sparse scrub brush, cross-hatched cliff face, stippled distant haze, exposed high vantage. No figures. |
+| 5 | `rainbow-falls` | `36-rainbow-falls.png` | **Rainbow & Falls** | Woodring hatch style, 1-bit b&w. Waterfall cascading into mist, faint rainbow arc, wet cliff rock, spray-soaked ferns, cross-hatched falling water, stippled mist, luminous natural wonder. No figures. |
+| 6 | `river` | `37-river.png` | **River Bend** | Woodring hatch style, 1-bit b&w. Slow river between mossy banks, overhanging branches, smooth stones in the shallows, cross-hatched water ripples, stippled reflected light, quiet current. No figures. |
+| 7 | `shoreline` | `38-shoreline.png` | **Sandy Shoreline** | Woodring hatch style, 1-bit b&w. Open sandy beach meeting dark water, driftwood, gentle surf line, cross-hatched sand texture, stippled foam, wide flat horizon. No figures. |
+| 8 | `maze-deep` | `39-maze-deep.png` | **Maze, Deeper Passages** | Woodring hatch style, 1-bit b&w. Identical stone passages with a subtly different marking (chalk arrow, dropped item), deeper and danker than the entrance maze, cross-hatched stone, stippled damp, same disorienting repetition. No figures. |
+| 9 | `maze-twisting` | `40-maze-twisting.png` | **Maze, Twisting Section** | Woodring hatch style, 1-bit b&w. Tightly zigzagging passages, sharper turns, more debris and old bones, cross-hatched stone, stippled deep shadow, maximum disorientation. No figures. |
+
+| Cell | Backdrop ID | Filename | Title | Image Generation Prompt |
+|------|-------------|----------|-------|-------------------------|
+| 0 | `maze-dead-ends` | `41-maze-dead-ends.png` | **Maze Dead Ends** | Woodring hatch style, 1-bit b&w. A passage that terminates abruptly at bare rock, dust and cobwebs undisturbed, cross-hatched wall, stippled stagnant air, sense of a wrong turn. No figures. |
+
+---
+
+## Backdrop ID → Room Mapping (target state for `web/src/comic/backdrop.ts`)
+
+This replaces the old (drifted, ~55-room) mapping block. It shows the **full 110-room assignment
+after the diversity pass** — everything outside the three split groups is unchanged from what's
+already shipped in `backdrop.ts` today; only the `cave-system` / `pastoral` / `maze` rows change.
 
 ```typescript
+export type BackdropId =
+  | "pastoral" | "field" | "barrow-exterior" | "grating-clearing"
+  | "house-interior" | "attic" | "cellar" | "troll-room" | "cyclops-room"
+  | "timber-room" | "machine-room" | "reservoir" | "dam-lobby" | "maze"
+  | "temple" | "egypt-room" | "round-room" | "torch-room" | "cave-system"
+  | "dome-room" | "mirror-room" | "gallery" | "atlantis" | "hades-entrance"
+  | "land-of-living-dead" | "barrow-interior" | "maintenance-room" | "loud-room"
+  | "engravings-cave" | "room"
+  // New in the diversity pass:
+  | "coal-mine" | "chasm-cave" | "winding-passage" | "small-cave"
+  | "highlands" | "rainbow-falls" | "river" | "shoreline"
+  | "maze-deep" | "maze-twisting" | "maze-dead-ends";
+
 const ROOM_BACKDROPS = new Map<string, BackdropId>([
-  // House exterior (field)
-  ["WEST-OF-HOUSE", "field"],
-  ["NORTH-OF-HOUSE", "field"],
-  ["SOUTH-OF-HOUSE", "field"],
-  ["EAST-OF-HOUSE", "field"],
+  // --- Unchanged from shipped backdrop.ts (79 rooms, all backdrops ≤5 rooms already) ---
+  // Above ground / house / cellar / gallery / dungeon / temple / endgame rooms —
+  // see backdrop.ts for the authoritative list; none of these move.
 
-  // Forest & hills (pastoral)
-  ["FOREST-1", "pastoral"],
-  ["FOREST-2", "pastoral"],
-  ["FOREST-3", "pastoral"],
-  ["PATH", "pastoral"],
-  ["UP-A-TREE", "pastoral"],
-  ["CLEARING", "pastoral"],
-  ["GRATING-CLEARING", "grating-clearing"],
-  ["CANYON-VIEW", "pastoral"],
-  ["CLIFF-MIDDLE", "pastoral"],
-  ["CANYON-BOTTOM", "pastoral"],
-  ["END-OF-RAINBOW", "pastoral"],
-  ["ARAGAIN-FALLS", "pastoral"],
-  ["MOUNTAINS", "pastoral"],
-  ["STONE-BARROW", "barrow-exterior"],
+  // --- pastoral, split (was 22 rooms on one backdrop; now 5 backdrops, ≤5 rooms each) ---
+  ["FOREST-1", "pastoral"], ["FOREST-2", "pastoral"], ["FOREST-3", "pastoral"],
+  ["PATH", "pastoral"], ["UP-A-TREE", "pastoral"],
 
-  // House interior
-  ["LIVING-ROOM", "house-interior"],
-  ["KITCHEN", "house-interior"],
-  ["ATTIC", "attic"],
-  ["CELLAR", "cellar"],
-  ["TROLL-ROOM", "troll-room"],
-  ["CYCLOPS-ROOM", "cyclops-room"],
-  ["TIMBER-ROOM", "timber-room"],
+  ["MOUNTAINS", "highlands"], ["CLEARING", "highlands"], ["CANYON-VIEW", "highlands"],
+  ["CLIFF-MIDDLE", "highlands"], ["CANYON-BOTTOM", "highlands"],
 
-  // Dungeon
-  ["MACHINE-ROOM", "machine-room"],
-  ["RESERVOIR", "reservoir"],
-  ["DAM-LOBBY", "dam-lobby"],
-  ["DAM-BASE", "dam-lobby"],
-  ["MAZE-1", "maze"],
-  ["MAZE-2", "maze"],
-  ["MAZE-3", "maze"],
-  ["MAZE-4", "maze"],
+  ["END-OF-RAINBOW", "rainbow-falls"], ["ON-RAINBOW", "rainbow-falls"],
+  ["ARAGAIN-FALLS", "rainbow-falls"], ["WHITE-CLIFFS-NORTH", "rainbow-falls"],
+  ["WHITE-CLIFFS-SOUTH", "rainbow-falls"],
+
+  ["RIVER-1", "river"], ["RIVER-2", "river"], ["RIVER-3", "river"],
+  ["RIVER-4", "river"], ["RIVER-5", "river"],
+
+  ["SHORE", "shoreline"], ["SANDY-BEACH", "shoreline"],
+
+  // --- maze, split (was 20 rooms on one backdrop; now 4 backdrops, ≤5 rooms each) ---
+  ["MAZE-1", "maze"], ["MAZE-2", "maze"], ["MAZE-3", "maze"], ["MAZE-4", "maze"],
   ["MAZE-5", "maze"],
-  ["MAZE-6", "maze"],
-  ["MAZE-7", "maze"],
-  ["MAZE-8", "maze"],
-  ["MAZE-9", "maze"],
-  ["MAZE-10", "maze"],
 
-  // Temple complex
-  ["TEMPLE", "temple"],
-  ["EGYPT-ROOM", "egypt-room"],
-  ["ROUND-ROOM", "round-room"],
-  ["TORCH-ROOM", "torch-room"],
-  ["ALTAR", "temple"],
+  ["MAZE-6", "maze-deep"], ["MAZE-7", "maze-deep"], ["MAZE-8", "maze-deep"],
+  ["MAZE-9", "maze-deep"], ["MAZE-10", "maze-deep"],
 
-  // Caves
-  ["BAT-ROOM", "cave-system"],
-  ["GAS-ROOM", "cave-system"],
-  ["SANDY-CAVE", "cave-system"],
-  ["SQUEAKY-ROOM", "cave-system"],
-  ["SHAFT-ROOM", "cave-system"],
-  ["LOWER-SHAFT", "cave-system"],
+  ["MAZE-11", "maze-twisting"], ["MAZE-12", "maze-twisting"], ["MAZE-13", "maze-twisting"],
+  ["MAZE-14", "maze-twisting"], ["MAZE-15", "maze-twisting"],
 
-  // Special
-  ["DOME-ROOM", "dome-room"],
-  ["MIRROR-ROOM-1", "mirror-room"],
-  ["MIRROR-ROOM-2", "mirror-room"],
-  ["GALLERY", "gallery"],
-  ["STUDIO", "gallery"],
-  ["ATLANTIS-ROOM", "atlantis"],
-  ["ENTRANCE-TO-HADES", "hades-entrance"],
-  ["LAND-OF-LIVING-DEAD", "land-of-living-dead"],
-  ["BARROW-INTERIOR", "barrow-interior"],
-  ["MAINTENANCE-ROOM", "maintenance-room"],
-  ["LOUD-ROOM", "loud-room"],
-  ["ENGRAVINGS-CAVE", "engravings-cave"],
+  ["DEAD-END-1", "maze-dead-ends"], ["DEAD-END-2", "maze-dead-ends"],
+  ["DEAD-END-3", "maze-dead-ends"], ["DEAD-END-4", "maze-dead-ends"],
+  ["GRATING-ROOM", "maze-dead-ends"],
 
-  // All remaining rooms fall through to "room" (the fallback in backdropFor)
+  // --- cave-system, split (was 25 rooms on one backdrop; now 5 backdrops, ≤5 rooms each) ---
+  ["MINE-ENTRANCE", "cave-system"], ["SQUEEKY-ROOM", "cave-system"], ["BAT-ROOM", "cave-system"],
+  ["SMELLY-ROOM", "cave-system"], ["GAS-ROOM", "cave-system"],
+
+  ["MINE-1", "coal-mine"], ["MINE-2", "coal-mine"], ["MINE-3", "coal-mine"],
+  ["MINE-4", "coal-mine"], ["SLIDE-ROOM", "coal-mine"],
+
+  ["EAST-OF-CHASM", "chasm-cave"], ["DEEP-CANYON", "chasm-cave"], ["CHASM-ROOM", "chasm-cave"],
+  ["DAMP-CAVE", "chasm-cave"], ["SANDY-CAVE", "chasm-cave"],
+
+  ["STRANGE-PASSAGE", "winding-passage"], ["NARROW-PASSAGE", "winding-passage"],
+  ["WINDING-PASSAGE", "winding-passage"], ["TWISTING-PASSAGE", "winding-passage"],
+  ["COLD-PASSAGE", "winding-passage"],
+
+  ["SMALL-CAVE", "small-cave"], ["TINY-CAVE", "small-cave"], ["EW-PASSAGE", "small-cave"],
+  ["NS-PASSAGE", "small-cave"], ["DEAD-END-5", "small-cave"],
+
+  // ["SHAFT-ROOM"|"LADDER-TOP"|"LADDER-BOTTOM"|"TIMBER-ROOM"|"LOWER-SHAFT", "timber-room"]
+  // unchanged — already ≤5, not part of this pass.
 ]);
 ```
+
+**Reuse count after this pass** (all backdrops, max 5): `field` 4 · `dam-lobby` 3 · `timber-room` 5 ·
+`reservoir` 5 · `pastoral` 5 · `highlands` 5 · `rainbow-falls` 5 · `river` 5 · `shoreline` 2 ·
+`maze` 5 · `maze-deep` 5 · `maze-twisting` 5 · `maze-dead-ends` 5 · `cave-system` 5 · `coal-mine` 5 ·
+`chasm-cave` 5 · `winding-passage` 5 · `small-cave` 5 · everything else (house, gallery, temple,
+endgame rooms, etc.) already 1–2. `barrow-interior` and `room` remain at 0 (orphaned / fallback, see
+Sync corrections).
 
 ---
 
 ## Generation Checklist
 
-- [ ] Generate Image 1 (cells 0–9) as 1024×2560 (2 cols × 5 rows × 512px)
-- [ ] Generate Image 2 (cells 0–9) as 1024×2560
-- [ ] Generate Image 3 (cells 0–9) as 1024×2560
+- [x] Generate Images 1–3 (30 backdrops, shipped)
+- [x] Pack and wire into `web/src/comic/backdrop.ts` / `cast.json` (shipped)
+- [ ] Generate Image 4 (11 new backdrops: `coal-mine`, `chasm-cave`, `winding-passage`, `small-cave`,
+      `highlands`, `rainbow-falls`, `river`, `shoreline`, `maze-deep`, `maze-twisting`,
+      `maze-dead-ends`) as 1024×2560 + one 512×512 overflow cell
 - [ ] Crop each cell to 512×512 PNG
 - [ ] Run through `art/tools/avbpack.ts` pipeline (AVB format for Comic Chat)
-- [ ] Add `BackdropId` type entries in `web/src/comic/backdrop.ts`
-- [ ] Rename `OUTDOORS`/`OUTDOOR_BACKDROPS` → `ROOM_BACKDROPS` and extend with all room→backdrop assignments
+- [ ] Add the 11 new `BackdropId` entries in `web/src/comic/backdrop.ts`
+- [ ] Update `ROOM_BACKDROPS` per the target mapping above (only the `pastoral`/`maze`/`cave-system`
+      rows change)
 - [ ] Add polarity assertions in `art/test/polarity.test.ts` for each new backdrop
 - [ ] Regenerate `web/assets/comic/` with `npm --prefix art run pack`
+- [ ] Update coverage assertions in `web/test/backdrop.test.ts` for the new ids

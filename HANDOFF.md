@@ -33,23 +33,20 @@ modernized to a browser-native comic adventure via an IR the engine executes.
 
 ---
 
-## Last Session — v0.27.3 (no bump), Google Analytics tag added
+## Last Session — v0.27.3 (no bump), backdrop diversity plan (docs only, no code)
 
-**GA4 gtag.js wired into all 6 web entry points** (`index.html`, `about.html`, `gallery.html`,
-`changelog.html`, `play/index.html`, `tools/changelog.template.html`), inserted immediately after
-`<head>`, tag ID `G-JL3PJ65QL3`. No CSP exists anywhere in the project (checked — no meta tag, no
-`_headers`/`netlify.toml`), so nothing currently blocks the GA requests; noted for whoever adds a CSP
-later that `googletagmanager.com`/`google-analytics.com` will need allowing.
+**`backdrop.ts` already maps all 110 rooms across 30 backdrops** (not an open MVP gap), but three are
+heavy catch-alls: `cave-system` (25 rooms), `pastoral` (22), `maze` (20). User's rule: **no backdrop
+may cover more than 5 rooms.** `docs/backdrop-generation-plan.md` rewritten — synced against shipped
+code (fixed stale room ids/groupings) and added an **Image 4** section: 11 new backdrops with prompts
++ target `ROOM_BACKDROPS` mapping, capping all three at ≤5 (list in the doc). Cap is user-set;
+revisit only if 5 still isn't enough after generating and checking. Also: `barrow-interior` (shipped
+art, unused — `STONE-BARROW` fires the win ending directly, no interior room) logged as a possible
+future win-screen backdrop in `docs/FUTURE_WORK.md` §2.1, left in place.
 
-**Prior session (v0.27.3, PageSpeed Insights mobile fixes)** — oversized hero image resized/webp'd,
-blocking `@import` chain fixed with preload, `web/llms.txt` added. Full account in `WORKLOG.md`.
-
-**Prior session (v0.27.3, Umami events)** — game-over and score-milestone tracking wired into
-`play()`; full account in `WORKLOG.md`.
-
-**Before that (v0.27.2): `robots.txt`, `sitemap.xml`, real `/changelog` detail** — full account in
-`WORKLOG.md`. Still open from it: Cloudflare "Markdown for Agents" needs a paid zone plan — check
-`danielkimdev.com`'s tier before revisiting.
+**Prior sessions (v0.27.3: GA4 tag, PageSpeed fixes, Umami events; v0.27.2: robots.txt/sitemap/changelog)**
+— full accounts in `WORKLOG.md`. Still open from v0.27.2: Cloudflare "Markdown for Agents" needs a
+paid zone plan — check `danielkimdev.com`'s tier before revisiting.
 
 ## Next Actions
 
@@ -60,6 +57,8 @@ blocking `@import` chain fixed with preload, `web/llms.txt` added. Full account 
 2. **6.4 asset separation & neutral branding.** ☐ Independent of everything else.
 3. **6.5 public release → tag `1.0.0`.** ☐ Needs 6.4 and the rest of M6.1's stated purpose done.
 4. **ADR 0006 Slice 5 — PDF export.** ☐ Schedulable whenever. Deliberately not WYSIWYG.
+5. **Backdrop diversity pass.** ☐ Generate `docs/backdrop-generation-plan.md` § Image 4, wire into
+   `backdrop.ts`. Not in `DEVELOPMENT_PLAN.md` yet.
 
 **The M6 list is open.** More items land as work proceeds; absence is not a scoping decision.
 
