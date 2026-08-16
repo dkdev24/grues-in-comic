@@ -10,6 +10,28 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.3 — 2026-08-16 — backdrop diversity plan (docs only, no code)
+
+**`backdrop.ts` already maps all 110 rooms across 30 backdrops** (not an open MVP gap), but three are
+heavy catch-alls: `cave-system` (25 rooms), `pastoral` (22), `maze` (20). User's rule: **no backdrop
+may cover more than 5 rooms.** `docs/backdrop-generation-plan.md` rewritten — synced against shipped
+code (fixed stale room ids/groupings) and added an **Image 4** section: 11 new backdrops with prompts
++ target `ROOM_BACKDROPS` mapping, capping all three at ≤5 (list in the doc). Cap is user-set;
+revisit only if 5 still isn't enough after generating and checking. Also: `barrow-interior` (shipped
+art, unused — `STONE-BARROW` fires the win ending directly, no interior room) logged as a possible
+future win-screen backdrop in `docs/FUTURE_WORK.md` §2.1, left in place.
+
+Also this session: GA4 tag, PageSpeed fixes, Umami events (v0.27.3); robots.txt/sitemap/changelog
+(v0.27.2). Still open from v0.27.2: Cloudflare "Markdown for Agents" needs a paid zone plan — check
+`danielkimdev.com`'s tier before revisiting.
+
+### Status
+
+Docs-only session; no code shipped. `HANDOFF.md` and `AGENTS.md` brought under the 50-line cap
+(project-init skill rule) — this entry absorbed the narrative that no longer fits there.
+
+---
+
 ## v0.27.3 — 2026-08-06 — Umami events for game-over and score milestones
 
 **The only Umami tracking so far was a declarative click event** (`data-umami-event="start-playing"`
