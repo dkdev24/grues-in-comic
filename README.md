@@ -1,30 +1,63 @@
 # Grues in Comic
 
-> Reimagining two historical Microsoft open-source projects as a browser-native comic adventure using AI-assisted software modernization.
+> Zork I and Microsoft Comic Chat — two historical Microsoft open-source releases — rebuilt as a
+> browser-native comic adventure. You type at the 1977 parser; a 1996 comic engine draws what
+> happens.
 
-## Overview
+![Three panels: the Hero and the Dungeon Master outside the white house, then inside the living room](web/assets/strip-sample.png)
 
-Grues in Comic is an experimental software modernization project that combines two historical open-source projects:
-* **Zork I** (gameplay, parser, and world simulation)
-* **Microsoft Comic Chat** (comic-style visual presentation)
+**[Play it →](https://grues.danielkimdev.com)** · [Changelog](CHANGELOG.md) · [Documentation](docs/README.md)
 
-The objective is not to reproduce the original runtime environments.
-Instead, Grues in Comic extracts gameplay semantics from the original source code into a runtime-independent Intermediate Representation, executed by a TypeScript engine that runs natively in the browser.
+## What this is
 
-The project also serves as a reference implementation for AI-assisted modernization of legacy software.
+Zork I's original ZIL source supplies the world. Comic Chat's panel-and-balloon engine draws it.
+Every command you type produces a comic panel beside the transcript — the room you are in, the
+Dungeon Master reading the description, and the Hero answering him.
+
+It is **not** a Z-machine emulator and **not** a source port. The ZIL is parsed, its gameplay
+semantics are extracted into a runtime-independent Intermediate Representation, and a TypeScript
+engine executes that IR in the browser. The result is checked turn-for-turn against transcripts from
+the original 1980s binary: **143/143 strict parity**, and the game is completable — 350 out of 350
+points, verified in the test suite on every run.
+
+The project is also a working record of AI-assisted modernization: how legacy source can be
+understood, its semantics extracted, and a maintainable browser application built from them.
+
+## Status
+
+| | |
+|---|---|
+| **Zork I** | Playable start to finish in a browser, 350/350 points |
+| **Parity** | 143/143 strict against the original binary's transcripts |
+| **Comic pane** | Every turn draws a panel — Comic Chat figures, Woodring balloons, 30 room backdrops |
+| **Save / restore** | Autosave plus named slots, in browser storage |
+| **Version** | Pre-1.0. `1.0.0` is reserved for the public launch |
+
+## Try it locally
+
+```sh
+git clone https://github.com/dkdev24/grues-in-comic.git
+cd grues-in-comic
+npm --prefix web install
+npm --prefix web run dev      # → http://localhost:8080/play/
+```
+
+Tests, per package: `npm --prefix engine test` (the engine and its parity suite),
+`npm --prefix web test` (the comic mapping), `npm --prefix ir test` (the IR schema).
+The engine has **zero runtime dependencies**; everything under `devDependencies` is tooling.
 
 ---
 
-## Vision
+## Why it was built this way
 
-Grues in Comic aims to demonstrate how AI coding agents can assist with:
-* understanding legacy source code
-* extracting software semantics
-* building intermediate representations (IR)
-* modernizing historical software
-* creating maintainable browser-native applications
+Rather than emulating the Z-machine, Grues in Comic extracts the original's semantics into an IR and
+executes them on a new runtime. That choice is what makes the comic possible: an emulator produces
+*text*, while an IR-executing engine can emit **semantic events** — `player-moved`, `narration`,
+`score-changed` — which is what a comic renderer needs in order to know that this turn is an
+arrival, and that one is a death.
 
-Rather than building a Z-Machine emulator, Grues in Comic extracts the original's semantics into an IR and executes them on a new runtime, verified turn-for-turn against the original's transcripts (143/143 strict parity).
+The decisions behind that, and the ones that follow from it, are recorded as ADRs in
+[`docs/adr/`](docs/adr/) — ten of them, each with its alternatives and its consequences.
 
 ---
 
@@ -66,40 +99,48 @@ grues-in-comic/
 │
 ├── importer/              ZIL parser → AST artifacts
 ├── ir/                    IR schema, validator, extraction → world document
-├── verification/          ZILF build + dfrotz golden transcripts
-├── docs/                  ADRs, specs, plans — start at docs/README.md
-├── reference/             third-party reference material (gitignored)
-│
-├── engine/                IR runtime — the game is completable (Milestone 4)
+├── engine/                the IR runtime — parser, world state, event stream
 ├── art/                   Comic Chat art tooling: decode, pose, pack
-└── web/                   browser shell + comic renderer (Milestone 5)
+├── web/                   browser shell + comic renderer (the deployed site)
+│
+├── verification/          the parity oracle — golden transcripts from the original binary
+├── docs/                  ADRs, specs, plans — start at docs/README.md
+└── reference/             third-party reference material (gitignored)
 ```
 
-Each TypeScript module carries its own Graphify knowledge graph in
-`<module>/graphify-out/`.
+Every module carries its own `README.md` and its own Graphify knowledge graph in
+`<module>/graphify-out/`. [`verification/README.md`](verification/README.md) explains how parity is
+established and what "strict" does and does not mean.
 
 ---
 
-## AI Knowledge System
+## AI knowledge system
 
-Grues in Comic separates two different kinds of project knowledge.
+The project separates two kinds of knowledge about itself, and keeps them in different places on
+purpose.
 
-### Structural Knowledge
+**Structural knowledge** — dependency, call and architecture graphs — is *generated* by
+[Graphify](docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md) into a per-module `graphify-out/`. It
+answers *how the system is organized*, and is never hand-edited.
 
-Generated using Graphify. Examples:
+**Semantic knowledge** — gameplay rules, parser behavior, design rationale — is hand-authored in
+[`wiki/`](wiki/). It answers *why the system is that way*.
 
-* dependency graphs
-* call graphs
-* architecture graphs
+The generated half is cheap and always current; the authored half is expensive and deliberate.
+Keeping them apart is what stops the second from rotting into a stale copy of the first.
 
-### Semantic Knowledge
+---
 
-Maintained using OpenWiki-compatible documentation. Examples:
+## Questions and contributions
 
-* gameplay rules
-* parser behavior
-* design rationale
-* migration strategy
+This is a solo project, built session by session with AI coding agents. Questions, bug reports and
+"the parser did something strange" transcripts are welcome as GitHub issues — a reproducible
+divergence from the original game is the most useful thing anyone can send.
+
+Pull requests are read, but the project's shape is governed by the ADRs in [`docs/adr/`](docs/adr/):
+a change that contradicts one needs the ADR amended first, and that is a conversation before it is a
+patch. [`AGENTS.md`](AGENTS.md) documents the working rules the repository actually runs on,
+including what belongs in which document.
 
 ---
 
@@ -114,7 +155,7 @@ projects retain their original licenses. `LICENSE`, `NOTICE`, and
 | Source | License | Why it is here |
 |---|---|---|
 | [Zork I](https://github.com/historicalsource/zork1) — `original-projects/zork1/` | MIT (Copyright (c) 2025 Microsoft) | The ZIL corpus every artifact is derived from. `importer/` parses it, `ir/` extracts from it, `verification/` compiles it |
-| [Microsoft Comic Chat](https://github.com/microsoft/comic-chat) — `original-projects/comic-chat/` | MIT (Copyright (c) Microsoft Corporation) | Presentation reference for the comic renderer (Milestone 5): source, documentation, and character art |
+| [Microsoft Comic Chat](https://github.com/microsoft/comic-chat) — `original-projects/comic-chat/` | MIT (Copyright (c) Microsoft Corporation) | The comic renderer's source of truth: its panel and balloon algorithms are ported from this source, and its character art is decoded and **redistributed** in converted form as the sprite sheets under `web/assets/comic/` |
 
 Both are redistributed here under the terms of their MIT grants. They are
 version-controlled deliberately — the pipeline reads from them, so a checkout
