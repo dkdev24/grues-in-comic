@@ -45,7 +45,38 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
-          <summary>August 2026 <span class="count">(17 releases)</span></summary>
+          <summary>August 2026 <span class="count">(21 releases)</span></summary>
+      <article class="changelog-entry" id="v0.28.4">
+        <h3><a href="#v0.28.4"><span class="version">v0.28.4</span> <span class="date">2026-08-23</span> — the comic finally notices when you die</a></h3>
+        <h4>Fixed</h4>
+        <ul>
+          <li><strong>Dying is now a moment in the comic.</strong> Zork kills you often, and the strip had never once reacted: the frame reserved for it was going to the <em>quit</em> command instead, so the Hero pulled a face when the player left the game and none at all when a troll removed his head. A death now gets what it always should have — the killing blow, the "you have died" banner, and then a panel holding on the Hero's face, in the room it happened in, before the game drops him somewhere else.</li>
+          <li><strong>Winning is something you can read.</strong> The barrow's closing speech — the reward for the whole game — was being drawn as six cramped close-ups of two people talking. The speech is now laid out to be read, and the Hero's delighted reaction is the panel that follows it.</li>
+          <li><strong>Quitting is no longer treated as a feeling.</strong> The strip still ends on the Hero when you quit; he just no longer emotes about it.</li>
+        </ul>
+      </article>
+      <article class="changelog-entry" id="v0.28.3">
+        <h3><a href="#v0.28.3"><span class="version">v0.28.3</span> <span class="date">2026-08-23</span> — the Hero is not, in fact, mostly annoyed</a></h3>
+        <h4>Fixed</h4>
+        <ul>
+          <li><strong>A long-standing claim about the game's own character turned out to be measured wrong.</strong> The project had recorded that the Hero's most common expression was exasperation at the parser, and built casting around it. It came from replaying the full-game walkthrough, which — because this engine rolls its own dice — loses a fight it was written to win, leaving the Hero stranded in a forest for 254 commands of walking into walls. Played properly, the Hero almost never argues with the parser; what the comic is mostly made of is quiet acknowledgement and the pleasure of scoring. The affect table itself is unchanged; only the description of what it produces.</li>
+        </ul>
+      </article>
+      <article class="changelog-entry" id="v0.28.2">
+        <h3><a href="#v0.28.2"><span class="version">v0.28.2</span> <span class="date">2026-08-23</span> — the death frame is its own frame</a></h3>
+        <h4>Fixed</h4>
+        <ul>
+          <li><strong>A death now gets a panel of its own.</strong> The game-over shot — the comic's biggest beat, a wordless portrait of the Hero — was landing on top of the previous exchange in most endings, so what the reader got was the last two people talking, shrunk, with the room washed out behind them. It only happened when the line before it was of a particular kind, which is why it had gone unnoticed. The ending is also no longer followed by a stray panel of the Hero shrugging at nothing: Zork asks "do you wish to leave the game?", and answering it was drawing a frame.</li>
+          <li><strong>Every Hero dies the same size.</strong> The death portrait is framed by the head rather than by the body, so picking a different character changes who is in the last panel and not how close the camera is.</li>
+        </ul>
+      </article>
+      <article class="changelog-entry" id="v0.28.1">
+        <h3><a href="#v0.28.1"><span class="version">v0.28.1</span> <span class="date">2026-08-23</span> — a close-up means the same thing for everyone</a></h3>
+        <h4>Fixed</h4>
+        <ul>
+          <li><strong>The close-up no longer crops half the cast at the chin.</strong> Framing scaled every character by the height of their <em>body</em>, while what tells a reader how close the camera is, is the size of the <em>head</em> — and the eight playable Heroes differ far more in head than in height. The result was a "close-up" that gave one Hero head and shoulders and the next a head alone with their chin on the frame edge. Heads are now held to one size on that shot, so picking a different Hero changes who is in the panel and not how the panel is shot. The Dungeon Master, whose mask head used to run off the bottom of the frame entirely, is drawn whole.</li>
+        </ul>
+      </article>
       <article class="changelog-entry" id="v0.28.0">
         <h3><a href="#v0.28.0"><span class="version">v0.28.0</span> <span class="date">2026-08-22</span> — choose your cast</a></h3>
         <h4>Added</h4>
