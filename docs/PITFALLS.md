@@ -213,7 +213,10 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   output that it is measuring a losing run.** The log includes commands that *threw*, deliberately:
   the harness swallows those and carries on, and a replay that skipped them would diverge.
 - **A measurement taken over a lost game is not a weak measurement, it is a different game**
-  (M6.1g, the lesson of the repair). Every conclusion M6.1d–f drew from the corpus had to be re-taken
+  (M6.1g, the lesson of the repair; **and it is still live — see F17**, 2026-08-23: `density.ts`
+  fixed its own corpus and nothing else shares the fix, so `mapper.test.ts`'s `allPanels()` still
+  replays `12-full-game.cmd` raw, where the troll wins on command 29 and 254 of the next 375
+  commands bounce off walls — 60% of the corpus). Every conclusion M6.1d–f drew from the corpus had to be re-taken
   and three of them inverted: the two-shot was not 59% but 26% (the flail carries no arrivals, so it
   never paid the location box's share of the balloon band — see `render.ts`'s note on
   `BALLOON_HEADROOM`); the clustering culprit was not the refusal beats but `routine-ack`, which the

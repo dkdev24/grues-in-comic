@@ -79,6 +79,8 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 |---|---|---|---|---|---|---|
 | F2 | Hall of Fame — arcade high-score board | Product | M | High | **1** | user's own proposal, 2026-08-22; needs the storage/moderation call first |
 | F3 | Mob dialogue authoring (ADR 0006 slice) | Port leftovers | L | High | 2 | the largest remaining "reads as a cartoon" lever; needs the talk-to graph |
+| F17 | The corpus-wide tests replay the full game *naively* — it dies on command 29 | Port leftovers | S | **High** | **1** | any claim measured over `allPanels()`; it is 2/3 of the corpus |
+| F18 | The victory ending draws four talking `reaction` panels | Presentation | S | Medium | 2 | the win is unreachable in the naive replay, so it has never been looked at |
 | F15 | NPCs on stage — troll, thief, cyclops drawn even when silent | Presentation | L (thief-only step M) | High | 2 | the game has characters the comic has never shown; needs a presence source |
 | ~~F16~~ | ~~Player-chosen character designs for Hero, DM and the NPCs~~ **Hero + DM done at v0.28.0**; the NPC half moves to F15 | Product | — | — | — | shipped — see below |
 | F4 | `SHOTS` framing table — further tuning | Presentation | S (closer rungs done v0.28.1–2) | Low | 3 | next time the gallery harness or the pixel gate is open |
@@ -135,6 +137,46 @@ impact is high in both directions: it is the one item that could make the comic 
   *Done looks like:* walking into the troll room draws the troll, fighting him draws the fight, and
   killing him stops drawing him — from a presence source that cannot go stale, with the gate and
   the density baseline re-read rather than rubber-stamped.
+
+- **[F17] The corpus-wide tests replay the full game naively, and it dies on command 29.**
+  Filed 2026-08-23, found while chasing why `12-full-game.cmd` never reached the barrow.
+  *What is true:* the walkthrough is correct — the golden dfrotz transcript wins, 350/350 in 411
+  moves. It is *our* replay that derails. The file is a fixed command list authored against dfrotz's
+  draw, and ADR 0002 declined to reproduce the Z-machine PRNG, so `kill troll with sword` is written
+  the number of times dfrotz needed and not the number this engine needs. Fed straight to a session
+  the troll wins on command 29, the Hero is resurrected into the Forest at 30/350, and **254 of the
+  remaining 375 commands bounce off walls.**
+  *Why it matters:* that file is **680 of 1125 panels — 60% of the corpus**. `density.ts` already
+  solved this (`fullGameCommands` from `engine/harness/complete.ts`, the resilient driver that
+  repeats combat and ferries the thief's hoard back), documented it in its own header, and **nothing
+  else shares the fix.** `mapper.test.ts`'s `allPanels()` reads the raw file, so every corpus-wide
+  invariant in that file is asserted over a two-thirds flail. This is `docs/PITFALLS.md`'s own
+  M6.1g lesson — "a measurement taken over a lost game is not a weak measurement, it is a different
+  game" — live in the one row big enough to decide the aggregates.
+  *What changes when it is fixed* (measured, not predicted — the change is one line, exporting
+  `commandsOf` from `density.ts`):
+  - **ADR 0004 §10's headline characterisation is an artifact.** "The Hero's most common emotion is
+    exasperation at the parser" holds only on the flail: on the won corpus `parser-miss` is **1.5%**
+    (16 panels) and the largest family is `scored` at 10.4%. Even over the scene walkthroughs alone
+    it is 3.0% and ranks eighth. The ADR calls that claim "load-bearing characterisation", and
+    `mapper.test.ts` asserts it — so this needs an **ADR amendment**, which is why the fix was not
+    just applied. A player who plays well does not argue with the parser; they score.
+  - It exposes **F18**.
+  *Done looks like:* one corpus helper, used by everything that replays all twelve; §10 amended to
+  what the corpus now says; the two assertions it moves re-stated rather than relaxed.
+
+- **[F18] The victory ending draws four talking `reaction` panels.** Filed 2026-08-23, exposed by F17.
+  *What is true:* v0.28.2 made the death frame wordless and tight on the Hero, and asserted it over
+  the corpus — but the corpus never wins (F17), so the victory was never covered. Replayed
+  resiliently, the win produces **six `reaction` panels, four of them carrying a Guide balloon**: the
+  barrow's long victory speech is split across them, each labelled "tight on Hero" and each drawn as
+  a `close-up` because a straddling balloon caps the rung (`docs/PITFALLS.md`). The comic's single
+  biggest payoff ends on four talking heads.
+  *Why it is not just the death fix again:* a death turn carries no prose to place, so the frame is
+  free to be wordless. The barrow speech is the reward — it has to be *read*. So this is a framing
+  decision, not a bug with an obvious fix: does the win get a wordless portrait *after* its speech
+  (the speech panelized at its own rung), or does the rung yield to the prose on victory only?
+  *Done looks like:* the last panel of a won game is one the reader would stop on.
 
 - **[F4] `SHOTS` framing table — further tuning.** ◐, first pass at v0.16.3, **tall-Hero half closed
   at v0.28.1**. The ADR fixes which camera rung fires; these fill/reveal/backdrop numbers make each

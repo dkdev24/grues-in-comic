@@ -33,12 +33,13 @@ Gate 24/24 re-accepted (two renamed), density +6 panels, both D5 targets in band
 
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
-1. **6.1e — dialogue authoring.** ◐ Open-ended. **6.4** asset separation & neutral branding ☐, then
-   **6.5** public release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1).
-2. **ADR 0006 Slice 5 — PDF export.** ☐ Schedulable whenever.
-3. **F4 — remaining half.** ☐ `establishing`≈`wide` (left deliberately); the **victory** ending is
-   unmeasured — no `won` turn in the corpus, `12-full-game.cmd` never reaches the barrow in replay.
+1. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
+   release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
+2. **F17 — corpus tests replay the full game naively; it dies on command 29** (60% of the corpus).
+   ☐ **P1.** One-line fix, but it falsifies ADR 0004 §10's parser-miss claim → needs an amendment.
+3. **F18 — the victory draws four talking `reaction` panels.** ☐ Exposed by F17. A framing call.
 4. **Backdrop diversity pass.** ☐ Wire `docs/backdrop-generation-plan.md` § Image 4 into `backdrop.ts`.
+
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
 | Path | Purpose |
