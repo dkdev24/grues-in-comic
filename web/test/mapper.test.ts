@@ -1305,6 +1305,24 @@ describe("the ending is a comic, not a pull-quote (the barrow win)", () => {
     for (const panel of told) expect(panel.roomTitle).toBe("Inside the Barrow");
   });
 
+  it("marks the ending's panels, and leaves the threshold frame unmarked", () => {
+    // The marker is what draws `barrow-interior` (`backdrop.ts`) — Zork I has no
+    // room id for inside the barrow. So the declaration, spoken at the door,
+    // carries `marker: null` per line: the last exterior shot in the game.
+    const panels = ending().panels;
+    // The declaration's wording comes from the lexicon and is not the claim
+    // here; the frame it opens is. It is the turn's first panel, ahead of the
+    // `<Brk>` the win pushes.
+    const threshold = panels[0]!;
+    expect(threshold.speakers.some((line) => line.speaker === HERO)).toBe(true);
+    expect(threshold.marker).toBeNull();
+    const told = panels.filter(
+      (panel) => panel.speakers.some((line) => line.text.includes("ZORK II")),
+    );
+    expect(told.length).toBeGreaterThan(0);
+    for (const panel of told) expect(panel.marker).toBe("victory");
+  });
+
   it("leaves the panel he speaks from outside the door named for that room", () => {
     const page = strip({ roomTitles: new Map([["STONE-BARROW", "Stone Barrow"]]) });
     page.turn({

@@ -107,6 +107,20 @@ export interface PageLine {
    */
   dark?: boolean;
   /**
+   * Overrides {@link PanelContext.marker} for this line alone — the *affect*
+   * half of the same exception {@link room} and {@link dark} are the place and
+   * light halves of (v0.27.6, the win screen).
+   *
+   * The turn's marker describes what the turn turned out to be, and the
+   * declaration is said before the turn resolves. It only matters where the
+   * marker is also load-bearing for the picture: the barrow win draws the
+   * *interior* backdrop off `victory` (`backdrop.ts`), and the Hero's "Let's
+   * head west." is spoken at the door, outside it. `null` says "this frame has
+   * no marker", which is why the type admits it and `undefined` means "no
+   * override" as everywhere else here.
+   */
+  marker?: string | null;
+  /**
    * Where the words came from — ADR 0009 §2's two registers, as a fact on the
    * line instead of a thing the reader has to infer from the text.
    *
@@ -245,16 +259,18 @@ export interface Page {
 export function addScript(page: Page, script: TurnScript): PanelDelta {
   const out: PanelDelta = { replacedLast: false, appended: [] };
   for (const line of script.lines) {
-    // `PageLine.room` and `PageLine.dark` override the place and the light for
-    // this one line — the declaration's departure exception, which is a fact
-    // about both. `undefined` is the overwhelmingly common case for each, so
+    // `PageLine.room`, `.dark` and `.marker` override the place, the light and
+    // the affect for this one line — the declaration's departure exception,
+    // which is a fact about all three. `undefined` is the overwhelmingly common case for each, so
     // the shared context is reused as-is then.
     const context = line.room === undefined && line.dark === undefined
+      && line.marker === undefined
       ? script.context
       : {
         ...script.context,
         ...(line.room !== undefined ? { room: line.room, roomTitle: null } : {}),
         ...(line.dark !== undefined ? { dark: line.dark } : {}),
+        ...(line.marker !== undefined ? { marker: line.marker } : {}),
       };
     mergeDelta(out, page.addLine(line, context));
   }

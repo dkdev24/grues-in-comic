@@ -10,7 +10,7 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ---
 
 ## Current Version
-**0.27.5** · Platform: **macOS only** (2026-07-28)
+**0.27.6** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -24,12 +24,13 @@ browser-native comic adventure via an IR the engine executes.
   - **6.2, 6.3, 6.6, 6.5-beta ✅** closed. **6.4, 6.5 (public release) ☐** not started.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 
-**Tests:** 335 web · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
+**Tests:** 338 web · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.27.5, the ending reaches the comic pane
-The win closed on one balloon ("Inside the Barrow"). Now: a game-over turn reads whole (the win
-carries no `player-moved`), a `victory` marker replaces `death`, and the ending gets its own titled
-frame. Parity/gate clean, density re-pinned (680 panels, D5 2.2, D5′ 42.3%). Detail: `WORKLOG.md`.
+## Last Session — v0.27.5 + v0.27.6, the ending
+v0.27.5: the win closed on one balloon ("Inside the Barrow") — a game-over turn now reads whole, a
+`victory` marker replaces `death`, and the ending gets its own titled frame. v0.27.6: those panels
+draw `barrow-interior`, keyed on the marker (no room id exists for inside the barrow); a third
+per-line override (`PageLine.marker`) keeps the frame at the door outside. `WORKLOG.md` has both.
 
 ## Next Actions
 Full stage detail in `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
@@ -47,4 +48,5 @@ Full stage detail in `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not t
 | `importer/`, `ir/`, `engine/`, `web/` | ZIL→IR importer, IR schema, engine core, browser shell |
 | `docs/DEVELOPMENT_PLAN.md` | Authority on what to do next |
 | `docs/PITFALLS.md` | Durable cautions by subsystem — read before changing code |
+| `docs/FUTURE_WORK.md` | Backlog, triaged in §2.0 (category/size/impact/priority) — F2 Hall of Fame is the open P1 |
 | `docs/adr/`, `WORKLOG.md` | ADRs 0001–0010 · persistent history, newest first, never edited |

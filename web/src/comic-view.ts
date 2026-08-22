@@ -319,7 +319,7 @@ export async function createComicView(
       // A copy, because `renderPanel` advances what it is handed and this panel's
       // bodies must come out the same on every repaint (§8).
       cycles: copyCycles(frozen.get(slot.panel) ?? new Map()),
-      backdrop: backdropFor(slot.panel.room),
+      backdrop: backdropFor(slot.panel.room, slot.panel.marker),
     });
     slot.painted = true;
   }

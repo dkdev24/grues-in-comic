@@ -636,6 +636,11 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           // turn changed the light, so an ordinary declaration keeps the
           // context's own answer.
           ...(lightChanged ? { dark: wasDark } : {}),
+          // ...and on the winning turn he carries no marker at all. `victory`
+          // is what draws the barrow *interior* (`backdrop.ts`), and these are
+          // the words he says at the door — the threshold frame is the last
+          // exterior shot in the game, not the first interior one.
+          ...(won ? { marker: null } : {}),
         });
       }
       // **A new location starts a panel.** Until 6.1c the caption did this on

@@ -99,7 +99,7 @@ async function main(): Promise<void> {
   for (const { suffix, panel } of variants) {
     const canvas = createCanvas(PANEL_W, PANEL_H);
     const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
-    renderPanel(ctx, panel, cast, PANEL_W, PANEL_H, { backdrop: backdropFor(panel.room) });
+    renderPanel(ctx, panel, cast, PANEL_W, PANEL_H, { backdrop: backdropFor(panel.room, panel.marker) });
     const name = `${file.replace(/\.cmd$/, "")}-${suffix}.png`;
     writeFileSync(join(outDir, name), canvas.toBuffer("image/png"));
     const heroLine = lineOf(panel, HERO);

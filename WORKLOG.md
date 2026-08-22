@@ -10,6 +10,34 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.6 — 2026-08-22 — the ending gets its own backdrop (F1)
+
+`barrow-interior` shipped with the backdrop art pass and nothing referenced it: `backdropFor` keys
+on the room id, and **Zork I models no room inside the barrow** — `STONE-BARROW-FCN` prints the
+ending and calls `<FINISH>` while the player is still standing in `STONE-BARROW`
+(`1dungeon.zil:1254`). The 2026-08-07 gap-table review filed it as orphaned art with two exits:
+draw it, or delete it. v0.27.5 made the ending readable and this draws it.
+
+**The key is the affect marker, not the room** (`backdrop.ts` → `MARKER_BACKDROPS`, one entry wide).
+The win is the one turn in the game whose picture is not a picture of its room, so `backdropFor`
+takes an optional marker and consults a short override table before the room table; every other
+marker falls through, which is what keeps a death in the cellar drawn in the cellar.
+
+**A third per-line override** (`PageLine.marker`, beside `room` and `dark`). Without it the Hero's
+declaration — "Let's head west.", said at the door — inherits the turn's `victory` marker and opens
+the *interior*, so the reader is inside the barrow one frame before he walks in. Same exception, same
+reason as the other two: the declaration speaks for the frame being left, not the one being entered.
+The ending now reads exterior → threshold → five interior panels; rendered and looked at, not just
+asserted.
+
+**Verification.** Web 338 tests (3 new), engine 148, pixel gate 24/24 clean, density unchanged (the
+override changes no panelization — the declaration already opened its own frame at v0.27.5).
+
+### Status
+F1 closed in `docs/FUTURE_WORK.md`, including its "delete the asset as dead art" branch.
+
+---
+
 ## v0.27.5 — 2026-08-22 — the ending reaches the comic pane
 
 **Reported from play**: the walkthrough save (`web/tools/make-walkthrough-save.ts`) reaches the Stone

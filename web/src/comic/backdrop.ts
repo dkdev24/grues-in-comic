@@ -163,10 +163,31 @@ export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, B
 ]);
 
 /**
- * The backdrop for a room, or `room` when the room is not in the table.
+ * The one place a backdrop is chosen by something other than the room, and the
+ * reason is that the room does not exist (v0.27.6, `FUTURE_WORK.md` F1).
+ *
+ * Zork I never modeled the inside of the barrow: `STONE-BARROW-FCN` prints the
+ * ending and calls `<FINISH>` (`1dungeon.zil:1254`), so the player wins
+ * *standing in* `STONE-BARROW` and there is no id to key `barrow-interior` on.
+ * The affect marker is the only fact that distinguishes the six panels of the
+ * ending from the exterior shot beside them — the win is the one turn in the
+ * game whose picture is not a picture of its room. The Hero's declaration opts
+ * out per line (`PageLine.marker`), so the frame at the door stays outside.
+ */
+const MARKER_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map([
+  ["victory", "barrow-interior"],
+]);
+
+/**
+ * The backdrop for a panel: its marker's, when the marker names one, and
+ * otherwise its room's — or `room` when the room is not in the table.
  *
  * Total by construction: the establishing rung always has something to draw.
  */
-export function backdropFor(room: string): BackdropId {
+export function backdropFor(room: string, marker: string | null = null): BackdropId {
+  if (marker !== null) {
+    const override = MARKER_BACKDROPS.get(marker);
+    if (override !== undefined) return override;
+  }
   return ROOM_BACKDROPS.get(room) ?? "room";
 }

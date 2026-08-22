@@ -52,6 +52,25 @@ describe("backdropFor", () => {
     expect(backdropFor("ENTRANCE-TO-HADES")).toBe("hades-entrance");
   });
 
+  it("draws the barrow interior on the win, which no room id can ask for", () => {
+    // Zork I models no room inside the barrow — the win fires while the player
+    // is still standing in STONE-BARROW — so `barrow-interior` was orphaned art
+    // until the marker became the key (FUTURE_WORK F1).
+    expect(backdropFor("STONE-BARROW", "victory")).toBe("barrow-interior");
+    // The exterior is still what the room draws by itself: the walk up to the
+    // door, and the frame the Hero speaks his declaration from.
+    expect(backdropFor("STONE-BARROW")).toBe("barrow-exterior");
+    expect(backdropFor("STONE-BARROW", null)).toBe("barrow-exterior");
+  });
+
+  it("lets every other marker fall through to the room", () => {
+    // The override table is one entry wide on purpose. A marker with no
+    // backdrop of its own must not shadow the room's — a death in the cellar is
+    // still drawn in the cellar.
+    expect(backdropFor("CELLAR", "death")).toBe("cellar");
+    expect(backdropFor("CELLAR", "parser-miss/not-here")).toBe("cellar");
+  });
+
   it("is total — every room in the world document resolves to a real backdrop", () => {
     for (const id of roomIds) {
       const backdrop = backdropFor(id);

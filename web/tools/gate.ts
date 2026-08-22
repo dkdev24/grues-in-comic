@@ -212,7 +212,7 @@ export async function gateCases(): Promise<GateCase[]> {
   for (const [i, panel] of productionPanels("01-west-of-house.cmd").entries()) {
     cases.push({
       name: `wk01-p${String(i).padStart(2, "0")}-${panel.camera}`,
-      panel, cast: shipped, backdrop: backdropFor(panel.room),
+      panel, cast: shipped, backdrop: backdropFor(panel.room, panel.marker),
     });
   }
 
@@ -236,7 +236,7 @@ export async function gateCases(): Promise<GateCase[]> {
   for (const [i, panel] of lamp.slice(from, to).entries()) {
     cases.push({
       name: `wk04-dark-p${String(from + i).padStart(2, "0")}-${panel.camera}`,
-      panel, cast: shipped, backdrop: backdropFor(panel.room),
+      panel, cast: shipped, backdrop: backdropFor(panel.room, panel.marker),
     });
   }
 

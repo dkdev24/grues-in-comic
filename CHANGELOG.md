@@ -18,6 +18,17 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.27.6] - 2026-08-22 — the ending gets its own backdrop
+
+### Added
+- **The barrow interior is drawn.** The ending's panels now render against the `barrow-interior`
+  backdrop instead of the barrow's outside wall — the art shipped with the post-MVP backdrop pass
+  but nothing had ever referenced it, because Zork I has no room *inside* the barrow to key it on.
+  The winning frames are keyed on the win itself; the frame the Hero speaks his last line from, at
+  the door, is still the exterior. (`FUTURE_WORK.md` F1, now closed.)
+
+---
+
 ## [v0.27.5] - 2026-08-22 — the ending reaches the comic pane
 
 ### Fixed
