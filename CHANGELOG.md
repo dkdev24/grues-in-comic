@@ -27,6 +27,33 @@ under neutral branding, and the public release itself — repo public + website 
   The winning frames are keyed on the win itself; the frame the Hero speaks his last line from, at
   the door, is still the exterior. (`FUTURE_WORK.md` F1, now closed.)
 
+### Changed — repository preparation for the public release
+- **`docs/` reorganized.** A new `docs/README.md` index says which documents are specifications,
+  which are working documents that change every session, and which are history. Four superseded
+  planning documents moved to `docs/archive/` with a note on what replaced each — the oldest still
+  described a C++/WebAssembly engine that ADR 0002 rejected.
+- **The root `README.md` rewritten** for a visitor arriving cold: what the project is, the sample
+  comic strip, a link to the live site, a status table, and how to run it locally.
+- **`verification/README.md` added** — the only module without one, and it holds the project's
+  strongest claim: how parity is established against the original 1980s binary, and what
+  "143/143 strict" does and does not mean.
+- **The backlog is triaged.** `docs/FUTURE_WORK.md` §2.0 rates every open item by category, size,
+  impact and priority; closed items are collected rather than left inline.
+
+### Fixed — licensing and provenance accuracy
+- **Comic Chat's art is redistributed, and now says so.** `NOTICE` and `THIRD_PARTY.md` described
+  it as a "presentation reference", but the character sheets under `web/assets/comic/` are decoded
+  from its `.avb` files and ship with the site. They are now recorded as such, and separated from
+  the room backdrops in the same folder, which are original assets under this project's own license.
+- **Comic Neue ships with its license.** OFL-1.1 requires the license text be distributed with the
+  font; `web/assets/fonts/OFL.txt` was missing and has been added.
+- Two stale document statuses corrected: `DESIGN.md` still called itself a draft blocking a stage
+  that shipped in v0.26.0, and the AI-knowledge decision record recommended OpenWiki throughout
+  without noting it was rejected on 2026-07-18.
+
+The project remains under the **Apache License 2.0** — considered against MIT to match the two
+imported projects, and kept for its patent grant and trademark clause.
+
 ---
 
 ## [v0.27.5] - 2026-08-22 — the ending reaches the comic pane

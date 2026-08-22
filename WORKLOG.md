@@ -33,8 +33,35 @@ asserted.
 **Verification.** Web 338 tests (3 new), engine 148, pixel gate 24/24 clean, density unchanged (the
 override changes no panelization — the declaration already opened its own frame at v0.27.5).
 
+**Second half of the same version — the repository organized for public release.** Tagged together
+with the backdrop work because `v0.27.6` is where both landed; this section was appended to the
+entry before the tag was cut, not written over it.
+
+The pass covered everything a visitor reads. `docs/` gained an index (`docs/README.md`) separating
+specifications from working documents from history, and an `archive/` for four superseded planning
+documents — `PORTING_STRATEGY.md` still described the C++/WebAssembly engine ADR 0002 rejected. The
+root `README.md` was rewritten for someone arriving cold (sample strip, live-site link, status
+table, local run instructions), and `verification/README.md` was written — the only module without
+one, and the home of the parity claim.
+
+**Two real defects, both licensing.** `NOTICE`/`THIRD_PARTY.md` called Comic Chat a "presentation
+reference" while the site redistributes sprite sheets decoded from its `.avb` art; that is now
+recorded, and separated from the generated backdrops sharing the folder. And `web/assets/fonts/`
+shipped Comic Neue with **no OFL license text**, which OFL-1.1 requires — added from the upstream
+project. The license question that prompted the review (MIT, to match both imports) was decided the
+other way: **Apache-2.0 stays**, for its patent grant and trademark clause, MIT's only real
+advantage being GPLv2-only compatibility that this project will not need.
+
+Also: `.claude/skills/playwright-cli` untracked (vendored third-party tooling, now gitignored), two
+stale document statuses corrected, and `docs/FUTURE_WORK.md` §2.0 now triages the backlog by
+category, size, impact and priority — with F15 (NPCs on stage) and F16 (choose your cast) filed
+from the user, and F2 (Hall of Fame) filed with its Cloudflare Pages + D1 shape and its
+"store the country, never the IP" rule.
+
 ### Status
-F1 closed in `docs/FUTURE_WORK.md`, including its "delete the asset as dead art" branch.
+F1 closed in `docs/FUTURE_WORK.md`, including its "delete the asset as dead art" branch. The repo is
+organized for public release; the remaining pre-public work is milestone 6.4 (asset separation and
+neutral branding) and 6.5 (the release itself).
 
 ---
 

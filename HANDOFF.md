@@ -15,9 +15,7 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ## Project Status
 
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
-browser-native comic adventure via an IR the engine executes.
-
-- **M1–M5 ✅** Importer, IR, engine, comic presentation done (parity 143/143 strict). Detail: `WORKLOG.md`.
+browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (parity 143/143 strict).
 - **M6 ◐** road to 1.0.0 (repo public + website ships). Detail: `docs/DEVELOPMENT_PLAN.md` §6.
   - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; remaining 13 (maze + 2 dead ends)
     silent by design, not a gap (re-verified 2026-08-22, user confirmed skip).
@@ -26,11 +24,11 @@ browser-native comic adventure via an IR the engine executes.
 
 **Tests:** 338 web · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.27.5 + v0.27.6, the ending
-v0.27.5: the win closed on one balloon ("Inside the Barrow") — a game-over turn now reads whole, a
-`victory` marker replaces `death`, and the ending gets its own titled frame. v0.27.6: those panels
-draw `barrow-interior`, keyed on the marker (no room id exists for inside the barrow); a third
-per-line override (`PageLine.marker`) keeps the frame at the door outside. `WORKLOG.md` has both.
+## Last Session — v0.27.6 (tagged, released): the ending, then public-readiness
+The ending reads whole, a `victory` marker replaces `death`, and its panels draw `barrow-interior`
+keyed on that marker (F1 closed). Then: `docs/` indexed and archived, root `README.md` rewritten,
+`verification/README.md` written, backlog triaged (`FUTURE_WORK.md` §2.0), two licensing defects
+fixed. **Apache-2.0 stays** — MIT considered, declined. Detail: `WORKLOG.md`.
 
 ## Next Actions
 Full stage detail in `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.

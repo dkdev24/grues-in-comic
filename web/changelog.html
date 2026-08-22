@@ -52,6 +52,19 @@
         <ul>
           <li><strong>The barrow interior is drawn.</strong> The ending's panels now render against the <code>barrow-interior</code> backdrop instead of the barrow's outside wall — the art shipped with the post-MVP backdrop pass but nothing had ever referenced it, because Zork I has no room <em>inside</em> the barrow to key it on. The winning frames are keyed on the win itself; the frame the Hero speaks his last line from, at the door, is still the exterior. (<code>FUTURE_WORK.md</code> F1, now closed.)</li>
         </ul>
+        <h4>Changed — repository preparation for the public release</h4>
+        <ul>
+          <li><strong><code>docs/</code> reorganized.</strong> A new <code>docs/README.md</code> index says which documents are specifications, which are working documents that change every session, and which are history. Four superseded planning documents moved to <code>docs/archive/</code> with a note on what replaced each — the oldest still described a C++/WebAssembly engine that ADR 0002 rejected.</li>
+          <li><strong>The root <code>README.md</code> rewritten</strong> for a visitor arriving cold: what the project is, the sample comic strip, a link to the live site, a status table, and how to run it locally.</li>
+          <li><strong><code>verification/README.md</code> added</strong> — the only module without one, and it holds the project's strongest claim: how parity is established against the original 1980s binary, and what "143/143 strict" does and does not mean.</li>
+          <li><strong>The backlog is triaged.</strong> <code>docs/FUTURE_WORK.md</code> §2.0 rates every open item by category, size, impact and priority; closed items are collected rather than left inline.</li>
+        </ul>
+        <h4>Fixed — licensing and provenance accuracy</h4>
+        <ul>
+          <li><strong>Comic Chat's art is redistributed, and now says so.</strong> <code>NOTICE</code> and <code>THIRD_PARTY.md</code> described it as a "presentation reference", but the character sheets under <code>web/assets/comic/</code> are decoded from its <code>.avb</code> files and ship with the site. They are now recorded as such, and separated from the room backdrops in the same folder, which are original assets under this project's own license.</li>
+          <li><strong>Comic Neue ships with its license.</strong> OFL-1.1 requires the license text be distributed with the font; <code>web/assets/fonts/OFL.txt</code> was missing and has been added.</li>
+          <li>Two stale document statuses corrected: <code>DESIGN.md</code> still called itself a draft blocking a stage that shipped in v0.26.0, and the AI-knowledge decision record recommended OpenWiki throughout without noting it was rejected on 2026-07-18. The project remains under the <strong>Apache License 2.0</strong> — considered against MIT to match the two imported projects, and kept for its patent grant and trademark clause.</li>
+        </ul>
       </article>
       <article class="changelog-entry" id="v0.27.5">
         <h3><a href="#v0.27.5"><span class="version">v0.27.5</span> <span class="date">2026-08-22</span> — the ending reaches the comic pane</a></h3>
