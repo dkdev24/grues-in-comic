@@ -1230,6 +1230,101 @@ describe("a death is set where it happened, not where the player woke up (M6.1g)
   });
 });
 
+describe("the ending is a comic, not a pull-quote (the barrow win)", () => {
+  /**
+   * Reported from play: the walkthrough save reaches the Stone Barrow and the
+   * comic pane says "Inside the Barrow" and nothing else — the cavern, the
+   * bridge, the sign and the ZORK II/III sign-off never reached a panel, and the
+   * Hero met the one win in the game wearing the death marker's terrified face.
+   *
+   * Two causes, both here. `STONE-BARROW-FCN` aborts the walk, so the winning
+   * turn carries **no** `player-moved` — the read-aloud's whole-text path is
+   * gated on `moved`, and the pull-quote path kept one sentence. And the affect
+   * table's `death` fired on any `game-over`, ignoring the outcome the event has
+   * carried since ADR 0002.
+   *
+   * Synthetic, like the death block above and for the same reason: the corpus
+   * that reaches this is the 423-turn completion oracle, and the claim is about
+   * one turn.
+   */
+  const WIN_PROSE =
+    "As you enter the barrow, the door closes inexorably behind you. Around you "
+    + "it is dark, but ahead is an enormous cavern, brightly lit. Above the bridge, "
+    + "floating in the air, is a large sign. It reads:  All ye who stand before this "
+    + "bridge have completed a great and perilous adventure.\n\n"
+    + 'The ZORK trilogy continues with "ZORK II: The Wizard of Frobozz."\n';
+
+  const winTurn = (): Turn => ({
+    command: "w",
+    events: [
+      { type: "narration", channel: "room-title", text: "Inside the Barrow\n" },
+      { type: "narration", channel: "prose", text: WIN_PROSE },
+      { type: "game-over", outcome: "victory", text: "" },
+    ],
+    status: { room: "Stone Barrow", score: 350, moves: 423, lit: true },
+    mix: {},
+  }) as unknown as Turn;
+
+  function ending() {
+    const page = strip({ roomTitles: new Map([["STONE-BARROW", "Stone Barrow"]]) });
+    page.turn({
+      command: "sw",
+      events: [{ type: "player-moved", from: "WEST-OF-HOUSE", to: "STONE-BARROW" },
+        { type: "narration", channel: "room-title", text: "Stone Barrow\n" }],
+      status: { room: "Stone Barrow", score: 350, moves: 422, lit: true },
+      mix: {},
+    } as unknown as Turn);
+    return page.turn(winTurn());
+  }
+
+  it("reads the whole ending aloud, not its first sentence", () => {
+    const said = ending().lines.filter((l) => l.speaker === GUIDE).map((l) => l.text).join(" ");
+    expect(said).toContain("an enormous cavern");
+    expect(said).toContain("ZORK II");
+  });
+
+  it("marks the win a victory rather than a death", () => {
+    const affect = affectFor({
+      text: WIN_PROSE, gameOver: true, won: true, scoreDelta: 0, systemChannel: false,
+    });
+    expect(affect.marker).toBe("victory");
+    // A game-over with no outcome is still a death — every one in the corpus is.
+    expect(affectFor({ text: "", gameOver: true, scoreDelta: 0, systemChannel: false }).marker)
+      .toBe("death");
+  });
+
+  it("titles the ending's own panels, though the player never moved", () => {
+    // Every panel the *ending text* lands in. The turn's first panel is the
+    // Hero's declaration — his answer to the frame he is leaving (ADR 0010 §2)
+    // — and that one is deliberately not titled with where he is going.
+    const told = ending().panels.filter(
+      (panel) => panel.speakers.some((line) => line.text.includes("barrow")
+        || line.text.includes("ZORK II")),
+    );
+    expect(told.length).toBeGreaterThan(1);
+    for (const panel of told) expect(panel.roomTitle).toBe("Inside the Barrow");
+  });
+
+  it("leaves the panel he speaks from outside the door named for that room", () => {
+    const page = strip({ roomTitles: new Map([["STONE-BARROW", "Stone Barrow"]]) });
+    page.turn({
+      command: "sw",
+      events: [{ type: "player-moved", from: "WEST-OF-HOUSE", to: "STONE-BARROW" },
+        { type: "narration", channel: "room-title", text: "Stone Barrow\n" },
+        { type: "narration", channel: "prose", text: "A massive barrow of stone.\n" }],
+      status: { room: "Stone Barrow", score: 350, moves: 422, lit: true },
+      mix: {},
+    } as unknown as Turn);
+    page.turn(winTurn());
+    // The arrival panel keeps its own name: the win's title must not travel
+    // backwards into it through the declaration's clone-append.
+    const arrival = page.panels.find(
+      (panel) => panel.speakers.some((line) => line.text.includes("massive barrow of stone")),
+    );
+    expect(arrival?.roomTitle).toBe("Stone Barrow");
+  });
+});
+
 describe("an unlit room makes a dark panel", () => {
   /**
    * The one piece of world state the panel cannot get from the prose. Driven

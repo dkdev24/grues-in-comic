@@ -21,13 +21,21 @@
 
 import type { BehaviorValue } from "@grues-in-comic/ir";
 import { num } from "./interpreter.js";
-import { tell, type Builtin, type RuntimeContext } from "./runtime.js";
+import { emitOn, tell, type Builtin, type RuntimeContext } from "./runtime.js";
 import { M_BEG, M_END, M_LOOK } from "./builtins.js";
 import { clearFlag, truthy } from "./state.js";
 
+/**
+ * The heading the win text opens with. It is a place name printed exactly where
+ * a room title would be, so it goes out on the `room-title` channel like one —
+ * the barrow ending is a room the map never contains, and a UI that styles or
+ * boxes titles (the comic pane does both) has no other way to know that. The
+ * concatenated transcript text is unchanged, which is what parity measures.
+ */
+const BARROW_TITLE = "Inside the Barrow\n";
+
 /** The barrow victory text, ZORK I branch of `STONE-BARROW-FCN` (1actions.zil). */
 const BARROW_WIN =
-  "Inside the Barrow\n" +
   "As you enter the barrow, the door closes inexorably behind you. Around you " +
   "it is dark, but ahead is an enormous cavern, brightly lit. Through its center " +
   "runs a wide stream. Spanning the stream is a small wooden footbridge, and " +
@@ -62,6 +70,7 @@ function stoneBarrow(ctx: RuntimeContext, [rarg]: BehaviorValue[]): BehaviorValu
     (ctx.verb === "WALK" && (dir === "west" || dir === "in")) ||
     (ctx.verb === "THROUGH" && ctx.directObject === "BARROW");
   if (!enters) return false;
+  emitOn(ctx, "room-title", BARROW_TITLE);
   tell(ctx, BARROW_WIN);
   ctx.finished = { outcome: "victory", text: "" };
   return true;

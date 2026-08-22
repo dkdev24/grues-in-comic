@@ -50,6 +50,15 @@ export interface AffectInput {
   /** Concatenated player-visible narration for the turn. */
   text: string;
   gameOver: boolean;
+  /**
+   * The turn ended the game **in victory** — the Stone Barrow, the only winning
+   * path in Zork I (`STONE-BARROW-FCN`, `engine/src/game-actions.ts`).
+   *
+   * Read off the `game-over` event's `outcome`, never out of the prose. Optional
+   * so a fixture that omits it is a death or a quit, which is what every
+   * game-over in the corpus was until the ending was first played through.
+   */
+  won?: boolean;
   /** Sum of the turn's `score-changed` deltas. */
   scoreDelta: number;
   /**
@@ -129,9 +138,25 @@ export function isRefusal(marker: string | null): boolean {
 }
 
 export const AFFECT_MARKERS: readonly AffectMarker[] = [
+  /*
+   * **Winning is not dying** (found by playing the walkthrough save to the end).
+   * `death` fired on any `game-over`, so the one turn the whole game is played
+   * for drew a terrified Hero — the engine had the outcome on the event all
+   * along (ADR 0002), and this read the boolean above it instead. It sits over
+   * `death` rather than replacing it because the two are the same event with
+   * opposite endings, and priority is how this table says "the more specific
+   * one".
+   */
+  {
+    name: "victory", priority: 110, pattern: null,
+    fires: (input) => input.gameOver && input.won === true,
+    // HAPPY claims the face and the WAVE gesture claims the torso — §11's split,
+    // and the same shape as `reveal`. No shortlist avatar owns a HAPPY torso.
+    options: [emotion("HAPPY", 1.0, 110), emotion("WAVE", 1.0, 109)],
+  },
   {
     name: "death", priority: 100, pattern: null,
-    fires: (input) => input.gameOver,
+    fires: (input) => input.gameOver && input.won !== true,
     options: [emotion("SCARED", 1.0, 100)],
   },
   prose("grue-threat", 90, /pitch black|grue/i, [emotion("SCARED", 0.9, 90)]),

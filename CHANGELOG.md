@@ -18,6 +18,28 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.27.5] - 2026-08-22 — the ending reaches the comic pane
+
+### Fixed
+- **The barrow ending was one balloon.** Playing the walkthrough save to the end showed the comic
+  pane closing Zork I on "Inside the Barrow" and nothing else — the cavern, the footbridge, the sign
+  and the ZORK II/III sign-off never reached a panel. `STONE-BARROW-FCN` aborts the walk, so the
+  winning turn carries no `player-moved`, and the mapper's read-aloud only reads a turn's *whole*
+  text when the player moved; the win took the pull-quote path. The ending now reads whole, across
+  six panels (`web/src/comic/mapper.ts`).
+- **Winning was drawn as dying.** The affect table's `death` marker fired on any `game-over`,
+  ignoring the outcome the event has carried since ADR 0002, so the one win in the game staged a
+  terrified Hero. New `victory` marker above it — HAPPY face, WAVE gesture (`web/src/comic/affect.ts`).
+- **The ending's own frame.** "Inside the Barrow" now goes out on the `room-title` channel
+  (`engine/src/game-actions.ts`) instead of running into the sentence after it, a victory always
+  draws its location box (the player never moves, so `roomChanged` is false), and the win breaks the
+  panel so it cannot relabel the Stone Barrow arrival it clone-appends beside.
+
+Transcript text is unchanged (parity 143/143 strict). Density baseline re-pinned: 675 → 680 panels
+on the full game; D5 one exchange every 2.2 turns, D5′ 42.3% — both in band. Pixel gate 24/24 clean.
+
+---
+
 ## [v0.27.4] - 2026-08-22 — loading modal on resume, nine more gazetteer rooms
 
 ### Added

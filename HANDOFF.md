@@ -10,7 +10,7 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ---
 
 ## Current Version
-**0.27.4** · Platform: **macOS only** (2026-07-28)
+**0.27.5** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -20,17 +20,16 @@ browser-native comic adventure via an IR the engine executes.
 - **M1–M5 ✅** Importer, IR, engine, comic presentation done (parity 143/143 strict). Detail: `WORKLOG.md`.
 - **M6 ◐** road to 1.0.0 (repo public + website ships). Detail: `docs/DEVELOPMENT_PLAN.md` §6.
   - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; remaining 13 (maze + 2 dead ends)
-    silent by design, not a gap. Re-verified 2026-08-22: user confirmed skip, no room dialog
-    outstanding.
+    silent by design, not a gap (re-verified 2026-08-22, user confirmed skip).
   - **6.2, 6.3, 6.6, 6.5-beta ✅** closed. **6.4, 6.5 (public release) ☐** not started.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 
-**Tests:** 331 web · 147 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
+**Tests:** 335 web · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.27.4, resume loading modal + 9 gazetteer rooms
-Loading modal (`web/play/`) covers the shell while a resumed save's synchronous replay renders —
-was a blank pane for a couple seconds on long games. 9 more gazetteer rooms (`script.ts`): 88/110 →
-97/110. D5/D5′ hold, gate clean, 331 tests green. Full account: `WORKLOG.md`.
+## Last Session — v0.27.5, the ending reaches the comic pane
+The win closed on one balloon ("Inside the Barrow"). Now: a game-over turn reads whole (the win
+carries no `player-moved`), a `victory` marker replaces `death`, and the ending gets its own titled
+frame. Parity/gate clean, density re-pinned (680 panels, D5 2.2, D5′ 42.3%). Detail: `WORKLOG.md`.
 
 ## Next Actions
 Full stage detail in `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.

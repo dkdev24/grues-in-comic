@@ -79,6 +79,22 @@ describe("Stone Barrow — the win (STONE-BARROW-FCN)", () => {
     expect(over).toMatchObject({ type: "game-over", outcome: "victory" });
   });
 
+  it("prints the ending's heading on the room-title channel", () => {
+    // "Inside the Barrow" is a place name in the position a room title holds,
+    // for a room the map does not contain — a UI that boxes titles (the comic
+    // pane) has no other way to know that, and reading it as prose runs it into
+    // the sentence after it. The concatenated text is unchanged, which is what
+    // transcript parity measures.
+    const engine = createEngine(doc, { seed: 1 });
+    engine.start();
+    teleport(engine, "STONE-BARROW", { "WON-FLAG": true });
+
+    const events = engine.command("w").events;
+    const title = events.find((e) => e.type === "narration" && e.channel === "room-title");
+    expect(title).toMatchObject({ text: "Inside the Barrow\n" });
+    expect(text(events)).toMatch(/Inside the Barrow\nAs you enter the barrow/);
+  });
+
   it("entering the barrow wins too", () => {
     const engine = createEngine(doc, { seed: 1 });
     engine.start();

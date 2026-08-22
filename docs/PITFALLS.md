@@ -111,6 +111,17 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   panel to 158**, and incidentally retired the pinned `mob4-p02` stack fallback. **Anything that
   changes this number, `TITLE_HEIGHT`, or `UNIT` is changing the conversation, not just the
   spacing** — re-run `density` as well as the pixel gate.
+- **A turn that ends the game may not have moved the player, and two rules were written as if it
+  always had** (v0.27.5, reported from play). The barrow win aborts the walk, so the winning turn
+  carries no `player-moved`: the read-aloud's whole-text path (gated on `moved`) quoted one sentence
+  of the longest speech in the game, and `locationBox`'s room-change rule drew no box for a place
+  the map does not contain. Both now ask `gameOver`/`won` as well. **Anything keyed on `moved` should
+  say whether it means "the player is somewhere else" or "the turn was a move"** — the ending is
+  the second without the first, and it is the one turn in the game with no second chance to notice.
+- **The `game-over` event has an `outcome`, and reading only the boolean above it draws the win as a
+  death** (v0.27.5). `AFFECT_MARKERS`' `death` fired on any game-over for the whole life of the
+  table, which was invisible while the corpus contained no victory. **A marker that fires on an
+  event rather than on prose must read every field the event carries**, not just its presence.
 - **`roomTitle` is the one panel field that does not take the incoming context** (`clonePanel`).
   The location box is metadata about *where the panel is*, not about its newest balloon, so a later
   same-room turn appending into it must not erase it.

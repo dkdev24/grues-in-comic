@@ -10,6 +10,37 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.5 — 2026-08-22 — the ending reaches the comic pane
+
+**Reported from play**: the walkthrough save (`web/tools/make-walkthrough-save.ts`) reaches the Stone
+Barrow, and the comic pane ends the game on a single balloon reading "Inside the Barrow". Everything
+the ending is *for* — the cavern, the bridge, the sign, the ZORK II/III sign-off — was dropped, and
+the Hero met it wearing the death marker's terrified face.
+
+**Three causes, one turn.**
+1. `readAloud`'s whole-text path is gated on `moved || isListLikeCommand`. `STONE-BARROW-FCN` aborts
+   the walk (it returns true at `M-BEG`), so the winning turn carries **no `player-moved`** and the
+   win took the pull-quote path — sentence one of the longest speech in the game. `gameOver` now
+   reads whole; the ending spans six panels.
+2. `AFFECT_MARKERS`' `death` fired on `input.gameOver` alone, though `game-over` has carried its
+   `outcome` since ADR 0002. New `victory` marker at priority 110 (HAPPY face + WAVE gesture, §11's
+   split), `death` narrowed to `!won`.
+3. The ending had no frame of its own. "Inside the Barrow" is a place name in a room-title position
+   for a room the map does not contain, so the engine now emits it on the `room-title` channel;
+   `locationBox` draws a box on a victory the way it always has on a death (the player never moves,
+   so `roomChanged` is false); and the win pushes `<Brk>` so the ending cannot clone-append into —
+   and relabel — the Stone Barrow arrival panel. The declaration ("Let's head west.") opts out of
+   the incoming title via `PageLine.room`, which costs it its own panel and keeps the arrival named.
+
+**Verification.** Engine 148 tests, web 335, parity 143/143 strict (concatenated transcript text is
+unchanged — the channel split moves no characters). Density re-pinned: full game 675 → 680 panels,
+D5 one exchange every 2.2 turns, D5′ 42.3% both-speakers — both in band. Pixel gate 24/24 clean.
+
+### Status
+The ending is the last panel run of the game and it now reads as one. No open thread from this.
+
+---
+
 ## v0.27.4 — 2026-08-22 — loading modal on resume, nine more gazetteer rooms
 
 **Loading modal** (`web/play/index.html`/`style.css`, `web/src/main.ts`): resuming a save replays its

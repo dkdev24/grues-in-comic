@@ -45,7 +45,16 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
-          <summary>August 2026 <span class="count">(14 releases)</span></summary>
+          <summary>August 2026 <span class="count">(15 releases)</span></summary>
+      <article class="changelog-entry" id="v0.27.5">
+        <h3><a href="#v0.27.5"><span class="version">v0.27.5</span> <span class="date">2026-08-22</span> — the ending reaches the comic pane</a></h3>
+        <h4>Fixed</h4>
+        <ul>
+          <li><strong>The barrow ending was one balloon.</strong> Playing the walkthrough save to the end showed the comic pane closing Zork I on "Inside the Barrow" and nothing else — the cavern, the footbridge, the sign and the ZORK II/III sign-off never reached a panel. <code>STONE-BARROW-FCN</code> aborts the walk, so the winning turn carries no <code>player-moved</code>, and the mapper's read-aloud only reads a turn's <em>whole</em> text when the player moved; the win took the pull-quote path. The ending now reads whole, across six panels (<code>web/src/comic/mapper.ts</code>).</li>
+          <li><strong>Winning was drawn as dying.</strong> The affect table's <code>death</code> marker fired on any <code>game-over</code>, ignoring the outcome the event has carried since ADR 0002, so the one win in the game staged a terrified Hero. New <code>victory</code> marker above it — HAPPY face, WAVE gesture (<code>web/src/comic/affect.ts</code>).</li>
+          <li><strong>The ending's own frame.</strong> "Inside the Barrow" now goes out on the <code>room-title</code> channel (<code>engine/src/game-actions.ts</code>) instead of running into the sentence after it, a victory always draws its location box (the player never moves, so <code>roomChanged</code> is false), and the win breaks the panel so it cannot relabel the Stone Barrow arrival it clone-appends beside. Transcript text is unchanged (parity 143/143 strict). Density baseline re-pinned: 675 → 680 panels on the full game; D5 one exchange every 2.2 turns, D5′ 42.3% — both in band. Pixel gate 24/24 clean.</li>
+        </ul>
+      </article>
       <article class="changelog-entry" id="v0.27.4">
         <h3><a href="#v0.27.4"><span class="version">v0.27.4</span> <span class="date">2026-08-22</span> — loading modal on resume, nine more gazetteer rooms</a></h3>
         <h4>Added</h4>

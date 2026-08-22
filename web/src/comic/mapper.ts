@@ -463,6 +463,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
        * already moved on by the time the panel is built. See {@link panelRoom}.
        */
       let died = false;
+      /**
+       * The counterpart to {@link died}: the turn *won*. The Stone Barrow is the
+       * only path that sets it, and unlike a death it does not move the player,
+       * so nothing else about the panel changes — but the affect table needs it
+       * (a victory is not a death) and so does the read-aloud below.
+       */
+      let won = false;
       let salientMove: { object: string } | null = null;
       // ADR 0005 §1: the first object the Hero gained or gave up this turn, which
       // the Hero balloon renders as an action. Movement, examination and parser
@@ -516,13 +523,14 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           case "game-over":
             gameOver = true;
             if (event.outcome === "death") died = true;
+            if (event.outcome === "victory") won = true;
             break;
           default:
             break;
         }
       }
 
-      const affect = affectFor({ text, gameOver, scoreDelta, systemChannel });
+      const affect = affectFor({ text, gameOver, won, scoreDelta, systemChannel });
       /**
        * **Where this panel is set** — not always where the turn left the player
        * (M6.1g; found by reading the playthrough at M6.1f).
@@ -565,7 +573,14 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // in one panel or four is `page.ts`'s decision, not this module's.
       const readAloudLines = isRefusal(affect.marker)
         ? []
-        : readAloud(prose, affect.matched, moved || isListLikeCommand(turn.command));
+        // `gameOver` reads whole for the same reason `moved` does, and it was
+        // the bug the ending was reported for: the barrow win prints its whole
+        // ending — the cavern, the bridge, the sign, the ZORK II/III sign-off —
+        // without a `player-moved` (the routine aborts the walk), so the
+        // one-sentence path quoted "Inside the Barrow" and dropped every word
+        // after it. The last panel of the game is the one that must not be a
+        // pull-quote.
+        : readAloud(prose, affect.matched, moved || gameOver || isListLikeCommand(turn.command));
       // What the Hero did, then what he says back — ADR 0009 §6 retired the
       // exclusion and kept the ordering: the action is derived from events and
       // cannot be wrong, the reply is authored garnish, and garnish goes second.
@@ -608,7 +623,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
           // turn's declaration does not blank the box `panelRoom` earned —
           // `exactOptionalPropertyTypes` is why this is a conditional spread
           // rather than `room: ... : undefined`.
-          ...(roomAtEntry !== panelRoom ? { room: roomAtEntry } : {}),
+          // ...and on a victory even when the two agree: the barrow ending
+          // gives its panel a *title* the room id cannot ("Inside the Barrow"
+          // is not on the map), so the declaration must still opt out of it or
+          // the frame he speaks from — the one outside the door — is relabeled
+          // with the cavern he has not entered yet. `room` blanks the incoming
+          // title for this line (`page.ts`), which is exactly the opt-out.
+          ...(roomAtEntry !== panelRoom || won ? { room: roomAtEntry } : {}),
           // ...and in the light that room was in, for the same reason: the lamp
           // he is about to strike has not been struck yet, and the dark he is
           // about to climb out of is still around him. Carried only when the
@@ -635,7 +656,17 @@ export function createMapper(options: MapperOptions = {}): Mapper {
        * what they are: the reveal only reads as a reveal if the reader saw the
        * black frame it comes after.
        */
-      if (roomChanged || lightChanged) {
+      /*
+       * **A victory breaks the panel for the same reason a room change does.**
+       * The barrow ending never moves the player, so `roomChanged` is false —
+       * without the break the win text clone-appends into the panel the *Stone
+       * Barrow* arrival was drawn in, and `clonePanel` relabels that panel
+       * "Inside the Barrow": the door the Hero is standing in front of and the
+       * cavern beyond it become one frame, and the last shot before the ending
+       * loses its own name. The ending gets its own frame, which is the least a
+       * comic owes the one turn the whole game is played for.
+       */
+      if (roomChanged || lightChanged || won) {
         lines.push({ speaker: GUIDE, modes: BM_SAY, text: BRK, emotion: [] });
       }
 
@@ -732,6 +763,15 @@ export function createMapper(options: MapperOptions = {}): Mapper {
        */
       function locationBox(): string | null {
         if (died) return roomTitles.get(panelRoom) || panelRoom;
+        /*
+         * A victory always shows a box too, for the mirror of the death reason:
+         * the barrow ending is a *place* — "Inside the Barrow" — that the map
+         * does not contain and the player never moves into, so `roomChanged` is
+         * false and the box would never be drawn. The engine prints that
+         * heading on the `room-title` channel precisely so this can read it
+         * (`stoneBarrow`, `engine/src/game-actions.ts`).
+         */
+        if (won) return titleText || roomTitles.get(panelRoom) || panelRoom;
         const name = titleText || roomTitles.get(room) || room;
         if (dark) {
           if (roomChanged) titleOwed = name;
