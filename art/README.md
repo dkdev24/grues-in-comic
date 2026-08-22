@@ -51,7 +51,18 @@ npx --prefix art tsx art/tools/avbdump.ts \
 ```sh
 # the browser cast bundle: sheets + cast.json into web/assets/comic/
 npm --prefix art run pack
+
+# the choosable roster (F16): one sheet + one manifest per character, plus
+# roster.json, into web/assets/comic/roster/ — who is offered is art/src/roster.ts
+npm --prefix art run pack:roster
 ```
+
+Both outputs are **committed build artifacts**, and a decode change invalidates both. The two are
+separate because they are used differently: `pack` builds the canonical cast the pixel gate renders
+and never varies, `pack:roster` builds skins the player picks between, fetched one cast at a time.
+`rosterpack` also enforces the machine-checkable half of ADR 0004 §11 — complex type, and a face for
+every emotion the role's markers fire — and refuses to pack a character who fails it. Legibility and
+register it cannot check: look at `roster-sheet.ts` output before adding anyone.
 
 ## Packing, decided at 5.3 (⚑ Gate D)
 

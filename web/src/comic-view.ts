@@ -30,7 +30,7 @@ import { CAPTION, GUIDE, HERO, lineOf, type Panel } from "./comic/mapper.js";
 import { BEAT_SCRIPT, GUIDE_COOLDOWN, GUIDE_SCRIPT } from "./comic/script.js";
 import { createDirector, type Director } from "./comic/director.js";
 import { createFitTest } from "./comic/fit.js";
-import { loadCast, type Cast, type PoseCycle } from "./comic/figure.js";
+import { loadCast, type Cast, type CastChoice, type PoseCycle } from "./comic/figure.js";
 import { renderPanel, selectFigures } from "./comic/render.js";
 import type { PanelDelta } from "./comic/page.js";
 import { backdropFor } from "./comic/backdrop.js";
@@ -49,6 +49,12 @@ export interface ComicView {
   flush(): void;
   /** Report a failure in the pane rather than only in the console. */
   fail(message: string): void;
+  /**
+   * Role → the character id actually on stage (F16). Not necessarily what was
+   * asked for: a chosen sheet that fails to load falls back to the packed
+   * default, and the *drawn* cast is the one a save has to record.
+   */
+  castChoice: CastChoice;
 }
 
 /** Sub-pixel slack when deciding whether the reader is still at the newest panel. */
@@ -85,6 +91,7 @@ const STRIP_GUTTER = 10;
 export async function createComicView(
   root: HTMLElement, assetBase: string, names: ReadonlyMap<string, string> = new Map(),
   journeyRoomTitles: ReadonlyMap<string, string> = new Map(),
+  choice: CastChoice = {},
 ): Promise<ComicView> {
   const strip = requireChild(root, ".comic-strip");
   const castBar = root.querySelector<HTMLElement>(".comic-cast");
@@ -114,7 +121,7 @@ export async function createComicView(
 
   let cast: Cast | null = null;
   try {
-    cast = await loadCast(assetBase);
+    cast = await loadCast(assetBase, choice);
   } catch (err) {
     fail(`could not load the cast: ${err instanceof Error ? err.message : String(err)}`);
   }
@@ -170,6 +177,7 @@ export async function createComicView(
   );
 
   return {
+    castChoice: cast?.choice ?? {},
     pane: createScrollPane(strip),
     appendTurn(turn: Turn) {
       // A turn yields 0..N panels (ADR 0005): the Director may drop a noise turn,

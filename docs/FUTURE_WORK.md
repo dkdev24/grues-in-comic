@@ -80,7 +80,7 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 | F2 | Hall of Fame — arcade high-score board | Product | M | High | **1** | user's own proposal, 2026-08-22; needs the storage/moderation call first |
 | F3 | Mob dialogue authoring (ADR 0006 slice) | Port leftovers | L | High | 2 | the largest remaining "reads as a cartoon" lever; needs the talk-to graph |
 | F15 | NPCs on stage — troll, thief, cyclops drawn even when silent | Presentation | L (thief-only step M) | High | 2 | the game has characters the comic has never shown; needs a presence source |
-| F16 | Player-chosen character designs for Hero, DM and the NPCs | Product | L | Medium–High | 2 | pairs with F15 — one validated roster serves both |
+| ~~F16~~ | ~~Player-chosen character designs for Hero, DM and the NPCs~~ **Hero + DM done at v0.28.0**; the NPC half moves to F15 | Product | — | — | — | shipped — see below |
 | F4 | `SHOTS` framing table — further tuning | Presentation | M | Medium | 2 | next time the gallery harness or the pixel gate is open |
 | F5 | The `Turn[]` autosave grows without bound | Web persistence | M | High *if it fires* | 2 | the first real `StorageFullError` in play — no symptom yet |
 | F6 | Finding a *moment* in a long history | Presentation | L (first step S) | Medium | 2 | the S-sized half — tapping a panel to scroll the transcript — stands alone |
@@ -93,9 +93,10 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 | F13 | Invisible-routine audit, re-run after ADR 0003 | Engine / IR | M | Low | 3 | parity or completion slipping — both are clean today |
 | F14 | Assisted input — SCUMM-style command picker | Product | L | High, and risky | 3 | post-MVP by decision; it *removes* the largest affect marker |
 
-**F15 and F16 are one roster apart.** Both need the same thing — a set of Comic Chat characters
-validated against ADR 0004 §11 for the role they are cast in — so whichever is picked first should
-build that roster as a reusable thing, not inline for its own use.
+**F15 and F16 were one roster apart, and F16 built it.** `art/src/roster.ts` plus
+`art/tools/rosterpack.ts` are the reusable half: a validated pool per role, packed as one sheet and
+one manifest per character. F15 adds NPC roles to that table and NPC bodies to the stage; it needs no
+new casting machinery.
 
 **Two ratings are worth arguing with before acting on them.** F5 is the only *latent failure* in the
 list — it is priority 2 because nothing has broken, not because breaking would be cheap. And F14's
@@ -268,44 +269,25 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   ("your runs") with a shareable brag URL — no backend, no moderation surface, no shared board.
   Worth naming because it is the version that costs nothing to keep running forever.
 
-- **[F16] Player-chosen character designs — a "choose your cast" screen on a new game.** Proposed
-  by the user 2026-08-22. Before the first turn, the player picks which Comic Chat character plays
-  the Hero, which plays the DM, and (with F15) which play the NPCs. The art is already there — ~30
-  characters in `original-projects/`, one `avbpack` run each — and the pane already reads its cast
-  from `cast.json` rather than from hardcoded ids.
-  *Why deferred (2026-08-22):* the roster is not a matter of taste, it is a **validation problem**,
-  and it must be solved before a picker is worth building. ADR 0004 §11 needs each role's avatar to
-  own a face *and* a torso for the emotions its markers fire — and not every character does: the
-  Guide shortlist (`docs/panel-grammar-discussion.md` §11) is five characters wide for exactly this
-  reason, and **no avatar in it has a HAPPY torso at all**. An unvalidated pick means a player
-  choosing a character who cannot look scared, in a game whose most-fired marker is a refusal and
-  whose second is a grue. So the feature is a *curated, validated roster*, never "all 30".
-  *The trap to write down before starting:* **the pixel gate's goldens are cast-specific.** Twenty-
-  four accepted images are pictures of Dan and Tiki. A picker must pin the gate to one canonical
-  cast and treat the player's choice as a runtime skin, or every future gate run becomes a debate
-  about whose cast it was rendered with.
-  *Two smaller costs:* the choice belongs in the **save envelope** (`persistence.ts`), or a resumed
-  game re-draws its whole history with a different cast than it was read with; and sheets are ~60–90
-  KB each, so the roster should be fetched for the chosen cast rather than shipped whole.
-  *Check against 6.4:* a character picker makes the bundled Comic Chat art a foreground feature
-  rather than an implementation detail — re-read `THIRD_PARTY.md`/`NOTICE` when it lands, alongside
-  the asset-separation stage.
-  *The roster survey is done (2026-08-22): `docs/casting-roster-survey.md`.* All 31 characters are
-  measured, with candidate pools for Hero (17, once SHRUG is allowed to substitute), DM (20
-  marker-complete) and NPC. Three findings change the shape of this item: `artpack1/` was never
-  surveyed and holds six unseen characters including the corpus's richest (rebecca, 456 figures);
-  inventory does not imply legibility (lance passes the Hero predicate wearing a paper bag, so ADR
-  0004 §11 now has a legibility gate); and the Hero predicate as written is one character wide, so
-  F16 must first decide whether the SHRUG *torso* may substitute. The picking of the shipped roster
-  is still open and is the user's call — though the user proposed one on 2026-08-22 (survey
-  § *The user's proposed roster*), which the survey checks and finds workable at the cost of five
-  things — since revised by the user to clear two, and the SHRUG question decided (ADR 0004 §11
-  amended 2026-08-22: BORED **face** required, SHRUG torso optional, missing torso draws neutral).
-  Two costs remain: a ~3× art payload that forces per-cast fetching, and a framing pass for Heroes
-  taller than dan. All-complex casting means F15/F16 need no new rendering code.
-  *Done looks like:* a new game opens on a cast screen, every offered character is validated against
-  the emotion table for the role it is offered for, the choice survives a reload, and the pixel gate
-  still renders its canonical cast.
+- ~~**[F16] Player-chosen character designs — a "choose your cast" screen on a new game.**~~
+  **Done at v0.28.0, for the Hero and the Dungeon Master.** A new game opens on a picker built from
+  `roster.json`: eight Heroes and seven Dungeon Masters, the user's roster of 2026-08-22, each one
+  already past ADR 0004 §11's four gates. The choice rides in the save envelope as an optional field
+  (`persistence.ts`) so a resumed game re-draws its history with the cast it was read with, and in a
+  standing preference key so it survives `/restart`; `/cast` re-opens the picker on a reload, the
+  same swap `/load` uses. Art is fetched per cast, never per roster — the picker's first fetch is
+  names only, and a preview pulls one sheet when the player lands on a character. The pixel gate is
+  untouched: `cast.json` still packs dan and tiki, and a pick is a runtime skin (gate clean, 24/24).
+  *What did not ship, and why:* **the NPC third**. Casting the thief, troll and cyclops means putting
+  them on stage, which is F15's whole content — there is no picker to add them to until there is a
+  body to draw. The three fixed NPCs in the survey's roster stay reserved for it.
+  *Two costs the survey predicted, as they turned out:* the payload cost was real and is paid by
+  per-cast fetching (15 sheets are ~1.4 MiB; one cast is ~150 KiB). The **framing** cost has not bitten
+  at the shots the opening uses — Lynnea, the tallest Hero at 481px against dan's 388, was played and
+  looked at and sits in the panel correctly — but the `SHOTS` ladder is still dan-tuned, so a closer
+  rung with a tall Hero remains unlooked-at (F4).
+  *Still open, if it is ever wanted:* per-cast goldens (deliberately not built — see
+  `docs/PITFALLS.md`), and a picker that ranks rather than lists.
 
 - **[F7] Drawn logo mark, replacing the interim glyph.** `docs/DESIGN.md` §3.7 ships the site with a
   terminal-text wordmark plus one small original glyph (favicon, touch icon, OG card). The user is

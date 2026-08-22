@@ -480,3 +480,143 @@ section {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   The cast picker (F16) — the screen a new game opens on.
+
+   Built by `src/cast-picker.ts` rather than living in index.html: it exists for
+   part of one boot and its contents come from `roster.json`, so there is no
+   static markup for it to be. It sits above #loading-modal (z-index 10) and is
+   opaque, because the spinner behind it is still spinning.
+   --------------------------------------------------------------------------- */
+#cast-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  /* `margin: auto` on the box rather than `align-items: center`: a centred flex
+     item taller than the viewport is clipped at the *top* and cannot be
+     scrolled back to, which on a short window hid the heading. */
+  justify-content: center;
+  overflow: auto;
+  padding: 1rem;
+  background: var(--page-bg);
+}
+
+.cast-picker-box {
+  margin: auto;
+  width: min(56rem, 100%);
+  padding: 1rem 1.25rem 1.25rem;
+  border: 1px solid var(--comic-edge);
+  border-radius: 0.25rem;
+  background: var(--comic-chrome);
+  color: var(--ink);
+}
+
+.cast-picker-box h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.cast-picker-blurb {
+  margin: 0 0 1rem;
+  max-width: var(--measure);
+  font-size: 0.8rem;
+  color: #2f2f2a;
+}
+
+.cast-picker-roles {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.cast-picker-role {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--comic-edge);
+  background: var(--comic-paper);
+}
+
+.cast-picker-role h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.cast-picker-note {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 0.75rem;
+  text-align: center;
+  color: #4a4a42;
+}
+
+/* The preview is a fixed box so switching characters never reflows the grid —
+   a picker whose buttons move as you browse is a picker you misclick. */
+/* Sized in script (`previewBox`) against the viewport; fixed only so switching
+   characters never reflows the grid — a picker whose buttons move as you browse
+   is a picker you misclick. */
+.cast-preview {
+  background: var(--comic-paper);
+}
+
+.cast-preview-caption {
+  margin: 0.25rem 0 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: #4a4a42;
+}
+
+.cast-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.cast-option {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink);
+  background: var(--comic-chrome);
+  border: 1px solid var(--comic-edge);
+  border-radius: 0.2rem;
+  cursor: pointer;
+}
+
+.cast-option:hover,
+.cast-option:focus-visible {
+  background: #d4d4d4;
+}
+
+.cast-option.is-chosen {
+  background: var(--amber);
+  border-color: var(--ink);
+  font-weight: 700;
+}
+
+.cast-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.cast-picker-begin {
+  min-height: 2.75rem;
+  padding: 0.5rem 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--amber);
+  border: 1px solid var(--ink);
+  border-radius: 0.2rem;
+  cursor: pointer;
+}
+
+.cast-picker-begin:hover,
+.cast-picker-begin:focus-visible {
+  filter: brightness(1.08);
+}

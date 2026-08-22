@@ -137,6 +137,14 @@ TypeScript erases the import at emit but not at type-check. Hence `art/src/cast-
 is a types-only leaf that imports nothing. If `dist/art/src/` ever contains more than
 `format.js`, `pose.js` and `cast-manifest.js`, that line has been crossed.
 
+**A chosen cast changes none of that.** The picker (`src/cast-picker.ts`, F16) fetches
+`assets/comic/roster/roster.json` for names and one `<id>.avatar.json` + sheet per character
+actually previewed or cast — the same packed shapes, produced by `npm --prefix art run
+pack:roster`, drawn by the same selector. `cast.json` remains the canonical bundle: it holds
+the backdrops and the default cast, and it is what the pixel gate renders no matter who the
+player picks. A chosen character that fails to load falls back to the packed default rather
+than failing the boot.
+
 Two consequences worth knowing before touching the renderer:
 
 - **Parts are packed, not figures.** A complex avatar composites faces × torsos at draw

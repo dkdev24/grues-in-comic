@@ -15,6 +15,8 @@ import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
 import { createComicView, type ComicView } from "./comic-view.js";
 import { createSessionStore, type SessionStore, StorageFullError } from "./persistence.js";
+import { pickCast } from "./cast-picker.js";
+import type { CastChoice } from "./comic/figure.js";
 import { createJumpControls } from "./jump.js";
 import { PLAYER_ID } from "../../engine/src/state.js";
 import { track, crossedMilestones } from "./analytics.js";
@@ -26,6 +28,19 @@ const WORLD_URL = "/world/zork1.world.json";
 /** Sheets and manifest from `art/tools/avbpack.ts`; ~330 KiB, five requests. */
 const COMIC_ASSETS = "/assets/comic";
 const SAVE_KEY = "grues-in-comic/save/v1";
+/**
+ * The cast the player last chose (F16), kept beside the save rather than in it.
+ *
+ * Two keys, because the choice has two lifetimes: the *envelope's* `cast` is
+ * what a particular saved game was drawn with and must be replayed with, and
+ * this one is the player's standing preference, which survives `/restart` and
+ * a cleared save. `/cast` re-opens the picker by setting the flag and
+ * reloading — the same reload-based swap `/load` uses, and for the same reason:
+ * neither pane has a `reset()`, so a live re-cast would leave the Director's
+ * pose cycles carrying the old cast's state.
+ */
+const CAST_KEY = `${SAVE_KEY}/cast`;
+const CAST_PICK_FLAG = `${CAST_KEY}/pick`;
 /** M6.2: three named slots, addressed by number — see `docs/DEVELOPMENT_PLAN.md` §6.2. */
 const SLOT_COUNT = 3;
 
@@ -76,9 +91,29 @@ async function main(): Promise<void> {
   // The comic pane is primary (§4) but it is also the only part of the shell
   // with assets to fetch, so the game stays playable if they fail: a null comic
   // degrades to 5.2's text shell rather than to a blank page.
+  // The replay log behind autosave. Every turn `play()` renders is a turn a
+  // resumed session has to render again, so it is appended here and nowhere
+  // else — one list, written on the single path both panes go through.
+  const history: Turn[] = [];
+  const store = createSessionStore(SAVE_KEY, localStorage);
+
+  // Casting happens before the comic pane exists, because the pane loads the
+  // cast it will draw with (F16). A resumed game is re-cast by its envelope and
+  // never asks — its strip is about to be re-drawn panel for panel, and a
+  // different cast would silently rewrite pages the player has already read.
+  const resumable = store.read();
+  let castChoice: CastChoice = resumable?.cast ?? readPreferredCast();
+  if (!resumable || takeCastPickFlag()) {
+    castChoice = await pickCast(document.body, COMIC_ASSETS, castChoice);
+    writePreferredCast(castChoice);
+  }
+
   let comic: ComicView | null = null;
   try {
-    comic = await createComicView(requireEl("#comic"), COMIC_ASSETS, names, roomTitles);
+    comic = await createComicView(requireEl("#comic"), COMIC_ASSETS, names, roomTitles, castChoice);
+    // What was drawn, not what was asked for: a sheet that failed to load fell
+    // back to the packed default, and the save must record the visible cast.
+    castChoice = comic.castChoice;
   } catch (err) {
     consoleView.appendSystem(`[comic pane unavailable: ${message(err)}]`);
   }
@@ -91,11 +126,6 @@ async function main(): Promise<void> {
     comic ? [comic.pane, consoleView.pane] : [consoleView.pane],
   );
 
-  // The replay log behind autosave. Every turn `play()` renders is a turn a
-  // resumed session has to render again, so it is appended here and nowhere
-  // else — one list, written on the single path both panes go through.
-  const history: Turn[] = [];
-  const store = createSessionStore(SAVE_KEY, localStorage);
   // Autosave stops at the first refusal rather than throwing once per turn for
   // the rest of the game; the player is told once, and explicit `save` still
   // reports its own failures.
@@ -154,7 +184,7 @@ async function main(): Promise<void> {
   function autosave(): void {
     if (!autosaveEnabled) return;
     try {
-      store.write(session.save(), history);
+      store.write(session.save(), history, castChoice);
     } catch (err) {
       autosaveEnabled = false;
       const why = err instanceof StorageFullError ? "browser storage is full" : message(err);
@@ -265,6 +295,9 @@ async function main(): Promise<void> {
       case "hint":
         handleHint();
         return true;
+      case "cast":
+        handleCast();
+        return true;
       default:
         consoleView.appendSystem(`Unknown command: /${cmd}. Type /help for commands.`);
         return true;
@@ -311,7 +344,7 @@ async function main(): Promise<void> {
       return;
     }
     try {
-      slotStores[n - 1]!.write(session.save(), history);
+      slotStores[n - 1]!.write(session.save(), history, castChoice);
       consoleView.appendSystem("Ok.");
     } catch (err) {
       const why = err instanceof StorageFullError ? "browser storage is full" : message(err);
@@ -339,7 +372,24 @@ async function main(): Promise<void> {
     // state into the running page — `comic-view.ts`/`console-view.ts` have no
     // `reset()` today, and a live swap would leave the Director's pose cycles
     // and beat counters carrying the old game's conversation state.
-    store.write(saved.save, saved.turns);
+    store.write(saved.save, saved.turns, saved.cast);
+    location.reload();
+  }
+
+  /**
+   * `/cast` — re-open the picker.
+   *
+   * Reload-based, like `/load`: the flag survives the reload, boot shows the
+   * picker over the resumed game, and the strip is re-drawn with whoever is
+   * chosen. The save itself is untouched — only who is drawn in it changes.
+   */
+  function handleCast(): void {
+    try {
+      localStorage.setItem(CAST_PICK_FLAG, "1");
+    } catch {
+      consoleView.appendSystem("[browser storage is unavailable, so the cast cannot be changed]");
+      return;
+    }
     location.reload();
   }
 
@@ -365,6 +415,7 @@ async function main(): Promise<void> {
     consoleView.appendSystem("/save [1-3] — save to a slot, or list all three slots");
     consoleView.appendSystem("/load [1-3] — load a slot, or list all three slots");
     consoleView.appendSystem("/restart — start a new game (type it twice to confirm)");
+    consoleView.appendSystem("/cast — choose who plays the Hero and the Dungeon Master");
     consoleView.appendSystem("/help — show this list");
   }
 
@@ -406,3 +457,46 @@ function message(err: unknown): string {
 }
 
 void main();
+
+
+/**
+ * The player's standing cast preference, or `{}` when they have never chosen.
+ *
+ * Every failure here — storage blocked, malformed JSON, someone else's key —
+ * means "no preference", which is the packed default cast. A bad value must
+ * never be able to stop the game booting over a cosmetic setting.
+ */
+function readPreferredCast(): CastChoice {
+  try {
+    const raw = localStorage.getItem(CAST_KEY);
+    if (raw === null) return {};
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed !== "object" || parsed === null) return {};
+    const choice: CastChoice = {};
+    for (const [role, id] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof id === "string") choice[role] = id;
+    }
+    return choice;
+  } catch {
+    return {};
+  }
+}
+
+function writePreferredCast(choice: CastChoice): void {
+  try {
+    localStorage.setItem(CAST_KEY, JSON.stringify(choice));
+  } catch {
+    // A cast that cannot be remembered is still a cast that can be played.
+  }
+}
+
+/** Read and clear the `/cast` request, so one `/cast` opens one picker. */
+function takeCastPickFlag(): boolean {
+  try {
+    const flag = localStorage.getItem(CAST_PICK_FLAG) !== null;
+    localStorage.removeItem(CAST_PICK_FLAG);
+    return flag;
+  } catch {
+    return false;
+  }
+}

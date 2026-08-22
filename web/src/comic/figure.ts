@@ -22,6 +22,44 @@ export interface Cast {
   /** Role → decoded sheet, ready for `drawImage`. */
   sheets: Map<string, ImageBitmap | HTMLImageElement>;
   backdrops: Map<string, ImageBitmap | HTMLImageElement>;
+  /** Role → the character id actually loaded, default cast included (F16). */
+  choice: CastChoice;
+}
+
+/** Role → roster character id. A partial choice keeps the packed default. */
+export type CastChoice = Record<string, string>;
+
+/** One choosable character, as `roster.json` lists it (`art/tools/rosterpack.ts`). */
+export interface RosterCharacter {
+  id: string;
+  name: string;
+  roles: string[];
+  manifest: string;
+  sheet: string;
+  sheetBytes: number;
+  figures: number;
+  faceHeight: number;
+  torsoHeight: number;
+  shrugTorso: boolean;
+}
+
+export interface RosterIndex {
+  version: 1;
+  defaults: CastChoice;
+  characters: RosterCharacter[];
+}
+
+/** Where `rosterpack.ts` writes, relative to the cast bundle. */
+const ROSTER_DIR = "roster";
+
+/**
+ * The picker's index: who may be cast, in which role.
+ *
+ * Separate from `loadCast` on purpose — the index is a few KB and the sheets it
+ * names are 60–130 KiB each, so the picker reads names without pulling art.
+ */
+export async function loadRoster(base: string): Promise<RosterIndex> {
+  return (await (await fetch(`${base}/${ROSTER_DIR}/roster.json`)).json()) as RosterIndex;
 }
 
 /** A chosen figure: which parts, and the box they occupy in figure space. */
@@ -39,21 +77,57 @@ export interface Figure {
   torsoPos: { x: number; y: number };
 }
 
-export async function loadCast(base: string): Promise<Cast> {
+/**
+ * Load the cast bundle, optionally re-skinned with the player's chosen cast.
+ *
+ * `cast.json` stays the canonical bundle in both cases: it carries the
+ * backdrops and the default cast, and it is what the pixel gate renders. A
+ * chosen character is a **runtime skin** — one extra manifest and one extra
+ * sheet fetched per role that differs from the default, never a re-pack (F16;
+ * ADR 0004 §11, amended 2026-08-22). That is also why the roster is fetched per
+ * cast rather than shipped whole: 15 sheets is ~1.4 MiB, one cast is ~150 KiB.
+ *
+ * A chosen character that fails to load falls back to the packed default rather
+ * than failing the boot — the game is playable with the default cast, and a
+ * reader who once picked rebecca should not be met with an error page.
+ */
+export async function loadCast(base: string, choice?: CastChoice): Promise<Cast> {
   const manifest = (await (await fetch(`${base}/cast.json`)).json()) as CastManifest;
   const sheets = new Map<string, ImageBitmap | HTMLImageElement>();
   const backdrops = new Map<string, ImageBitmap | HTMLImageElement>();
+  const loaded: CastChoice = {};
 
   await Promise.all([
-    ...Object.entries(manifest.cast).map(async ([role, avatar]) => {
+    ...Object.keys(manifest.cast).map(async (role) => {
+      const wanted = choice?.[role];
+      if (wanted) {
+        try {
+          const avatar = (await (await fetch(
+            `${base}/${ROSTER_DIR}/${wanted}.avatar.json`,
+          )).json()) as PackedAvatar;
+          manifest.cast[role] = avatar;
+          sheets.set(role, await loadImage(`${base}/${ROSTER_DIR}/${avatar.sheet}`));
+          loaded[role] = wanted;
+          return;
+        } catch {
+          // fall through to the packed default
+        }
+      }
+      const avatar = manifest.cast[role]!;
       sheets.set(role, await loadImage(`${base}/${avatar.sheet}`));
+      loaded[role] = defaultIdOf(avatar);
     }),
     ...manifest.backdrops.map(async (backdrop) => {
       backdrops.set(backdrop.id, await loadImage(`${base}/${backdrop.file}`));
     }),
   ]);
 
-  return { manifest, sheets, backdrops };
+  return { manifest, sheets, backdrops, choice: loaded };
+}
+
+/** The packed cast names its sheet after the avatar file it came from. */
+function defaultIdOf(avatar: PackedAvatar): string {
+  return avatar.sheet.replace(/\.png$/i, "");
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {

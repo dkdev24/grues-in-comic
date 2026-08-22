@@ -52,6 +52,35 @@ function quotaError(name = "QuotaExceededError"): Error {
   return err;
 }
 
+describe("the chosen cast in the envelope (F16)", () => {
+  it("round-trips the cast a game was drawn with", () => {
+    const store = createSessionStore(KEY, fakeStorage());
+    store.write(save, turns, { hero: "rebecca", guide: "maynard" });
+    expect(store.read()?.cast).toEqual({ hero: "rebecca", guide: "maynard" });
+  });
+
+  it("stores nothing for a game played with the packed default", () => {
+    const storage = fakeStorage();
+    const store = createSessionStore(KEY, storage);
+    store.write(save, turns, {});
+    expect(storage.getItem(KEY)).not.toContain("cast");
+    expect(store.read()?.cast).toBeUndefined();
+  });
+
+  /**
+   * The reason `cast` is an optional field and not an envelope-version bump:
+   * a mismatch clears the slot, so bumping would delete every save in the wild
+   * to record a cosmetic choice.
+   */
+  it("reads a pre-casting envelope without discarding it", () => {
+    const storage = fakeStorage();
+    storage.setItem(KEY, JSON.stringify({ version: ENVELOPE_VERSION, save, turns: [] }));
+    const read = createSessionStore(KEY, storage).read();
+    expect(read?.save).toEqual(save);
+    expect(read?.cast).toBeUndefined();
+  });
+});
+
 describe("createSessionStore", () => {
   it("round-trips a session", () => {
     const store = createSessionStore(KEY, fakeStorage());

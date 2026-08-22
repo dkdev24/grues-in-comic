@@ -18,9 +18,12 @@
   source (see `docs/adr/0007` and `0008`), and its avatar art is **decoded and redistributed**
   (below).
 - **Art redistributed, not merely referenced.** The character sheets shipped under
-  `web/assets/comic/` (`dan.png`, `tiki.png`) are decoded from Comic Chat's own `.avb` avatar
-  files by this project's `art/` pipeline and packed into sprite sheets; the browser draws from
-  them at runtime. They are a format conversion of Microsoft's MIT-licensed art, which the MIT
+  `web/assets/comic/` (`dan.png`, `tiki.png`) and under `web/assets/comic/roster/` (the fifteen
+  choosable characters the cast picker offers, `art/src/roster.ts`) are decoded from Comic Chat's
+  own `.avb` avatar files by this project's `art/` pipeline and packed into sprite sheets; the
+  browser draws from them at runtime. Since v0.28.0 the art is a **foreground feature** — players
+  choose a character by name on a screen of their own — rather than an implementation detail, which
+  is why the roster is named here as well as the default cast. They are a format conversion of Microsoft's MIT-licensed art, which the MIT
   license permits, and they carry its copyright. The `.avb` originals are preserved unmodified in
   `original-projects/comic-chat/`; the format itself is documented in `docs/AVB_FORMAT.md`.
 

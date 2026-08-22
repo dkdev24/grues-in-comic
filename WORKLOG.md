@@ -10,6 +10,62 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.28.0 — 2026-08-22 — choose your cast (F16, stage 6.7)
+
+The survey shipped in v0.27.6's tail said the roster problem was a **validation** problem, not a
+matter of taste, and that the picking of the shipped pools was the user's call. Both halves arrived:
+the user's roster of 2026-08-22 (8 Heroes, 7 Dungeon Masters, three NPCs held back) and ADR 0004
+§11 amended twice to make a chosen Hero possible at all. This builds the picker on top of them.
+
+**The roster is code, and the packer is the gate.** `art/src/roster.ts` names who may play what and
+which `.avb` cut they come from (four names exist in both packs; `artpack1` is the richer one and is
+named, never searched for). `art/tools/rosterpack.ts` refuses to pack a non-complex avatar, or one
+missing a face for an emotion its role's §10 markers fire, and emits one sheet plus one
+`<id>.avatar.json` per character into `web/assets/comic/roster/`, indexed by `roster.json`.
+`art/test/roster.test.ts` re-asserts the same two gates against the sources and the bundle. Gates 3
+and 4 — legibility and register — stay judgements; nothing in `art/` can assert that a drawing reads,
+which is the entry `docs/PITFALLS.md` already carries, and lance is the counter-example that put it
+there.
+
+**Two bundles, not one, and that is the whole compatibility story.** `cast.json` is untouched: it
+still packs dan, tiki and all 30 backdrops, the render tools still read it, and the pixel gate still
+renders it — 24/24 clean across this change. A chosen character is a **runtime skin**: `loadCast`
+takes an optional `{role: id}` and swaps in one manifest and one sheet per role that differs from the
+default, falling back to the packed cast if either fetch fails. The alternative — re-packing
+`cast.json` per cast — would have made every gate run a question about whose cast it was rendered
+with, which F16 wrote down as the trap before the work started.
+
+**Per-cast fetching stopped being an optimisation.** Fifteen sheets are ~1.4 MiB against today's
+~150 KiB for two. The picker's first fetch is `roster.json` — names, figure counts, and whether the
+character owns the SHRUG torso `parser-miss` prefers — and art is pulled only when a character is
+previewed or cast, cached per session.
+
+**The choice is remembered twice, and the split is the point.** The save envelope gains an optional
+`cast` field: a resumed session re-draws its entire history, so without it a game saved as rebecca
+comes back as dan and every panel the player has already read silently changes who is in it. It is an
+optional field rather than an envelope-version bump because a version mismatch *clears the slot* —
+wiping saves in the wild to record a cosmetic choice is a bad trade. Beside it, a standing preference
+key holds what the player last picked, so `/restart` keeps their cast. `/cast` re-opens the picker by
+setting a flag and reloading — the same reload-based swap `/load` uses, for the same reason: neither
+pane has a `reset()`, and a live re-cast would leave the Director's pose cycles carrying the old
+cast's state.
+
+**Looked at, not only tested** (the rule this project keeps re-learning): the picker was played in a
+real browser — default cast, then rebecca/sage begun and the strip drawn with them, then a reload
+resuming with the same cast, then `/cast` re-opening pre-selected. Lynnea, the tallest Hero at 481px
+against dan's 388, was played and sits in the panel correctly at the shots the opening uses; the
+`SHOTS` ladder is still dan-tuned, so a closer rung with a tall Hero remains unlooked-at (F4). One
+layout bug was found by looking and not by any assertion: the overlay centred with `align-items:
+center` clipped its own heading on a short window, unscrollably.
+
+**Not in scope, by the shape of the problem: the NPC third of F16.** Casting the thief, troll and
+cyclops means putting them on stage, and that is F15's entire content. The survey's three fixed NPCs
+stay reserved for it; F15 now inherits the roster machinery rather than building its own.
+
+**Tests:** 345 web (7 new) · 54 art (33 new) · engine and IR untouched · pixel gate 24/24 clean.
+
+---
+
 ## v0.27.6 — 2026-08-22 — the ending gets its own backdrop (F1)
 
 `barrow-interior` shipped with the backdrop art pass and nothing referenced it: `backdropFor` keys

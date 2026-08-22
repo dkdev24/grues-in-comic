@@ -18,6 +18,34 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.28.0] - 2026-08-22 — choose your cast
+
+### Added
+- **A "choose your cast" screen opens every new game.** Eight characters can play the Hero and seven
+  can play the Dungeon Master, all of them Microsoft Comic Chat's own art. Pick one of each, look at
+  them full-size, press Begin. `/cast` re-opens the picker over a game already in progress.
+- **The choice is remembered twice, on purpose.** A saved game records the cast it was *drawn* with,
+  so resuming re-draws its whole strip with the same characters rather than silently recasting pages
+  the player has already read; a separate standing preference survives `/restart` and a cleared save.
+- **A validated roster, in code.** `art/src/roster.ts` is the shipped pool per role, and
+  `art/tools/rosterpack.ts` refuses to pack a character who is not a complex avatar or who lacks a
+  face for an emotion their role's markers fire (ADR 0004 §11, amended for this). Legibility and
+  register stay human judgements — the survey behind them is `docs/casting-roster-survey.md`.
+
+### Changed
+- **Character art is fetched per cast, not per roster.** The picker's first fetch is names only
+  (`roster.json`); a sheet is pulled when a character is previewed or cast. Fifteen sheets are
+  ~1.4 MiB; one cast is ~150 KiB.
+- **`THIRD_PARTY.md` and `NOTICE` name the roster.** Comic Chat's art is now a foreground feature —
+  players choose a character by name — rather than an implementation detail.
+
+### Unchanged, deliberately
+- **The pixel gate still renders dan and tiki.** A chosen cast is a runtime skin: `cast.json` is
+  untouched, and the 24 accepted goldens are still pictures of the canonical cast (clean across this
+  change). Per-cast goldens are explicitly not wanted.
+
+---
+
 ## [v0.27.6] - 2026-08-22 — the ending gets its own backdrop
 
 ### Added

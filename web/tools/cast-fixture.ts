@@ -107,7 +107,7 @@ export function packFixtureCast(roles: Readonly<Record<string, string>> = FIXTUR
 export function stubCast(packed: PackedFixture): Cast {
   const sheets = new Map<string, ImageBitmap>();
   for (const role of packed.rasters.keys()) sheets.set(role, {} as ImageBitmap);
-  return { manifest: packed.manifest, sheets, backdrops: new Map() };
+  return { manifest: packed.manifest, sheets, backdrops: new Map(), choice: {} };
 }
 
 /**

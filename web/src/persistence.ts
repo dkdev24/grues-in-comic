@@ -26,6 +26,7 @@
 
 import type { SaveState } from "../../engine/src/engine.js";
 import type { Turn } from "./session.js";
+import type { CastChoice } from "./comic/figure.js";
 import { createMixTracker } from "./event-mix.js";
 
 /**
@@ -52,13 +53,25 @@ export interface PersistedSession {
   save: SaveState;
   /** Every turn since the opening one, in order, for replay through `play()`. */
   turns: Turn[];
+  /**
+   * The cast this game was read with (F16), absent for a game saved before
+   * casting existed or played with the packed default.
+   *
+   * It lives in the envelope because a resumed session **re-draws its whole
+   * history**: without it, a save made as rebecca comes back as dan, and every
+   * panel the player already read silently changes who is in it. It is stored
+   * as an optional field rather than as an envelope-version bump precisely so
+   * that older saves keep loading — a version mismatch clears the slot, and
+   * wiping someone's game to record a cosmetic choice is a bad trade.
+   */
+  cast?: CastChoice;
 }
 
 export interface SessionStore {
   /** The saved session, or `null` when absent, unreadable, or the wrong version. */
   read(): PersistedSession | null;
   /** Persist a session. Throws {@link StorageFullError} when the quota is hit. */
-  write(save: SaveState, turns: readonly Turn[]): void;
+  write(save: SaveState, turns: readonly Turn[], cast?: CastChoice): void;
   clear(): void;
 }
 
@@ -96,23 +109,29 @@ export function createSessionStore(key: string, storage: Storage): SessionStore 
       if (raw === null) return null;
 
       try {
-        const parsed = JSON.parse(raw) as { version: number; save: SaveState; turns: PersistedTurn[] };
+        const parsed = JSON.parse(raw) as {
+          version: number; save: SaveState; turns: PersistedTurn[]; cast?: CastChoice;
+        };
         if (!isWellFormed(parsed)) throw new Error("malformed envelope");
         // A future version's envelope is not readable by this build. Clearing is
         // still right: the alternative is a slot that fails forever and blocks
         // every new autosave.
         if (parsed.version !== ENVELOPE_VERSION) throw new Error("version mismatch");
-        return { version: parsed.version, save: parsed.save, turns: rehydrate(parsed.turns) };
+        return {
+          version: parsed.version, save: parsed.save, turns: rehydrate(parsed.turns),
+          ...(parsed.cast ? { cast: parsed.cast } : {}),
+        };
       } catch {
         this.clear();
         return null;
       }
     },
 
-    write(save, turns) {
+    write(save, turns, cast) {
       const envelope = {
         version: ENVELOPE_VERSION,
         save,
+        ...(cast && Object.keys(cast).length > 0 ? { cast } : {}),
         // Drop `mix` on the way out; `read` rebuilds it. See {@link PersistedTurn}.
         turns: turns.map(({ command, events, status }): PersistedTurn => ({
           command, events, status,

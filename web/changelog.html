@@ -45,7 +45,25 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
-          <summary>August 2026 <span class="count">(16 releases)</span></summary>
+          <summary>August 2026 <span class="count">(17 releases)</span></summary>
+      <article class="changelog-entry" id="v0.28.0">
+        <h3><a href="#v0.28.0"><span class="version">v0.28.0</span> <span class="date">2026-08-22</span> — choose your cast</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li><strong>A "choose your cast" screen opens every new game.</strong> Eight characters can play the Hero and seven can play the Dungeon Master, all of them Microsoft Comic Chat's own art. Pick one of each, look at them full-size, press Begin. <code>/cast</code> re-opens the picker over a game already in progress.</li>
+          <li><strong>The choice is remembered twice, on purpose.</strong> A saved game records the cast it was <em>drawn</em> with, so resuming re-draws its whole strip with the same characters rather than silently recasting pages the player has already read; a separate standing preference survives <code>/restart</code> and a cleared save.</li>
+          <li><strong>A validated roster, in code.</strong> <code>art/src/roster.ts</code> is the shipped pool per role, and <code>art/tools/rosterpack.ts</code> refuses to pack a character who is not a complex avatar or who lacks a face for an emotion their role's markers fire (ADR 0004 §11, amended for this). Legibility and register stay human judgements — the survey behind them is <code>docs/casting-roster-survey.md</code>.</li>
+        </ul>
+        <h4>Changed</h4>
+        <ul>
+          <li><strong>Character art is fetched per cast, not per roster.</strong> The picker's first fetch is names only (<code>roster.json</code>); a sheet is pulled when a character is previewed or cast. Fifteen sheets are ~1.4 MiB; one cast is ~150 KiB.</li>
+          <li><strong><code>THIRD_PARTY.md</code> and <code>NOTICE</code> name the roster.</strong> Comic Chat's art is now a foreground feature — players choose a character by name — rather than an implementation detail.</li>
+        </ul>
+        <h4>Unchanged, deliberately</h4>
+        <ul>
+          <li><strong>The pixel gate still renders dan and tiki.</strong> A chosen cast is a runtime skin: <code>cast.json</code> is untouched, and the 24 accepted goldens are still pictures of the canonical cast (clean across this change). Per-cast goldens are explicitly not wanted.</li>
+        </ul>
+      </article>
       <article class="changelog-entry" id="v0.27.6">
         <h3><a href="#v0.27.6"><span class="version">v0.27.6</span> <span class="date">2026-08-22</span> — the ending gets its own backdrop</a></h3>
         <h4>Added</h4>

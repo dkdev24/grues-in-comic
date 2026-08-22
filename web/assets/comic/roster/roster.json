@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "defaults": {
+    "hero": "dan",
+    "guide": "tiki"
+  },
+  "characters": [
+    {
+      "id": "dan",
+      "name": "DAN",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "dan.avatar.json",
+      "sheet": "dan.png",
+      "sheetBytes": 61740,
+      "figures": 187,
+      "faceHeight": 125,
+      "torsoHeight": 322,
+      "shrugTorso": true
+    },
+    {
+      "id": "anna",
+      "name": "Anna",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "anna.avatar.json",
+      "sheet": "anna.png",
+      "sheetBytes": 83017,
+      "figures": 288,
+      "faceHeight": 150,
+      "torsoHeight": 391,
+      "shrugTorso": false
+    },
+    {
+      "id": "bolo",
+      "name": "Bolo",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "bolo.avatar.json",
+      "sheet": "bolo.png",
+      "sheetBytes": 90536,
+      "figures": 224,
+      "faceHeight": 169,
+      "torsoHeight": 395,
+      "shrugTorso": false
+    },
+    {
+      "id": "denise",
+      "name": "Denise",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "denise.avatar.json",
+      "sheet": "denise.png",
+      "sheetBytes": 69224,
+      "figures": 240,
+      "faceHeight": 143,
+      "torsoHeight": 405,
+      "shrugTorso": false
+    },
+    {
+      "id": "kevin",
+      "name": "Kevin",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "kevin.avatar.json",
+      "sheet": "kevin.png",
+      "sheetBytes": 80700,
+      "figures": 195,
+      "faceHeight": 172,
+      "torsoHeight": 394,
+      "shrugTorso": false
+    },
+    {
+      "id": "lynnea",
+      "name": "Lynnea",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "lynnea.avatar.json",
+      "sheet": "lynnea.png",
+      "sheetBytes": 111146,
+      "figures": 391,
+      "faceHeight": 168,
+      "torsoHeight": 441,
+      "shrugTorso": false
+    },
+    {
+      "id": "margaret",
+      "name": "Margaret",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "margaret.avatar.json",
+      "sheet": "margaret.png",
+      "sheetBytes": 87387,
+      "figures": 260,
+      "faceHeight": 152,
+      "torsoHeight": 390,
+      "shrugTorso": false
+    },
+    {
+      "id": "rebecca",
+      "name": "Rebecca",
+      "roles": [
+        "hero"
+      ],
+      "manifest": "rebecca.avatar.json",
+      "sheet": "rebecca.png",
+      "sheetBytes": 105551,
+      "figures": 456,
+      "faceHeight": 169,
+      "torsoHeight": 465,
+      "shrugTorso": false
+    },
+    {
+      "id": "tiki",
+      "name": "Tiki",
+      "roles": [
+        "guide"
+      ],
+      "manifest": "tiki.avatar.json",
+      "sheet": "tiki.png",
+      "sheetBytes": 90564,
+      "figures": 240,
+      "faceHeight": 253,
+      "torsoHeight": 296,
+      "shrugTorso": false
+    },
+    {
+      "id": "sage",
+      "name": "Sage",
+      "roles": [
+        "guide"
+      ],
+      "manifest": "sage.avatar.json",
+      "sheet": "sage.png",
+      "sheetBytes": 131248,
+      "figures": 340,
+      "faceHeight": 215,
+      "torsoHeight": 375,
+      "shrugTorso": false
+    },
+    {
+      "id": "kwensa",
+      "name": "Kwensa",
+      "roles": [
+        "guide"
+      ],
+      "manifest": "kwensa.avatar.json",
+      "sheet": "kwensa.png",
+      "sheetBytes": 107336,
+      "figures": 288,
+      "faceHeight": 188,
+      "torsoHeight": 417,
+      "shrugTorso": false
+    },
+    {
+      "id": "hugh",
+      "name": "Hugh",
+      "roles": [
+        "guide"
+      ],
+      "manifest": "hugh.avatar.json",
+      "sheet": "hugh.png",
+      "sheetBytes": 114038,
+      "figures": 168,
+      "faceHeight": 196,
+      "torsoHeight": 396,
+      "shrugTorso": false
+    },
+    {
+      "id": "maynard",
+      "name": "Maynard",
+      "roles": [
+        "guide"
+      ],
+      "manifest": "maynard.avatar.json",
+      "sheet": "maynard.png",
+      "sheetBytes": 119264,
+      "figures": 390,
+      "faceHeight": 233,
+      "torsoHeight": 349,
+      "shrugTorso": false
+    },
+    {
+      "id": "scotty",
+      "name": "Scotty",
+      "roles": [
+        "guide"
+      ],
+      "manifest": "scotty.avatar.json",
+      "sheet": "scotty.png",
+      "sheetBytes": 84270,
+      "figures": 216,
+      "faceHeight": 175,
+      "torsoHeight": 419,
+      "shrugTorso": false
+    },
+    {
+      "id": "tongtyed",
+      "name": "TongueTyed",
+      "roles": [
+        "guide"
+      ],
+      "manifest": "tongtyed.avatar.json",
+      "sheet": "tongtyed.png",
+      "sheetBytes": 92994,
+      "figures": 169,
+      "faceHeight": 203,
+      "torsoHeight": 355,
+      "shrugTorso": true
+    }
+  ]
+}

@@ -8,6 +8,7 @@
 - **Amended:** 2026-07-20 (stage 5.3, from building it) — §10: `parser-miss` fires on the `narration:system` **channel**, not only on prose patterns; §11: the Hero must own a BORED *face* as well as a SHRUG torso, which recasts the Hero
 - **Amended:** 2026-08-22 (F16 roster survey) — §11: the pose-inventory predicate is *necessary, not sufficient* — a qualifying avatar can still be expression-dead (lance); the corpus is 31 avatars, not 25 (`artpack1/` was never surveyed); HAPPY torsos do exist outside the Guide shortlist. Cast unchanged.
 - **Amended:** 2026-08-22 (F16 casting) — §11: the Hero requirement relaxes to a BORED **face**; the SHRUG **torso** becomes preferred-not-required and falls back to a neutral body. Default cast (dan/tiki) and the pixel gate's canonical cast are unchanged.
+- **Amended:** 2026-08-22 (F16 shipped, v0.28.0) — §11: the offered roster is now `art/src/roster.ts` (8 Heroes, 7 Dungeon Masters), enforced by `art/tools/rosterpack.ts`; a player's pick is a runtime skin and the gate's cast is unchanged.
 - **Superseded (in part):** 2026-07-23 — ADR 0007 reverses §4a's "panel width becomes an input, not a constant" clause: panel size is fixed and the *pane* reflows the column count. The rest of §4a stands.
 - **Stage:** 5.2/5.3 (decides panel grammar *before* the comic layer is built, per Next Action #5)
 - **Related:** ADR 0002 (the event contract this consumes and must not extend), `wiki/comic-chat-presentation.md` (the 5.1 source analysis), `docs/panel-grammar-discussion.md` (the reasoning and the measurements; this ADR is its output)
@@ -183,7 +184,7 @@ Priority descending; angles are `EMOTION_ANGLES` indices (`art/src/format.ts:83`
 
 - **The Hero gate is now:** complex · owns a BORED face · legible · in register. The SHRUG torso is a **tiebreaker**, and a picker that ranks Heroes should surface it.
 - **dan remains the default Hero and tiki the default DM**, and they remain the pixel gate's canonical cast: a chosen cast is a runtime skin, never a new golden.
-- **This decides the Hero rule, not the roster.** The shipped pools live in `docs/casting-roster-survey.md`.
+- **This decides the Hero rule, not the roster.** The shipped pools live in `docs/casting-roster-survey.md`, and since v0.28.0 the roster the game actually offers is **code**: `art/src/roster.ts`, checked against gates 1 and 2 at pack time (`art/tools/rosterpack.ts`) and in `art/test/roster.test.ts`. Gates 3 and 4 stay judgements — nothing in `art/` can assert that a drawing reads — so adding a character means looking at `roster-sheet.ts` output first, as the survey did.
 
 ## Consequences
 

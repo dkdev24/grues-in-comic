@@ -341,9 +341,20 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   inversion reached a released build (v0.13.0). **Any new colour/polarity decision needs its own pinned
   assertion, and looking at the output stays part of the loop.** Art statistics are not invariants
   (anna's bob is a legitimate 80% ink).
-- **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run pack`
-  (cast pinned in the script). **Re-pack after any `art/` decode change** — v0.13.1 fixed the decoder
-  but the committed sheets stayed inverted until regenerated.
+- **`web/assets/comic/` is a committed build artifact, and since v0.28.0 there are two of them.**
+  `npm --prefix art run pack` builds the canonical bundle (dan, tiki, every backdrop, `cast.json`);
+  `npm --prefix art run pack:roster` builds `web/assets/comic/roster/` — the fifteen choosable
+  characters plus `roster.json` — from `art/src/roster.ts`. **Re-pack *both* after any `art/` decode
+  change** — v0.13.1 fixed the decoder but the committed sheets stayed inverted until regenerated,
+  and the roster is now a second place that can rot the same way.
+- **A chosen cast is a runtime skin; the pixel gate's cast is not choosable.** The gate, the render
+  tools and `cast.json` all stay dan/tiki whatever the player picks (ADR 0004 §11), because the 24
+  accepted goldens are pictures of dan and tiki. If a gate case ever renders someone else, the bug is
+  that a chosen cast reached the gate path — not that the golden is stale. Never `gate:accept` to
+  make a re-cast pass.
+- **The roster ships names, not art.** `roster.json` is the picker's whole first fetch; sheets are
+  pulled per selection and per cast (~150 KiB), never as a set (~1.4 MiB). A change that preloads the
+  roster to make previews snappier trades a third of a megabyte for a hover.
 - **Casting on pose inventory alone will ship an expression-dead character.** ADR 0004 §11's
   predicate ("owns a SHRUG torso and a BORED face") is an inventory test, and **lance passes it
   wearing a paper bag** — every marker fires, nothing visible changes in the panel. Look at the
