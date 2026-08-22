@@ -10,6 +10,44 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.28.5 — 2026-08-23 — a walkthrough that dies
+
+v0.28.4 built the death beat against a synthetic fixture, because nothing in the corpus dies: all
+eleven scene walkthroughs end in `quit` and the oracle wins. This adds the missing row.
+
+**Canyon View, chosen because it is the one death that can be strict.** Almost every way to die in
+Zork I draws on `<RANDOM>` — the troll, the thief, the grue, `jump` into a pit
+(`<PICK-ONE ,JUMPLOSS>`) — and ADR 0002 declined to reproduce the Z-machine's PRNG, so none of them
+can be compared turn-for-turn. `CANYON-VIEW-F` (`1dungeon.zil:2406`) answers a bare LEAP with one
+fixed string and `<JIGS-UP>`, no draw in it. Both interpreters print the same words in the same order.
+
+**The first draft was not strict, and the walkthrough itself found out why.** It took the leaflet, so
+the last beat could be "dying costs you what you held" — and parity failed one turn later on `look`.
+`RANDOMIZE-OBJECTS` (`1actions.zil:4101`) scatters what you were carrying into
+`<GET ,ABOVE-GROUND <RANDOM .L>>`: dfrotz dropped the leaflet in one forest and this engine dropped
+it in another. **Dying deterministically is not enough; the Hero has to die empty-handed.** The
+scene now carries nothing, and `inventory` at the end is the turn he looks at his own empty hands.
+
+**It also found that the goldens recorded the machine that captured them.** dfrotz prints
+`Loading <path>` before the game starts and `run-transcripts.sh` kept it verbatim, so ten goldens
+held an absolute path under a home directory and two held a relative one — meaning `check` had been
+failing on those two for everyone but the capturing machine, and a repo heading for a public release
+was carrying a developer's home directory in twelve files. Normalized to the story file's basename.
+
+**And the corpus was still defined twice.** F17's lesson was "fixing one caller is not fixing the
+corpus"; `density.ts` kept a hand-written array while `mapper.test.ts` read the directory, so the new
+walkthrough landed in one corpus and not the other. The array is now a `readdirSync`, and
+`density.test.ts` asserts the count against the folder rather than a number typed by hand.
+
+**Rendered and looked at.** Canyon View establishing → the Hero's "Here goes nothing." → the DM's
+`**** You have died ****` → a wordless portrait, wide-eyed, backdrop washed out, still titled Canyon
+View because that is where it happened → the Forest, and the game goes on.
+
+Parity **143/143 → 151/151 strict** across 12 scene walkthroughs. Density 623 → 634 turns, D5 at 2.2
+and D5′ at 41.8%, both in band. 356 web tests.
+
+---
+
 ## v0.28.4 — 2026-08-23 — the comic finally notices when you die (F18; ADR 0004 §7 and §10 amended)
 
 F18 was filed as "the victory draws six talking `reaction` panels". Working out which endings reach

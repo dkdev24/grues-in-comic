@@ -13,7 +13,7 @@ lives.
 3. `run-transcripts.sh` replays each walkthrough against that story file under `dfrotz` at a fixed
    seed and writes `golden/*.txt`.
 4. The engine's own test suite replays the same command lists and diffs its output against those
-   golden transcripts. Current state: **143/143 strict**.
+   golden transcripts. Current state: **151/151 strict**.
 
 ```sh
 ./run-transcripts.sh          # check mode — diff against golden, fail on drift

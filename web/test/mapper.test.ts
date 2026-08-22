@@ -997,6 +997,15 @@ describe("affect table (§10)", () => {
       expect(panel.speakers).toHaveLength(0);
       expect(panel.bodies.map((b) => b.speaker)).toEqual([HERO]);
     }
+    // And all three endings are actually represented, which they were not until
+    // `13-canyon-death.cmd` — the rung was asserted for four versions over a
+    // corpus that only ever quit (F18). A death frame is set in the room the
+    // blow fell in, not the one ZIL resurrects you into.
+    const died = reactions.filter((panel) => panel.marker === "death");
+    expect(died.length, "a walkthrough dies").toBeGreaterThan(0);
+    expect(died.some((panel) => panel.room === "CANYON-VIEW")).toBe(true);
+    expect(reactions.some((panel) => panel.marker === "victory")).toBe(true);
+    expect(reactions.some((panel) => panel.marker === null)).toBe(true);
   });
 
   it("reads the barrow speech out, then holds on the Hero", () => {

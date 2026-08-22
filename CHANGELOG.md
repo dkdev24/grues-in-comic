@@ -18,6 +18,22 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.28.5] - 2026-08-23 — a walkthrough that dies
+
+### Added
+- **The comic can now show a death, because one of the test playthroughs finally dies in one.** The
+  death beat shipped last version with nothing in the project that actually reached it — every
+  recorded playthrough either quit or won. A new scene walks to the edge of the Great Canyon and
+  jumps off it, so the beat is now exercised by a real game rather than a stand-in, and is checked
+  against the original 1980s interpreter like every other scene.
+
+### Fixed
+- **The reference transcripts no longer record whose computer made them.** They had been storing the
+  full path to the game file, which differed between machines, so two of them failed their own check
+  for anyone but the person who captured them.
+
+---
+
 ## [v0.28.4] - 2026-08-23 — the comic finally notices when you die
 
 ### Fixed

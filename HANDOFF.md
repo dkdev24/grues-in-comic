@@ -10,35 +10,33 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ---
 
 ## Current Version
-**0.28.4** · Platform: **macOS only** (2026-07-28)
+**0.28.5** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
-browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (parity 143/143 strict).
+browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (parity 151/151 strict).
 - **M6 ◐** road to 1.0.0 (repo public + website ships). Detail: `docs/DEVELOPMENT_PLAN.md` §6.
   - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; the 13 others (maze + 2 dead ends)
     silent by design (user confirmed skip, 2026-08-22). **6.2/6.3/6.6/6.7/6.5-beta ✅**; **6.4, 6.5 ☐**.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
-**Tests:** 356 web · 54 art · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
+**Tests:** 356 web · 54 art · 149 engine · 198 IR · parity 151/151 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.28.4 (F18): the comic finally notices when you die
-Filed as "the victory draws six talking `reaction` panels"; the cause was larger. **The rung had
-never fired on a death.** `game-over` fires on a quit, a win or a *final* death; an ordinary death
-ends a life and emits nothing — so `reaction` and the SCARED `death` marker both fired on 11 quits
-and no deaths. With a balloon over it nothing can be tighter than a `close-up`, so a tight rung must
-be a *frame*: **§7 amended — rung 1 leaves the ladder**, `reaction` is a staged wordless frame naming
-its own camera (new per-line `PageLine.camera`). **§10 amended — `death` fires on the outcome or
-ZIL's banner** (no new event); a quit keeps the frame, loses the marker. Also turned on `panelRoom`'s
-never-run death machinery and a latent `clonePanel` box bug. Gate +1 case, density +1 panel.
+## Last Session — v0.28.5: a walkthrough that dies
+v0.28.4 built the death beat against a synthetic fixture — nothing in the corpus dies (11 scenes quit,
+the oracle wins). `13-canyon-death.cmd` adds the row: Canyon View + `jump` is the **one death that can
+be strict**, since every other one draws on `<RANDOM>` and ADR 0002 keeps our own PRNG. A first draft
+took the leaflet and lost strictness one turn later — `RANDOMIZE-OBJECTS` scatters what you carried,
+so **the Hero must die empty-handed to die strictly.** Two things it flushed out: the goldens pinned
+the *capturing machine* (dfrotz's `Loading <path>`, so `check` had been failing on 2 of 12 for
+everyone else, and a home directory was heading for a public repo), and the corpus was still defined
+twice (density's hand-kept array vs `readdirSync`) — F17 in miniature. Parity 143/143 → **151/151**. See `WORKLOG.md`.
 
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
-2. **No walkthrough dies.** ☐ The death beat now exists but no corpus row exercises it — only a
-   synthetic fixture does. A death walkthrough would need a dfrotz golden; the user's call.
-3. **Backdrop diversity pass.** ☐ Wire `docs/backdrop-generation-plan.md` § Image 4 into `backdrop.ts`.
+2. **Backdrop diversity pass.** ☐ Wire `docs/backdrop-generation-plan.md` § Image 4 into `backdrop.ts`.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
 | Path | Purpose |

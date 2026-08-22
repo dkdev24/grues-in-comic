@@ -40,7 +40,7 @@
  * accepted, exactly like the pixel gate.
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createCanvas } from "@napi-rs/canvas";
@@ -70,17 +70,20 @@ export const BASELINE = join(ROOT, "web", "test", "golden", "dialogue-density.js
 const SEED = 1234;
 
 /**
- * The corpus, in `readdir` order so the report reads like the directory. The
- * full-game oracle is **included**: §6.1's density claim is about a playthrough,
- * and the scene walkthroughs all replay the same opening. It is reported as its
- * own row as well, because it is the only row that is a whole game.
+ * The corpus, **read off the directory** rather than listed here. The full-game
+ * oracle is included: §6.1's density claim is about a playthrough, and the scene
+ * walkthroughs all replay the same opening. It is reported as its own row as
+ * well, because it is the only row that is a whole game.
+ *
+ * Derived since v0.28.5, and for F17's reason: this was a hand-kept list, and
+ * `mapper.test.ts` reads the directory, so adding `13-canyon-death.cmd` put a
+ * walkthrough in one corpus and not the other — two answers to "what is the
+ * corpus", which is the shape of the bug F17 was. A list that has to be
+ * remembered is a list that will be wrong.
  */
-const CORPUS = [
-  "01-west-of-house.cmd", "02-house-entry.cmd", "03-cellar-descent.cmd",
-  "04-lamp-and-darkness.cmd", "05-troll-combat.cmd", "06-scoring-and-treasure.cmd",
-  "07-forest-and-tree.cmd", "08-containers.cmd", "09-take-all-surface.cmd",
-  "10-dam-and-reservoir.cmd", "11-parser-edges.cmd", "12-full-game.cmd",
-] as const;
+const CORPUS: readonly string[] = readdirSync(WALKTHROUGHS)
+  .filter((file) => file.endsWith(".cmd"))
+  .sort();
 
 /** What one walkthrough (or the whole corpus) came to. Counts only — see {@link rates}. */
 export interface DensityCounts {

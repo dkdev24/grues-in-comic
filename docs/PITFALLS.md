@@ -218,7 +218,10 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   replayed `12-full-game.cmd` raw for three more milestones, and ADR 0004 §10's "the Hero's most
   common emotion is exasperation at the parser" survived on 254 commands of walking into walls.
   **Fixing one caller is not fixing the corpus** — `commandsOf` is exported from `density.ts` now,
-  and anything replaying all twelve walkthroughs goes through it.)
+  and anything replaying the walkthroughs goes through it. **And the corpus is now read off the
+  directory, not listed by hand** (v0.28.5): `density.ts` kept its own array, so adding
+  `13-canyon-death.cmd` put a walkthrough in `mapper.test.ts`'s corpus and not in density's — F17's
+  bug in miniature, three versions later. A list that has to be remembered will be wrong.)
 - **`blocked-exit` at exactly zero is the corpus's own smoke alarm** (F17, v0.28.3). Walking into a
   wall is not something a playthrough does: on a won route the marker fires **0 times**, and on the
   derailed one it is 24.7% of turns. Any corpus-wide rate is worth re-reading the moment that number
@@ -434,6 +437,20 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 
 ## Tooling & platform
 
+- **A golden transcript pinned the machine that captured it** (v0.28.5, found adding
+  `13-canyon-death.cmd`). dfrotz prints `Loading <path>` before the game starts, and
+  `run-transcripts.sh` captured it verbatim — so ten goldens carried an absolute path under a
+  developer's home directory and two carried a relative one, which meant **`check` had been failing
+  on those two for anyone but the machine that wrote them**, and a repo heading for a public release
+  was carrying a home directory in twelve files. The line is now normalized to the story file's
+  basename. **Interpreter chrome is not game output: if a golden line can change with the working
+  directory, it does not belong in the golden.**
+- **Carrying anything into a death forfeits strict parity** (v0.28.5). Dying is only half the RNG
+  problem. `RANDOMIZE-OBJECTS` (`1actions.zil:4101`) scatters what you were holding — a treasure into
+  a random dark room, anything else into `<GET ,ABOVE-GROUND <RANDOM .L>>` — so the very next `look`
+  diverges between interpreters even when the death itself was deterministic. A first draft of the
+  death scene took the leaflet for the "death costs you what you held" beat and lost strictness one
+  turn later. **The Hero must die empty-handed to die strictly.**
 - **macOS is the only supported development machine** (2026-07-28). The engine, IR and importer stay
   platform-independent; the tooling is not held to that bar. Fix a platform bug when a real run hits
   one — do not spend effort on speculation.

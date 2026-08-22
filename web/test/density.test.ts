@@ -17,10 +17,14 @@
  * measurement rather than as a pile of integers.
  */
 
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { D5_PRIME_MAX, D5_PRIME_MIN, diff, rates, readBaseline, runDensity } from "../tools/density.js";
 
 const baseline = readBaseline();
+const WALKTHROUGHS = join(fileURLToPath(new URL("../..", import.meta.url)), "verification", "walkthroughs");
 const current = runDensity();
 
 describe("dialogue density (M6.1a)", () => {
@@ -40,14 +44,19 @@ describe("dialogue density (M6.1a)", () => {
 
   it("covers the whole corpus, oracle included", () => {
     expect(current.files.map((f) => f.file)).toContain("12-full-game.cmd");
-    // 623 turns since M6.1g. It was 606 while the full-game row was a *naive*
-    // replay of `12-full-game.cmd` — a game lost at the troll and then flailed
-    // through 16 surface rooms (`PITFALLS.md` → Web). The row now comes from the
-    // resilient driver's own command log, so those 423 turns are a game that
-    // reaches STONE-BARROW at 350/350. A change to the walkthroughs is still a
-    // legitimate reason for this to move, and a reason to re-read every rate in
-    // the plan.
-    expect(current.totals.turns).toBe(623);
+    // **The corpus is read off the directory** (v0.28.5), so this asserts the
+    // count matches the folder rather than a list kept by hand — the list was
+    // hand-kept until `13-canyon-death.cmd` landed in `mapper.test.ts`'s corpus
+    // and not in this one, which is F17's bug in miniature.
+    expect(current.files).toHaveLength(
+      readdirSync(WALKTHROUGHS).filter((file) => file.endsWith(".cmd")).length,
+    );
+    // 634 turns since the death scene. It was 623 from M6.1g, and 606 before
+    // that, while the full-game row was a *naive* replay of `12-full-game.cmd` —
+    // a game lost at the troll and then flailed through 16 surface rooms
+    // (`PITFALLS.md` → Web). A change to the walkthroughs is a legitimate reason
+    // for this to move, and a reason to re-read every rate in the plan.
+    expect(current.totals.turns).toBe(634);
   });
 
   it("measures a game that is *won*, not one that is lost (M6.1g)", () => {

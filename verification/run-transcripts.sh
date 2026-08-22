@@ -38,7 +38,16 @@ for cmd in "$ROOT"/verification/walkthroughs/*.cmd; do
     # feeding those lines to dfrotz would execute them as commands.
     commands="$(mktemp)"
     grep -v '^[[:space:]]*#' "$cmd" | grep -v '^[[:space:]]*$' > "$commands"
-    dfrotz -m -p -s "$SEED" "$STORY" < "$commands" > "$actual" 2>&1 || true
+    # `Loading <path>` is dfrotz chrome, not game output, and it echoes whatever
+    # path the harness was handed — so it pinned the *capturing machine* into the
+    # golden. Two of the twelve files carried a relative path and the other ten an
+    # absolute one under a developer's home directory, which meant `check` had been
+    # failing on those two for anyone but the machine that wrote them, and the repo
+    # was carrying a home directory into a release that is going public. Normalized
+    # to the story file's name, which is the only part of that line that is a fact
+    # about the *build* being verified.
+    dfrotz -m -p -s "$SEED" "$STORY" < "$commands" 2>&1 \
+        | sed "s|^Loading .*|Loading $(basename "$STORY").|" > "$actual" || true
     rm -f "$commands"
 
     case "$MODE" in
