@@ -111,6 +111,20 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   panel to 158**, and incidentally retired the pinned `mob4-p02` stack fallback. **Anything that
   changes this number, `TITLE_HEIGHT`, or `UNIT` is changing the conversation, not just the
   spacing** — re-run `density` as well as the pixel gate.
+- **`SHOTS.fill` scales a figure by its *body* height, and the reader judges closeness by its
+  *head*** (F4, v0.28.1). The two agreed while the cast was dan alone; the roster made the head
+  0.295 of the figure for denise, 0.347 for kevin and 0.479 for tiki, so one `fill` put chins between
+  81% and 91% of the panel on `close-up` — head-and-no-shoulders for half the Heroes, and tiki's jaw
+  *off* the bottom edge at 107%. `MAX_HEAD_HEIGHT` caps the head under the headroom band, which is
+  what makes a rung mean the same thing for every character. **Any new framing number is a
+  per-character number until it is checked against the roster** — `npx --prefix web tsx
+  web/tools/shots-grid.ts` renders one rung across every Hero and prints chin/head geometry beside it.
+- **Shrinking a placed figure moves it *down*, because `shot.reveal` measures from the feet**
+  (F4, v0.28.1). `y = height - figure.height * scale * reveal`, so a scale clamp applied inside `fit`
+  drops the head by the same arithmetic that shrinks it — on `reaction` (reveal 0.4) that walked the
+  Guide's head off the bottom of the frame and the balloon driver refused the panel into
+  `stackBalloons`, which the gate reports as a finding. Clamp **after** layout, re-pin the head-top to
+  the band, and only for figures the band actually pinned (`applyHeadroom`).
 - **A turn that ends the game may not have moved the player, and two rules were written as if it
   always had** (v0.27.5, reported from play). The barrow win aborts the walk, so the winning turn
   carries no `player-moved`: the read-aloud's whole-text path (gated on `moved`) quoted one sentence

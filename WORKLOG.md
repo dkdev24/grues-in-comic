@@ -10,6 +10,42 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.28.1 — 2026-08-23 — a close-up means the same thing for everyone (F4, tall-Hero half)
+
+v0.28.0 shipped eight playable Heroes against a `SHOTS` ladder tuned on one of them, and F16 named
+the risk in the right place and measured the wrong quantity: heights. dan is 388px and Lynnea 481,
+so the worry was that a tall Hero would overflow a close rung. `fill` normalizes height, so that
+never happened. What the roster actually varies is the **head**: 0.295 of the figure for denise,
+0.347 for kevin, 0.479 for tiki's mask. With `BALLOON_HEADROOM` pinning every head-top at 0.44 of the
+panel, one `fill` put chins between **81% and 91%** of the panel on `close-up` — dan with shoulders
+and a tie, kevin with a chin on the frame edge and no body at all — and put tiki's jaw at **107%**,
+off the bottom of the frame, on the one rung where it is beside the subject.
+
+**`MAX_HEAD_HEIGHT = 0.38`, applied after layout, not inside `fit`.** The first attempt clamped the
+scale in `fit()` and broke the reaction panel: `y = height - figure.height * scale * reveal` measures
+from the feet, so shrinking a figure *lowers* it, and at reveal 0.4 the Guide's head walked off the
+bottom until the balloon driver refused the panel into `stackBalloons` — which the gate correctly
+reported as a finding rather than a hash. `applyHeadroom` instead pins the head-top to the band
+first, then caps the head of the figures the band actually pinned, shrinking each about its own
+centre so its balloon column stays over it. Chins land at 81–82% for the whole roster; the packed
+Hero is byte-identical, and only the Guide moved.
+
+**The cost is real and was taken on purpose.** tiki is capped hard enough that the Guide barely grows
+between `medium` and `close-up` — it loses its push-in. Rung 4 is a close-up *on the Hero* (ADR 0004
+§7), and enlarging the figure that is not the subject is exactly what was cropping the jaw. Six gate
+cases moved and were re-accepted after looking at before/after renders; `density` is unchanged.
+
+**`web/tools/shots-grid.ts`** is the harness this needed and `render-panel.ts` could not be: it skins
+the cast from `roster.json` and renders one rung across every Hero as a contact sheet, printing
+scale, head fraction, head-top, chin and feet as panel-height percentages underneath. The numbers are
+what made the diagnosis possible; the images are what made the trade-off decidable.
+
+**Left open, and promoted to the top of F4:** `reaction` is not a reaction shot. Its `fill` of 2.1
+never survives two bodies — the equal-margin row shrink pins it near 1.05 — so the game-over beat
+renders indistinguishable from `close-up`. That wants a decision about the rung, not a number.
+
+---
+
 ## v0.28.0 — 2026-08-22 — choose your cast (F16, stage 6.7)
 
 The survey shipped in v0.27.6's tail said the roster problem was a **validation** problem, not a

@@ -18,6 +18,19 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.28.1] - 2026-08-23 — a close-up means the same thing for everyone
+
+### Fixed
+- **The close-up no longer crops half the cast at the chin.** Framing scaled every character by the
+  height of their *body*, while what tells a reader how close the camera is, is the size of the
+  *head* — and the eight playable Heroes differ far more in head than in height. The result was a
+  "close-up" that gave one Hero head and shoulders and the next a head alone with their chin on the
+  frame edge. Heads are now held to one size on that shot, so picking a different Hero changes who is
+  in the panel and not how the panel is shot. The Dungeon Master, whose mask head used to run off the
+  bottom of the frame entirely, is drawn whole.
+
+---
+
 ## [v0.28.0] - 2026-08-22 — choose your cast
 
 ### Added

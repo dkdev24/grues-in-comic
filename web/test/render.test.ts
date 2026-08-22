@@ -12,7 +12,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { clearOfFaces, fit, MAX_FIGURE_WIDTH } from "../src/comic/render.js";
+import {
+  applyHeadroom, clearOfFaces, fit, BALLOON_HEADROOM, MAX_FIGURE_WIDTH, MAX_HEAD_HEIGHT,
+  type PlacedBody,
+} from "../src/comic/render.js";
 import type { Figure } from "../src/comic/figure.js";
 
 type Face = { left: number; right: number; top: number; bottom: number };
@@ -26,6 +29,11 @@ function disjointH(x: number, w: number, bulge: number, f: Face): boolean {
 
 // `fit` reads only width and height off the figure.
 const figure = (width: number, height: number) => ({ width, height }) as Figure;
+/** A figure whose head is `headFrac` of it — the roster's spread is 0.295..0.479. */
+const headed = (width: number, height: number, headFrac: number) =>
+  ({ width, height, headHeight: height * headFrac }) as Figure;
+const place = (fig: Figure, x: number, y: number, scale: number): PlacedBody =>
+  ({ speaker: "hero", figure: fig, x, y, scale, mirror: false });
 
 describe("clearOfFaces", () => {
   const width = 400;
@@ -90,5 +98,45 @@ describe("fit / MAX_FIGURE_WIDTH", () => {
     const narrow = figure(100, 300);
     const capped = fit(narrow, height, fill, 400 * MAX_FIGURE_WIDTH);
     expect(capped).toBe(fit(narrow, height, fill, Infinity)); // cap is not the binding term
+  });
+});
+
+describe("applyHeadroom / MAX_HEAD_HEIGHT", () => {
+  const height = 400;
+  const band = height * BALLOON_HEADROOM;
+
+  it("pushes a figure down to the band and caps a head that then crowds the frame", () => {
+    // A big-headed Hero at a close-up: head-top above the band, head over the cap.
+    const item = place(headed(200, 500, 0.35), 100, 0, 1);
+    applyHeadroom([item], height);
+    expect(item.y).toBeCloseTo(band);
+    expect(item.figure.headHeight * item.scale).toBeCloseTo(height * MAX_HEAD_HEIGHT);
+    // Chin lands inside the panel with a body still under it.
+    expect(item.y + item.figure.headHeight * item.scale).toBeLessThan(height * 0.83);
+  });
+
+  it("shrinks about the figure's own centre, so the balloon column stays over it", () => {
+    const item = place(headed(200, 500, 0.35), 100, 0, 1);
+    const centre = item.x + item.figure.width / 2;
+    applyHeadroom([item], height);
+    expect(item.x + (item.figure.width * item.scale) / 2).toBeCloseTo(centre);
+  });
+
+  it("leaves a small-headed figure at the band untouched", () => {
+    // 0.30 of a figure filling the band-to-floor gap is under the cap: dan's case,
+    // and the reason the packed cast's Hero does not move.
+    const item = place(headed(200, 500, 0.28), 100, 0, 1);
+    applyHeadroom([item], height);
+    expect(item.scale).toBe(1);
+    expect(item.y).toBeCloseTo(band);
+  });
+
+  it("does not touch a figure already sitting below the band", () => {
+    // Pushing it further down is how a head leaves the *bottom* of the frame —
+    // which is what a `reaction` Guide does when it is shrunk from the feet up.
+    const item = place(headed(200, 500, 0.45), 100, band + 40, 1);
+    applyHeadroom([item], height);
+    expect(item.y).toBe(band + 40);
+    expect(item.scale).toBe(1);
   });
 });

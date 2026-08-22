@@ -116,6 +116,39 @@ const MAX_SCALE = 1.6;
 export const MAX_FIGURE_WIDTH = 0.55;
 
 /**
+ * When a panel carries a **speech or thought balloon**, no head may grow taller
+ * than this fraction of the panel. It is the tall-Hero half of the width cap
+ * above, and it exists because `fill` normalizes the wrong thing: it scales a
+ * figure by its *body* height, while what says "how close are we" to a reader is
+ * the size of the head.
+ *
+ * The roster makes that gap real (F16). Head is 0.295 of the figure for denise
+ * and 0.347 for kevin, so at `close-up` the same `fill` puts dan's chin at 81%
+ * of the panel and kevin's at 91% — with {@link BALLOON_HEADROOM} holding every
+ * head-top at 0.44, a big-headed Hero is left with no shoulders and a chin on
+ * the bottom edge, on the one rung whose job is the Hero *handling* something.
+ *
+ * 0.38 is dan's own close-up head (0.369) plus a hair, so the rung keeps the
+ * framing it was authored at and every other Hero is brought down to it: chins
+ * land at 82% of the panel for the whole roster instead of 81% to 91%. It binds
+ * on `close-up` alone — `medium` and `over-shoulder` peak at 0.27 and 0.30.
+ *
+ * **It moves the packed cast too, and the pixel gate with it.** The cap is a
+ * per-figure clamp, so it also catches tiki, whose mask head is 0.479 of the
+ * figure and whose jaw was running *off* the bottom edge (chin at 107%) on this
+ * rung. Clamping it costs the Guide its push-in — tiki is now barely larger at
+ * `close-up` than at `medium` — which is accepted rather than incidental: rung 4
+ * is a close-up *on the Hero* (ADR 0004 §7), and enlarging the figure that is
+ * not the subject is what cropped the jaw. Freeing that width also lets the row
+ * shrink less, so dan gains ~2%.
+ *
+ * Conditional for the same reason the width cap is: the game-over `reaction`
+ * rung carries no straddling balloon, and a head that fills the frame is that
+ * beat's whole point.
+ */
+export const MAX_HEAD_HEIGHT = 0.38;
+
+/**
  * Reserved band at the top of the panel for a straddling speech balloon and its
  * tail. A speech balloon sits *above* its speaker and drops a near-vertical tail
  * (Comic Chat's whole layout), which only works if the head is far enough down
@@ -177,10 +210,7 @@ export function renderPanel(
   // Reserve headroom for a straddling speech balloon: push each figure down until
   // its head-top clears the top band, so the balloon has room to sit above and
   // drop its tail. Only when such a balloon exists (the reaction close-up has none).
-  if (hasColumnBalloon) {
-    const minHeadTop = height * BALLOON_HEADROOM;
-    for (const item of placed) item.y = Math.max(item.y, minHeadTop);
-  }
+  if (hasColumnBalloon) applyHeadroom(placed, height);
 
   if (options.trace) {
     options.trace.bodies = placed.map(({ speaker, x, y, scale, mirror }) =>
@@ -267,6 +297,40 @@ export function orderBodies<T>(bodies: readonly T[]): Array<{ body: T; flip: boo
     // right; the cheaper wins, and a tie keeps `m_lastDir` (stubbed FALSE).
     return { body, flip: right < left };
   });
+}
+
+/**
+ * Reserve the top band for a straddling speech balloon, and keep the head that
+ * sits under it small enough to leave a body in frame.
+ *
+ * Two steps, in this order and for two different reasons:
+ *
+ * 1. **Push down to the band.** A figure whose head-top is above
+ *    {@link BALLOON_HEADROOM} is moved down until it clears, so the balloon has
+ *    somewhere to sit and its tail somewhere to drop. A figure already *below*
+ *    the band is left alone — pushing it further down is how a head leaves the
+ *    bottom of the frame.
+ * 2. **Cap the head.** With the head-top pinned, head size is the whole of
+ *    "how close are we", and `shot.fill` scales by *body* height — which the
+ *    roster makes a poor proxy (F16: head is 0.295 of the figure for denise,
+ *    0.347 for kevin, 0.479 for tiki). See {@link MAX_HEAD_HEIGHT}.
+ *
+ * Only figures the band actually pinned are capped, and they shrink about their
+ * own centre so the balloon column stays over them. Exported so the clamp can be
+ * asserted without a canvas.
+ */
+export function applyHeadroom(placed: PlacedBody[], height: number): void {
+  const minHeadTop = height * BALLOON_HEADROOM;
+  const headCap = height * MAX_HEAD_HEIGHT;
+  for (const item of placed) {
+    if (item.y >= minHeadTop) continue;
+    item.y = minHeadTop;
+    const head = item.figure.headHeight * item.scale;
+    if (head <= headCap) continue;
+    const centre = item.x + (item.figure.width * item.scale) / 2;
+    item.scale *= headCap / head;
+    item.x = centre - (item.figure.width * item.scale) / 2;
+  }
 }
 
 /**

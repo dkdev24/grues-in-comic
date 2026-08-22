@@ -158,14 +158,14 @@
       "guide",
       "hero"
     ],
-    "sha256": "152c59d2277320dc880fc35e1a2d199ce833d1db9c52f1858f8c4934a8bf3f36",
+    "sha256": "cd74f528155e6a0aacfb7c02aa3f79090c934109df1c9f5b4fb2f23cbe477f9f",
     "trace": {
       "bodies": [
         {
           "speaker": "guide",
-          "x": 48.1,
+          "x": 52.7,
           "y": 149.6,
-          "scale": 0.7,
+          "scale": 0.6,
           "mirror": false
         },
         {
@@ -187,14 +187,14 @@
           },
           "lines": 1,
           "tail": {
-            "x": 112.9,
+            "x": 112.5,
             "y": 149.6
           }
         },
         {
           "speaker": "hero",
           "box": {
-            "x": 112.9,
+            "x": 112.5,
             "y": 49,
             "width": 161.3,
             "height": 35
@@ -216,14 +216,14 @@
       "guide",
       "hero"
     ],
-    "sha256": "2866867a2e0e930ab57ef96d3400816de7c2e60c824f645850ae7a3aa0aad0b9",
+    "sha256": "3e4cf7e462dfcfaefccaa138a55ded19dda51077821db902000c3a7a4efbb8e1",
     "trace": {
       "bodies": [
         {
           "speaker": "guide",
-          "x": 48.1,
+          "x": 52.7,
           "y": 149.6,
-          "scale": 0.7,
+          "scale": 0.6,
           "mirror": false
         },
         {
@@ -245,7 +245,7 @@
           },
           "lines": 1,
           "tail": {
-            "x": 112.9,
+            "x": 112.5,
             "y": 149.6
           }
         }
@@ -260,14 +260,14 @@
       "guide",
       "hero"
     ],
-    "sha256": "59d0371c39c0ba3d2e99f5cc289debd64e30b91195d56b308ce0cd83871f4db9",
+    "sha256": "96c3b39400ea6fb33f2eb88855aa7e773fd7efc5003147d9dccc947c5dcc18f2",
     "trace": {
       "bodies": [
         {
           "speaker": "guide",
-          "x": 48.1,
+          "x": 52.7,
           "y": 149.6,
-          "scale": 0.7,
+          "scale": 0.6,
           "mirror": false
         },
         {
@@ -282,14 +282,14 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 48.9,
+            "x": 48.6,
             "y": 14,
             "width": 182.9,
             "height": 35
           },
           "lines": 1,
           "tail": {
-            "x": 112.9,
+            "x": 112.5,
             "y": 149.6
           }
         },
@@ -318,7 +318,7 @@
       "hero",
       "guide"
     ],
-    "sha256": "d1a254df037f5c17360aadf1dd7ffa0a243a89331dc15209356111d6961fce03",
+    "sha256": "f58087ec5af5435373143df5a1e797211eaeb3bdf30573b707c0dd23679f9c9f",
     "trace": {
       "bodies": [
         {
@@ -330,9 +330,9 @@
         },
         {
           "speaker": "guide",
-          "x": 215.5,
+          "x": 252.4,
           "y": 149.6,
-          "scale": 1.1,
+          "scale": 0.6,
           "mirror": true
         }
       ],
@@ -354,14 +354,14 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 242.2,
+            "x": 245.2,
             "y": 49,
             "width": 59.7,
             "height": 35
           },
           "lines": 1,
           "tail": {
-            "x": 300.3,
+            "x": 303.3,
             "y": 149.6
           }
         }
@@ -434,7 +434,7 @@
       "hero",
       "guide"
     ],
-    "sha256": "ad22e16b2cdd110e8f0da305e08b5ce4ff0fd9540fbbc31ccab62cef01859ae3",
+    "sha256": "77efd7d584d1d16d280eb5daaa11e0d6b8bfcdec67b809be6031d01862b5c4e0",
     "trace": {
       "bodies": [
         {
@@ -446,9 +446,9 @@
         },
         {
           "speaker": "guide",
-          "x": 215.5,
+          "x": 252.4,
           "y": 149.6,
-          "scale": 1.1,
+          "scale": 0.6,
           "mirror": true
         }
       ],
@@ -470,14 +470,14 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 226.8,
+            "x": 229.8,
             "y": 49,
             "width": 74.4,
             "height": 35
           },
           "lines": 1,
           "tail": {
-            "x": 300.3,
+            "x": 303.3,
             "y": 149.6
           }
         }
@@ -492,7 +492,7 @@
       "hero",
       "guide"
     ],
-    "sha256": "18a2e83ee7191aacce150f9675df0a5126e5c05dd706c51fde26a442d644fc52",
+    "sha256": "debb470763ede4c7bc3d6b38610f54d673f1ba8d4edcdf59ff307901032aefc2",
     "trace": {
       "bodies": [
         {
@@ -504,9 +504,9 @@
         },
         {
           "speaker": "guide",
-          "x": 200,
+          "x": 244.6,
           "y": 149.6,
-          "scale": 1.1,
+          "scale": 0.6,
           "mirror": true
         }
       ],
@@ -535,7 +535,7 @@
           },
           "lines": 4,
           "tail": {
-            "x": 292,
+            "x": 295.5,
             "y": 149.6
           }
         }
