@@ -12,6 +12,12 @@ This project incorporates components from the following open-source projects:
    Copyright (c) Microsoft Corporation
    Licensed under the MIT License
 
+Microsoft Comic Chat's avatar art is redistributed in converted form: the
+character sprite sheets under web/assets/comic/ are decoded from its .avb files
+and carry Microsoft's copyright under the MIT License. The room backdrops in
+that same folder are original assets generated for this project and are covered
+by this project's Apache-2.0 license.
+
 See THIRD_PARTY.md for import details and original repository locations.
 The original license files are preserved in original-projects/zork1/LICENSE
 and original-projects/comic-chat/LICENSE.

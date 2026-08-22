@@ -14,7 +14,28 @@
 - Repository: https://github.com/microsoft/comic-chat
 - License: MIT
 - Imported: 2026-07-18
-- Purpose: Comic presentation reference
+- Purpose: Comic presentation reference — the panel/balloon algorithms are ported from its
+  source (see `docs/adr/0007` and `0008`), and its avatar art is **decoded and redistributed**
+  (below).
+- **Art redistributed, not merely referenced.** The character sheets shipped under
+  `web/assets/comic/` (`dan.png`, `tiki.png`) are decoded from Comic Chat's own `.avb` avatar
+  files by this project's `art/` pipeline and packed into sprite sheets; the browser draws from
+  them at runtime. They are a format conversion of Microsoft's MIT-licensed art, which the MIT
+  license permits, and they carry its copyright. The `.avb` originals are preserved unmodified in
+  `original-projects/comic-chat/`; the format itself is documented in `docs/AVB_FORMAT.md`.
+
+---
+
+## Generated backdrops — original assets, no third-party source
+
+The 30 room backdrops under `web/assets/comic/` (`cellar.png`, `maze.png`, `barrow-interior.png`
+and the rest) are **not** Comic Chat art and are not derived from any third-party asset. They were
+generated for this project from the prompts recorded in `docs/backdrop-generation-plan.md`, in a
+1-bit hatch idiom chosen to sit beside the Comic Chat figures, and are covered by this
+repository's own Apache-2.0 license.
+
+Listed here rather than left unsaid because the file they ship in is the same folder as the
+redistributed avatar sheets above, and the two have different provenance.
 
 ---
 
@@ -31,7 +52,11 @@
   Chrome, notably — that have neither Comic Sans MS nor Comic Neue installed
   as a system font.
 - Files vendored: `comic-neue-400.woff2`, `comic-neue-700.woff2` (regular +
-  bold, Latin subset only)
+  bold, Latin subset only), and `OFL.txt` — the license text, which OFL-1.1
+  requires be distributed with the font. Copyright 2014 The Comic Neue Project
+  Authors (https://github.com/crozynski/comicneue). The font stays under OFL-1.1
+  whatever this project's own license is; the subset files are unmodified
+  conversions and carry no Reserved Font Name of their own.
 
 ---
 

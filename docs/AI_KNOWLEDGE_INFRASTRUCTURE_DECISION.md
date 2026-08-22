@@ -1,8 +1,16 @@
 # AI Knowledge Infrastructure Decision
 
 **Project:** Grues in Comic
-**Status:** Accepted
+**Status:** Accepted, and **amended 2026-07-18 — half of it was not adopted.**
 **Decision Date:** July 2026
+
+> **Read this before the rest of the document.** The decision below recommends **two** tools working
+> together: Graphify for structural knowledge, OpenWiki for semantic knowledge. **Only Graphify was
+> adopted.** OpenWiki was rejected on 2026-07-18 because reliable operation needs a paid LLM and this
+> project has no budget for one; the semantic half is served instead by the hand-authored `wiki/`.
+> Every OpenWiki section below is preserved as the reasoning that was actually followed at the time,
+> not as a description of the toolchain in use. The live rules are in `AGENTS.md` → Knowledge
+> separation.
 
 ---
 

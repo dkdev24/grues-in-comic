@@ -23,6 +23,7 @@ rendering technology. Game logic never becomes browser-specific.
 | `docs/PITFALLS.md` | **Read the section for the subsystem you are about to change.** | Durable cautions, by subsystem. Each entry was paid for by a bug or a wrong released build. New long-lived rules go here, not into `HANDOFF.md`. |
 | `docs/FUTURE_WORK.md` | Read when deferring something, or when the user defines an iteration. | The deferred backlog. **Not a work queue** — nothing in it is scheduled until the user names it. Every entry records *why* it was deferred. |
 | `docs/adr/` | Read before changing what one governs. | Binding decisions. Amend the ADR, never a discussion document. |
+| `docs/README.md` | Read when looking for a document, or before adding one. | The index of `docs/`: which files are specifications, which are working documents, and which are history (`docs/archive/` — superseded, never cite it as current). |
 
 **Versioning:** `0.x.y` while pre-public — patch for small changes, minor for new subsystems.
 **`1.0.0` is reserved for public launch** (repo goes public + website ships). Do not bump into `1.x`

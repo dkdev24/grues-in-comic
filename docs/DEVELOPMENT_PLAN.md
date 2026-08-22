@@ -5,7 +5,7 @@ Living document. Milestones are ordered; stages within a milestone are sized so 
 - **Status legend**: ☐ not started · ◐ in progress · ☑ done
 - **Update rule**: when a stage finishes, mark it in this file and record details in `HANDOFF.md` (and `WORKLOG.md` at version milestones). When a decision gate resolves, revise the affected downstream stages rather than working around the plan.
 
-Related documents: `docs/FUTURE_WORK.md` (the non-critical backlog and the pre-1.0.0 iteration protocol — this plan orders the work, that file holds what is deliberately unscheduled), `docs/PORTING_STRATEGY.md` (phases and architecture), `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` (Graphify/OpenWiki), `docs/gemini-analysis-on-plan-and-strategy.md` (adopted recommendations: deterministic pre-parser, interface-first engine/UI boundary, brand separation).
+Related documents: `docs/FUTURE_WORK.md` (the non-critical backlog and the pre-1.0.0 iteration protocol — this plan orders the work, that file holds what is deliberately unscheduled), `docs/archive/PORTING_STRATEGY.md` (superseded phase plan, kept as history), `docs/AI_KNOWLEDGE_INFRASTRUCTURE_DECISION.md` (Graphify/OpenWiki), `docs/archive/gemini-analysis-on-plan-and-strategy.md` (adopted recommendations: deterministic pre-parser, interface-first engine/UI boundary, brand separation).
 
 ---
 

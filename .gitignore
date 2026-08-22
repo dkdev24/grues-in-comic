@@ -89,3 +89,7 @@ original-projects/comic-chat/artifacts/jchat/jdk114/lib/classes.zip
 # Playwright CLI session artifacts (snapshots, console logs) — driving the page
 # is part of the workflow; its scratch output is not.
 .playwright-cli/
+
+# Vendored third-party Claude Code skills — local tooling, not part of what this
+# repository ships. The project's own agent rules live in AGENTS.md.
+.claude/skills/

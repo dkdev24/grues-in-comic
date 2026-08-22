@@ -31,10 +31,10 @@ The original mapping block below (now replaced) predated the shipped implementat
 - **Coverage:** this doc's old mapping block only assigned ~55 of 110 rooms and left the rest to the
   `room` fallback. The shipped table assigns all 110 explicitly; see `backdrop.ts` for the untouched
   portion (everything outside `cave-system`/`pastoral`/`maze`, which is unchanged by this pass).
-- **`barrow-interior` is shipped but orphaned** — no room in the world document maps to it (entering
-  `STONE-BARROW` triggers the win ending directly; there is no separate interior room). Tracked in
-  `docs/FUTURE_WORK.md` §2.1 as a possible future win-screen backdrop. Left as-is, not part of this
-  pass.
+- **`barrow-interior` was shipped but orphaned** — no room in the world document maps to it (entering
+  `STONE-BARROW` triggers the win ending directly; there is no separate interior room). **Resolved at
+  v0.27.6:** it is now drawn for the ending's panels, keyed on the `victory` affect marker rather
+  than on a room id (`backdrop.ts` → `MARKER_BACKDROPS`). It was not part of this pass.
 
 ---
 

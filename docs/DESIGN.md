@@ -3,8 +3,9 @@
 The look & feel specification for the public static site (`docs/DEVELOPMENT_PLAN.md` §6.3) and, by
 extension, for the gameplay screen it has to sit next to.
 
-**Status:** Draft for the user's approval. §6.3 is blocked until this is accepted; accepting it
-unblocks the landing page, the about page and the public changelog.
+**Status:** **Accepted 2026-08-02**, and built — stage 6.3 shipped the landing page, the about page
+and the public changelog against this specification (v0.26.0). It is the live look & feel spec, not
+a proposal: change the site by amending this document.
 
 **Scope:** the landing page in full, plus the tokens and rules the other static pages inherit. Page
 copy is specified as intent and slot, not as final wording.
@@ -290,7 +291,7 @@ minimum window size, so **do not screenshot directly at 32 or 180** — you get 
 **Constraint on any redraw:** two tones maximum, drawn from the §2 tokens, no gradient, no stroke, no
 container shape, no lettering, radius 0.
 
-**`docs/grues-favicon/` is a backup, not a shipping asset.** It is committed at the user's request
+**`docs/assets/grues-favicon/` is a backup, not a shipping asset.** It is committed at the user's request
 and holds an *earlier, different* mark — a pixel-art grue face with "GRUES IN COMIC" lettering inside
 a border frame, as `.ico`, 16/32/180/192/512 PNGs and a `site.webmanifest`. **Do not wire it into the
 site as it stands.** Four reasons, three of them rules from this section:

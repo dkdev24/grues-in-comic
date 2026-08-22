@@ -67,7 +67,7 @@ grues-in-comic/
 ├── importer/              ZIL parser → AST artifacts
 ├── ir/                    IR schema, validator, extraction → world document
 ├── verification/          ZILF build + dfrotz golden transcripts
-├── docs/                  ADRs, plans, decision records
+├── docs/                  ADRs, specs, plans — start at docs/README.md
 ├── reference/             third-party reference material (gitignored)
 │
 ├── engine/                IR runtime — the game is completable (Milestone 4)

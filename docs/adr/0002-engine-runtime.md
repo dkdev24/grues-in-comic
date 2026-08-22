@@ -6,7 +6,7 @@
 - **Amended:** 2026-07-20 — added "Scope of Portability: source frontends, not story files" (no change to the decision)
 - **Amended:** 2026-08-06 — `light-changed` added to the event vocabulary; `contractVersion` 1.0.0 → 1.1.0 (additive, the growth this ADR anticipated)
 - **Stage:** 2.3 (⚑ **Gate B resolution**; see `docs/DEVELOPMENT_PLAN.md`)
-- **Related:** ADR 0001 (behavior representation), `docs/gemini-analysis-on-plan-and-strategy.md` (interface-first recommendation)
+- **Related:** ADR 0001 (behavior representation), `docs/archive/gemini-analysis-on-plan-and-strategy.md` (interface-first recommendation)
 
 ## Context
 
@@ -131,7 +131,7 @@ The two readings of "support more interactive fiction" are architecturally oppos
 
 ## Consequences
 
-- **⚑ Gate B resolves.** `docs/PORTING_STRATEGY.md` and `AGENTS.md` are updated in this change: "support WebAssembly" objectives and the WASM pipeline stage are replaced by the TypeScript engine + browser-native UI; the IR's independence list keeps WASM (independence from a technology survives not using it). The development plan's Milestones 3–5 stand structurally; Milestone 4 now names the `engine/` TypeScript package and this contract, and the old "Phase 4 — WebAssembly" of PORTING_STRATEGY becomes browser integration of the TS engine.
+- **⚑ Gate B resolves.** `docs/archive/PORTING_STRATEGY.md` and `AGENTS.md` are updated in this change: "support WebAssembly" objectives and the WASM pipeline stage are replaced by the TypeScript engine + browser-native UI; the IR's independence list keeps WASM (independence from a technology survives not using it). The development plan's Milestones 3–5 stand structurally; Milestone 4 now names the `engine/` TypeScript package and this contract, and the old "Phase 4 — WebAssembly" of PORTING_STRATEGY becomes browser integration of the TS engine.
 - The repo becomes a TypeScript monorepo-of-convention (`importer/`, `ir/`, then `engine/`, later the UI package) with the same toolchain (tsc strict, vitest, tsx) — one language across every subsystem for AI-assisted work.
 - The stage-2.2 builtin registry (OPEN-CLOSE, DO-WALK, …) becomes part of the engine package, implemented against the engine's world runtime; the POC substrate in `ir/poc/` remains as documentation of the semantics.
 - Comic Chat's C++ (layout/expression concepts) is **analyzed, never compiled**: stage 5.1 extracts algorithms into documentation, and the UI layer reimplements them in TypeScript — consistent with the Gemini boundary recommendation.
