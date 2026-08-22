@@ -10,6 +10,28 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.27.4 — 2026-08-22 — loading modal on resume, nine more gazetteer rooms
+
+**Loading modal** (`web/play/index.html`/`style.css`, `web/src/main.ts`): resuming a save replays its
+whole turn history through `comic-view.ts`'s synchronous render, blocking the main thread for a
+couple of seconds with a blank comic pane. A modal — visible by default in the HTML so it paints
+before the blocking work starts, spinner, `prefers-reduced-motion` respected — now covers the shell
+until `resume()` (or the boot error path) finishes. No async restructuring of the render path;
+the fix is purely "show something while the sync work runs."
+
+**Nine more gazetteer rooms** (6.1e, `web/src/comic/script.ts`): `MINE-3`, `IN-STREAM`, `SMALL-CAVE`,
+`TINY-CAVE`, `COLD-PASSAGE`, `NARROW-PASSAGE`, `WINDING-PASSAGE`, `TWISTING-PASSAGE`, `DEAD-END-5` —
+88/110 → 97/110. Left silent, on purpose: the 12 maze rooms and `DEAD-END-3`/`DEAD-END-4` — the
+maze's whole design is disorientation, and per the existing gazetteer comment, "not every first
+visit should speak." D5 holds (one exchange every 2.2 turns), D5′ holds (42.5% both-speakers share,
+band 25–60%). Density baseline re-pinned (`npm run density:accept`); pixel gate untouched (24/24,
+no golden scene crosses these rooms). 331 web tests green throughout.
+
+### Status
+Both items shippable as-is. 6.1e still open — 13 rooms remain silent by design, not by gap.
+
+---
+
 ## v0.27.3 — 2026-08-16 — backdrop diversity plan (docs only, no code)
 
 **`backdrop.ts` already maps all 110 rooms across 30 backdrops** (not an open MVP gap), but three are

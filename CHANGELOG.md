@@ -18,6 +18,21 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.27.4] - 2026-08-22 — loading modal on resume, nine more gazetteer rooms
+
+### Added
+- **Loading modal** while a saved session resumes: `comic-view.ts`'s render is synchronous, so
+  replaying a long save's turn history could block the main thread for a couple of seconds with a
+  blank comic pane. A modal (visible by default in `web/play/index.html`, spinner, respects
+  `prefers-reduced-motion`) now covers the shell until the resumed session is ready to play.
+- **Nine more rooms gazetteered** (6.1e): `MINE-3`, `IN-STREAM`, `SMALL-CAVE`, `TINY-CAVE`,
+  `COLD-PASSAGE`, `NARROW-PASSAGE`, `WINDING-PASSAGE`, `TWISTING-PASSAGE`, `DEAD-END-5` — 88/110 →
+  97/110 rooms. The 13 remaining (12 maze rooms + `DEAD-END-3`/`DEAD-END-4`) stay silent by design:
+  the maze's disorientation is the point. D5 holds at one exchange every 2.2 turns, D5′ at 42.5%
+  both-speakers share, both inside band; density baseline re-pinned, pixel gate clean (24/24).
+
+---
+
 ## [v0.27.3] - 2026-08-06 — Umami events for game-over and score milestones
 
 ### Added

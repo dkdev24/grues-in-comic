@@ -48,6 +48,7 @@ async function main(): Promise<void> {
     // shape as `names`, built once beside it.
     roomTitles = roomNameTable(doc.rooms ?? []);
   } catch (err) {
+    document.getElementById("loading-modal")?.setAttribute("hidden", "");
     consoleView.appendSystem(`Could not start: ${message(err)}`);
     return;
   }
@@ -169,6 +170,11 @@ async function main(): Promise<void> {
   } else {
     trackedScore = session.status.score;
   }
+
+  // The modal is visible by default (index.html) so it covers the synchronous,
+  // sometimes multi-second replay `resume()` just did — comic-view.ts's render
+  // is not async, so nothing else paints "ready" until this line runs.
+  document.getElementById("loading-modal")?.setAttribute("hidden", "");
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();

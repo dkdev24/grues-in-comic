@@ -10,7 +10,7 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ---
 
 ## Current Version
-**0.27.3** · Platform: **macOS only** (2026-07-28)
+**0.27.4** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -19,15 +19,17 @@ browser-native comic adventure via an IR the engine executes.
 
 - **M1–M5 ✅** Importer, IR, engine, comic presentation done (parity 143/143 strict). Detail: `WORKLOG.md`.
 - **M6 ◐** road to 1.0.0 (repo public + website ships). Detail: `docs/DEVELOPMENT_PLAN.md` §6.
-  - **6.1e** (dialogue authoring) open — 88/110 rooms gazetteered, open-ended.
+  - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; remaining 13 (maze + 2 dead ends)
+    silent by design, not a gap.
   - **6.2, 6.3, 6.6, 6.5-beta ✅** closed. **6.4, 6.5 (public release) ☐** not started.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 
 **Tests:** 331 web · 147 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.27.3 (no bump), backdrop diversity plan (docs only)
-Rewrote `docs/backdrop-generation-plan.md` § Image 4: 11 new backdrops to cap the three overloaded
-rooms (`cave-system`, `pastoral`, `maze`) at ≤5 each. Full account: `WORKLOG.md`.
+## Last Session — v0.27.4, resume loading modal + 9 gazetteer rooms
+Loading modal (`web/play/`) covers the shell while a resumed save's synchronous replay renders —
+was a blank pane for a couple seconds on long games. 9 more gazetteer rooms (`script.ts`): 88/110 →
+97/110. D5/D5′ hold, gate clean, 331 tests green. Full account: `WORKLOG.md`.
 
 ## Next Actions
 Full stage detail in `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
