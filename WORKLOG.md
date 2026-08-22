@@ -10,6 +10,57 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.28.3 — 2026-08-23 — the Hero is not, in fact, mostly annoyed (F17; ADR 0004 §10 amended)
+
+Chasing why `12-full-game.cmd` never reached the barrow. It does not stop short — it **dies on
+command 29**. The walkthrough is correct; the golden dfrotz transcript wins 350/350 in 411 moves. It
+is a fixed command list authored against dfrotz's draw, and ADR 0002 declined to reproduce the
+Z-machine PRNG, so `kill troll with sword` is written the number of times dfrotz needed and not the
+number this engine needs. The troll wins, the Hero is resurrected into the Forest at 30/350, and
+**254 of the remaining 375 commands bounce off walls.**
+
+**The fix already existed and nobody shared it.** `density.ts` had solved this at M6.1f with
+`fullGameCommands` — the engine's resilient driver, which repeats combat and ferries the thief's
+hoard back — and documented it in its own header. Nothing else used it. `mapper.test.ts`'s
+`allPanels()` read the raw file, and that file is **680 of 1125 panels**, so every corpus-wide
+invariant in the mapper suite took two thirds of its evidence from a Hero who could not leave a
+Forest. `docs/PITFALLS.md` has carried the M6.1g lesson — "a measurement taken over a lost game is
+not a weak measurement, it is a different game" — for two milestones. Fixing one caller was not
+fixing the corpus.
+
+**It cost an ADR claim.** ADR 0004 §10 recorded that "the Hero's most common emotion is exasperation
+at the parser", `parser-miss` at 12.7%, and **adopted** it as load-bearing characterisation — noting,
+carefully, that it had been arrived at by measurement rather than chosen so a reader would know if it
+were ever an artifact. It was. Per turn:
+
+| Marker family | Naive corpus | Won corpus | Scenes only |
+|---|---|---|---|
+| `blocked-exit` | 24.7% | **0%** | 0% |
+| `parser-miss` | 12.3% | **1.6%** | 2.5% |
+| `routine-ack` | 5.8% | 12.6% | 11.0% |
+| `scored` | 3.3% | 9.4% | 7.4% |
+
+§10 is amended: the characterisation is withdrawn and replaced with what the corpus says — the
+Hero's most common marked emotion is the flat acknowledgement, then satisfaction at scoring. **The
+marker table, its priorities and its ordering do not move**, because how often a marker fires never
+bore on which marker wins when two fire; §10's own "lock the ordering, do not lock the measured
+percentages" anticipated exactly this. Two consequences named in the amendment: §11's BORED/SHRUG
+casting rule stands but its stated justification does not, and F14 (assisted input) was held back
+partly because it "removes the largest affect marker" — it does not, and is re-rated.
+
+**`blocked-exit` at zero is the new smoke alarm.** The test asserts it as *exactly* zero rather than
+as a small fraction: walking into a wall is not something a playthrough does, so a non-zero reading
+is the corpus telling you an aggregate is about to be wrong. It is the assertion that would have
+caught this.
+
+**And it exposed F18**, now pinned by a test rather than filed as prose: replayed to a win, the
+victory draws six `reaction` panels and not one is wordless — the Hero's declaration of the winning
+move takes the first, the barrow speech fills the other five. v0.28.2 fixed the death frame and
+asserted it over a corpus that never won, so the other half of rung 1 was never covered. The pin
+fails loudly when F18 is fixed, which is the point.
+
+---
+
 ## v0.28.2 — 2026-08-23 — the death frame is its own frame (F4, the `reaction` rung)
 
 The rung was indistinguishable from `close-up`, and the obvious reading — that `fill: 2.1` was being

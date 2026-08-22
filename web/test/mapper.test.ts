@@ -31,6 +31,7 @@ import {
   type BeatEntry, type DeclarationCursor, type Line, type MapperOptions, type Panel,
 } from "../src/comic/mapper.js";
 import { COMMAND_SCRIPT, type CommandScript } from "../src/comic/script.js";
+import { commandsOf as resilientCommandsOf } from "../tools/density.js";
 import {
   BM_SAY, BRK, CHR, addScript, createPage, makeBalloonClass, type Register,
 } from "../src/comic/page.js";
@@ -138,12 +139,20 @@ function strip(options: MapperOptions = {}) {
   };
 }
 
-function commandsOf(file: string): string[] {
-  return readFileSync(join(WALKTHROUGHS, file), "utf8")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith("#"));
-}
+/**
+ * The corpus, replayed to a win — shared with `density.ts` rather than re-read
+ * off disk (F17, v0.28.3).
+ *
+ * `12-full-game.cmd` is a fixed list authored against dfrotz's draw, and ADR
+ * 0002 keeps our own PRNG: fed naively to a session the troll wins on command 29
+ * and **254 of the remaining 375 commands bounce off walls** in a Forest the
+ * Hero cannot leave. It is 60% of the corpus, so every "over all panels" claim
+ * below was two thirds a flail — `docs/PITFALLS.md`'s own M6.1g lesson, live in
+ * the one row big enough to decide the aggregates. `density.ts` had solved it
+ * for its rates and nothing else shared the fix; ADR 0004 §10's parser-miss
+ * characterisation is what that cost.
+ */
+const commandsOf = resilientCommandsOf;
 
 function replayPanels(file: string): Panel[] {
   const session = createSession(doc, { seed: SEED });
@@ -961,7 +970,7 @@ describe("affect table (§10)", () => {
     expect(affect.marker).toBe("death");
   });
 
-  it("gives every ending its own wordless frame, tight on the Hero", () => {
+  it("gives a death its own wordless frame, tight on the Hero", () => {
     // ADR 0004 §7 rung 1 is "tight on Hero", and the rung can only *be* tight
     // when nothing straddles the panel: a speech balloon reserves
     // `BALLOON_HEADROOM` and caps the head, which bounds the shot at exactly a
@@ -969,14 +978,32 @@ describe("affect table (§10)", () => {
     // death whose previous line was not a caption landed in the open panel and
     // relabelled the last *exchange* as the death — two speakers, two balloons,
     // and a Hero at close-up size. Whether it happened turned on the previous
-    // line's mode, which is why this is asserted over the whole corpus and not
-    // on one walkthrough.
-    const reactions = allPanels().filter((p) => p.camera === "reaction");
-    expect(reactions.length).toBeGreaterThan(0);
-    for (const panel of reactions) {
+    // line's mode, which is why this is asserted over the whole corpus.
+    const deaths = allPanels().filter((p) => p.camera === "reaction" && p.marker === "death");
+    expect(deaths.length).toBeGreaterThan(0);
+    for (const panel of deaths) {
       expect(panel.speakers).toHaveLength(0);
       expect(panel.bodies.map((b) => b.speaker)).toEqual([HERO]);
     }
+  });
+
+  it("does not yet give the *victory* one — F18, pinned as the defect it is", () => {
+    // The win is the other half of rung 1 and it does not hold: the barrow's
+    // victory speech is long, it arrives on the winning turn, and it panelizes
+    // into frames that all inherit that turn's `reaction` context. So the
+    // comic's biggest payoff ends on talking heads, each labelled "tight on
+    // Hero" and each drawn at `close-up` size because of the balloon.
+    //
+    // Pinned rather than skipped: this is what the corpus does today, and F18
+    // fixing it should *fail* here and be re-stated, not pass silently. It could
+    // not be asserted at all before F17 — the corpus never won.
+    const win = allPanels().filter((p) => p.camera === "reaction" && p.marker !== "death");
+    expect(win.length).toBeGreaterThan(0);
+    // Not one of them is wordless: the Hero's declaration of the move that wins
+    // takes the first frame, and the barrow speech fills the rest.
+    for (const panel of win) expect(panel.speakers.length).toBeGreaterThan(0);
+    expect(win.filter((p) => p.bodies.some((b) => b.speaker === GUIDE)).length)
+      .toBeGreaterThan(1);
   });
 
   it("draws no panel for the turn that says nothing after an ending", () => {
@@ -1011,21 +1038,41 @@ describe("affect table (§10)", () => {
     expect(flat / panels.length).toBeLessThan(0.8);
   });
 
-  it("makes the refusals the largest thing in the game", () => {
-    // Counted by *family* (M6.1e): `parser-miss` is three markers now, and the
-    // claim was always about the refusal, not about which one of them it was.
+  it("no longer makes the parser the comic's main character (§10, amended 2026-08-23)", () => {
+    // §10 counts *turns*, and so does this: a turn's panels share its affect, so
+    // counting panels would weight a turn by how many balloons it happened to
+    // split into. The claim this replaces — "the Hero's most common emotion is
+    // exasperation at the parser", `parser-miss` at 12.7% — was true only of a
+    // corpus in which the full game dies on command 29 and the Hero spends 254
+    // commands walking into walls (F17).
     const counts = new Map<string, number>();
-    for (const panel of allPanels()) {
-      const family = markerFamily(panel.marker);
-      if (family !== null) counts.set(family, (counts.get(family) ?? 0) + 1);
+    for (const file of readdirSync(WALKTHROUGHS).filter((f) => f.endsWith(".cmd"))) {
+      const perTurn = new Map<number, string | null>();
+      for (const panel of replayPanels(file)) {
+        if (panel.marker !== null || !perTurn.has(panel.turn)) {
+          if (panel.marker !== null || perTurn.get(panel.turn) == null) {
+            perTurn.set(panel.turn, panel.marker);
+          }
+        }
+      }
+      for (const marker of perTurn.values()) {
+        const family = markerFamily(marker);
+        if (family !== null) counts.set(family, (counts.get(family) ?? 0) + 1);
+      }
     }
+    const turns = [...counts.values()].reduce((a, b) => a + b, 0);
+
+    // The sharp end of the finding: walking into walls is not something a
+    // playthrough does. `blocked-exit` was 24.7% of turns on the flail and is
+    // exactly zero on a won route — this is the assertion that would have caught
+    // the bad corpus, so it is stated as zero rather than as a small fraction.
+    expect(counts.get("blocked-exit") ?? 0).toBe(0);
+    // And the parser barely comes up. Bounded loosely: authoring keeps moving
+    // these rates, and §10 locks the *ordering*, not the percentages.
+    expect((counts.get("parser-miss") ?? 0) / turns).toBeLessThan(0.06);
+    // What the Hero actually does most is acknowledge and score.
     const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
-    expect(ranked[0]?.[0]).toBe("parser-miss");
-    // And the map's own "no" fires — 114 turns of the corpus say exactly "You
-    // can't go that way", which is why M6.1e gave it a voice. Its *rank* is not
-    // asserted: the scene walkthroughs are short and deliberate, so how high it
-    // sits is a property of the route, not of the game.
-    expect(counts.get("blocked-exit") ?? 0).toBeGreaterThan(0);
+    expect(ranked.slice(0, 2).map(([family]) => family)).toEqual(["routine-ack", "scored"]);
   });
 
   it("emits a shrug alongside the parser-miss expression", () => {

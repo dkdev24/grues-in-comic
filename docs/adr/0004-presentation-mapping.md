@@ -8,6 +8,7 @@
 - **Amended:** 2026-07-20 (stage 5.3, from building it) — §10: `parser-miss` fires on the `narration:system` **channel**, not only on prose patterns; §11: the Hero must own a BORED *face* as well as a SHRUG torso, which recasts the Hero
 - **Amended:** 2026-08-22 (F16 roster survey) — §11: the pose-inventory predicate is *necessary, not sufficient* — a qualifying avatar can still be expression-dead (lance); the corpus is 31 avatars, not 25 (`artpack1/` was never surveyed); HAPPY torsos do exist outside the Guide shortlist. Cast unchanged.
 - **Amended:** 2026-08-22 (F16 casting) — §11: the Hero requirement relaxes to a BORED **face**; the SHRUG **torso** becomes preferred-not-required and falls back to a neutral body. Default cast (dan/tiki) and the pixel gate's canonical cast are unchanged.
+- **Amended:** 2026-08-23 (F17, v0.28.3) — §10: **the parser-miss characterisation is withdrawn.** "The Hero's most common emotion is exasperation at the parser" was measured over a corpus in which the full game dies on its 29th command and flails; on the won corpus `parser-miss` is 1.6% of turns and `blocked-exit` is 0%. The marker table, its priorities and its ordering are **unchanged** — only the claim about what the comic is mostly *about*.
 - **Amended:** 2026-08-22 (F16 shipped, v0.28.0) — §11: the offered roster is now `art/src/roster.ts` (8 Heroes, 7 Dungeon Masters), enforced by `art/tools/rosterpack.ts`; a player's pick is a runtime skin and the gate's cast is unchanged.
 - **Superseded (in part):** 2026-07-23 — ADR 0007 reverses §4a's "panel width becomes an input, not a constant" clause: panel size is fixed and the *pane* reflows the column count. The rest of §4a stands.
 - **Stage:** 5.2/5.3 (decides panel grammar *before* the comic layer is built, per Next Action #5)
@@ -159,9 +160,25 @@ Priority descending; angles are `EMOTION_ANGLES` indices (`art/src/format.ts:83`
 
 **Lock the ordering; do not lock the measured percentages.** All 11 walkthroughs open at West of House and replay the same first moves, so the frequencies are opening-sequence-shaped. `effort` at 25 fires is largely three repeated sentences (the window ×8, the rug ×6, the trap door ×6).
 
-**51% of turns are deliberately affectless.** 77 turns (40.7%) match no marker and 20 more resolve to `routine-ack`; these are room descriptions and inventory listings, where a neutral Hero is correct. This is intent, not a coverage gap — it is what keeps the 5.8% death reaction from becoming wallpaper. A future session that "improves coverage" here will flatten the comic.
+**Most turns are deliberately affectless.** At 5.3 that was 51% — 77 turns (40.7%) matching no marker and 20 more resolving to `routine-ack`; on the corpus as it now stands it is **65.3%** (`(none)` 65.3% + `routine-ack` 12.6%, per turn, all twelve walkthroughs replayed to a win). These are room descriptions and inventory listings, where a neutral Hero is correct. This is intent, not a coverage gap — it is what keeps the death reaction from becoming wallpaper. A future session that "improves coverage" here will flatten the comic.
 
-**The Hero's most common emotion is exasperation at the parser.** `parser-miss` is the largest single marker (12.7%) and nothing outranks it in practice. This ADR **adopts** that deliberately: arguing with the parser is the 1977 experience, and it is funnier than neutral. It is recorded here because it was arrived at by measurement rather than chosen, and a reader should know it is load-bearing characterisation rather than an artifact.
+**~~The Hero's most common emotion is exasperation at the parser.~~ Withdrawn 2026-08-23 (F17): it was an artifact of a flailing corpus.** The claim was that `parser-miss` is the largest single marker (12.7%), that nothing outranks it in practice, and that this ADR **adopts** it — arguing with the parser being the 1977 experience, and funnier than neutral. It was recorded here precisely so a reader would know it was arrived at by measurement rather than chosen. The measurement was wrong, and this is what that safeguard was for.
+
+`12-full-game.cmd` is a fixed command list authored against dfrotz's random draw, and ADR 0002 declined to reproduce the Z-machine's PRNG. Replayed naively the troll wins on command 29, the Hero is resurrected into the Forest at 30/350, and **254 of the remaining 375 commands bounce off walls** — while that file is 60% of the corpus. Every "over all panels" rate took two thirds of its evidence from a Hero who could not leave a Forest. Counted per turn, as this section counts:
+
+| Marker family | Naive corpus | Won corpus | Scene walkthroughs |
+|---|---|---|---|
+| `blocked-exit` | **24.7%** | **0%** | 0% |
+| `parser-miss` | **12.3%** | **1.6%** | 2.5% |
+| `routine-ack` | 5.8% | 12.6% | 11.0% |
+| `scored` | 3.3% | 9.4% | 7.4% |
+| affectless | 40.0% | 65.3% | 47.2% |
+
+**What replaces it: the Hero's most common marked emotion is the flat acknowledgement, and after that, satisfaction at scoring.** `routine-ack` (12.6%) then `scored` (9.4%). A player who is *playing* rather than lost barely argues with the parser — the refusal families are the signature of being stuck, not of the game. `blocked-exit` reaching exactly zero on a won route is the cleanest form of the finding: walking into walls is not something a playthrough does.
+
+**Nothing in the table moves.** The priorities are a claim about which marker should win when two fire, and that is unaffected by how often each fires — `parser-miss` at 1.6% still needs to outrank `routine-ack` on the turn it fires. What changes is only the characterisation drawn from the frequencies, which "lock the ordering; do not lock the measured percentages" above already warned would happen. This is that rule being cashed rather than an exception to it.
+
+**Two consequences worth naming.** The Hero's BORED face and SHRUG torso (§11, and the 5.3 amendment that recast the Hero for them) are inventory for a beat that fires on 1.6% of turns, not on the comic's most common one — the casting rule stands, but its *stated* justification does not. And assisted input (F14) was held back partly because it "removes the largest affect marker"; it does not, and that entry's risk is re-rated with this amendment.
 
 ### 11. Casting is constrained by pose inventory, not only by avatar type
 

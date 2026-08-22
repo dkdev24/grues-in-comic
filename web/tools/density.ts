@@ -204,7 +204,16 @@ const RESILIENT = new Set<string>(["12-full-game.cmd"]);
 /** Memoised: the driver is a whole playthrough, and both stages ask for it. */
 let fullGame: string[] | null = null;
 
-function commandsOf(file: string): string[] {
+/**
+ * **Exported because the corpus is not this module's private business** (F17).
+ * Anything that replays the walkthroughs to draw a conclusion from *all* of them
+ * — the mapper's corpus-wide invariants as much as these rates — has to come
+ * through here, or it draws that conclusion from a game that died on command 29.
+ * This module had the fix and nothing shared it, which is how ADR 0004 §10's
+ * parser-miss characterisation survived three milestones after it stopped being
+ * true.
+ */
+export function commandsOf(file: string): string[] {
   if (RESILIENT.has(file)) {
     fullGame ??= fullGameCommands({ seed: SEED });
     return fullGame;

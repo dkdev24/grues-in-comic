@@ -213,10 +213,22 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   output that it is measuring a losing run.** The log includes commands that *threw*, deliberately:
   the harness swallows those and carries on, and a replay that skipped them would diverge.
 - **A measurement taken over a lost game is not a weak measurement, it is a different game**
-  (M6.1g, the lesson of the repair; **and it is still live — see F17**, 2026-08-23: `density.ts`
-  fixed its own corpus and nothing else shares the fix, so `mapper.test.ts`'s `allPanels()` still
-  replays `12-full-game.cmd` raw, where the troll wins on command 29 and 254 of the next 375
-  commands bounce off walls — 60% of the corpus). Every conclusion M6.1d–f drew from the corpus had to be re-taken
+  (M6.1g, the lesson of the repair — **and it cost an ADR claim before it was fully paid**, F17,
+  v0.28.3: `density.ts` fixed its own corpus and nothing else shared the fix, so `mapper.test.ts`
+  replayed `12-full-game.cmd` raw for three more milestones, and ADR 0004 §10's "the Hero's most
+  common emotion is exasperation at the parser" survived on 254 commands of walking into walls.
+  **Fixing one caller is not fixing the corpus** — `commandsOf` is exported from `density.ts` now,
+  and anything replaying all twelve walkthroughs goes through it.)
+- **`blocked-exit` at exactly zero is the corpus's own smoke alarm** (F17, v0.28.3). Walking into a
+  wall is not something a playthrough does: on a won route the marker fires **0 times**, and on the
+  derailed one it is 24.7% of turns. Any corpus-wide rate is worth re-reading the moment that number
+  goes non-zero — it is far cheaper to check than the aggregate it would have poisoned, which is why
+  `mapper.test.ts` asserts it as zero rather than as a small fraction.
+- **`blocked-exit` at exactly zero is the corpus's own smoke alarm** (F17, v0.28.3). Walking into a
+  wall is not something a playthrough does: on a won route the marker fires **0 times**, and on the
+  derailed one 24.7% of turns. Any corpus-wide rate is worth re-reading the moment that number is
+  non-zero — it is cheaper to check than the aggregate it would have poisoned, and `mapper.test.ts`
+  now asserts it as zero rather than as a small fraction for exactly that reason. Every conclusion M6.1d–f drew from the corpus had to be re-taken
   and three of them inverted: the two-shot was not 59% but 26% (the flail carries no arrivals, so it
   never paid the location box's share of the balloon band — see `render.ts`'s note on
   `BALLOON_HEADROOM`); the clustering culprit was not the refusal beats but `routine-ack`, which the

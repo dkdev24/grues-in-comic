@@ -18,6 +18,19 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.28.3] - 2026-08-23 — the Hero is not, in fact, mostly annoyed
+
+### Fixed
+- **A long-standing claim about the game's own character turned out to be measured wrong.** The
+  project had recorded that the Hero's most common expression was exasperation at the parser, and
+  built casting around it. It came from replaying the full-game walkthrough, which — because this
+  engine rolls its own dice — loses a fight it was written to win, leaving the Hero stranded in a
+  forest for 254 commands of walking into walls. Played properly, the Hero almost never argues with
+  the parser; what the comic is mostly made of is quiet acknowledgement and the pleasure of scoring.
+  The affect table itself is unchanged; only the description of what it produces.
+
+---
+
 ## [v0.28.2] - 2026-08-23 — the death frame is its own frame
 
 ### Fixed
