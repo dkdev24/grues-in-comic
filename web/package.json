@@ -18,7 +18,8 @@
     "density": "tsx tools/density.ts",
     "density:accept": "tsx tools/density.ts --accept",
     "changelog": "tsx tools/build-changelog.ts",
-    "sitemap": "tsx tools/build-sitemap.ts"
+    "sitemap": "tsx tools/build-sitemap.ts",
+    "make-walkthrough-save": "tsx tools/make-walkthrough-save.ts"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.2",

@@ -20,7 +20,8 @@ browser-native comic adventure via an IR the engine executes.
 - **M1–M5 ✅** Importer, IR, engine, comic presentation done (parity 143/143 strict). Detail: `WORKLOG.md`.
 - **M6 ◐** road to 1.0.0 (repo public + website ships). Detail: `docs/DEVELOPMENT_PLAN.md` §6.
   - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; remaining 13 (maze + 2 dead ends)
-    silent by design, not a gap.
+    silent by design, not a gap. Re-verified 2026-08-22: user confirmed skip, no room dialog
+    outstanding.
   - **6.2, 6.3, 6.6, 6.5-beta ✅** closed. **6.4, 6.5 (public release) ☐** not started.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 

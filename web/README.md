@@ -45,6 +45,7 @@ is platform-bound" below.
 | `src/comic/render.ts` | A panel, drawn: camera presets as framing |
 | `src/main.ts` | Bootstrap: fetch world, wire input, `save`/`restore` |
 | `tools/serve.ts` | Zero-dependency static server |
+| `tools/make-walkthrough-save.ts` | Generates a loadable save at the ending — see "Reviewing the ending" below |
 
 ## No bundler, and why
 
@@ -61,6 +62,34 @@ to bundle. The bundler question stays open for whatever needs it; it is still no
 
 (`tsc` also emits `dist/ir/` from the type-only import graph. Those files are never
 fetched — nothing in `dist/web/` or `dist/engine/` references them.)
+
+## Reviewing the ending
+
+Playing the whole game by hand to check the comic strip at the end takes a full
+playthrough — 423 turns. `tools/make-walkthrough-save.ts` shortcuts that: it runs
+`engine/harness/complete.ts`'s resilient, winning replay of
+`verification/walkthroughs/12-full-game.cmd` (seed 1234, combat retries, thief-hoard
+recovery included) through `src/session.ts`, and writes the result as
+`web/dev-walkthrough-save.json` — the same envelope shape `src/persistence.ts` reads
+for a save slot.
+
+```sh
+npm --prefix web run make-walkthrough-save
+```
+
+The file is gitignored (a generated fixture, not source) but stays on disk, so it
+does not need regenerating every session. To load it, open the dev server in a
+browser, then in that page's devtools console:
+
+```js
+fetch('/dev-walkthrough-save.json').then(r => r.text())
+  .then(t => localStorage.setItem('grues-in-comic/save/v1/slot/1', t))
+  .then(() => location.reload());
+```
+
+Then `/load 1` in the game's console pane. This only writes to that browser's
+`localStorage` on the dev server's origin — it will not appear in a different
+browser, profile, or after clearing site data; rerun the fetch snippet there too.
 
 ## The pixel gate is platform-bound
 
