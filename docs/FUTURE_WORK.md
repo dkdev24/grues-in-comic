@@ -290,6 +290,19 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   *Check against 6.4:* a character picker makes the bundled Comic Chat art a foreground feature
   rather than an implementation detail — re-read `THIRD_PARTY.md`/`NOTICE` when it lands, alongside
   the asset-separation stage.
+  *The roster survey is done (2026-08-22): `docs/casting-roster-survey.md`.* All 31 characters are
+  measured, with candidate pools for Hero (17, once SHRUG is allowed to substitute), DM (20
+  marker-complete) and NPC. Three findings change the shape of this item: `artpack1/` was never
+  surveyed and holds six unseen characters including the corpus's richest (rebecca, 456 figures);
+  inventory does not imply legibility (lance passes the Hero predicate wearing a paper bag, so ADR
+  0004 §11 now has a legibility gate); and the Hero predicate as written is one character wide, so
+  F16 must first decide whether the SHRUG *torso* may substitute. The picking of the shipped roster
+  is still open and is the user's call — though the user proposed one on 2026-08-22 (survey
+  § *The user's proposed roster*), which the survey checks and finds workable at the cost of five
+  things — since revised by the user to clear two, and the SHRUG question decided (ADR 0004 §11
+  amended 2026-08-22: BORED **face** required, SHRUG torso optional, missing torso draws neutral).
+  Two costs remain: a ~3× art payload that forces per-cast fetching, and a framing pass for Heroes
+  taller than dan. All-complex casting means F15/F16 need no new rendering code.
   *Done looks like:* a new game opens on a cast screen, every offered character is validated against
   the emotion table for the role it is offered for, the choice survives a reload, and the pixel gate
   still renders its canonical cast.

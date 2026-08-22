@@ -41,6 +41,9 @@ right now) and [`../WORKLOG.md`](../WORKLOG.md) (what happened, newest first, ne
 
 - [`panel-grammar-discussion.md`](panel-grammar-discussion.md) — the measurements and argument behind
   ADR 0004. The ADR is the decision; this is how it was reached.
+- [`casting-roster-survey.md`](casting-roster-survey.md) — all 31 Comic Chat characters measured for
+  casting, with the Hero / DM / NPC candidate pools behind F16 and F15. The pools are measurement;
+  the roster that ships is a decision nobody has made yet.
 - [`backdrop-generation-plan.md`](backdrop-generation-plan.md) — how the 30 backdrops covering all
   110 rooms were generated, and what the next pass would add.
 

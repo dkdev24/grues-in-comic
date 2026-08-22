@@ -344,6 +344,15 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 - **`web/assets/comic/` is a committed build artifact.** Regenerate with `npm --prefix art run pack`
   (cast pinned in the script). **Re-pack after any `art/` decode change** — v0.13.1 fixed the decoder
   but the committed sheets stayed inverted until regenerated.
+- **Casting on pose inventory alone will ship an expression-dead character.** ADR 0004 §11's
+  predicate ("owns a SHRUG torso and a BORED face") is an inventory test, and **lance passes it
+  wearing a paper bag** — every marker fires, nothing visible changes in the panel. Look at the
+  figures before casting: `npx tsx art/tools/roster.ts > roster.json` then
+  `npx tsx art/tools/roster-sheet.ts roster.json sheet.png BORED`. Pools: `docs/casting-roster-survey.md`.
+- **The avatar corpus is 31 characters, not 25** — `original-projects/comic-chat/v2.5-beta-1/` has
+  `artpack1/` as well as `comicart/`. Six characters live only in `artpack1/`, and four names exist
+  in both with the `artpack1` cut richer (lynnea 306 → 391 figures). Any survey that reads one
+  directory is measuring two-thirds of the corpus, which is how the ADR 0004 shortlists were built.
 - **`docs/AVB_FORMAT.md` is normative** and lists five silent-failure gotchas. Read it before touching
   the decoder.
 

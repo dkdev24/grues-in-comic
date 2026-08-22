@@ -26,9 +26,9 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 
 ## Last Session — v0.27.6 (tagged, released): the ending, then public-readiness
 The ending reads whole, a `victory` marker replaces `death`, and its panels draw `barrow-interior`
-keyed on that marker (F1 closed). Then: `docs/` indexed and archived, root `README.md` rewritten,
-`verification/README.md` written, backlog triaged (`FUTURE_WORK.md` §2.0), two licensing defects
-fixed. **Apache-2.0 stays** — MIT considered, declined. Detail: `WORKLOG.md`.
+keyed on that marker (F1 closed). Then public-readiness: docs indexed/archived, READMEs, backlog
+triage, two licensing defects. **Apache-2.0 stays** — MIT declined. Detail: `WORKLOG.md`.
+Since (docs only): **F16 casting** — 31 avatars measured, pools + user's roster in `docs/casting-roster-survey.md`; ADR 0004 §11 amended twice (legibility gate; Hero needs a BORED **face**, SHRUG torso now optional). Build not started.
 
 ## Next Actions
 Full stage detail in `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
