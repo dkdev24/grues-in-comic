@@ -10,6 +10,42 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.28.2 — 2026-08-23 — the death frame is its own frame (F4, the `reaction` rung)
+
+The rung was indistinguishable from `close-up`, and the obvious reading — that `fill: 2.1` was being
+eaten by the equal-margin row shrink — was true but was not the cause. Rendering the alternatives
+settled it: dropping the Guide's *body* from the panel changed nothing, because the panel still
+carried a speech balloon, and a speech balloon pins the head-top at `BALLOON_HEADROOM` and caps the
+head at `MAX_HEAD_HEIGHT`. **With a balloon over it, no rung can be tighter than a `close-up`.** So
+the rung was never tunable into shape; the question was why it had balloons at all.
+
+**It was drawing the wrong turn.** 6.1c protected the death frame *forward* with a trailing `<Brk>`
+— without it the next turn's balloon clone-appended into the death panel and `clonePanel` took the
+incoming context, which had already deleted the rung from the corpus once. The backward direction was
+never protected. `addReaction` clone-appends exactly like `AddLine` does, so the staging body joined
+whatever panel was still open — the previous turn's exchange — and that panel was then relabelled
+`reaction` and drawn at 0.18 backdrop with two people talking in it. Whether it happened turned on
+whether the previous line was a `BM_ACTION` caption: **6 of 11 walkthroughs**. Unshifting a `<Brk>`
+ahead of the turn's own lines gives the death its own frame in both directions, and puts a Hero line
+the death turn carries ("Let's fight the troll.") inside the death frame rather than before it.
+
+**And the ending closed on a shrug.** `reactions` poses the Hero into the frame the DM's line opened;
+a turn with no line has no such frame, so staging manufactured one — a wordless `medium`. Zork's
+`quit` confirmation is that turn, so it landed *after* the death frame in every ending. Guarded on
+`lines.length > 0`.
+
+**`headFill`/`headTop`.** With the frame wordless, nothing holds the head to a size any more, so the
+roster's head fractions came back: dan was `MAX_SCALE`-clipped while kevin ran 30% closer. `SHOTS`
+rungs are now a union — `fill`+`reveal` (body-framed) or `headFill`+`headTop` (head-framed) — and
+`reaction` is the second kind at the values dan was already getting. Head size and head position are
+identical across all eight Heroes.
+
+Gate: 24 cases, two renamed (`p09` reaction→medium, `p10` medium→reaction) and re-accepted after
+looking; the before/after is the whole change in one image. Density: +6 panels over 1119, D5 at 2.2
+turns per exchange and D5′ at 42.0%, both still in band. 353 web tests.
+
+---
+
 ## v0.28.1 — 2026-08-23 — a close-up means the same thing for everyone (F4, tall-Hero half)
 
 v0.28.0 shipped eight playable Heroes against a `SHOTS` ladder tuned on one of them, and F16 named

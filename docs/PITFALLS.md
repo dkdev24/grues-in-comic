@@ -125,6 +125,22 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   Guide's head off the bottom of the frame and the balloon driver refused the panel into
   `stackBalloons`, which the gate reports as a finding. Clamp **after** layout, re-pin the head-top to
   the band, and only for figures the band actually pinned (`applyHeadroom`).
+- **A rung carrying a speech balloon cannot be tighter than a `close-up`, whatever its numbers say**
+  (F4, v0.28.2). `BALLOON_HEADROOM` pins the head-top at 0.44 and `MAX_HEAD_HEIGHT` caps the head at
+  0.38, so the head is bounded at 38% of the panel the moment a straddling balloon exists. `reaction`
+  asked for `fill: 2.1` and got a `close-up` on every panel that had one. **A tight rung has to be
+  wordless to be tight** — which is why the death frame stages the Hero alone and says nothing, and
+  why `SHOTS.reaction` is expressed as `headFill`/`headTop` rather than `fill`/`reveal`.
+- **`addReaction` clone-appends, so a staged body lands in whoever's panel is still open** (F4,
+  v0.28.2). The mapper broke *forward* out of the death frame with a trailing `<Brk>` at 6.1c and
+  left the backward direction alone, so the reaction body joined the previous turn's exchange and
+  `clonePanel` relabelled that panel as the death — **6 of 11 walkthroughs**, decided by whether the
+  previous line happened to be a `BM_ACTION` caption. **A rung that needs its own frame needs a break
+  on both sides of it.**
+- **`reactions` staging is a second body for an existing frame, never a frame of its own** (F4,
+  v0.28.2). A turn that produced no line has no frame to stage into, and staging anyway manufactures
+  a wordless `medium` shrug. Zork's `quit` confirmation is that turn, so every ending in the corpus
+  closed on a shrug *after* its own death frame. Guard staging on `lines.length > 0`.
 - **A turn that ends the game may not have moved the player, and two rules were written as if it
   always had** (v0.27.5, reported from play). The barrow win aborts the walk, so the winning turn
   carries no `player-moved`: the read-aloud's whole-text path (gated on `moved`) quoted one sentence

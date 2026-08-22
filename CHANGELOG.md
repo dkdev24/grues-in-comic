@@ -18,6 +18,21 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.28.2] - 2026-08-23 — the death frame is its own frame
+
+### Fixed
+- **A death now gets a panel of its own.** The game-over shot — the comic's biggest beat, a wordless
+  portrait of the Hero — was landing on top of the previous exchange in most endings, so what the
+  reader got was the last two people talking, shrunk, with the room washed out behind them. It only
+  happened when the line before it was of a particular kind, which is why it had gone unnoticed. The
+  ending is also no longer followed by a stray panel of the Hero shrugging at nothing: Zork asks
+  "do you wish to leave the game?", and answering it was drawing a frame.
+- **Every Hero dies the same size.** The death portrait is framed by the head rather than by the
+  body, so picking a different character changes who is in the last panel and not how close the
+  camera is.
+
+---
+
 ## [v0.28.1] - 2026-08-23 — a close-up means the same thing for everyone
 
 ### Fixed

@@ -17,14 +17,38 @@ import {
 } from "./balloon-layout.js";
 
 /** A camera preset, as the numbers a render needs. */
-interface Shot {
-  /** Figure height as a fraction of panel height. */
-  fill: number;
-  /** Vertical framing: 1 shows the whole figure, lower crops toward the head. */
-  reveal: number;
+type Shot = {
   /** How much of the backdrop is visible behind the figures. */
   backdrop: number;
-}
+} & (
+  /** Figure height as a fraction of panel height — the ordinary case. */
+  | {
+    fill: number;
+    /** Vertical framing: 1 shows the whole figure, lower crops toward the head. */
+    reveal: number;
+    headFill?: never; headTop?: never;
+  }
+  /**
+   * *Head* height as a fraction of panel height, for a rung tight enough that
+   * the head is the shot. The two are not interchangeable: `fill` scales by body
+   * height, and the roster's head fractions run 0.295 to 0.347 across the Heroes
+   * alone, so one `fill` on a tight rung is a different shot per character (F4).
+   * A rung under {@link BALLOON_HEADROOM} gets that for free from
+   * {@link MAX_HEAD_HEIGHT}; a rung with no balloon over it has to ask.
+   */
+  | {
+    headFill: number;
+    /**
+     * Where the head-top sits, as a fraction of panel height. A head-framed rung
+     * has to place the head as well as size it: `reveal` measures from the
+     * *feet*, so holding the head to one size while the bodies under it differ
+     * would slide the head down the frame by however much shorter the body is
+     * (kevin's chin at 92% of the panel against denise's at 81%).
+     */
+    headTop: number;
+    fill?: never; reveal?: never;
+  }
+);
 
 /**
  * §7's six rungs as framing. Read this as a table of authoring choices sitting
@@ -36,7 +60,12 @@ const SHOTS: Record<CameraPreset, Shot> = {
   // Tight on the Hero: the head fills the frame and the body is cropped away.
   // This rung fires on game-over (§7 rung 0) — the biggest emotional beat — so
   // the backdrop is pushed almost out: a house behind the head fights the face.
-  reaction: { fill: 2.1, reveal: 0.4, backdrop: 0.18 },
+  // Framed by the head, not the body: this rung carries no balloon (see below),
+  // so nothing else holds the head to one size, and it is the beat where a
+  // Hero-to-Hero difference would show most. 0.54 is what dan was already
+  // getting — `fill: 2.1` asked for more than `MAX_SCALE` would give him, so the
+  // number in the table was never the number on screen for the packed cast.
+  reaction: { headFill: 0.54, headTop: 0.27, backdrop: 0.18 },
   // A new room is the one moment the backdrop is the subject.
   establishing: { fill: 0.5, reveal: 1, backdrop: 1 },
   // A room already seen: both figures, small, the room incidental.
@@ -363,7 +392,7 @@ export function layoutAvatars(
   if (n === 0) return [];
 
   const ordered = orderBodies(bodies);
-  const scales = bodies.map((b) => fit(b.figure, height, shot.fill, widthCap));
+  const scales = bodies.map((b) => fit(b.figure, height, shot.fill ?? 0, widthCap, shot.headFill));
   const widths = bodies.map((b, i) => b.figure.width * scales[i]!);
   const sumWidth = widths.reduce((a, w) => a + w, 0);
 
@@ -386,7 +415,9 @@ export function layoutAvatars(
     const w = widths[i]!;
     placed.push({
       speaker: body.speaker, figure, scale, x,
-      y: height - figure.height * scale * shot.reveal,
+      y: shot.headTop === undefined
+        ? height - figure.height * scale * shot.reveal
+        : height * shot.headTop,
       mirror: ordered[i]!.flip,
     });
     x += w + margin;
@@ -435,8 +466,16 @@ function cycleFor(cycles: Map<string, PoseCycle>, role: string): PoseCycle {
   return cycle;
 }
 
-export function fit(figure: Figure, height: number, fill: number, widthCap = Infinity): number {
-  return Math.min((height * fill) / figure.height, MAX_SCALE, widthCap / figure.width);
+export function fit(
+  figure: Figure, height: number, fill: number,
+  widthCap = Infinity, headFill?: number,
+): number {
+  // `headFill` replaces the body term rather than joining it as another clamp:
+  // it is a different way of asking for the same thing, not a smaller ceiling.
+  const wanted = headFill === undefined
+    ? (height * fill) / figure.height
+    : (height * headFill) / figure.headHeight;
+  return Math.min(wanted, MAX_SCALE, widthCap / figure.width);
 }
 
 /**

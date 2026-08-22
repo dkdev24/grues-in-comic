@@ -961,6 +961,46 @@ describe("affect table (§10)", () => {
     expect(affect.marker).toBe("death");
   });
 
+  it("gives every ending its own wordless frame, tight on the Hero", () => {
+    // ADR 0004 §7 rung 1 is "tight on Hero", and the rung can only *be* tight
+    // when nothing straddles the panel: a speech balloon reserves
+    // `BALLOON_HEADROOM` and caps the head, which bounds the shot at exactly a
+    // `close-up`. `addReaction` clone-appends like `AddLine`, so before v0.28.2 a
+    // death whose previous line was not a caption landed in the open panel and
+    // relabelled the last *exchange* as the death — two speakers, two balloons,
+    // and a Hero at close-up size. Whether it happened turned on the previous
+    // line's mode, which is why this is asserted over the whole corpus and not
+    // on one walkthrough.
+    const reactions = allPanels().filter((p) => p.camera === "reaction");
+    expect(reactions.length).toBeGreaterThan(0);
+    for (const panel of reactions) {
+      expect(panel.speakers).toHaveLength(0);
+      expect(panel.bodies.map((b) => b.speaker)).toEqual([HERO]);
+    }
+  });
+
+  it("draws no panel for the turn that says nothing after an ending", () => {
+    // `reactions` poses the Hero into the frame the DM's line opened; a turn with
+    // no line has no such frame, and staging into nothing manufactures one — a
+    // wordless shrug in a `medium` shot. Zork's `quit` confirmation is that turn,
+    // so every ending used to close on it, *after* its own death frame. The
+    // reaction rung is the one place a speaker-less panel is intended.
+    // A wordless panel is ordinary — a silent traversal draws one, and so does
+    // the Hero's opening entrance. What is not ordinary is a turn that produced
+    // *no line at all* drawing one, and Zork's `quit` confirmation is exactly
+    // that turn: it lands after the death frame, so the ending closed on it.
+    const session = createSession(doc, { seed: SEED });
+    const page = strip();
+    page.turn(session.start());
+    let last: ReturnType<typeof page.turn> | null = null;
+    for (const command of commandsOf("01-west-of-house.cmd")) last = page.turn(session.command(command));
+    expect(last?.lines).toEqual([]);
+    expect(last?.panels).toEqual([]);
+    // And the strip closes on the death frame itself.
+    const panels = [...page.panels];
+    expect(panels[panels.length - 1]?.camera).toBe("reaction");
+  });
+
   it("leaves about half of all turns affectless, deliberately", () => {
     const panels = allPanels();
     const flat = panels.filter((p) => p.marker === null).length;

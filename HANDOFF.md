@@ -10,7 +10,7 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ---
 
 ## Current Version
-**0.28.1** · Platform: **macOS only** (2026-07-28)
+**0.28.2** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -20,26 +20,26 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
   - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; the 13 others (maze + 2 dead ends)
     silent by design (user confirmed skip, 2026-08-22). **6.2/6.3/6.6/6.7/6.5-beta ✅**; **6.4, 6.5 ☐**.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
-**Tests:** 349 web · 54 art · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
+**Tests:** 353 web · 54 art · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.28.1 (F4, tall-Hero half): a close-up means the same thing for everyone
-`SHOTS.fill` scales by *body* height; a reader reads closeness off the *head*, which the roster
-varies far more. `MAX_HEAD_HEIGHT` caps the head *after* layout (`applyHeadroom`): `close-up` chins
-went from 81–91% of the panel (tiki's jaw at 107%, off-frame) to 81–82% roster-wide, packed Hero
-byte-identical, 6 gate cases re-accepted after looking, density unchanged. New harness
-`web/tools/shots-grid.ts` — one rung across every Hero, geometry printed. Full story: `WORKLOG.md`.
+## Last Session — v0.28.2 (F4, the `reaction` rung): the death frame is its own frame
+The rung read as a `close-up` because it drew the *previous turn's exchange*: `addReaction`
+clone-appends and only the forward `<Brk>` was ported, so the staging body joined the open panel
+(6 of 11 walkthroughs). A break on both sides fixes it; guarding `reactions` on `lines.length > 0`
+stops the ending closing on a wordless shrug. Behind it: **with a speech balloon present no rung can
+be tighter than a `close-up`** (headroom + head cap), so a tight rung must be wordless. `SHOTS` rungs
+are now `fill`+`reveal` or `headFill`+`headTop`; `reaction` is head-framed, same for all 8 Heroes.
+Gate 24/24 re-accepted (two renamed), density +6 panels, both D5 targets in band. See `WORKLOG.md`.
 
 ## Next Actions
-Full stage detail in `docs/DEVELOPMENT_PLAN.md` §6 — this is the index, not the plan.
-1. **6.1e — dialogue authoring.** ◐ Open-ended.
-2. **6.4 asset separation & neutral branding.** ☐
-3. **6.5 public release → tag `1.0.0`.** ☐ Needs 6.4 + rest of 6.1 done.
-4. **ADR 0006 Slice 5 — PDF export.** ☐ Schedulable whenever.
-5. **F4 — `reaction` is not a reaction shot.** ◐ fill 2.1 never survives two bodies (row shrink pins
-   it ~1.05), so game-over renders as `close-up`. Wants a decision, not a number.
-6. **Backdrop diversity pass.** ☐ Wire `docs/backdrop-generation-plan.md` § Image 4 into `backdrop.ts`.
-
-**The M6 list is open.** More items land as work proceeds; absence is not a scoping decision.
+Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
+1. **6.1e — dialogue authoring.** ◐ Open-ended. **6.4** asset separation & neutral branding ☐, then
+   **6.5** public release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1).
+2. **ADR 0006 Slice 5 — PDF export.** ☐ Schedulable whenever.
+3. **F4 — remaining half.** ☐ `establishing`≈`wide` (left deliberately); the **victory** ending is
+   unmeasured — no `won` turn in the corpus, `12-full-game.cmd` never reaches the barrow in replay.
+4. **Backdrop diversity pass.** ☐ Wire `docs/backdrop-generation-plan.md` § Image 4 into `backdrop.ts`.
+**The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
 | Path | Purpose |
 |---|---|

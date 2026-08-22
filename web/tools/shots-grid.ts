@@ -121,7 +121,12 @@ async function main(): Promise<void> {
   const over: Line = {
     speaker: CAPTION, balloonClass: "CBWoodringBox", text: "You have died.",
   };
-  const dead: Panel = { ...solo, speakers: [over] };
+  const dead: Panel = {
+    ...solo, speakers: [over],
+    // And the Hero alone on stage: a death opens its own frame (`mapper.ts`), so
+    // the Guide is never beside him on this rung.
+    bodies: solo.bodies.filter((b) => b.speaker === HERO),
+  };
 
   const rows: string[] = ["rung\thero\tfigH\theadFrac\tscale\tcapped\theadTop%\tchin%\tfeet%"];
 

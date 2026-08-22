@@ -13,8 +13,8 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  applyHeadroom, clearOfFaces, fit, BALLOON_HEADROOM, MAX_FIGURE_WIDTH, MAX_HEAD_HEIGHT,
-  type PlacedBody,
+  applyHeadroom, clearOfFaces, fit, layoutAvatars, BALLOON_HEADROOM, MAX_FIGURE_WIDTH,
+  MAX_HEAD_HEIGHT, type PlacedBody,
 } from "../src/comic/render.js";
 import type { Figure } from "../src/comic/figure.js";
 
@@ -138,5 +138,40 @@ describe("applyHeadroom / MAX_HEAD_HEIGHT", () => {
     applyHeadroom([item], height);
     expect(item.y).toBe(band + 40);
     expect(item.scale).toBe(1);
+  });
+});
+
+describe("head-framed rungs (`headFill`/`headTop`)", () => {
+  // `UNIT`, the size the layout is authored at — at a taller panel these
+  // magnifications reach `MAX_SCALE`, which is the second test.
+  const height = 340, width = 400;
+  // The `reaction` rung's shape: no `fill`, no `reveal` — head size and head
+  // position, both as fractions of the panel.
+  const REACTION = { headFill: 0.54, headTop: 0.27, backdrop: 0.18 };
+
+  it("gives two differently-proportioned Heroes the same head, in the same place", () => {
+    // kevin's head is 0.347 of his figure and denise's 0.295 — the widest gap in
+    // the roster. Under a body `fill` that is a different shot each; under
+    // `headFill` it is the same one.
+    // One body per panel, as the rung actually stages it: a death opens its own
+    // frame with the Hero alone on it (`mapper.ts`).
+    const one = (figure: Figure) => layoutAvatars(
+      [{ body: { speaker: "hero" }, figure }] as unknown as Parameters<typeof layoutAvatars>[0],
+      width, height, REACTION,
+    )[0];
+    const a = one(headed(180, 435, 0.347));
+    const b = one(headed(180, 454, 0.295));
+    expect(a!.y).toBeCloseTo(height * 0.27);
+    expect(b!.y).toBeCloseTo(height * 0.27);
+    expect(a!.figure.headHeight * a!.scale).toBeCloseTo(height * 0.54);
+    expect(b!.figure.headHeight * b!.scale).toBeCloseTo(height * 0.54);
+  });
+
+  it("still yields to MAX_SCALE, which is what the packed Hero hits", () => {
+    // dan is the shortest figure in the roster, so the head size this rung asks
+    // for is more magnification than §4a allows — the cap, not the rung, is what
+    // sets his death frame.
+    const dan = headed(197, 388, 0.296);
+    expect(fit(dan, 400, 0, Infinity, 0.54)).toBeCloseTo(1.6);
   });
 });

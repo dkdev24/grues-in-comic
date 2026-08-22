@@ -739,6 +739,22 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // the turn does, which is why the staging goes through `<Chr>` here rather
       // than through `reactions` — those are applied after every line.
       if (gameOver) {
+        // The break has to go *both* ways, and only the forward one was ported.
+        // `addReaction` clone-appends like `AddLine` does (`:1147`), so without a
+        // leading break the staging body lands in whatever panel is still open —
+        // the previous turn's exchange — and `clonePanel` hands that panel the
+        // incoming `reaction` context. The death frame then *is* the last
+        // exchange, wearing the rung: two speakers, two balloons, and a Hero
+        // pinned under `BALLOON_HEADROOM` at the size of a `close-up`. Whether it
+        // happened was an accident of the previous line: a `BM_ACTION` caption had
+        // already set `newPanel`, an ordinary reply had not. **6 of 11
+        // walkthroughs ended that way** — the rung fired, and drew the wrong
+        // moment at the wrong size.
+        //
+        // Unshifted rather than pushed so it also precedes any Hero line this
+        // turn carries: a death the Hero announced ("Let's fight the troll.")
+        // wants that declaration inside the death frame, not the panel before it.
+        lines.unshift({ speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] });
         if (heroLines.length === 0) {
           lines.push({
             speaker: HERO, modes: BM_SAY, text: CHR, emotion: affect.options,
@@ -748,7 +764,13 @@ export function createMapper(options: MapperOptions = {}): Mapper {
         lines.push({ speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] });
       }
 
-      const reactions = heroLines.length === 0 && !gameOver
+      // `reactions` poses the Hero into the panel the DM's line opened — it is a
+      // second body for an existing frame, never a frame of its own. A turn that
+      // produced *no* line has no such frame, and staging into nothing makes one:
+      // a wordless Hero standing in a `medium` shot with nothing to say. Zork's
+      // `quit` confirmation is exactly that turn, so every ending in the corpus
+      // closed on an empty shrug *after* its own death frame.
+      const reactions = lines.length > 0 && heroLines.length === 0 && !gameOver
         ? [{ speaker: HERO, emotion: affect.options }]
         : [];
 

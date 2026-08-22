@@ -81,7 +81,7 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 | F3 | Mob dialogue authoring (ADR 0006 slice) | Port leftovers | L | High | 2 | the largest remaining "reads as a cartoon" lever; needs the talk-to graph |
 | F15 | NPCs on stage — troll, thief, cyclops drawn even when silent | Presentation | L (thief-only step M) | High | 2 | the game has characters the comic has never shown; needs a presence source |
 | ~~F16~~ | ~~Player-chosen character designs for Hero, DM and the NPCs~~ **Hero + DM done at v0.28.0**; the NPC half moves to F15 | Product | — | — | — | shipped — see below |
-| F4 | `SHOTS` framing table — further tuning | Presentation | S (tall-Hero half done v0.28.1) | Medium | 2 | next time the gallery harness or the pixel gate is open |
+| F4 | `SHOTS` framing table — further tuning | Presentation | S (closer rungs done v0.28.1–2) | Low | 3 | next time the gallery harness or the pixel gate is open |
 | F5 | The `Turn[]` autosave grows without bound | Web persistence | M | High *if it fires* | 2 | the first real `StorageFullError` in play — no symptom yet |
 | F6 | Finding a *moment* in a long history | Presentation | L (first step S) | Medium | 2 | the S-sized half — tapping a panel to scroll the transcript — stands alone |
 | F7 | Drawn logo mark, replacing the interim glyph | Product | S (blocked on art) | Medium | 2 | the user's artwork arriving; engineering side is small |
@@ -146,11 +146,17 @@ impact is high in both directions: it is the one item that could make the comic 
   Guide is whole rather than cropped. `web/tools/shots-grid.ts` is the harness that showed it — one
   rung across every Hero, geometry printed beside the images. Cost accepted deliberately: the Guide
   loses its push-in past `medium`, because rung 4 is a close-up *on the Hero*.
-  *Still open, and now the top of this entry:* **`reaction` is not a reaction shot.** Its `fill` of
-  2.1 never survives two bodies — the row shrink (`panel.cpp:577`) pins it near 1.05 — so the
-  game-over beat renders indistinguishable from `close-up`. It wants a decision (a solo rung? a rung
-  that pushes the Guide off-stage?), not a number. Also unresolved and deliberately left:
-  `establishing`≈`wide`, inherent to solo-Hero scenes.
+  *Closed at v0.28.2 — the `reaction` rung.* It was not a reaction shot: `fill: 2.1` never survived a
+  second body, and the diagnosis went the other way from expected — the rung was firing on the
+  *previous turn's exchange*, because `addReaction` clone-appends and only the forward `<Brk>` had
+  been ported (6 of 11 walkthroughs). A break on both sides gives the death its own frame; dropping
+  the staging on a line-less turn stops the ending closing on a wordless shrug; and `headFill`/
+  `headTop` frame that frame by the head, so every Hero's death portrait is the same shot. The
+  geometric reason the rung could never have been tuned into shape is in `docs/PITFALLS.md`: with a
+  speech balloon present, no rung can be tighter than a `close-up`.
+  *Still open, deliberately left:* `establishing`≈`wide`, inherent to solo-Hero scenes. And the
+  **victory** ending is unmeasured — `12-full-game.cmd` does not reach the barrow in replay, so no
+  `won` turn exists in the corpus to look at. The death path is what this closed.
   *Done looks like:* each rung visually distinct in the gallery harness (`web/gallery.html`) **and in
   `shots-grid.ts` across the roster**, with the pixel gate re-accepted after looking at the images.
 

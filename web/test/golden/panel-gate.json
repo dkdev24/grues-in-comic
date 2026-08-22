@@ -486,25 +486,25 @@
     }
   },
   {
-    "name": "wk01-p09-reaction",
-    "camera": "reaction",
+    "name": "wk01-p09-medium",
+    "camera": "medium",
     "bodies": [
       "hero",
       "guide"
     ],
-    "sha256": "debb470763ede4c7bc3d6b38610f54d673f1ba8d4edcdf59ff307901032aefc2",
+    "sha256": "0fed7ed5d99346a3357fefe250801f5b08a742f65b7166e6155e36e5a606493d",
     "trace": {
       "bodies": [
         {
           "speaker": "hero",
-          "x": 0,
-          "y": 181.6,
-          "scale": 1,
+          "x": 52.2,
+          "y": 149.6,
+          "scale": 0.7,
           "mirror": false
         },
         {
           "speaker": "guide",
-          "x": 244.6,
+          "x": 239,
           "y": 149.6,
           "scale": 0.6,
           "mirror": true
@@ -521,21 +521,21 @@
           },
           "lines": 1,
           "tail": {
-            "x": 112.7,
-            "y": 181.6
+            "x": 130.1,
+            "y": 149.6
           }
         },
         {
           "speaker": "guide",
           "box": {
-            "x": 112.7,
+            "x": 130.1,
             "y": 49,
-            "width": 276.5,
+            "width": 254,
             "height": 80
           },
           "lines": 4,
           "tail": {
-            "x": 295.5,
+            "x": 289,
             "y": 149.6
           }
         }
@@ -544,19 +544,19 @@
     }
   },
   {
-    "name": "wk01-p10-medium",
-    "camera": "medium",
+    "name": "wk01-p10-reaction",
+    "camera": "reaction",
     "bodies": [
       "hero"
     ],
-    "sha256": "0d0a1fd9d87bd1385b9949df66dec69c2c9528528c8737cf2d8bb3c2ffce9516",
+    "sha256": "b8c0b883823fffa8d923085596f16ce3251a2f23bbf47547c3ce78eafbc2d884",
     "trace": {
       "bodies": [
         {
           "speaker": "hero",
-          "x": 91.3,
-          "y": 88.1,
-          "scale": 0.7,
+          "x": 45.4,
+          "y": 91.8,
+          "scale": 1.6,
           "mirror": false
         }
       ],
