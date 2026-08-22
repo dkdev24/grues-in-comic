@@ -10,7 +10,7 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ---
 
 ## Current Version
-**0.28.3** · Platform: **macOS only** (2026-07-28)
+**0.28.4** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -20,25 +20,25 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
   - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; the 13 others (maze + 2 dead ends)
     silent by design (user confirmed skip, 2026-08-22). **6.2/6.3/6.6/6.7/6.5-beta ✅**; **6.4, 6.5 ☐**.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
-**Tests:** 354 web · 54 art · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
+**Tests:** 356 web · 54 art · 148 engine · 198 IR · parity 143/143 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.28.3 (F17): the Hero is not, in fact, mostly annoyed
-`12-full-game.cmd` does not stop short, it **dies on command 29** — a fixed list authored against
-dfrotz's draw, replayed under our own PRNG (ADR 0002), so the troll wins and 254 of the next 375
-commands bounce off walls — 60% of the corpus. `density.ts` fixed this at M6.1f and **nothing else
-shared the fix**, so `mapper.test.ts` asserted every corpus-wide claim over a flail. It cost an ADR
-claim: **ADR 0004 §10 is amended** — "the Hero's most common emotion is exasperation at the parser"
-withdrawn (`parser-miss` 12.3%→1.6% per turn, `blocked-exit` 24.7%→**0%**); table, priorities and
-ordering untouched. `commandsOf` now exported from `density.ts`; F14 re-rated. See `WORKLOG.md`.
+## Last Session — v0.28.4 (F18): the comic finally notices when you die
+Filed as "the victory draws six talking `reaction` panels"; the cause was larger. **The rung had
+never fired on a death.** `game-over` fires on a quit, a win or a *final* death; an ordinary death
+ends a life and emits nothing — so `reaction` and the SCARED `death` marker both fired on 11 quits
+and no deaths. With a balloon over it nothing can be tighter than a `close-up`, so a tight rung must
+be a *frame*: **§7 amended — rung 1 leaves the ladder**, `reaction` is a staged wordless frame naming
+its own camera (new per-line `PageLine.camera`). **§10 amended — `death` fires on the outcome or
+ZIL's banner** (no new event); a quit keeps the frame, loses the marker. Also turned on `panelRoom`'s
+never-run death machinery and a latent `clonePanel` box bug. Gate +1 case, density +1 panel.
 
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
-2. **F18 — the victory draws six `reaction` panels, none wordless.** ☐ Pinned by a test. A framing
-   call: a portrait *after* the speech, or rung 1 yields to prose on victory only?
+2. **No walkthrough dies.** ☐ The death beat now exists but no corpus row exercises it — only a
+   synthetic fixture does. A death walkthrough would need a dfrotz golden; the user's call.
 3. **Backdrop diversity pass.** ☐ Wire `docs/backdrop-generation-plan.md` § Image 4 into `backdrop.ts`.
-
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
 | Path | Purpose |

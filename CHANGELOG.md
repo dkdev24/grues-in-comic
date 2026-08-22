@@ -18,6 +18,22 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.28.4] - 2026-08-23 — the comic finally notices when you die
+
+### Fixed
+- **Dying is now a moment in the comic.** Zork kills you often, and the strip had never once
+  reacted: the frame reserved for it was going to the *quit* command instead, so the Hero pulled a
+  face when the player left the game and none at all when a troll removed his head. A death now gets
+  what it always should have — the killing blow, the "you have died" banner, and then a panel holding
+  on the Hero's face, in the room it happened in, before the game drops him somewhere else.
+- **Winning is something you can read.** The barrow's closing speech — the reward for the whole game
+  — was being drawn as six cramped close-ups of two people talking. The speech is now laid out to be
+  read, and the Hero's delighted reaction is the panel that follows it.
+- **Quitting is no longer treated as a feeling.** The strip still ends on the Hero when you quit; he
+  just no longer emotes about it.
+
+---
+
 ## [v0.28.3] - 2026-08-23 — the Hero is not, in fact, mostly annoyed
 
 ### Fixed

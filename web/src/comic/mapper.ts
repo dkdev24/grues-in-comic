@@ -530,7 +530,16 @@ export function createMapper(options: MapperOptions = {}): Mapper {
         }
       }
 
-      const affect = affectFor({ text, gameOver, won, scoreDelta, systemChannel });
+      // **A death that resurrects you emits no `game-over`** (F18, v0.28.4). The
+      // event carries `outcome` and the engine sets it faithfully — but only when
+      // the game is actually over, which in Zork means a quit, a win, or a final
+      // death. The ordinary death, the one the game does to you repeatedly, ends
+      // a *life*: ZIL narrates the killing blow, prints the banner and moves you
+      // on, all inside one turn. So it is read off the narration, the way eight
+      // of §10's ten markers already are. ADR 0002 is not extended for it: no new
+      // event, no new field — the prose was always there.
+      if (DEATH_BANNER.test(text)) died = true;
+      const affect = affectFor({ text, gameOver, won, died, scoreDelta, systemChannel });
       /**
        * **Where this panel is set** — not always where the turn left the player
        * (M6.1g; found by reading the playthrough at M6.1f).
@@ -738,30 +747,64 @@ export function createMapper(options: MapperOptions = {}): Mapper {
       // own answer: force a new panel, add nothing. It has to be the last thing
       // the turn does, which is why the staging goes through `<Chr>` here rather
       // than through `reactions` — those are applied after every line.
-      if (gameOver) {
+      if (gameOver || died) {
+        // **An ending gets its own frame, and the frame carries its own rung**
+        // (F18, v0.28.4). Two breaks and a staged body, in this order.
+        //
         // The break has to go *both* ways, and only the forward one was ported.
         // `addReaction` clone-appends like `AddLine` does (`:1147`), so without a
         // leading break the staging body lands in whatever panel is still open —
         // the previous turn's exchange — and `clonePanel` hands that panel the
-        // incoming `reaction` context. The death frame then *is* the last
-        // exchange, wearing the rung: two speakers, two balloons, and a Hero
-        // pinned under `BALLOON_HEADROOM` at the size of a `close-up`. Whether it
-        // happened was an accident of the previous line: a `BM_ACTION` caption had
-        // already set `newPanel`, an ordinary reply had not. **6 of 11
-        // walkthroughs ended that way** — the rung fired, and drew the wrong
-        // moment at the wrong size.
+        // incoming context. The death frame then *is* the last exchange. Whether
+        // it happened was an accident of the previous line: a `BM_ACTION` caption
+        // had already set `newPanel`, an ordinary reply had not. **6 of 11
+        // walkthroughs ended that way.**
         //
         // Unshifted rather than pushed so it also precedes any Hero line this
         // turn carries: a death the Hero announced ("Let's fight the troll.")
         // wants that declaration inside the death frame, not the panel before it.
         lines.unshift({ speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] });
-        if (heroLines.length === 0) {
-          lines.push({
+        // The portrait is staged **unconditionally and last**, and it names its
+        // own camera. An ending that narrates — the barrow's five sentences, a
+        // death's banner — needs those sentences *read*, so they keep whatever
+        // rung the ladder gives them, and the tight shot is the frame that
+        // follows them rather than a label smeared over all of them. An ending
+        // that says nothing (a quit) produces this frame and nothing else, which
+        // is what rung 1 always drew.
+        //
+        // Its own break in front of it, for the reason the leading one exists:
+        // `addReaction` clone-appends, so without this the portrait *clones the
+        // last prose panel* and that panel — balloons and all — becomes the
+        // reaction frame. Which is the original bug, one panel further along.
+        const portrait: PageLine[] = [
+          { speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] },
+          {
             speaker: HERO, modes: BM_SAY, text: CHR, emotion: affect.options,
-            register: "narration",
-          });
+            register: "narration", camera: "reaction",
+          },
+          { speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] },
+        ];
+
+        // **Where the portrait goes depends on what the ending narrates.**
+        //
+        // A victory narrates and then stops: the barrow speech is the reward, so
+        // the portrait follows all of it. A *death* narrates the killing blow,
+        // prints the banner, and then — same turn — describes the room ZIL
+        // resurrected you into, which is the next scene rather than this one. So
+        // the portrait goes in *at the banner*, and the beat reads blow, banner,
+        // face; the resurrection opens the frame after it.
+        const banner = lines.findIndex((line) => DEATH_BANNER.test(line.text));
+        if (banner === -1) {
+          lines.push(...portrait);
+        } else {
+          // Everything past the banner is set in the room the Hero woke up in,
+          // not the one he died in — `panelRoom` pins the turn to the latter
+          // (rightly: the death has to say where it happened), and this is the
+          // half of the turn that belongs to the other room. Same per-line
+          // override the declaration uses, for the same reason.
+          for (const line of lines.slice(banner + 1)) line.room ??= room;
+          lines.splice(banner + 1, 0, ...portrait);
         }
-        lines.push({ speaker: HERO, modes: BM_SAY, text: BRK, emotion: [] });
       }
 
       // `reactions` poses the Hero into the panel the DM's line opened — it is a
@@ -999,9 +1042,24 @@ export function panelKind(input: KindInput): PanelKind {
   return "ambient";
 }
 
-/** §7, first matching rung wins. The order is the decision; do not reorder. */
+/**
+ * §7, first matching rung wins. The order is the decision; do not reorder.
+ *
+ * **Rung 1 is no longer here** (F18, v0.28.4, ADR 0004 §7 amended). `reaction` is
+ * not a rung the ladder picks for a *turn*: it belongs to the one frame the
+ * mapper stages at an ending, and rides on that line as `PageLine.camera`. It
+ * left the ladder because a ladder answers "what shot is this turn", and an
+ * ending turn is the case where the answer differs between its own panels — the
+ * barrow speech wants the room, the frame after it wants the face.
+ */
+/**
+ * ZIL's death banner (`1actions.zil`'s JIGS-UP). Anchored on the asterisked
+ * heading rather than on "you are dead", which also appears in the *final*
+ * death's "you clumsy oaf" ending and in at least one refusal.
+ */
+const DEATH_BANNER = /\*{2,}\s*You have died\s*\*{2,}/i;
+
 export function cameraFor(input: LadderInput): CameraPreset {
-  if (input.gameOver) return "reaction";
   if (input.moved && input.firstVisit) return "establishing";
   if (input.moved) return "wide";
   if (input.salientMove) return "close-up";

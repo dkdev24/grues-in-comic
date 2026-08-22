@@ -8,6 +8,7 @@
 - **Amended:** 2026-07-20 (stage 5.3, from building it) — §10: `parser-miss` fires on the `narration:system` **channel**, not only on prose patterns; §11: the Hero must own a BORED *face* as well as a SHRUG torso, which recasts the Hero
 - **Amended:** 2026-08-22 (F16 roster survey) — §11: the pose-inventory predicate is *necessary, not sufficient* — a qualifying avatar can still be expression-dead (lance); the corpus is 31 avatars, not 25 (`artpack1/` was never surveyed); HAPPY torsos do exist outside the Guide shortlist. Cast unchanged.
 - **Amended:** 2026-08-22 (F16 casting) — §11: the Hero requirement relaxes to a BORED **face**; the SHRUG **torso** becomes preferred-not-required and falls back to a neutral body. Default cast (dan/tiki) and the pixel gate's canonical cast are unchanged.
+- **Amended:** 2026-08-23 (F18, v0.28.4) — **§7: rung 1 leaves the ladder.** `reaction` is not a rung a *turn* wears; it belongs to the single frame the mapper stages at an ending, and rides on that line. **§10: `death` fires on dying, not on `game-over`** — the event fires on a quit, a win, or a *final* death, so the marker fired on every `quit` in the corpus and on no death at all. An ordinary death is read off ZIL's banner. Priorities and the rest of the table unchanged.
 - **Amended:** 2026-08-23 (F17, v0.28.3) — §10: **the parser-miss characterisation is withdrawn.** "The Hero's most common emotion is exasperation at the parser" was measured over a corpus in which the full game dies on its 29th command and flails; on the won corpus `parser-miss` is 1.6% of turns and `blocked-exit` is 0%. The marker table, its priorities and its ordering are **unchanged** — only the claim about what the comic is mostly *about*.
 - **Amended:** 2026-08-22 (F16 shipped, v0.28.0) — §11: the offered roster is now `art/src/roster.ts` (8 Heroes, 7 Dungeon Masters), enforced by `art/tools/rosterpack.ts`; a player's pick is a runtime skin and the gate's cast is unchanged.
 - **Superseded (in part):** 2026-07-23 — ADR 0007 reverses §4a's "panel width becomes an input, not a constant" clause: panel size is fixed and the *pane* reflows the column count. The rest of §4a stands.
@@ -116,7 +117,7 @@ First matching rung wins:
 
 | # | Condition | Preset |
 |---|---|---|
-| 1 | `game-over` | Reaction — tight on Hero |
+| ~~1~~ | ~~`game-over`~~ — **left the ladder 2026-08-23, see below** | Reaction — tight on Hero |
 | 2 | `player-moved` to a first-visited room | Establishing (emphatic if the turn also scored) |
 | 3 | `player-moved` to an already-visited room | Wide two-shot |
 | 4 | salient `object-moved` | Close-up on that object |
@@ -124,6 +125,12 @@ First matching rung wins:
 | 6 | default | Medium two-shot |
 
 Measured distribution: medium 52.4%, establishing 26.5%, close-up 12.7%, reaction 5.8%, wide 2.6%.
+
+**Amended 2026-08-23 (F18, v0.28.4): rung 1 is not a rung.** The ladder answers "what shot is this turn", which holds while a turn's panels all depict the same moment. An **ending** is the case where they do not. The barrow victory narrates five sentences and *then* stops on the Hero's face; a death narrates the killing blow, prints the banner, and is followed — same turn — by the room ZIL resurrected you into. Under a per-turn rung the whole ending wore `reaction`, so the comic's biggest payoff rendered as **six talking heads**, each of them drawn at `close-up` size anyway, because a straddling speech balloon reserves `BALLOON_HEADROOM` and caps the head (`docs/PITFALLS.md`). **A tight rung cannot be tight on a panel that carries a balloon**, so it can only ever be a frame *after* the words.
+
+So the mapper stages that frame — a body, no balloon, its own break either side — and the frame names its own camera (`PageLine.camera`, the framing sibling of the per-line `room`/`dark`/`marker` overrides ADR 0010 §1 already needed). The ending's prose keeps whatever rung the ladder gives it and stays readable. Rungs 2–6 are untouched, and the ladder is now six rungs numbered from 2 — deliberately not renumbered, so that "rung 4" means in this document what it means in the code and in every note written before today.
+
+**What fires it also changed**, and that is §10's half: `reaction` follows the affect table's `death`, and `death` had been firing on `gameOver`. See §10.
 
 **Recorded so it is not re-proposed:** a `score-changed` "story beat" rung was proposed and killed by measurement. All 14 scoring turns are also first-visits, so rung 2 shadows it completely and it fires 0% of the time. It survives only as the "emphatic" modifier on rung 2.
 
@@ -147,7 +154,7 @@ Priority descending; angles are `EMOTION_ANGLES` indices (`art/src/format.ts:83`
 
 | Pri | Marker | Fires on | Emotion |
 |---|---|---|---|
-| 100 | `death` | `game-over` event | SCARED 1.0 |
+| 100 | `death` | the turn ended a **life** — `game-over{death}`, or ZIL's `**** You have died ****` banner | SCARED 1.0 |
 | 90 | `grue-threat` | `/pitch black\|grue/` | SCARED 0.9 |
 | 80 | `combat-victory` | `/fatal blow\|slumps to the floor\|breathes his last/` | SHOUT 0.9 |
 | 70 | `combat-threat` | `/sword (is\|has) glow/` | ANGRY 0.7 |
@@ -177,6 +184,12 @@ Priority descending; angles are `EMOTION_ANGLES` indices (`art/src/format.ts:83`
 **What replaces it: the Hero's most common marked emotion is the flat acknowledgement, and after that, satisfaction at scoring.** `routine-ack` (12.6%) then `scored` (9.4%). A player who is *playing* rather than lost barely argues with the parser — the refusal families are the signature of being stuck, not of the game. `blocked-exit` reaching exactly zero on a won route is the cleanest form of the finding: walking into walls is not something a playthrough does.
 
 **Nothing in the table moves.** The priorities are a claim about which marker should win when two fire, and that is unaffected by how often each fires — `parser-miss` at 1.6% still needs to outrank `routine-ack` on the turn it fires. What changes is only the characterisation drawn from the frequencies, which "lock the ordering; do not lock the measured percentages" above already warned would happen. This is that rule being cashed rather than an exception to it.
+
+**Amended 2026-08-23 (F18, v0.28.4): `death` fires on dying, and a quit is not a feeling.** The row above read "`game-over` event", and the event is faithful — it carries an `outcome`, and the engine sets it (ADR 0002). This table read the boolean above the outcome, so `death` fired on `gameOver && !won`. In a corpus whose every game-over is a **`quit`** and whose one other is the win, that meant the marker fired **eleven times, on eleven quits, and never once on a death**: the Hero drew a terrified face because the player typed `quit`, and drew nothing at all when a troll removed his head. (The mirror of this was already found and fixed for `victory` — "winning is not dying". Dying is not quitting either.)
+
+The ordinary Zork death ends a **life**, not the game: ZIL narrates the blow, prints the banner and resurrects you, all inside one turn, and emits no `game-over` at all — that event is for a quit, a win, or a *final* death. So `death` now fires on the outcome **or** on the banner, read out of the narration exactly as eight of this table's ten markers already are. **ADR 0002 is not extended for it**: no new event, no new field. The prose was always there.
+
+A quit gets no marker. It still gets the ending frame — the strip should stop on the Hero, and a quit is how most sessions will end — but drawn affectless, which is what §11's "51% of turns are deliberately affectless" already says about turns that are not about anything.
 
 **Two consequences worth naming.** The Hero's BORED face and SHRUG torso (§11, and the 5.3 amendment that recast the Hero for them) are inventory for a beat that fires on 1.6% of turns, not on the comic's most common one — the casting rule stands, but its *stated* justification does not. And assisted input (F14) was held back partly because it "removes the largest affect marker"; it does not, and that entry's risk is re-rated with this amendment.
 

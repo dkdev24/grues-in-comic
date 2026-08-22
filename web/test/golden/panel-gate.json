@@ -549,12 +549,12 @@
     "bodies": [
       "hero"
     ],
-    "sha256": "b8c0b883823fffa8d923085596f16ce3251a2f23bbf47547c3ce78eafbc2d884",
+    "sha256": "6114c9193a9cdb7aa175a78d4eefaaa9c1ea779833fece6c685d2f89436ce2d3",
     "trace": {
       "bodies": [
         {
           "speaker": "hero",
-          "x": 45.4,
+          "x": 42.7,
           "y": 91.8,
           "scale": 1.6,
           "mirror": false

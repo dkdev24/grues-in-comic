@@ -224,6 +224,26 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   derailed one it is 24.7% of turns. Any corpus-wide rate is worth re-reading the moment that number
   goes non-zero — it is far cheaper to check than the aggregate it would have poisoned, which is why
   `mapper.test.ts` asserts it as zero rather than as a small fraction.
+- **A tight rung cannot be tight on a panel that carries a balloon** (F18, v0.28.4). `BALLOON_HEADROOM`
+  pins the head-top at 0.44 and `MAX_HEAD_HEIGHT` caps the head at 0.38, so the moment a straddling
+  balloon exists the shot is bounded at exactly a `close-up` — no number in `SHOTS` can beat that.
+  **So `reaction` is a frame, not a rung**: the mapper stages a body with no balloon and its own break
+  either side, and the frame names its own camera (`PageLine.camera`). Anything that wants to be
+  *closer* than a close-up has to be wordless; anything with words to read keeps the ladder's rung.
+- **`game-over` is not "the Hero died"** (F18, v0.28.4). The event fires on a **quit**, a win, or a
+  *final* death, and carries an `outcome` saying which. The ordinary death — the one Zork does to you
+  repeatedly — ends a life, narrates a banner, resurrects you, and emits no such event. Two markers
+  had already been written against the boolean instead of the outcome and both were wrong in the same
+  way: `victory` (fixed at v0.27.6, "winning is not dying") and `death` (fixed here — it had been
+  firing on eleven quits and no deaths). **Read `outcome`; and for a death, read the banner** —
+  `/\*{2,}\s*You have died\s*\*{2,}/`, no new event (ADR 0002).
+- **`died` re-points the panel's room, and that had never once run** (F18, v0.28.4). `panelRoom =
+  died ? roomAtEntry : room` and `locationBox`'s "a death always shows a box" were written for the
+  resurrecting death and sat dead until `died` could become true. Turning them on surfaced a real
+  latent bug one layer down: `clonePanel` inherits a panel's location box on the stated assumption
+  that "a room change cannot reach here at all, because the mapper breaks the panel on one" — which a
+  death breaks, since the death frame is set where the blow fell and the next turn is set wherever
+  ZIL put the body. **Activating dead code is a change; render it and look.**
 - **`blocked-exit` at exactly zero is the corpus's own smoke alarm** (F17, v0.28.3). Walking into a
   wall is not something a playthrough does: on a won route the marker fires **0 times**, and on the
   derailed one 24.7% of turns. Any corpus-wide rate is worth re-reading the moment that number is

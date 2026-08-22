@@ -80,7 +80,7 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 | F2 | Hall of Fame — arcade high-score board | Product | M | High | **1** | user's own proposal, 2026-08-22; needs the storage/moderation call first |
 | F3 | Mob dialogue authoring (ADR 0006 slice) | Port leftovers | L | High | 2 | the largest remaining "reads as a cartoon" lever; needs the talk-to graph |
 | ~~F17~~ | ~~Corpus-wide tests replay the full game naively~~ **fixed v0.28.3**; ADR 0004 §10 amended | Port leftovers | — | — | — | shipped — see below |
-| F18 | The victory ending draws six `reaction` panels, none of them wordless | Presentation | S | Medium | 2 | now pinned by a test (v0.28.3); it is a framing call, not a bug hunt |
+| ~~F18~~ | ~~The victory ending draws six `reaction` panels, none wordless~~ **fixed v0.28.4** — and the rung now fires on deaths, which it never had | Presentation | — | — | — | shipped — see below |
 | F15 | NPCs on stage — troll, thief, cyclops drawn even when silent | Presentation | L (thief-only step M) | High | 2 | the game has characters the comic has never shown; needs a presence source |
 | ~~F16~~ | ~~Player-chosen character designs for Hero, DM and the NPCs~~ **Hero + DM done at v0.28.0**; the NPC half moves to F15 | Product | — | — | — | shipped — see below |
 | F4 | `SHOTS` framing table — further tuning | Presentation | S (closer rungs done v0.28.1–2) | Low | 3 | next time the gallery harness or the pixel gate is open |
@@ -171,9 +171,9 @@ impact is high in both directions: it is the one item that could make the comic 
   asserted to be **exactly zero**, which is the assertion that would have caught the bad corpus.
   F14's risk note is re-rated in the table above for the same reason.
 
-- **[F18] The victory ending draws six `reaction` panels and not one of them is wordless.**
-  Filed 2026-08-23, exposed by F17; **pinned by a test at v0.28.3** (`mapper.test.ts`, "does not yet
-  give the *victory* one") so that fixing it fails loudly rather than passing silently.
+- **~~[F18]~~ The victory ending drew six `reaction` panels and not one of them was wordless.**
+  **Fixed at v0.28.4.** Filed 2026-08-23, exposed by F17, pinned by a test at v0.28.3 so that fixing
+  it would fail loudly — which it did.
   *What is true:* v0.28.2 made the death frame wordless and tight on the Hero, and asserted it over
   the corpus — but the corpus never wins (F17), so the victory was never covered. Replayed
   resiliently, the win produces **six `reaction` panels**: the Hero's declaration of the move that
@@ -184,7 +184,26 @@ impact is high in both directions: it is the one item that could make the comic 
   free to be wordless. The barrow speech is the reward — it has to be *read*. So this is a framing
   decision, not a bug with an obvious fix: does the win get a wordless portrait *after* its speech
   (the speech panelized at its own rung), or does the rung yield to the prose on victory only?
-  *Done looks like:* the last panel of a won game is one the reader would stop on.
+  *What the fix turned out to be, and it was not the victory.* Chasing which endings reach the rung
+  found that **it had never once fired on a death.** `game-over` fires on a quit, a win, or a *final*
+  death; the ordinary death ends a life and emits nothing. So `reaction` fired on eleven quits and
+  the win, and the `death` marker — SCARED — fired on those same eleven quits. The comic drew a
+  terrified Hero because the player typed `quit`, and drew nothing at all when a troll removed his
+  head.
+  *What shipped (option C of three, the user's call):* **rung 1 left the ladder** (ADR 0004 §7
+  amended). `reaction` is a frame the mapper stages — a body, no balloon, a break either side — and
+  the frame names its own camera through a new per-line `PageLine.camera`, the framing sibling of the
+  `room`/`dark`/`marker` overrides that already existed. An ending's prose keeps the ladder's rung and
+  stays readable; the portrait follows it. **`death` now fires on dying** (§10 amended): the event's
+  `outcome`, or ZIL's banner read out of the narration — no new event, ADR 0002 untouched. A quit
+  gets the frame but no marker.
+  *Where the portrait goes depends on what the ending narrates.* A victory narrates and stops, so the
+  portrait follows the barrow speech. A death narrates the blow, the banner, and then the room it
+  resurrected you into — so the portrait goes in *at the banner*, and the resurrection opens the
+  frame after it, carrying a per-line `room` override so it is not drawn in the room he died in.
+  *Two things it uncovered:* `panelRoom`'s "a death is set where the blow fell" machinery had never
+  run, because `died` was never true — and turning it on exposed a latent `clonePanel` bug that put
+  "The Troll Room" on a panel standing in the Forest. Both are in `docs/PITFALLS.md`.
 
 - **[F4] `SHOTS` framing table — further tuning.** ◐, first pass at v0.16.3, **tall-Hero half closed
   at v0.28.1**. The ADR fixes which camera rung fires; these fill/reveal/backdrop numbers make each

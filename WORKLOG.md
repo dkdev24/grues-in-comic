@@ -10,6 +10,53 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.28.4 — 2026-08-23 — the comic finally notices when you die (F18; ADR 0004 §7 and §10 amended)
+
+F18 was filed as "the victory draws six talking `reaction` panels". Working out which endings reach
+the rung found something larger: **it had never once fired on a death.** `game-over` fires on a quit,
+a win, or a *final* death and carries an `outcome`; the ordinary Zork death ends a **life** — ZIL
+narrates the blow, prints the banner, resurrects you, all in one turn — and emits no such event. So
+`reaction` fired on eleven quits and one win, and `death` (SCARED, priority 100) fired on those same
+eleven quits. The comic drew a terrified Hero because the player typed `quit`, and drew nothing when
+a troll removed his head. The mirror of this was found and fixed for `victory` at v0.27.6 — "winning
+is not dying" — and the other half sat there for four milestones.
+
+**The geometry says a tight rung has to be a frame.** Rendering the alternatives first settled the
+design: dropping the Guide's *body* from the victory panels changed nothing, because they still
+carried balloons, and a straddling balloon pins the head-top at `BALLOON_HEADROOM` and caps the head
+at `MAX_HEAD_HEIGHT`. **No rung can be tighter than a `close-up` on a panel with words in it.** So
+rung 1 was never tunable — it had to stop being a rung.
+
+**ADR 0004 §7 amended: rung 1 leaves the ladder.** A ladder answers "what shot is this turn", which
+holds while a turn's panels depict one moment; an ending is exactly where they do not. `reaction` is
+now a frame the mapper stages — a body, no balloon, a break either side — and it names its own camera
+through `PageLine.camera`, the framing sibling of the per-line `room`/`dark`/`marker` overrides ADR
+0010 already needed. Rungs 2–6 keep their numbers deliberately, so "rung 4" still means what it means
+everywhere else. The ending's prose keeps the ladder's rung and stays readable.
+
+**ADR 0004 §10 amended: `death` fires on dying.** The event's `outcome`, or ZIL's
+`**** You have died ****` banner read out of the narration the way eight of the table's ten markers
+already read theirs. **ADR 0002 is not extended** — no new event, no new field; the prose was always
+there. A quit keeps the frame and loses the marker.
+
+**Where the portrait goes depends on what the ending narrates.** A victory narrates and stops, so it
+follows the whole barrow speech. A death narrates the blow, the banner, and then the room it
+resurrected you into — the next scene — so the portrait splices in *at the banner*, and everything
+past it takes a per-line `room` override so the forest is not drawn in the troll room.
+
+**Two latent things it turned on.** `panelRoom = died ? roomAtEntry : room` and `locationBox`'s "a
+death always shows a box" were written for this exact case and had never run, because `died` was
+never true. Turning them on exposed a real bug one layer down: `clonePanel` inherits a panel's
+location box on the stated assumption that "a room change cannot reach here at all, because the
+mapper breaks the panel on one" — which a death breaks, and it put "The Troll Room" on a panel
+standing in the Forest.
+
+All three endings were rendered and looked at. Gate: one case moved (the quit portrait, SCARED → no
+marker — and the old SCARED was resolving to a *grin* on dan anyway, so it had never read as fear).
+Density: +1 panel. 356 web tests.
+
+---
+
 ## v0.28.3 — 2026-08-23 — the Hero is not, in fact, mostly annoyed (F17; ADR 0004 §10 amended)
 
 Chasing why `12-full-game.cmd` never reached the barrow. It does not stop short — it **dies on

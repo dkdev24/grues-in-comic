@@ -59,6 +59,19 @@ export interface AffectInput {
    * game-over in the corpus was until the ending was first played through.
    */
   won?: boolean;
+  /**
+   * The turn ended a **life** — the ordinary Zork death, which is not the same
+   * event as the game ending (F18, v0.28.4).
+   *
+   * Set from the `game-over` event's `outcome` when the death was final, and
+   * otherwise from ZIL's death banner in the narration, because a death you come
+   * back from ends no game and emits no such event. This is the distinction the
+   * `death` marker below now turns on: before it, `death` fired on
+   * `gameOver && !won`, which in a corpus whose every game-over is a **quit**
+   * meant the Hero drew a terrified face because the player typed `quit`, and
+   * never drew one for actually dying.
+   */
+  died?: boolean;
   /** Sum of the turn's `score-changed` deltas. */
   scoreDelta: number;
   /**
@@ -154,9 +167,15 @@ export const AFFECT_MARKERS: readonly AffectMarker[] = [
     // and the same shape as `reveal`. No shortlist avatar owns a HAPPY torso.
     options: [emotion("HAPPY", 1.0, 110), emotion("WAVE", 1.0, 109)],
   },
+  /*
+   * **Dying is not quitting** (F18, v0.28.4) — the same correction as `victory`
+   * above, made on the other side. `death` fired on `gameOver && !won`, so it
+   * fired on every `quit` in the corpus and on nothing else: the engine has told
+   * us the outcome all along (ADR 0002), and this read the boolean above it.
+   */
   {
     name: "death", priority: 100, pattern: null,
-    fires: (input) => input.gameOver && input.won !== true,
+    fires: (input) => input.died === true,
     options: [emotion("SCARED", 1.0, 100)],
   },
   prose("grue-threat", 90, /pitch black|grue/i, [emotion("SCARED", 0.9, 90)]),

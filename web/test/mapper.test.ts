@@ -961,49 +961,96 @@ describe("affect table (§10)", () => {
   it("lets the highest-priority marker win", () => {
     // Death outranks a grue threat, and the grue line is what usually kills you
     // — so the two co-occur constantly and the order is load-bearing.
+    //
+    // `died` rather than `gameOver` since v0.28.4: being eaten by a grue ends a
+    // *life*, and Zork hands you another one. The two were the same flag while
+    // `death` fired on any game-over, which is why the marker fired on `quit`
+    // and never on this.
     const affect = affectFor({
       text: "It is pitch black. You are likely to be eaten by a grue.",
-      gameOver: true,
+      gameOver: false,
+      died: true,
       scoreDelta: 0,
       systemChannel: false,
     });
     expect(affect.marker).toBe("death");
   });
 
-  it("gives a death its own wordless frame, tight on the Hero", () => {
+  it("does not draw a terrified Hero because the player typed `quit`", () => {
+    // The corpus's every game-over is a quit, so `gameOver && !won` meant the
+    // `death` marker fired eleven times and described none of them (F18).
+    const quit = affectFor({ text: "", gameOver: true, scoreDelta: 0, systemChannel: false });
+    expect(quit.marker).toBeNull();
+  });
+
+  it("closes every ending on a wordless portrait, and gives that frame the rung", () => {
     // ADR 0004 §7 rung 1 is "tight on Hero", and the rung can only *be* tight
     // when nothing straddles the panel: a speech balloon reserves
     // `BALLOON_HEADROOM` and caps the head, which bounds the shot at exactly a
-    // `close-up`. `addReaction` clone-appends like `AddLine`, so before v0.28.2 a
-    // death whose previous line was not a caption landed in the open panel and
-    // relabelled the last *exchange* as the death — two speakers, two balloons,
-    // and a Hero at close-up size. Whether it happened turned on the previous
-    // line's mode, which is why this is asserted over the whole corpus.
-    const deaths = allPanels().filter((p) => p.camera === "reaction" && p.marker === "death");
-    expect(deaths.length).toBeGreaterThan(0);
-    for (const panel of deaths) {
+    // `close-up`. So an ending that narrates cannot wear the rung across its
+    // narration — it has to *end* on the frame that wears it. Before v0.28.4 the
+    // rung was a ladder rung and the whole turn wore it, which is why the barrow
+    // win was six talking heads (F18).
+    const reactions = allPanels().filter((panel) => panel.camera === "reaction");
+    expect(reactions.length).toBeGreaterThan(0);
+    for (const panel of reactions) {
       expect(panel.speakers).toHaveLength(0);
       expect(panel.bodies.map((b) => b.speaker)).toEqual([HERO]);
     }
   });
 
-  it("does not yet give the *victory* one — F18, pinned as the defect it is", () => {
-    // The win is the other half of rung 1 and it does not hold: the barrow's
-    // victory speech is long, it arrives on the winning turn, and it panelizes
-    // into frames that all inherit that turn's `reaction` context. So the
-    // comic's biggest payoff ends on talking heads, each labelled "tight on
-    // Hero" and each drawn at `close-up` size because of the balloon.
-    //
-    // Pinned rather than skipped: this is what the corpus does today, and F18
-    // fixing it should *fail* here and be re-stated, not pass silently. It could
-    // not be asserted at all before F17 — the corpus never won.
-    const win = allPanels().filter((p) => p.camera === "reaction" && p.marker !== "death");
-    expect(win.length).toBeGreaterThan(0);
-    // Not one of them is wordless: the Hero's declaration of the move that wins
-    // takes the first frame, and the barrow speech fills the rest.
-    for (const panel of win) expect(panel.speakers.length).toBeGreaterThan(0);
-    expect(win.filter((p) => p.bodies.some((b) => b.speaker === GUIDE)).length)
-      .toBeGreaterThan(1);
+  it("reads the barrow speech out, then holds on the Hero", () => {
+    // The other half of rung 1, and the half v0.28.2 could not see: the corpus
+    // did not win until F17. The speech is the reward, so it keeps whatever rung
+    // the ladder gives it and stays *readable*; the portrait is the frame after.
+    const panels = replayPanels(FULL_GAME);
+    const last = panels[panels.length - 1]!;
+    expect(last.camera).toBe("reaction");
+    expect(last.marker).toBe("victory");
+    expect(last.speakers).toHaveLength(0);
+    // And the speech itself is drawn as something a reader can read.
+    const spoken = panels.filter((panel) => panel.speakers.some((line) => line.text.includes("ZORK II")));
+    expect(spoken.length).toBeGreaterThan(0);
+    for (const panel of spoken) expect(panel.camera).not.toBe("reaction");
+  });
+
+  it("gives a death that resurrects you the same frame, off the banner alone", () => {
+    // The ordinary Zork death ends a *life*, not the game, so it emits no
+    // `game-over` — the event fires on a quit, a win, or a final death, and the
+    // corpus contains only quits and one win. The rung therefore fired on every
+    // `quit` and on no death at all until v0.28.4. Read off ZIL's banner, the way
+    // eight of §10's ten markers are read, with no new event (ADR 0002).
+    const at = (events: Turn["events"], room: string): Turn =>
+      ({ command: "kill troll with sword", events, status: { room, score: 0, moves: 7 }, mix: {} }) as unknown as Turn;
+    const page = strip({ roomTitles: new Map([["TROLL-ROOM", "The Troll Room"], ["FOREST-1", "Forest"]]) });
+    page.turn(at([
+      { type: "player-moved", from: "CELLAR", to: "TROLL-ROOM" },
+    ] as unknown as Turn["events"], "The Troll Room"));
+    page.turn(at([
+      { type: "narration", text: "The troll's axe removes your head." },
+      { type: "narration", text: "\n    ****  You have died  ****\n\n" },
+      { type: "player-moved", from: "TROLL-ROOM", to: "FOREST-1" },
+      { type: "narration", text: "This is a forest, with trees in all directions." },
+    ] as unknown as Turn["events"], "Forest"));
+
+    const panels = page.panels;
+    const portrait = panels.find((panel) => panel.camera === "reaction");
+    expect(portrait, "a death draws the reaction rung").toBeDefined();
+    expect(portrait!.speakers).toHaveLength(0);
+    expect(portrait!.marker).toBe("death");
+    // Set where the killing blow fell, not where ZIL put the body — the frame
+    // has to say where this happened (`panelRoom`), and that machinery had never
+    // once run before this, because `died` was never true.
+    expect(portrait!.room).toBe("TROLL-ROOM");
+    // The banner is read *before* the portrait — the frame follows the words.
+    // (That the *resurrection* text falls after it too is real but not assertable
+    // here: this fixture's three narration events concatenate into one balloon,
+    // where the engine emits them as three. The corpus cannot cover it either,
+    // since no walkthrough dies — see F17 on why that is not an accident.)
+    const order = panels.map((panel) => panel.camera);
+    const banner = panels.findIndex((p) => p.speakers.some((l) => l.text.includes("You have died")));
+    expect(banner).toBeGreaterThanOrEqual(0);
+    expect(banner).toBeLessThan(order.indexOf("reaction"));
   });
 
   it("draws no panel for the turn that says nothing after an ending", () => {
@@ -1375,9 +1422,13 @@ describe("the ending is a comic, not a pull-quote (the barrow win)", () => {
       text: WIN_PROSE, gameOver: true, won: true, scoreDelta: 0, systemChannel: false,
     });
     expect(affect.marker).toBe("victory");
-    // A game-over with no outcome is still a death — every one in the corpus is.
+    // A game-over with no outcome is a **quit**, which is what every one in the
+    // corpus is, and a quit is not a feeling (v0.28.4). The death marker is for
+    // dying, and dying is read off `died`.
     expect(affectFor({ text: "", gameOver: true, scoreDelta: 0, systemChannel: false }).marker)
-      .toBe("death");
+      .toBeNull();
+    expect(affectFor({ text: "", gameOver: true, died: true, scoreDelta: 0, systemChannel: false })
+      .marker).toBe("death");
   });
 
   it("titles the ending's own panels, though the player never moved", () => {

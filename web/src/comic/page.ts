@@ -121,6 +121,20 @@ export interface PageLine {
    */
   marker?: string | null;
   /**
+   * Overrides {@link PanelContext.camera} for this line alone — the *framing*
+   * half of the exception {@link room}, {@link dark} and {@link marker} are the
+   * place, light and affect halves of (F18, v0.28.4).
+   *
+   * The ladder (ADR 0004 §7) picks one rung per *turn*, which is right while a
+   * turn's panels all depict the same moment. An ending is the case where they
+   * do not: the victory turn narrates five sentences of barrow and *then* holds
+   * on the Hero's face, and those want `establishing` and `reaction`
+   * respectively. Before this the whole turn wore rung 1, so the payoff was five
+   * talking heads in a washed-out room. Carried per-line for the same
+   * cast-agnostic reason as the other three.
+   */
+  camera?: CameraPreset;
+  /**
    * Where the words came from — ADR 0009 §2's two registers, as a fact on the
    * line instead of a thing the reader has to infer from the text.
    *
@@ -259,18 +273,19 @@ export interface Page {
 export function addScript(page: Page, script: TurnScript): PanelDelta {
   const out: PanelDelta = { replacedLast: false, appended: [] };
   for (const line of script.lines) {
-    // `PageLine.room`, `.dark` and `.marker` override the place, the light and
-    // the affect for this one line — the declaration's departure exception,
-    // which is a fact about all three. `undefined` is the overwhelmingly common case for each, so
+    // `PageLine.room`, `.dark`, `.marker` and `.camera` override the place, the
+    // light, the affect and the framing for this one line — the declaration's
+    // departure exception (the first three) and the ending's portrait (the last). `undefined` is the overwhelmingly common case for each, so
     // the shared context is reused as-is then.
     const context = line.room === undefined && line.dark === undefined
-      && line.marker === undefined
+      && line.marker === undefined && line.camera === undefined
       ? script.context
       : {
         ...script.context,
         ...(line.room !== undefined ? { room: line.room, roomTitle: null } : {}),
         ...(line.dark !== undefined ? { dark: line.dark } : {}),
         ...(line.marker !== undefined ? { marker: line.marker } : {}),
+        ...(line.camera !== undefined ? { camera: line.camera } : {}),
       };
     mergeDelta(out, page.addLine(line, context));
   }
@@ -556,7 +571,16 @@ function clonePanel(panel: Panel, context: PanelContext): MutablePanel {
     // turn that lit the room, so letting it land here would put the room's name
     // on the frame that says it cannot be seen. A death in the dark still shows
     // its box — that one is set when the panel opens, not clone-appended.
-    roomTitle: panel.dark ? panel.roomTitle : context.roomTitle ?? panel.roomTitle,
+    // ...and the inheritance is scoped to the panel's *own* room. The comment
+    // above rests on "a room change cannot reach here at all, because the mapper
+    // breaks the panel on one" — which a **death** breaks (F18, v0.28.4): the
+    // death frame is set where the killing blow fell (`panelRoom`,
+    // `mapper.ts`), the turn after it is set wherever ZIL resurrected you, and
+    // the line that opens it clone-appends across that gap. Inheriting there put
+    // "The Troll Room" on a panel standing in the Forest.
+    roomTitle: panel.dark
+      ? panel.roomTitle
+      : context.roomTitle ?? (context.room === panel.room ? panel.roomTitle : null),
     // The second field that does not take the incoming context, and for a
     // neighbouring reason: a frame is drawn in the light it *opened* in. The
     // mapper breaks the panel on a light change, so the only line that can
