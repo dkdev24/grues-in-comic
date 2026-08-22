@@ -79,6 +79,8 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 |---|---|---|---|---|---|---|
 | F2 | Hall of Fame — arcade high-score board | Product | M | High | **1** | user's own proposal, 2026-08-22; needs the storage/moderation call first |
 | F3 | Mob dialogue authoring (ADR 0006 slice) | Port leftovers | L | High | 2 | the largest remaining "reads as a cartoon" lever; needs the talk-to graph |
+| F15 | NPCs on stage — troll, thief, cyclops drawn even when silent | Presentation | L (thief-only step M) | High | 2 | the game has characters the comic has never shown; needs a presence source |
+| F16 | Player-chosen character designs for Hero, DM and the NPCs | Product | L | Medium–High | 2 | pairs with F15 — one validated roster serves both |
 | F4 | `SHOTS` framing table — further tuning | Presentation | M | Medium | 2 | next time the gallery harness or the pixel gate is open |
 | F5 | The `Turn[]` autosave grows without bound | Web persistence | M | High *if it fires* | 2 | the first real `StorageFullError` in play — no symptom yet |
 | F6 | Finding a *moment* in a long history | Presentation | L (first step S) | Medium | 2 | the S-sized half — tapping a panel to scroll the transcript — stands alone |
@@ -86,10 +88,14 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 | F8 | Rename `web/` → `website/` | Repo hygiene | M | Low | 3 | after 6.3 ships and the gate has run once on the new layout |
 | F9 | Panel grammar (ADR 0004) — open judgement | Presentation | L | Medium | 3 | whichever surface it governs gets touched; wants a pick, not a survey |
 | F10 | Two ADR 0007 balloon enhancements | Presentation | M | Low | 3 | a real need in a running page — cost without a symptom today |
-| F11 | `OrderAvatars` seating order un-stubbed | Port leftovers | M | Low | 3 | blocked by F3: nothing to order until mobs speak |
+| F11 | `OrderAvatars` seating order un-stubbed | Port leftovers | M | Low | 3 | unblocked by F3 *or* F15 — either one puts a third body in a frame |
 | F12 | Gate divergence — `fit.ts` vs `layoutAvatars` | Port leftovers | M | Low | 3 | `gate.test.ts`'s empty fallback set going non-empty |
 | F13 | Invisible-routine audit, re-run after ADR 0003 | Engine / IR | M | Low | 3 | parity or completion slipping — both are clean today |
 | F14 | Assisted input — SCUMM-style command picker | Product | L | High, and risky | 3 | post-MVP by decision; it *removes* the largest affect marker |
+
+**F15 and F16 are one roster apart.** Both need the same thing — a set of Comic Chat characters
+validated against ADR 0004 §11 for the role they are cast in — so whichever is picked first should
+build that roster as a reusable thing, not inline for its own use.
 
 **Two ratings are worth arguing with before acting on them.** F5 is the only *latent failure* in the
 list — it is priority 2 because nothing has broken, not because breaking would be cheap. And F14's
@@ -98,6 +104,36 @@ impact is high in both directions: it is the one item that could make the comic 
 ---
 
 ### 2.1 Presentation & authoring judgement
+
+- **[F15] NPCs on stage — the troll, the thief and the cyclops drawn in the panel, even when they
+  say nothing.** Proposed by the user 2026-08-22. Today the comic pane has exactly two bodies in it,
+  ever: the Hero and the DM. The game's characters exist only as prose the DM reads aloud — the
+  troll blocking the way, the thief lifting a treasure out of the Hero's hands — so the comic never
+  shows the cast the game is *about*. Casting comes from the same source the Hero and the DM do:
+  `original-projects/comic-chat/v2.5-beta-1-modern/comicart/` holds ~30 characters, packed by
+  `art/tools/avbpack.ts` into a sheet plus a `cast.json` role entry.
+  *This is not F3.* F3 is mobs **speaking**, which needs the talk-to graph and the dialogue
+  authoring under it. This is mobs **present**, which needs only to know who is in the room — a
+  much cheaper claim, and the one that changes what the reader sees on the most turns.
+  *Why deferred (2026-08-22):* the presence question has no cheap honest answer yet, and the wrong
+  answer is worse than the gap. **A static NPC never emits an event**: the troll sits in
+  `TROLL-ROOM` from the start and the event stream says nothing about him until he is fought, so
+  presence cannot be folded out of `object-moved` the way the Hero's own room can. The world
+  document gives *initial* residency, which goes stale the moment he dies — a comic that keeps
+  drawing a dead troll is a worse bug than one that never drew him. The honest source is a
+  **read-only scope query (an ADR 0002 amendment, pull not push — the same one F14 needs)**;
+  `engine/src/scope.ts` already computes the answer.
+  *The cheap first step is the thief*, who wanders: his daemon emits roughly one `object-moved` a
+  turn, so his presence *is* foldable from the stream today, and `salient()` already decides when a
+  move of his matters to the reader.
+  *Two things it drags in:* a third body changes the panel's economics — `BALLOON_HEADROOM` and the
+  two-shot were tuned for two (see `docs/PITFALLS.md` → Web), so the density baseline and the pixel
+  gate both move and both need looking at, not just re-accepting. And it makes **F11 real**:
+  `OrderAvatars` seating is stubbed because there is nothing to order, which stops being true the
+  first time three bodies share a frame.
+  *Done looks like:* walking into the troll room draws the troll, fighting him draws the fight, and
+  killing him stops drawing him — from a presence source that cannot go stale, with the gate and
+  the density baseline re-read rather than rubber-stamped.
 
 - **[F4] `SHOTS` framing table — further tuning.** ◐, first pass at v0.16.3. The ADR fixes which camera
   rung fires; these fill/reveal/backdrop numbers make each rung legible on screen.
@@ -231,6 +267,32 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   *Alternative if the storage decision goes the other way:* a **localStorage-only** personal board
   ("your runs") with a shareable brag URL — no backend, no moderation surface, no shared board.
   Worth naming because it is the version that costs nothing to keep running forever.
+
+- **[F16] Player-chosen character designs — a "choose your cast" screen on a new game.** Proposed
+  by the user 2026-08-22. Before the first turn, the player picks which Comic Chat character plays
+  the Hero, which plays the DM, and (with F15) which play the NPCs. The art is already there — ~30
+  characters in `original-projects/`, one `avbpack` run each — and the pane already reads its cast
+  from `cast.json` rather than from hardcoded ids.
+  *Why deferred (2026-08-22):* the roster is not a matter of taste, it is a **validation problem**,
+  and it must be solved before a picker is worth building. ADR 0004 §11 needs each role's avatar to
+  own a face *and* a torso for the emotions its markers fire — and not every character does: the
+  Guide shortlist (`docs/panel-grammar-discussion.md` §11) is five characters wide for exactly this
+  reason, and **no avatar in it has a HAPPY torso at all**. An unvalidated pick means a player
+  choosing a character who cannot look scared, in a game whose most-fired marker is a refusal and
+  whose second is a grue. So the feature is a *curated, validated roster*, never "all 30".
+  *The trap to write down before starting:* **the pixel gate's goldens are cast-specific.** Twenty-
+  four accepted images are pictures of Dan and Tiki. A picker must pin the gate to one canonical
+  cast and treat the player's choice as a runtime skin, or every future gate run becomes a debate
+  about whose cast it was rendered with.
+  *Two smaller costs:* the choice belongs in the **save envelope** (`persistence.ts`), or a resumed
+  game re-draws its whole history with a different cast than it was read with; and sheets are ~60–90
+  KB each, so the roster should be fetched for the chosen cast rather than shipped whole.
+  *Check against 6.4:* a character picker makes the bundled Comic Chat art a foreground feature
+  rather than an implementation detail — re-read `THIRD_PARTY.md`/`NOTICE` when it lands, alongside
+  the asset-separation stage.
+  *Done looks like:* a new game opens on a cast screen, every offered character is validated against
+  the emotion table for the role it is offered for, the choice survives a reload, and the pixel gate
+  still renders its canonical cast.
 
 - **[F7] Drawn logo mark, replacing the interim glyph.** `docs/DESIGN.md` §3.7 ships the site with a
   terminal-text wordmark plus one small original glyph (favicon, touch icon, OG card). The user is
