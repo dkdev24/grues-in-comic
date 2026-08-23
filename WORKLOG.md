@@ -10,6 +10,35 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.29.1 — 2026-08-23 — the board gets column headings
+
+**Three changes from reading the deployed board, all in `web/index.html` and `web/site.css`.**
+v0.29.0 is live and works; this is the pass that comes from looking at it on the real site.
+
+**Column headings** — `RANK · PLAYER · SCORE · MOVES`. Two decisions inside a small change. The
+header is **static markup outside `#hof-board`**, because `renderBoard` clears its host on every
+render and a JS-drawn header would vanish in the empty state — which is the state the board is in
+most of the time, there being no runs yet. And the first column is labelled **`RANK`** although it
+carries a rank in one tier and a badge in the other two: that is what it means when it means
+anything, and the badges read as annotations rather than as values. `site.css`'s old comment said a
+header there "would be a lie"; the comment is revised rather than left contradicting the markup.
+On a phone the header is hidden — the rows are a wrapping line there, not columns, so labels above
+columns would label nothing.
+
+**One CTA per screenful.** The changelog section's `START PLAYING` copy is gone; the Hall of Fame's
+sits directly above it.
+
+**The alignment bug, and why it existed twice.** `#hof .cta-repeat { display: block }` overrode
+`.cta`'s `display: inline-flex` + `align-items: center`, so the label fell to the text baseline
+inside the 44px box instead of centring in it. `display: flex` — block-level flex — keeps the
+centring and still takes `margin: auto`. Measured rather than eyeballed: label space above/below is
+12.4/13.6px in both buttons now, where the Hall of Fame's had been top-heavy. **The deleted
+changelog CTA carried the same override**, so that button had the same defect and it leaves with it.
+
+No engine, IR, importer or comic-pane change; 385 web tests unchanged and green.
+
+---
+
 ## v0.29.0 — 2026-08-23 — the Hall of Fame
 
 **A new subsystem, hence a minor bump: the site stores data from visitors for the first time.**

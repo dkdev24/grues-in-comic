@@ -302,9 +302,12 @@ h3 {
    The board (ADR 0011 §1). Monospace rows in the existing palette, no assets:
    the flag is two regional-indicator code points and the rank is text.
 
-   Rows are a grid rather than a table because the mark column is a *badge* in
-   two of the three tiers and a rank in the third, and a table header for
-   "1ST / ▸ PLAYING NOW" would be a lie either way. */
+   Rows are a grid rather than a real <table> because the first column is a
+   *badge* in two of the three tiers and a rank in the third — so the header
+   labels it RANK, which is what it means when it means anything, and the live
+   and best badges read as annotations rather than as values in that column.
+   The header lives in `index.html` rather than in `hof-board.ts` so that it
+   survives the empty state, which is the state the board is in most often. */
 
 .hof-blurb {
   max-width: var(--measure);
@@ -341,6 +344,19 @@ h3 {
 
 .hof-mark {
   color: var(--console-dim);
+}
+
+/* The header is chrome, not data: dimmer than the dimmest row, and it keeps the
+   bottom rule that separates it from the first run. */
+.hof-row.hof-head {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: #6a6a72;
+}
+
+.hof-head .hof-score,
+.hof-head .hof-moves {
+  color: inherit;
 }
 
 /* The two badges are the only colour on the board: amber is reserved for the
@@ -399,6 +415,13 @@ h3 {
     display: none;
   }
 
+  /* No header on a phone: the row is no longer columnar, so labels that sat
+     above columns would sit above nothing. `MOVES` is written on each row and
+     the two numbers are unambiguous next to it. */
+  .hof-row.hof-head {
+    display: none;
+  }
+
   .hof-mark,
   .hof-best {
     flex-basis: 100%;
@@ -406,7 +429,12 @@ h3 {
 }
 
 #hof .cta-repeat {
-  display: block;
+  /* `flex`, not `block`: `.cta` centres its label with `inline-flex` +
+     `align-items: center`, and overriding the display to `block` threw that
+     away — the label fell to the text baseline inside the 44px box and sat
+     visibly higher than the same button in the intro. Block-level flex keeps
+     the centring and still takes `margin: auto` for the horizontal placement. */
+  display: flex;
   width: max-content;
   margin: 24px auto 0;
 }
@@ -443,12 +471,6 @@ h3 {
 
 #changelog .view-full:hover {
   text-decoration: underline;
-}
-
-#changelog .cta-repeat {
-  display: block;
-  width: max-content;
-  margin: 24px auto 0;
 }
 
 /* full changelog page: month groups, one <details> each */

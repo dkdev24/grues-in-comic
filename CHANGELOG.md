@@ -18,6 +18,21 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.29.1] - 2026-08-23 — the board gets column headings
+
+### Changed
+- **The Hall of Fame board now says what its columns are** — rank, player, score and moves — so the
+  numbers read without being guessed at. On a phone, where the rows stack instead of lining up in
+  columns, the headings are left off: they would be labelling nothing.
+- **The front page has one "start playing" button per screenful instead of two.** The changelog
+  section's copy is gone; the Hall of Fame's is right above it and does the same job.
+
+### Fixed
+- **The Hall of Fame button's label sat too high.** It now sits centred, like the one at the top of
+  the page always did.
+
+---
+
 ## [v0.29.0] - 2026-08-23 — the Hall of Fame
 
 ### Added
