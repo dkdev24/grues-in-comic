@@ -1,0 +1,29 @@
+# Cloudflare Pages configuration for the `grues-in-comic` project (ADR 0011 §2,
+# `docs/DEVELOPMENT_PLAN.md` §6.8b).
+#
+# This file exists for ONE reason: to bind the Hall of Fame database to the
+# Pages Functions in `functions/`. It is not a Worker config and there is no
+# Worker in this project.
+#
+# TWO THINGS THAT WILL BITE (see `docs/PITFALLS.md` → Tooling & platform):
+#
+# 1. `functions/` resolves against the PROJECT ROOT DIRECTORY — the repo root,
+#    which is what the Pages project is configured with — and NOT against
+#    `pages_build_output_dir`. The function directory is `functions/` here, not
+#    `web/functions/`. A function in the wrong place is served as a static asset:
+#    the route 404s and the build still succeeds.
+#
+# 2. Once this file exists, Pages CI reads build output and bindings FROM HERE
+#    and ignores the dashboard's equivalents. `pages_build_output_dir` below must
+#    keep matching the dashboard's output directory (`web`), and the build
+#    command stays in the dashboard — it is not expressible here.
+
+name = "grues-in-comic"
+pages_build_output_dir = "web"
+compatibility_date = "2026-08-23"
+
+# ADR 0011 §2 — one table, `runs`; schema in `db/0001_runs.sql`.
+[[d1_databases]]
+binding = "HOF_DB"
+database_name = "grues-hof"
+database_id = "930bbc38-4a6b-4aa0-ad4e-84ec5561c039"

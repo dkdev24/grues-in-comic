@@ -45,7 +45,31 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
-          <summary>August 2026 <span class="count">(21 releases)</span></summary>
+          <summary>August 2026 <span class="count">(23 releases)</span></summary>
+      <article class="changelog-entry" id="v0.29.0">
+        <h3><a href="#v0.29.0"><span class="version">v0.29.0</span> <span class="date">2026-08-23</span> — the Hall of Fame</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li><strong>A Hall of Fame board on the front page.</strong> Every run that starts appears on it — how far it got, in score and moves — with runs being played right now marked <code>PLAYING NOW</code>, and finished runs ranked above the rest by move count. Nobody has finished the game yet, so the board is a list of attempts for the moment, which is the point: it shows that people are playing.</li>
+          <li><strong>A name of your own, asked for once, on the screen where you choose your characters.</strong> It is optional, twelve characters, and an untouched field simply reads <code>Anonymous</code>. A checkbox on the same screen keeps your run off the board entirely — untick it and nothing about your game is ever sent anywhere.</li>
+          <li><strong>A flag beside each name.</strong> It comes from the country the request arrives from and is never more than that: no account, no address stored, nothing that identifies a person. A run is a name, a country, a score, a move count, and the times it started and was last seen.</li>
+        </ul>
+        <h4>Notes</h4>
+        <ul>
+          <li>The board is an arcade cabinet, not a record book. It cannot tell an honest run from an invented one, and it does not pretend to — the machines it imitates could not either.</li>
+        </ul>
+      </article>
+      <article class="changelog-entry" id="v0.28.5">
+        <h3><a href="#v0.28.5"><span class="version">v0.28.5</span> <span class="date">2026-08-23</span> — a walkthrough that dies</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li><strong>The comic can now show a death, because one of the test playthroughs finally dies in one.</strong> The death beat shipped last version with nothing in the project that actually reached it — every recorded playthrough either quit or won. A new scene walks to the edge of the Great Canyon and jumps off it, so the beat is now exercised by a real game rather than a stand-in, and is checked against the original 1980s interpreter like every other scene.</li>
+        </ul>
+        <h4>Fixed</h4>
+        <ul>
+          <li><strong>The reference transcripts no longer record whose computer made them.</strong> They had been storing the full path to the game file, which differed between machines, so two of them failed their own check for anyone but the person who captured them.</li>
+        </ul>
+      </article>
       <article class="changelog-entry" id="v0.28.4">
         <h3><a href="#v0.28.4"><span class="version">v0.28.4</span> <span class="date">2026-08-23</span> — the comic finally notices when you die</a></h3>
         <h4>Fixed</h4>

@@ -77,7 +77,8 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 
 | ID | Item | Category | Size | Impact | Pri | The trigger to watch |
 |---|---|---|---|---|---|---|
-| F2 | Hall of Fame — arcade high-score board | Product | M | High | **1** | user's own proposal, 2026-08-22; needs the storage/moderation call first |
+| ~~F2~~ | ~~Hall of Fame board~~ **shipped v0.29.0** as a recent-runs board; ADR 0011 | Product | — | — | — | shipped — see `WORKLOG.md` v0.29.0 |
+| F19 | Static pages render serif — `--mono` undefined in `tokens.css` | Website | S | Medium | 3 | found 2026-08-23 in 6.8e; one line, but it re-types every static page |
 | F3 | Mob dialogue authoring (ADR 0006 slice) | Port leftovers | L | High | 2 | the largest remaining "reads as a cartoon" lever; needs the talk-to graph |
 | ~~F17~~ | ~~Corpus-wide tests replay the full game naively~~ **fixed v0.28.3**; ADR 0004 §10 amended | Port leftovers | — | — | — | shipped — see below |
 | ~~F18~~ | ~~The victory ending draws six `reaction` panels, none wordless~~ **fixed v0.28.4** — and the rung now fires on deaths, which it never had | Presentation | — | — | — | shipped — see below |
@@ -303,57 +304,15 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
 
 ### 2.5 Product & website features
 
-- **[F2] Hall of Fame — an arcade high-score board for players who finish the game.** Proposed by the
-  user 2026-08-22 after the v0.27.5 ending fix made the win visible. A player who reaches the Stone
-  Barrow is offered — opt-in, dismissible — a prompt for initials or a nickname; the finished run is
-  recorded and shown on the landing page as a cabinet-style score table, ranked by **moves** (every
-  winner scores exactly 350, so moves is the only arcade metric the game has).
-  *Why deferred (2026-08-22):* it is the first thing in the project that stores data from a
-  visitor, and both branches of it — the storage and the moderation — are decisions the user should
-  make deliberately rather than inherit from an implementation. Nothing in flight blocks on it.
-  *Why it is possible at all despite "static site":* the site is on **Cloudflare Pages** (6.5-beta),
-  which serves Pages Functions from the same origin. A board needs no separate backend, no CORS and
-  no new host — one function directory and one database that the existing Cloudflare account
-  already covers on its free tier. This is the reason to *not* reach for a third-party form service.
-
-  *Shape, if it is built as recommended:*
-
-  | Piece | Decision |
-  |---|---|
-  | Storage | **D1** (SQL), not KV — the board is a sorted top-N query, which KV would make a full scan and re-sort on every read |
-  | API | `functions/api/hof.ts` at the **repo root** (Pages resolves `functions/` against the project root directory, which is the repo root here — *not* `web/`): `GET` returns the top N, `POST` records one run |
-  | Table | `hall_of_fame(id, name, score, moves, country, finished_at)` |
-  | Trigger | the victory panel — the comic already knows (`marker: "victory"`, `kind: "terminal"`, `web/src/comic/mapper.ts`), so nothing new needs to detect the ending |
-  | Display | monospace rows on `web/index.html` in the existing `tokens.css` palette — `1ST  DKM  🇰🇷  350  411 MOVES` — no new assets |
-
-  *The country column, and the rule that goes with it (user's requirement, 2026-08-22):* players
-  stay anonymous apart from the name they type, **plus** a country. It comes from Cloudflare's
-  `request.cf.country` (equivalently the `CF-IPCountry` header) — resolved at the edge, attached
-  server-side, so the client neither sends it nor can spoof it, and no geo-IP library is involved.
-  **Store the two-letter code and never the IP address.** The IP is what the country is derived
-  from in-flight; writing it would turn a decoration into a personal-data column for no gain. If
-  per-IP rate limiting is wanted, use a salted hash in KV with a short TTL, not a column. An ISO
-  code renders as a flag by offsetting its letters into the regional-indicator range — again, no
-  assets. Handle `T1` (Tor), `XX` and absent as an explicit unknown rather than a wrong flag, and
-  expect VPN users to be filed under the wrong country: this is a decoration, not a claim.
-
-  *What cannot be promised, and must not be designed around:* **the client cannot be trusted.** A
-  static page can POST any score. Verifying honestly would mean replaying the submitted command log
-  in the Worker — the engine *is* platform-independent enough to run there (that property is real
-  and this is the first place it would pay off) — but a winning run is ~420 turns and blows the free
-  tier's 10ms CPU budget per invocation, and there is no paid budget for this project. So the board
-  ships with plausibility checks only (score exactly 350, a sane move range, rate limiting) and is
-  understood as an **arcade cabinet, not a ledger**. Anyone who wants a fake entry on it can have
-  one; that was also true of the machines this imitates.
-  *Moderation is part of the feature, not a follow-up:* names are user input rendered on a public
-  page — a length cap, a character allowlist (3–12 arcade-style characters reads best), and a way
-  for the user to delete a row.
-  *Done looks like:* a visitor finishes the game on the deployed site, is offered the prompt, and
-  their entry appears on the landing page's board with their flag; declining leaves no record at
-  all; and the user can delete any row.
-  *Alternative if the storage decision goes the other way:* a **localStorage-only** personal board
-  ("your runs") with a shareable brag URL — no backend, no moderation surface, no shared board.
-  Worth naming because it is the version that costs nothing to keep running forever.
+- **~~[F2]~~ Hall of Fame — a recent-runs board, with finished runs as its top tier.**
+  **Shipped v0.29.0** (2026-08-23) as `docs/DEVELOPMENT_PLAN.md` §6.8, governed by **ADR 0011** —
+  which is now the binding record of every decision this entry used to hold. Do not cite this entry:
+  it is a pointer, kept because a deferred item that vanishes silently gets re-proposed.
+  *The one thing worth carrying forward:* the amendment that saved it. Proposed as a winners-only
+  board, it would have rendered empty indefinitely — nobody has finished the game — and read as a
+  dead site. Widening the unit from *victory* to *run* is what made it work, and it cost an inverted
+  consent shape that ADR 0011 §3 pays for explicitly.
+  *Filed on the way out:* **F19** (the static pages render serif), found building the board.
 
 - ~~**[F16] Player-chosen character designs — a "choose your cast" screen on a new game.**~~
   **Done at v0.28.0, for the Hero and the Dungeon Master.** A new game opens on a picker built from
@@ -375,6 +334,21 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   not its heights, turned out to be what the dan-tuned ladder was blind to.
   *Still open, if it is ever wanted:* per-cast goldens (deliberately not built — see
   `docs/PITFALLS.md`), and a picker that ranks rather than lists.
+
+- **[F19] The static pages render serif: `--mono` is never defined for them.** Found 2026-08-23
+  building the Hall of Fame board (6.8e). `site.css:25` sets `body { font-family: var(--mono) }` and
+  `tokens.css` — the file every static page loads — **does not declare `--mono`**, so the whole
+  landing page, about page and changelog fall back to the browser's default serif. `play/style.css`
+  declares it locally, which is why the gameplay screen looks right and nothing ever flagged this.
+  `docs/DESIGN.md` §3.1 describes the substrate as "text on black, monospace"; the site has not been
+  that since it shipped.
+  *Why deferred (2026-08-23):* the fix is one line in `tokens.css`, but it **re-types every static
+  page at once** — that is a look-and-feel change to the whole site, and it belongs in a session
+  where the user looks at the result rather than as a side effect of building a board. The board
+  itself is unaffected: `site.css` spells the stack out for `.hof-row` explicitly, with a comment
+  pointing here.
+  *Done looks like:* `--mono` declared in `tokens.css`, the explicit stack in `.hof-row` removed as
+  redundant, and every static page read once on a phone.
 
 - **[F7] Drawn logo mark, replacing the interim glyph.** `docs/DESIGN.md` §3.7 ships the site with a
   terminal-text wordmark plus one small original glyph (favicon, touch icon, OG card). The user is

@@ -153,11 +153,12 @@ Gates C and D are both cleared, so this milestone is no longer provisional. Its 
 | 6.5-beta | **Private mobile-UX beta deploy** (2026-08-02, ahead of 6.5) — deploy the pre-v1 site to Cloudflare Pages at `grues.danielkimdev.com` **while the repo stays private**, solely so the user can check mobile UX on a phone. Not the 1.0.0 launch: no repo visibility change, no version bump implied. **Supersedes 6.5's GitHub-Action/CNAME sketch with the mechanism actually used** — Cloudflare Pages' own GitHub App (already installed on `dkdev24/grues-in-comic`) triggers a build on every push to `main`; no workflow file, no `CNAME` file (that's the GitHub Pages mechanism, not this one). Setup is dashboard-only for the Git link (`wrangler` cannot create it, confirmed in `docs/PITFALLS.md` → Tooling & platform): Workers & Pages → Create → Pages → Connect to Git → `dkdev24/grues-in-comic`. Build settings — root directory: repo root; build command: `npm --prefix web ci && npm --prefix web run build && mkdir -p web/world && cp ir/artifacts/zork1.world.json web/world/zork1.world.json`; output directory: `web`. Then Custom domains → add `grues.danielkimdev.com` (same Cloudflare account/zone already serving `danielkimdev.com`, confirmed reachable via `wrangler whoami`'s `zone:read` scope). The `/world/` copy step exists only because the local dev server (`web/tools/serve.ts`) fakes that route and Pages does not — see the linked `PITFALLS.md` entry. 6.5 itself is unaffected: at 1.0.0, decide then whether this same Pages project is promoted (repo flipped public) or a fresh one is made. **Done 2026-08-02**: `grues-in-comic` Pages project live, `grues.danielkimdev.com` custom domain resolving (Cloudflare-proxied), site confirmed working on phone. | `grues.danielkimdev.com` loads the current `main` on a phone after every push; repo stays private | ✅ **closed 2026-08-02** |
 | 6.6 | **`HINT`/`HELP` commands** — v1: `HINT` lists what's currently in scope (held + room, scenery/global excluded) so a new player sees what to try commands on, without naming which verb helps or what it does; `HELP` documents command syntax generally and points to `HINT`. Wire both into the start-of-game instructions. | `HINT` lists in-scope objects by name; `HELP` explains command syntax and mentions `HINT`; both appear in the opening instructions | ☑ |
 | 6.7 | **Choose your cast** (F16, user-proposed 2026-08-22) — a new game opens on a picker for the Hero and the Dungeon Master, drawn from a roster validated against ADR 0004 §11. NPC casting is **not** in scope: it needs bodies on stage, which is F15 | A new game opens on a cast screen; every offered character is validated for the role it is offered for; the choice survives a reload; the pixel gate still renders its canonical dan/tiki cast | ✅ **closed v0.28.0** |
+| 6.8 | **Hall of Fame board** (F2, user-proposed 2026-08-22, amended 2026-08-23) — a recent-runs board on the landing page: every started run is a row, live ones badged `PLAYING NOW`, finished runs on top by moves. D1 + one Pages Function; the name is collected at the cast picker, optional, `Anonymous` by default. **ADR 0011** | A visitor's run appears on the board while they play and stays as a recent run after; a finished run ranks above by moves; opting out leaves no record; the user can delete any row | ☑ **built 2026-08-23**, not yet deployed |
 
 **6.7 closed v0.28.0.** The roster is code (`art/src/roster.ts`), the pick is a runtime skin, and the
 gate was clean 24/24 across the change. Detail: `WORKLOG.md`.
 
-**Ordering.** 6.1 first, by the user's own weighting and because it is the only stage that can invalidate an ADR. 6.2 is independent of everything and can fill an idle session. 6.3 **is closed** (v0.26.0) — built per `docs/DESIGN.md`, local only until 6.5. 6.4 is independent of 6.1–6.3. 6.6 is independent, like 6.2. 6.5 needs all of them.
+**Ordering.** 6.1 first, by the user's own weighting and because it is the only stage that can invalidate an ADR. 6.2 is independent of everything and can fill an idle session. 6.3 **is closed** (v0.26.0) — built per `docs/DESIGN.md`, local only until 6.5. 6.4 is independent of 6.1–6.3. 6.6 is independent, like 6.2. 6.5 needs all of them. **6.8 is the one stage that needs 6.5-beta** — it is the first thing here that cannot be tested locally-only, since the country code and the edge cache are Cloudflare's and not the dev server's; 6.5-beta is closed, so it is unblocked.
 
 **6.6 closed 2026-08-02.** `HINT`/`HELP` are console-pane only, by the user's explicit choice — the comic pane does not render the hint listing.
 
@@ -276,6 +277,144 @@ That makes this stage a small static site plus the game, rather than a page bolt
 **Unblocked 2026-08-02.** `docs/DESIGN.md` is written and every open question in its §7 is decided: the art direction (terminal substrate, Comic Chat windows pinned on it), the shared token block, all six landing-page sections, the single amber CTA, `A project by Daniel Kim` → `danielkimdev.com` in the footer, the H1 *"Play Zork I as a comic strip."*, `/play` on the same origin, and the favicon glyph. **Mockups are no longer a prerequisite** — `DESIGN.md` §8 withdraws that requirement and makes the document the sole visual reference. It also governs restyling the gameplay screen, where it deliberately scopes the change to adopting the shared token file and the masthead wordmark only: the comic pane is under the ADR 0008 pixel gate and a cosmetic change there is a released-build risk for no gain.
 
 **Revised 2026-08-02 (v0.26.3), from the first real-device test against §6.5-beta.** `/play`'s masthead header (a bare home link, `.wordmark` only per the scoping above) is gone — its link moved into the comic pane's own title bar instead — and its static "New to text adventures?" note is gone too. Both were reclaiming vertical space that on-phone testing showed mattered more than either did; neither touched the comic pane's rendered markup, so the ADR 0008 scoping above still holds. The masthead's blinking cursor (all pages, not just `/play`) is also gone — unrelated to space, it read as a stray input prompt on a small screen. Detail in `WORKLOG.md` v0.26.3.
+
+---
+
+### 6.8 — The Hall of Fame board (F2)
+
+**Drafted 2026-08-23, from `docs/FUTURE_WORK.md` F2 as amended the same day.** A recent-runs board on
+the landing page: every started run is a row, runs with a fresh heartbeat are badged `PLAYING NOW`,
+and finished runs rank above them by moves. Read F2 before starting — the *why-nots* live there
+(why D1 and not KV, why no replay verification, why the live tier sorts by time and not by score),
+and this stage does not repeat them.
+
+**ADR 0011 is written (2026-08-23) — `docs/adr/0011-the-hall-of-fame-board.md`.** It is binding on
+this stage: where the two disagree, the ADR wins, and the decisions it records are not re-opened here. The two operational
+traps — `functions/` resolving against the **repo root** and not `web/`, and the 10ms CPU ceiling
+per invocation — are **filed** in `docs/PITFALLS.md` → Tooling & platform.
+
+**The schema.** One table, one row per run, upserted:
+
+```sql
+CREATE TABLE runs (
+  run_id      TEXT    PRIMARY KEY,          -- random, client-minted, never derived from the visitor
+  name        TEXT    NOT NULL,             -- validated on the way in; 'ANONYMOUS' is the default
+  score       INTEGER NOT NULL DEFAULT 0,
+  moves       INTEGER NOT NULL DEFAULT 0,
+  state       TEXT    NOT NULL DEFAULT 'playing' CHECK (state IN ('playing', 'won')),
+  country     TEXT,                         -- two-letter code from request.cf.country; NULL = unknown
+  started_at  INTEGER NOT NULL,             -- epoch seconds, server-assigned
+  last_seen   INTEGER NOT NULL,
+  finished_at INTEGER
+);
+
+CREATE INDEX runs_won    ON runs (moves)          WHERE state = 'won';
+CREATE INDEX runs_recent ON runs (last_seen DESC);
+```
+
+**`abandoned` is not a stored state, and must not become one.** The three display tiers are `won`,
+`playing` with a fresh `last_seen`, and `playing` with a stale one — the third is *derived on read*,
+which is what makes a closed tab self-reporting and what removes the need for a sweeper or a cron.
+A column would have to be written by something, and nothing is there to write it.
+
+**The endpoint** — `functions/api/hof.ts`, repo root, two methods:
+
+| | `POST /api/hof` | `GET /api/hof` |
+|---|---|---|
+| Body / result | `{ run_id, name?, score, moves, done? }` | `{ rows: [{ name, score, moves, country, tier, badge }] }` |
+| Server-assigned | `country` (`request.cf.country`), `started_at`, `last_seen`, `finished_at` | — |
+| Never accepted from the client | country, any timestamp, any tier or rank | — |
+| Cache | none | `Cache-Control: max-age=30` at the edge |
+
+The client sends three shapes and no more: **start** (`moves: 0`, with the name), **heartbeat**
+(every 10 moves or 60s, whichever is later), **win** (`done: true`). Same handler, same UPSERT.
+
+**Ordering, and why the cap is applied in TypeScript rather than SQL.** The tier sort is one query;
+the 10/5/rest cap with tiers borrowing unused slots upward is three lines of TS over the result and
+is unreadable as SQL. Select generously, then cut:
+
+```sql
+SELECT run_id, name, score, moves, country, state, last_seen,
+       CASE WHEN state = 'won'      THEN 0
+            WHEN last_seen > ?fresh THEN 1
+            ELSE 2 END AS tier
+FROM runs
+ORDER BY tier ASC,
+         CASE WHEN state = 'won' THEN moves ELSE -last_seen END ASC
+LIMIT 40;
+```
+
+`?fresh` is `now - 120`. `BEST SO FAR` is then one pass over the returned rows: the highest `score`
+among tiers 1 and 2, badge only, row does not move. Sweep on read — `DELETE FROM runs WHERE
+last_seen < now - 86400 AND state = 'playing'` — never touching a `won` row.
+
+**Validation, all of it server-side** (F2: *arcade cabinet, not a ledger* — these bound the damage,
+they do not prove anything):
+
+1. `name` uppercased, trimmed, `^[A-Z0-9 .-]{3,12}$`, else `ANONYMOUS`. Checked at `POST`, not at
+   render — the name is public from move 0 now.
+2. `moves` monotonic per `run_id` (`ON CONFLICT ... WHERE excluded.moves >= runs.moves`), and inside
+   a sane range; `score` `0..350`.
+3. `done: true` requires `score = 350`, else it is recorded as a heartbeat and not a win.
+4. One accepted `POST` per `run_id` per 20s; per-IP limiting, if it is ever wanted, is a salted hash
+   in KV with a short TTL and **never** a column.
+
+**Client side**, in order of where it touches:
+
+1. `web/src/cast-picker.ts` — one optional name field defaulting to `Anonymous`, one opt-out
+   checkbox, one line saying what appears publicly. Neither may block Begin. Both ride in the
+   standing preference key beside the cast, so `/cast` and a return visit re-offer them.
+2. `web/src/main.ts` — mint `run_id` on a new game; `POST` start after Begin; heartbeat at the hook
+   `track("score-milestone")` already uses (`turn.status.score` / `.moves` are in hand there); win
+   on the victory panel (`marker: "victory"`, `web/src/comic/mapper.ts`). Opt-out means the `POST`
+   is never sent — not a server-side filter.
+3. `web/index.html` — monospace rows in the existing `tokens.css` palette, no new assets.
+
+**A resumed game re-uses its `run_id`** — it is a run, not a session, and a reload mid-game must not
+produce a second row. It belongs in the save envelope (`web/src/persistence.ts`) alongside the cast,
+for the same reason the cast is there.
+
+**Substages.** 6.8a ADR 0011 + `PITFALLS.md` entries — **done 2026-08-23**. 6.8b D1 database, schema,
+`wrangler.toml` binding — **done 2026-08-23**: database `grues-hof` (APAC, id
+`930bbc38-4a6b-4aa0-ad4e-84ec5561c039`), schema committed as `db/0001_runs.sql` and applied to both
+the remote and a local replica, binding `HOF_DB` in a new root `wrangler.toml`. Verified in the
+local replica: the `state` CHECK rejects `'abandoned'` (§2's derived-tier rule is enforced by the
+schema, not by convention), and the monotonic-moves upsert refuses a run that moves backwards. 6.8c `functions/api/hof.ts` with its validation, tested against a local D1 —
+**done 2026-08-23**: the rules live in a pure `functions/api/hof-core.ts` (15 tests in
+`web/test/hof-core.test.ts`, web suite 356 → **371**), the handler holds only what needs a database,
+a request or a clock. Exercised end to end against `wrangler pages dev` + local D1: start, board,
+rate limit, name immutability across heartbeats, backwards moves, a claimed win at 349 demoted to a
+heartbeat, the real win at 350, and a won run closed to further writes. **One statement does the
+whole write** — the rate limit and the monotonic check are `WHERE` clauses on the UPSERT, which is
+one round trip and has no read-then-write race. 6.8d the picker fields and the client
+`POST`s — **done 2026-08-23**: an optional `Name on the board` field (placeholder `Anonymous`, never
+pre-filled with it), the one-line disclosure and the `Show my run on the board` opt-out;
+`web/src/hof-client.ts` holds the three writes and the ten-move / sixty-second cadence; `runId`
+joined the save envelope as an optional field; the standing name/opt-out preference lives beside the
+cast key. 10 more tests (web suite **381**). Verified in a browser against `wrangler pages dev` +
+local D1: opting out and pressing Begin leaves **zero rows**; opting in as `dkm` writes one row as
+`DKM`; a mid-game reload re-uses the same `run_id` and keeps **one** row (moves 3 → 15) rather than
+appearing as a second player. The `/load` path deliberately does *not* inherit a slot's `run_id` —
+that would let one run be re-submitted from a slot forever. 6.8e the board on the landing page — **done 2026-08-23**:
+a `Hall of Fame` section on `web/index.html` fed by `web/src/hof-board.ts`, monospace rows in the
+existing palette, flags from regional-indicator arithmetic and no new assets. 4 more tests (the flag
+offset and the mark column; the DOM around them is untested, as `main.ts` is). Read in a browser at
+1280px and at 390px: winners ranked on top, `▸ PLAYING NOW` on fresh rows in the phosphor accent
+(amber stays reserved for the CTA), `BEST SO FAR` badging without moving its row, and the empty
+board reading as a cabinet awaiting its first player. The phone layout drops the grid for a wrapping
+line — as a grid every cell took its own row and six runs filled four screens. **Found and filed
+while doing it: F19** — `--mono` is never declared in `tokens.css`, so every static page has been
+rendering serif since it shipped. Deployable after 6.8c: the
+endpoint can be exercised with `curl` before a single pixel of board exists.
+
+**What "done" looks like** is F2's, unchanged: a visitor presses Begin, having typed a name or not,
+and their run appears badged `PLAYING NOW`; the badge falls off two minutes after they close the
+tab and the row stays as a recent run; a run reaching the Stone Barrow moves to the top with its
+moves count; ticking the opt-out leaves no record at all; and the user can delete any row.
+
+**The deletion path is part of the stage, not a follow-up** — and the plan does not decide its shape.
+The cheapest honest version is `wrangler d1 execute` from the user's machine, which needs no
+authenticated admin surface on a public site and no new attack surface. Decide it in ADR 0011.
 
 ---
 

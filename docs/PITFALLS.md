@@ -478,6 +478,27 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   mapping. A Pages build must physically copy `ir/artifacts/zork1.world.json` into the output
   directory at `world/zork1.world.json`, or `/play` 404s on boot with no build-time error. Confirmed
   2026-08-02 setting up the `grues.danielkimdev.com` beta deploy — see `docs/DEVELOPMENT_PLAN.md` §6.5.
+- **A `wrangler.toml` at the repo root takes build configuration away from the Pages dashboard**
+  (2026-08-23, added for 6.8b's D1 binding). Before it existed, the Git-connected project was
+  configured entirely in the dashboard. Now Pages CI reads `pages_build_output_dir` and every
+  binding **from the file** and ignores the dashboard's equivalents — so the file's
+  `pages_build_output_dir` must keep matching what the dashboard had (`web`), or the next push
+  deploys the wrong directory. The **build command is not expressible in the file** and stays in the
+  dashboard, which means build config now lives in two places by necessity. The first push after
+  adding this file is the one to watch.
+- **Pages resolves `functions/` against the project root directory, not against the output directory**
+  (recorded 2026-08-23 with ADR 0011, before the first function is written). This project's Pages
+  build sets root directory = repo root and output directory = `web`, so the function directory is
+  **`functions/` at the repo root** and *not* `web/functions/`. Put it under `web/` and it is served
+  as a static asset — the route 404s, the build succeeds, and nothing anywhere reports an error.
+  This is the same class of trap as the `/world/` copy step below it: Pages does no route mapping,
+  and a wrong location fails silently rather than loudly.
+- **A Pages Function gets 10ms CPU per invocation on the free tier, and waiting on D1 is not CPU**
+  (recorded 2026-08-23 with ADR 0011). The distinction decides designs: an UPSERT or a top-N query
+  spends almost all its wall time in I/O and fits comfortably, while anything that *computes* per
+  request does not — replaying a ~420-turn run to verify a submitted score is the worked example,
+  and ADR 0011 §5 rejects it on this line. **Before putting logic in a function, ask whether it
+  burns CPU or waits on I/O.** There is no paid tier for this project to escape into.
 - **Wrangler cannot create or configure a Git-connected Pages project** (checked 2026-08-02,
   wrangler 4.118.0). `wrangler pages project create` only makes a direct-upload project; linking a
   GitHub repo for continuous deployment (branch, build command, output directory, custom domain) is

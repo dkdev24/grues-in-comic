@@ -93,3 +93,11 @@ original-projects/comic-chat/artifacts/jchat/jdk114/lib/classes.zip
 # Vendored third-party Claude Code skills — local tooling, not part of what this
 # repository ships. The project's own agent rules live in AGENTS.md.
 .claude/skills/
+
+# The world document, copied into the site by the Pages build (§6.5-beta) and by
+# a local `wrangler pages dev` run. Generated from `ir/artifacts/`, never edited.
+web/world/
+
+# Wrangler local state — the local D1 replica used to test Pages Functions (6.8b).
+# Never committed: it is a scratch database, and it is per-machine.
+.wrangler/

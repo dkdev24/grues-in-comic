@@ -10,9 +10,11 @@ Read in this order. Three documents are enough to know what this is and how it h
 
 1. **[`../README.md`](../README.md)** — what Grues in Comic is: Zork I (ZIL) and Microsoft Comic
    Chat, modernized into a browser-native comic adventure. Not a source port, and not an emulator.
-2. **[`adr/`](adr/)** — the ten decisions the whole system rests on. `0001` (how ZIL behavior is
+2. **[`adr/`](adr/)** — the eleven decisions the whole system rests on. `0001` (how ZIL behavior is
    represented), `0002` (the engine runtime and its event contract) and `0004` (how a turn becomes a
-   comic panel) carry the most weight; the rest refine the presentation.
+   comic panel) carry the most weight; the rest refine the presentation, except `0011` (the Hall of
+   Fame board), which is the only one that governs what the *site* stores rather than how the game
+   is represented.
 3. **[`IR_SCHEMA.md`](IR_SCHEMA.md)** — the Intermediate Representation, the abstraction the project
    is built around. The IR is independent of ZIL, of the browser, and of how anything is drawn.
 
@@ -22,7 +24,7 @@ Read in this order. Three documents are enough to know what this is and how it h
 |---|---|
 | [`IR_SCHEMA.md`](IR_SCHEMA.md) | The IR's declarative world subset. Machine-readable source of truth is `ir/src/schema.ts`; this explains the design and the ZIL mapping |
 | [`AVB_FORMAT.md`](AVB_FORMAT.md) | Microsoft Comic Chat's `.avb` avatar format, reverse-engineered and verified against all 191 shipped avatar files. Written because no public specification existed |
-| [`adr/`](adr/) | Architecture Decision Records 0001–0010 — binding. A decision changes by amending its ADR, never by editing a discussion document |
+| [`adr/`](adr/) | Architecture Decision Records 0001–0011 — binding. A decision changes by amending its ADR, never by editing a discussion document |
 | [`DESIGN.md`](DESIGN.md) | The look & feel specification for the website and the gameplay screen |
 
 ## Working documents — these change often

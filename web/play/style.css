@@ -598,6 +598,57 @@ section {
   font-weight: 700;
 }
 
+/* The board row (ADR 0011 §3): a name, the disclosure, and the opt-out.
+
+   It sits between the cast columns and Begin because that is the reading order
+   the decision needs — the player learns what is recorded *before* the button
+   that records it, and both controls are skippable without touching them. */
+.cast-picker-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--comic-edge);
+  background: var(--comic-paper);
+}
+
+.cast-picker-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.cast-picker-board input[type="text"] {
+  /* Wide enough for the 12-character cap and no wider: the field's width is the
+     honest hint about how much name the board can hold. */
+  width: 11rem;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--comic-chrome);
+  border: 1px solid var(--comic-edge);
+  border-radius: 0.2rem;
+}
+
+.cast-picker-disclosure {
+  margin: 0;
+  max-width: var(--measure);
+  font-size: 0.75rem;
+  color: #4a4a42;
+}
+
+.cast-picker-optout {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  /* A 44px target: this is the control that decides whether a stranger's run is
+     published, and it is not going to be the thing someone mis-taps on a phone. */
+  min-height: 2.75rem;
+  font-size: 0.8rem;
+}
+
 .cast-picker-actions {
   display: flex;
   justify-content: flex-end;

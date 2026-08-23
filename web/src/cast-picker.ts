@@ -61,6 +61,27 @@ export interface CastPicker {
 }
 
 /**
+ * What the player settled on before pressing Begin: a cast, and — since
+ * 6.8d — how they appear on the Hall of Fame board (ADR 0011 §3).
+ *
+ * The board fields live on this screen because a board that shows runs *in
+ * progress* needs a name before the run has an ending to ask at.
+ */
+export interface PickResult {
+  cast: CastChoice;
+  /** What the player typed, or `Anonymous` for an untouched field. */
+  name: string;
+  /** `false` when they opted out — then no run of theirs is ever recorded. */
+  listed: boolean;
+}
+
+/** The name an untouched field submits (ADR 0011 §3). */
+export const DEFAULT_PLAYER_NAME = "Anonymous";
+
+/** Matches the endpoint's allowlist, so the field can say so before Begin. */
+const NAME_LIMIT = 12;
+
+/**
  * Show the picker over `host` and resolve with the chosen cast.
  *
  * Resolves with `initial` — the packed default, or a resumed game's cast —
@@ -70,12 +91,19 @@ export interface CastPicker {
  */
 export async function pickCast(
   host: HTMLElement, assetBase: string, initial: CastChoice = {},
-): Promise<CastChoice> {
+  board: { name?: string; listed?: boolean } = {},
+): Promise<PickResult> {
+  const fallback: PickResult = {
+    cast: initial,
+    name: board.name ?? DEFAULT_PLAYER_NAME,
+    listed: board.listed !== false,
+  };
+
   let roster: RosterIndex;
   try {
     roster = await loadRoster(assetBase);
   } catch {
-    return initial;
+    return fallback;
   }
 
   const chosen: CastChoice = { ...roster.defaults, ...initial };
@@ -98,10 +126,15 @@ export async function pickCast(
     "and every one can act the emotions this comic asks their role for.";
   box.append(heading, blurb);
 
+  const nameField = document.createElement("input");
+  const listedBox = document.createElement("input");
+
   const columns = document.createElement("div");
   columns.className = "cast-picker-roles";
   for (const role of roles) columns.append(roleColumn(role));
   box.append(columns);
+
+  box.append(boardFields());
 
   const actions = document.createElement("div");
   actions.className = "cast-picker-actions";
@@ -114,13 +147,61 @@ export async function pickCast(
   overlay.append(box);
   host.append(overlay);
 
-  return new Promise<CastChoice>((resolve) => {
+  return new Promise<PickResult>((resolve) => {
     begin.addEventListener("click", () => {
       overlay.remove();
-      resolve(chosen);
+      resolve({ cast: chosen, name: nameOf(nameField.value), listed: listedBox.checked });
     });
     begin.focus();
   });
+
+  /**
+   * The board row, one line of disclosure, and the opt-out (ADR 0011 §3).
+   *
+   * Three rules are load-bearing and none of them is cosmetic: the field is
+   * **optional**, `Anonymous` is what an untouched one submits, and neither
+   * control may block Begin. The disclosure line is required — the run is
+   * recorded because the player pressed Begin, not because they chose to be
+   * listed after winning, and they are owed the sentence that says so.
+   */
+  function boardFields(): HTMLElement {
+    const section = document.createElement("section");
+    section.className = "cast-picker-board";
+
+    const label = document.createElement("label");
+    label.className = "cast-picker-name";
+    label.htmlFor = "cast-picker-name-field";
+    label.textContent = "Name on the board";
+
+    nameField.id = "cast-picker-name-field";
+    nameField.type = "text";
+    nameField.maxLength = NAME_LIMIT;
+    nameField.placeholder = DEFAULT_PLAYER_NAME;
+    nameField.autocomplete = "off";
+    // Never pre-filled with the default: a field showing `Anonymous` reads as a
+    // value the player has to clear, and this one is meant to cost nothing.
+    nameField.value = board.name && board.name !== DEFAULT_PLAYER_NAME ? board.name : "";
+
+    const note = document.createElement("p");
+    note.className = "cast-picker-disclosure";
+    note.textContent =
+      "Your run appears on the Hall of Fame board while you play and after you stop — " +
+      "this name, your score, your moves and your country. Nothing else.";
+
+    const optOut = document.createElement("label");
+    optOut.className = "cast-picker-optout";
+    listedBox.type = "checkbox";
+    listedBox.checked = board.listed !== false;
+    optOut.append(listedBox, document.createTextNode(" Show my run on the board"));
+
+    section.append(label, nameField, note, optOut);
+    return section;
+  }
+
+  function nameOf(raw: string): string {
+    const trimmed = raw.trim().replace(/\s+/g, " ");
+    return trimmed === "" ? DEFAULT_PLAYER_NAME : trimmed;
+  }
 
   function roleColumn(role: string): HTMLElement {
     const column = document.createElement("section");

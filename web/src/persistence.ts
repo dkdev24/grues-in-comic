@@ -65,13 +65,23 @@ export interface PersistedSession {
    * wiping someone's game to record a cosmetic choice is a bad trade.
    */
   cast?: CastChoice;
+  /**
+   * The Hall of Fame run this game is (ADR 0011 §2), absent for a game saved
+   * before the board existed or played by someone who opted out.
+   *
+   * It lives in the envelope for the same reason `cast` does — it belongs to
+   * *this game* rather than to the player — and specifically so that a reload
+   * mid-game keeps reporting as one run. A run id regenerated on every boot
+   * would put one player on the board once per refresh.
+   */
+  runId?: string;
 }
 
 export interface SessionStore {
   /** The saved session, or `null` when absent, unreadable, or the wrong version. */
   read(): PersistedSession | null;
   /** Persist a session. Throws {@link StorageFullError} when the quota is hit. */
-  write(save: SaveState, turns: readonly Turn[], cast?: CastChoice): void;
+  write(save: SaveState, turns: readonly Turn[], cast?: CastChoice, runId?: string): void;
   clear(): void;
 }
 
@@ -110,7 +120,7 @@ export function createSessionStore(key: string, storage: Storage): SessionStore 
 
       try {
         const parsed = JSON.parse(raw) as {
-          version: number; save: SaveState; turns: PersistedTurn[]; cast?: CastChoice;
+          version: number; save: SaveState; turns: PersistedTurn[]; cast?: CastChoice; runId?: string;
         };
         if (!isWellFormed(parsed)) throw new Error("malformed envelope");
         // A future version's envelope is not readable by this build. Clearing is
@@ -120,6 +130,7 @@ export function createSessionStore(key: string, storage: Storage): SessionStore 
         return {
           version: parsed.version, save: parsed.save, turns: rehydrate(parsed.turns),
           ...(parsed.cast ? { cast: parsed.cast } : {}),
+          ...(typeof parsed.runId === "string" ? { runId: parsed.runId } : {}),
         };
       } catch {
         this.clear();
@@ -127,11 +138,15 @@ export function createSessionStore(key: string, storage: Storage): SessionStore 
       }
     },
 
-    write(save, turns, cast) {
+    write(save, turns, cast, runId) {
       const envelope = {
         version: ENVELOPE_VERSION,
         save,
         ...(cast && Object.keys(cast).length > 0 ? { cast } : {}),
+        // An optional field, never an envelope-version bump: an older save must
+        // keep loading, and wiping someone's game to record a board id would be
+        // a far worse trade than the one `cast` already refused to make.
+        ...(runId ? { runId } : {}),
         // Drop `mix` on the way out; `read` rebuilds it. See {@link PersistedTurn}.
         turns: turns.map(({ command, events, status }): PersistedTurn => ({
           command, events, status,

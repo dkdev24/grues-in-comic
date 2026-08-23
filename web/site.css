@@ -297,7 +297,121 @@ h3 {
   margin: 0 12px;
 }
 
-/* ---------------- 4. changelog ---------------- */
+/* ---------------- 4. hall of fame ----------------
+
+   The board (ADR 0011 §1). Monospace rows in the existing palette, no assets:
+   the flag is two regional-indicator code points and the rank is text.
+
+   Rows are a grid rather than a table because the mark column is a *badge* in
+   two of the three tiers and a rank in the third, and a table header for
+   "1ST / ▸ PLAYING NOW" would be a lie either way. */
+
+.hof-blurb {
+  max-width: var(--measure);
+  margin: 0 auto 16px;
+  text-align: center;
+  color: var(--console-dim);
+}
+
+.hof-list {
+  max-width: var(--measure);
+  margin: 0 auto 16px;
+}
+
+.hof-row {
+  /* Monospace, so the score and move columns line up down the board — this is
+     the one place on the site where numbers are meant to be compared by eye.
+
+     The stack is spelled out rather than `var(--mono)` because **`--mono` is
+     not defined for the static pages** — `tokens.css` never declares it, so
+     `body`'s own `font-family: var(--mono)` (line 25) silently falls back to
+     the browser default and every static page renders serif today. That is a
+     pre-existing site bug, not this board's, and fixing it changes the whole
+     site's type: see `docs/FUTURE_WORK.md` **F19**. Until that is fixed, the board is
+     not going to be the one table on the site whose columns do not line up. */
+  font-family: "SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 2rem 3.5rem 7rem;
+  gap: 12px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.hof-mark {
+  color: var(--console-dim);
+}
+
+/* The two badges are the only colour on the board: amber is reserved for the
+   CTA and focus (DESIGN.md §3), so a live run borrows the phosphor accent
+   instead — it is the colour this site already uses to mean "alive". */
+.hof-row.is-live .hof-mark {
+  color: var(--accent);
+}
+
+.hof-row.is-won .hof-mark,
+.hof-row.is-won .hof-score {
+  color: var(--console-fg);
+}
+
+.hof-score,
+.hof-moves {
+  text-align: right;
+  color: var(--console-dim);
+}
+
+.hof-best {
+  grid-column: 2 / -1;
+  font-size: 0.8em;
+  color: var(--accent);
+}
+
+.hof-empty {
+  display: block;
+  padding: 12px 0;
+  text-align: center;
+  color: var(--console-dim);
+}
+
+@media (max-width: 34rem) {
+  /* On a phone the five columns stop being columns and become a wrapping line:
+     badge, then name and flag, then the two numbers together. A grid here gave
+     every cell its own row and turned six runs into four screens — the numbers
+     belong on one line with each other, not stacked. */
+  .hof-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+  }
+
+  .hof-name {
+    flex: 1 1 auto;
+  }
+
+  .hof-score,
+  .hof-moves {
+    text-align: left;
+  }
+
+  /* A recent run has no badge, and an empty cell must not cost it a line. */
+  .hof-mark:empty {
+    display: none;
+  }
+
+  .hof-mark,
+  .hof-best {
+    flex-basis: 100%;
+  }
+}
+
+#hof .cta-repeat {
+  display: block;
+  width: max-content;
+  margin: 24px auto 0;
+}
+
+/* ---------------- 5. changelog ---------------- */
 
 .changelog-list {
   max-width: var(--measure);
@@ -419,7 +533,7 @@ h3 {
   color: var(--accent);
 }
 
-/* ---------------- 5. footer ---------------- */
+/* ---------------- 6. footer ---------------- */
 
 footer {
   padding: 40px 0 64px;

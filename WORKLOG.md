@@ -10,6 +10,55 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.29.0 — 2026-08-23 — the Hall of Fame
+
+**A new subsystem, hence a minor bump: the site stores data from visitors for the first time.**
+ADR 0011 records the six decisions; `docs/DEVELOPMENT_PLAN.md` §6.8 carries the schema, the endpoint
+contract and what each substage actually did. F2 leaves `docs/FUTURE_WORK.md` with this entry.
+
+**The feature was re-shaped before it was built, by one measurement.** F2 as proposed (2026-08-22)
+was a winners-only high-score board. **Nobody has finished the game** — zero runs have ever reached
+the Stone Barrow — so on this site's traffic it would have rendered empty indefinitely, which reads
+as a dead site rather than as "nobody has won yet". Proposed to encourage play, built as proposed,
+it would have discouraged it. So the unit became the **run** rather than the victory: every started
+run is a row, fresh ones badged `PLAYING NOW`, winners ranked above by moves. The Hall of Fame is
+the top tier of a recent-runs board rather than the whole of it.
+
+**What that cost, and it is the honest cost of the amendment.** A board showing runs *in progress*
+needs a name before the run has an ending to ask at, so the prompt moved to the cast picker — and
+with it the consent shape inverted: a run is now recorded because the player pressed Begin, not
+because they chose to be listed after winning. Three obligations follow and are binding (ADR 0011
+§3): the row is non-identifying by construction, the picker says in one line what is published, and
+the opt-out is a checkbox that **suppresses the request entirely** rather than filtering
+server-side.
+
+**Five substages, and the four things only a browser could have told us.** 6.8a ADR + pitfalls;
+6.8b D1 `grues-hof` and `db/0001_runs.sql`; 6.8c `functions/api/hof.ts`; 6.8d the picker fields and
+the client; 6.8e the board. What testing on the running page found: a **mid-game reload** kept the
+same `run_id` and one row (the failure would have been one player appearing on the board once per
+refresh); the phone layout was **wrong as a grid** — each cell took its own row and six runs filled
+four screens, now a wrapping line; the first heartbeat of a slow game lands on the **sixty-second**
+clause rather than the ten-move one, which is the common path for real play; and the whole static
+site has been rendering **serif** since it shipped (`--mono` is never declared in `tokens.css`),
+filed as **F19** and deliberately not fixed here.
+
+**What cannot be promised, and is written down as such.** The client cannot be trusted. Verifying a
+run honestly would mean replaying its ~420 turns in the Worker — the engine is platform-independent
+enough to do it, and this would have been the first place that property paid off — but it blows the
+free tier's 10ms CPU per invocation and there is no paid budget. The board ships with plausibility
+checks only (score exactly 350 for a win, monotonic moves per run, a 20-second rate limit, a name
+allowlist checked on the way in) and is understood as an **arcade cabinet, not a ledger**.
+
+**Cost, measured before it was built:** a ~420-move run is ~42 heartbeats, each an UPSERT of one
+row, against D1's 100k writes and 5M reads per day. The 20-row cap is a reading limit, not a cost
+one; tiers borrow unused slots upward, so with no winners the board is one live row and nineteen
+recent runs — which is the correct thing for it to look like right now.
+
+Web suite 356 → **385** (29 new tests across the endpoint's rules, the client's cadence and the
+board's rendering). Engine, IR and importer untouched; parity 151/151; pixel gate untouched.
+
+---
+
 ## v0.28.5 — 2026-08-23 — a walkthrough that dies
 
 v0.28.4 built the death beat against a synthetic fixture, because nothing in the corpus dies: all

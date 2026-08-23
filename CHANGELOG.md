@@ -18,6 +18,27 @@ under neutral branding, and the public release itself — repo public + website 
 
 ---
 
+## [v0.29.0] - 2026-08-23 — the Hall of Fame
+
+### Added
+- **A Hall of Fame board on the front page.** Every run that starts appears on it — how far it got,
+  in score and moves — with runs being played right now marked `PLAYING NOW`, and finished runs
+  ranked above the rest by move count. Nobody has finished the game yet, so the board is a list of
+  attempts for the moment, which is the point: it shows that people are playing.
+- **A name of your own, asked for once, on the screen where you choose your characters.** It is
+  optional, twelve characters, and an untouched field simply reads `Anonymous`. A checkbox on the
+  same screen keeps your run off the board entirely — untick it and nothing about your game is ever
+  sent anywhere.
+- **A flag beside each name.** It comes from the country the request arrives from and is never more
+  than that: no account, no address stored, nothing that identifies a person. A run is a name, a
+  country, a score, a move count, and the times it started and was last seen.
+
+### Notes
+- The board is an arcade cabinet, not a record book. It cannot tell an honest run from an invented
+  one, and it does not pretend to — the machines it imitates could not either.
+
+---
+
 ## [v0.28.5] - 2026-08-23 — a walkthrough that dies
 
 ### Added

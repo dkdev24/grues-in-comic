@@ -15,7 +15,8 @@ import { createConsoleView } from "./console-view.js";
 import { createInspectorView } from "./inspector-view.js";
 import { createComicView, type ComicView } from "./comic-view.js";
 import { createSessionStore, type SessionStore, StorageFullError } from "./persistence.js";
-import { pickCast } from "./cast-picker.js";
+import { pickCast, DEFAULT_PLAYER_NAME } from "./cast-picker.js";
+import { createReporter, mintRunId, type Reporter, type RunIdentity } from "./hof-client.js";
 import type { CastChoice } from "./comic/figure.js";
 import { createJumpControls } from "./jump.js";
 import { PLAYER_ID } from "../../engine/src/state.js";
@@ -41,6 +42,14 @@ const SAVE_KEY = "grues-in-comic/save/v1";
  */
 const CAST_KEY = `${SAVE_KEY}/cast`;
 const CAST_PICK_FLAG = `${CAST_KEY}/pick`;
+/**
+ * How the player appears on the Hall of Fame board (ADR 0011 §3) — a standing
+ * preference beside the cast, and for the same reason: it is *theirs*, not a
+ * particular game's, so it survives `/restart` and a cleared save and is
+ * re-offered rather than re-asked. The run id itself is not here — it belongs
+ * to one run and rides in the save envelope.
+ */
+const BOARD_KEY = `${SAVE_KEY}/board`;
 /** M6.2: three named slots, addressed by number — see `docs/DEVELOPMENT_PLAN.md` §6.2. */
 const SLOT_COUNT = 3;
 
@@ -103,10 +112,32 @@ async function main(): Promise<void> {
   // different cast would silently rewrite pages the player has already read.
   const resumable = store.read();
   let castChoice: CastChoice = resumable?.cast ?? readPreferredCast();
+
+  // The board identity (ADR 0011 §3). A resumed game keeps the run id it was
+  // saved with — it is one *run*, not one session, and a mid-game reload must
+  // not appear on the board as a second player.
+  const boardPref = readBoardPreference();
+  let identity: RunIdentity = {
+    runId: resumable?.runId ?? mintRunId(),
+    name: boardPref.name,
+    listed: boardPref.listed,
+  };
+  const freshRun = resumable === null;
+
   if (!resumable || takeCastPickFlag()) {
-    castChoice = await pickCast(document.body, COMIC_ASSETS, castChoice);
+    const picked = await pickCast(document.body, COMIC_ASSETS, castChoice, boardPref);
+    castChoice = picked.cast;
+    identity = { ...identity, name: picked.name, listed: picked.listed };
     writePreferredCast(castChoice);
+    writeBoardPreference(picked.name, picked.listed);
   }
+
+  // Reporting is off until the run is known to be new: `/cast` on a resumed
+  // game re-opens the picker without starting a run, and re-announcing an
+  // in-progress run as a fresh one would reset nothing but would look like a
+  // second start. Every method is a no-op when the player opted out.
+  const reporter: Reporter = createReporter(identity);
+  if (freshRun) reporter.start();
 
   let comic: ComicView | null = null;
   try {
@@ -165,8 +196,13 @@ async function main(): Promise<void> {
     for (const e of turn.events) {
       if (e.type === "game-over") {
         track("game-over", { outcome: e.outcome, score: turn.status.score, moves: turn.status.moves });
+        // The Stone Barrow. The comic pane derives the same thing from
+        // `marker: "victory"` (`comic/mapper.ts`); this reads the event itself,
+        // because the board must record a win even when the pane failed to load.
+        if (e.outcome === "victory") reporter.win(turn.status.score, turn.status.moves);
       }
     }
+    reporter.progress(turn.status.score, turn.status.moves);
     for (const threshold of crossedMilestones(trackedScore, turn.status.score)) {
       track("score-milestone", { score: threshold, moves: turn.status.moves });
     }
@@ -184,7 +220,7 @@ async function main(): Promise<void> {
   function autosave(): void {
     if (!autosaveEnabled) return;
     try {
-      store.write(session.save(), history, castChoice);
+      store.write(session.save(), history, castChoice, identity.runId);
     } catch (err) {
       autosaveEnabled = false;
       const why = err instanceof StorageFullError ? "browser storage is full" : message(err);
@@ -372,6 +408,9 @@ async function main(): Promise<void> {
     // state into the running page — `comic-view.ts`/`console-view.ts` have no
     // `reset()` today, and a live swap would leave the Director's pose cycles
     // and beat counters carrying the old game's conversation state.
+    // No run id: a slot loaded into the current game starts a *new* board run
+    // (ADR 0011 §2). The alternative — inheriting the id the slot was saved
+    // with — would let one player re-submit the same run from a slot forever.
     store.write(saved.save, saved.turns, saved.cast);
     location.reload();
   }
@@ -487,6 +526,39 @@ function writePreferredCast(choice: CastChoice): void {
     localStorage.setItem(CAST_KEY, JSON.stringify(choice));
   } catch {
     // A cast that cannot be remembered is still a cast that can be played.
+  }
+}
+
+/**
+ * The player's standing board preference (ADR 0011 §3).
+ *
+ * Every failure resolves to `Anonymous`, listed — the same shape a first-time
+ * visitor gets. Note which way that default falls: **unreadable storage does not
+ * silently opt someone in to something they declined**, because a decline is
+ * written and a write that cannot be read back is a storage that keeps nothing
+ * at all, in which case there is no run to suppress on the next boot either.
+ */
+function readBoardPreference(): { name: string; listed: boolean } {
+  try {
+    const raw = localStorage.getItem(BOARD_KEY);
+    if (raw === null) return { name: DEFAULT_PLAYER_NAME, listed: true };
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed !== "object" || parsed === null) return { name: DEFAULT_PLAYER_NAME, listed: true };
+    const { name, listed } = parsed as { name?: unknown; listed?: unknown };
+    return {
+      name: typeof name === "string" && name.trim() !== "" ? name : DEFAULT_PLAYER_NAME,
+      listed: listed !== false,
+    };
+  } catch {
+    return { name: DEFAULT_PLAYER_NAME, listed: true };
+  }
+}
+
+function writeBoardPreference(name: string, listed: boolean): void {
+  try {
+    localStorage.setItem(BOARD_KEY, JSON.stringify({ name, listed }));
+  } catch {
+    // A preference that cannot be remembered is still a preference that plays.
   }
 }
 
