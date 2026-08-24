@@ -10,6 +10,54 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.30.0 — 2026-08-24 — vector backdrops, and finding the real reference
+
+**A vector pipeline for the missing backdrops, and the discovery that the whole set was being
+drawn against the wrong reference.**
+
+The question was whether SVG could replace image generation for the 11 backdrops
+`docs/backdrop-generation-plan.md` § Image 4 still needs, since the raster workflow is heavy manual
+work. Two engines were built and both were wrong in the same way. The first was hand-rolled:
+perspective-correct surfaces, seven tone layers at rising thresholds, rock relief perturbing the
+tone field. The second used **rough.js**, whose hachure fills and roughness/bowing are a genuinely
+good wood-engraving engine. Both were tuned to match `reference/backdrops/*.png`.
+
+**Then the actual Comic Chat backdrops were decoded, and the premise collapsed.** `reference/
+backdrops/` is not Jim Woodring's art — it is AI-generated approximation, and it is a wood
+engraving. Woodring's is close to the opposite: *one* line family at constant pitch, tone carried by
+line **thickness** rather than spacing, lines following each form's contour, bold closed outlines,
+bulbous organic shapes, flat frieze composition. `room.bgb` is a single horizontal family across the
+entire image and every value in it is weight. Both engines were rebuilt into `woodring.mjs`, whose
+primitive is a **ribbon** — a filled polygon around a centreline with per-point width — because SVG
+cannot vary `stroke-width` along a path and tone here *is* width.
+
+**`art/tools/bgbdump.ts`** is what made the correction possible: a `.bgb` reader. Backdrops share the
+`.avb` container but carry no pose records, so `parseAvatar` returns nothing for them; the image
+hangs off a single `AK_BACKDROP` record whose offset needs `AK_OFFSET_ADJUSTMENT` applied or it
+lands inside the copyright string. Nine backdrops decode into the gitignored
+`reference/backdrops-original/`; they are reference to look at, never redistributed.
+
+**Three findings survive as rules** (`docs/PITFALLS.md` → Art pipeline → Backdrop art). A **1-bit
+line cannot carry light by thinning** — below a pixel it renders grey and the field goes soft, so
+light comes from *breaking* the line, never from fading it. **Every line family must carry the same
+weight mottle** (`mottle()`, three noise scales); a form whose contours are smooth ribbons reads as
+a shaded 3D object however good its geometry, which is what "looks like vector art" actually means.
+And **foliage is lobes, not scribble** — a packed cluster of small discs, each a black disc with a
+white disc offset over it toward the light, only just overlapping, with no outline around the mass.
+
+**Validated by copying `field.bgb`** in the engine (`gen_field.mjs`), which forced all three of its
+fills — sky, contour-bowed bulbs, lobe vegetation — and landed at an ink ratio of 0.287 against the
+original's 0.261. The tuber is the honest weak point: `bulb()` models a segment as a width profile
+with bowed caps, which cannot express segments that merge, and the highlight runs as a straight band
+where the original's curves with the barrel.
+
+**Nothing ships from this yet.** No backdrop asset changed, no pack was re-run; `art/vector/` is an
+authoring sandbox and `gen_field.mjs`'s output is a study, not an asset. rough.js is recorded in
+`THIRD_PARTY.md` as a superseded build-time dependency — not vendored, not linked, not in any
+shipped bundle.
+
+---
+
 ## v0.29.1 — 2026-08-23 — the board gets column headings
 
 **Three changes from reading the deployed board, all in `web/index.html` and `web/site.css`.**

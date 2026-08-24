@@ -435,6 +435,30 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 - **`docs/AVB_FORMAT.md` is normative** and lists five silent-failure gotchas. Read it before touching
   the decoder.
 
+### Backdrop art (added v0.30.0)
+
+- **`reference/backdrops/*.png` are NOT Jim Woodring's art.** They are AI-generated approximations
+  made for this project, and they are a *wood engraving* — dense multi-directional cross-hatch,
+  perspective, chiaroscuro. Comic Chat's real backdrops are close to the opposite. Two vector
+  engines were built and tuned against that set before anyone decoded the originals, and both
+  missed the idiom completely for the same reason. **Calibrate against
+  `reference/backdrops-original/`, produced by `npm --prefix art run dump:bgb`.** `reference/` is
+  gitignored, so those PNGs are not in a fresh clone — regenerate them, do not assume they are there.
+- **A `.bgb` backdrop has no pose records, and its image offset needs the offset adjustment.**
+  `parseAvatar` reports zero records for one, which is correct: the image hangs off a single
+  `AK_BACKDROP` (258) record — u32 offset, u8 format, u8 palette type — which is why backdrops need
+  their own reader (`art/tools/bgbdump.ts`). Skip `AK_OFFSET_ADJUSTMENT` and the offset lands inside
+  the copyright string, which fails as a confusing palette-tag error rather than as a bad offset.
+- **A 1-bit line cannot carry light by getting thinner.** Below one output pixel it stops reading as
+  a fine line and renders grey, and the whole field goes soft — which is exactly how the first vector
+  sky failed. The originals never do this: every mark is full black, and light comes from **breaking**
+  the line (`lineField({ cut })`), never from fading it. Hold `wmin` at or above one output pixel.
+- **Judge backdrop art at the cell size it ships at, not at authoring size.** At 512 px the
+  individual hatch families are visible and read as a grid; at 260–315 px they resolve into tone.
+  `art/vector/measure.sh` renders, downsamples, thresholds and reports an ink ratio for exactly this
+  reason — the originals sit at 0.26 (`field`) to 0.53 (`pastoral`), and that number catches a scene
+  that is far too heavy long before the eye argues about it.
+
 ## Tooling & platform
 
 - **A golden transcript pinned the machine that captured it** (v0.28.5, found adding

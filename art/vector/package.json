@@ -1,0 +1,7 @@
+{
+  "name": "backdrop-vector",
+  "private": true,
+  "type": "module",
+  "description": "Vector backdrop generation (rough.js). Not part of the art module build.",
+  "dependencies": { "roughjs": "^4.6.6" }
+}

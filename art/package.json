@@ -1,6 +1,6 @@
 {
   "name": "@grues-in-comic/art",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Comic Chat .avb decoding, pose compositing and the browser cast bundle — the build-time art pipeline (milestone 5)",
   "type": "module",
   "license": "Apache-2.0",
@@ -9,6 +9,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "dump": "tsx tools/avbdump.ts",
+    "dump:bgb": "tsx tools/bgbdump.ts ../reference/backdrops-original",
     "pack": "tsx tools/avbpack.ts ../web/assets/comic hero=../original-projects/comic-chat/v2.5-beta-1/comicart/dan.avb guide=../original-projects/comic-chat/v2.5-beta-1/comicart/tiki.avb --backdrop pastoral=../reference/backdrops/bmp/01-pastoral.bmp --backdrop field=../reference/backdrops/bmp/02-field.bmp --backdrop barrow-exterior=../reference/backdrops/bmp/03-barrow-exterior.bmp --backdrop grating-clearing=../reference/backdrops/bmp/04-grating-clearing.bmp --backdrop house-interior=../reference/backdrops/bmp/05-house-interior.bmp --backdrop attic=../reference/backdrops/bmp/06-attic.bmp --backdrop cellar=../reference/backdrops/bmp/07-cellar.bmp --backdrop troll-room=../reference/backdrops/bmp/08-troll-room.bmp --backdrop cyclops-room=../reference/backdrops/bmp/09-cyclops-room.bmp --backdrop timber-room=../reference/backdrops/bmp/10-timber-room.bmp --backdrop machine-room=../reference/backdrops/bmp/11-machine-room.bmp --backdrop reservoir=../reference/backdrops/bmp/12-reservoir.bmp --backdrop dam-lobby=../reference/backdrops/bmp/13-dam-lobby.bmp --backdrop maze=../reference/backdrops/bmp/14-maze.bmp --backdrop temple=../reference/backdrops/bmp/15-temple.bmp --backdrop egypt-room=../reference/backdrops/bmp/16-egypt-room.bmp --backdrop round-room=../reference/backdrops/bmp/17-round-room.bmp --backdrop torch-room=../reference/backdrops/bmp/18-torch-room.bmp --backdrop cave-system=../reference/backdrops/bmp/19-cave-system.bmp --backdrop dome-room=../reference/backdrops/bmp/20-dome-room.bmp --backdrop mirror-room=../reference/backdrops/bmp/21-mirror-room.bmp --backdrop gallery=../reference/backdrops/bmp/22-gallery.bmp --backdrop atlantis=../reference/backdrops/bmp/23-atlantis.bmp --backdrop hades-entrance=../reference/backdrops/bmp/24-hades-entrance.bmp --backdrop land-of-living-dead=../reference/backdrops/bmp/25-land-of-living-dead.bmp --backdrop barrow-interior=../reference/backdrops/bmp/26-barrow-interior.bmp --backdrop maintenance-room=../reference/backdrops/bmp/27-maintenance-room.bmp --backdrop loud-room=../reference/backdrops/bmp/28-loud-room.bmp --backdrop engravings-cave=../reference/backdrops/bmp/29-engravings-cave.bmp --backdrop room=../reference/backdrops/bmp/30-room.bmp",
     "pack:roster": "tsx tools/rosterpack.ts ../web/assets/comic/roster"
   },

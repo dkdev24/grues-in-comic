@@ -10,7 +10,7 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 ---
 
 ## Current Version
-**0.29.1** · Platform: **macOS only** (2026-07-28)
+**0.30.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -23,14 +23,12 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
 
-## Last Session — v0.29.0 / v0.29.1: the Hall of Fame, live
-F2 was re-shaped before it was built: **nobody has finished the game**, so a winners-only board would
-render empty forever and read as a dead site. It is a **recent-runs** board — every started run is a
-row, live ones badged `PLAYING NOW`, winners on top by moves — and the name moves to the **cast
-picker**, optional and `Anonymous` by default, which inverts the consent shape and buys three
-obligations (non-identifying row, one line of disclosure, a real opt-out). **ADR 0011** holds all six
-decisions. Deployed and confirmed working; v0.29.1 adds column headings, drops the duplicate CTA and
-centres the board's button. Also filed: **F19** — every static page renders serif.
+## Last Session — v0.30.0: vector backdrops, and the wrong reference
+Explored SVG for the 11 missing backdrops (§ Image 4). Two engines were tuned against
+`reference/backdrops/*.png` and **both missed: that set is an AI-generated approximation, not Jim
+Woodring's art.** `art/tools/bgbdump.ts` decodes the real `.bgb` art; rebuilt as
+`art/vector/woodring.mjs`, verified by copying `field.bgb` (ink 0.287 vs 0.261). Rules →
+`PITFALLS.md`; rough.js → `THIRD_PARTY.md`. **Nothing ships — no asset changed, no pack re-run.**
 
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
@@ -38,7 +36,9 @@ Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 2. **Watch the board fill, then decide F19** — `--mono` is undefined in `tokens.css`, so every
    static page renders serif; the one-line fix re-types the whole site and wants a look.
-3. **Backdrop diversity pass.** ☐ Wire `docs/backdrop-generation-plan.md` § Image 4 into `backdrop.ts`.
+3. **Backdrop diversity pass.** ☐ 11 backdrops + wiring `§ Image 4` into `backdrop.ts`. Vector route
+   unproven — next session checks more cases first. Run `npm --prefix art run dump:bgb` before
+   judging: `reference/` is gitignored, so the originals are not in a fresh clone.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
 | Path | Purpose |

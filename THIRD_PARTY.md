@@ -26,6 +26,12 @@
   is why the roster is named here as well as the default cast. They are a format conversion of Microsoft's MIT-licensed art, which the MIT
   license permits, and they carry its copyright. The `.avb` originals are preserved unmodified in
   `original-projects/comic-chat/`; the format itself is documented in `docs/AVB_FORMAT.md`.
+- **Comic Chat's own backdrops (`.bgb`) are decoded for reference only, and are not
+  redistributed.** `art/tools/bgbdump.ts` (`npm --prefix art run dump:bgb`) decodes the nine
+  shipped backdrops — Jim Woodring's art — into `reference/backdrops-original/`, which is
+  **gitignored**: the decoded PNGs are never committed and never ship. They exist so this
+  project's own backdrop art can be calibrated against the real thing. The `.bgb` originals are
+  preserved unmodified in `original-projects/comic-chat/` like the `.avb` files.
 
 ---
 
@@ -36,6 +42,14 @@ and the rest) are **not** Comic Chat art and are not derived from any third-part
 generated for this project from the prompts recorded in `docs/backdrop-generation-plan.md`, in a
 1-bit hatch idiom chosen to sit beside the Comic Chat figures, and are covered by this
 repository's own Apache-2.0 license.
+
+The same applies to the **vector backdrop generators** under `art/vector/` (`woodring.mjs` and its
+scenes). They emit original SVG; nothing is traced, sampled or copied from Comic Chat's art. The
+originals are used only as a *reference to look at* while tuning — the way an artist works from a
+model — and one scene (`gen_field.mjs`) is an exercise that reproduces the composition of Comic
+Chat's `field` backdrop in this project's own code. **Its output is a study, not a shipped asset**;
+if anything of that kind is ever shipped it needs its own provenance note here, since a close copy
+of someone's composition is a different question from a shared idiom.
 
 Listed here rather than left unsaid because the file they ship in is the same folder as the
 redistributed avatar sheets above, and the two have different provenance.
@@ -60,6 +74,30 @@ redistributed avatar sheets above, and the two have different provenance.
   Authors (https://github.com/crozynski/comicneue). The font stays under OFL-1.1
   whatever this project's own license is; the subset files are unmodified
   conversions and carry no Reserved Font Name of their own.
+
+---
+
+# Build-Time Libraries
+
+## Rough.js
+
+- Repository: https://github.com/rough-stuff/rough
+- Version: 4.6.6 (`art/vector/package.json`)
+- License: MIT
+- Copyright: Preet Shihn
+- Imported: 2026-08-24
+- Purpose: Evaluated as a drawing engine for the vector backdrop generators
+  (`art/vector/gen_rough.mjs`). Its `hachure` / `cross-hatch` fills and its
+  `roughness` / `bowing` parameters were a good fit for a wood-engraving idiom.
+- Status: **Superseded and not used by the current generator.** Once Comic
+  Chat's own backdrops were decoded and looked at, the target idiom turned out
+  to be controlled line work rather than sketchy line work, and rough.js's
+  wobble is the wrong texture for it. `gen_rough.mjs` is kept as a labelled
+  dead end (see `art/vector/README.md`).
+- Distribution: **Not vendored and not redistributed.** It is an npm dependency
+  of the gitignored `art/vector/node_modules/`, invoked at authoring time only.
+  No rough.js code is linked into the engine, the web bundle or any shipped
+  asset, and the SVG it produced contains no rough.js source.
 
 ---
 
