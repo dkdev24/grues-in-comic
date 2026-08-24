@@ -69,13 +69,14 @@ export interface CastPicker {
  */
 export interface PickResult {
   cast: CastChoice;
-  /** What the player typed, or `Anonymous` for an untouched field. */
+  /** What the player typed, or their chosen Hero's name for an untouched field. */
   name: string;
   /** `false` when they opted out — then no run of theirs is ever recorded. */
   listed: boolean;
 }
 
-/** The name an untouched field submits (ADR 0011 §3). */
+/** The name used when the roster cannot be fetched at all (ADR 0011 §3) — the
+ * one case where there is no Hero name on hand to default to. */
 export const DEFAULT_PLAYER_NAME = "Anonymous";
 
 /** Matches the endpoint's allowlist, so the field can say so before Begin. */
@@ -108,6 +109,11 @@ export async function pickCast(
 
   const chosen: CastChoice = { ...roster.defaults, ...initial };
   const roles = [...new Set(roster.characters.flatMap((c) => c.roles))];
+
+  /** The default nickname: the Hero currently picked, by name (ADR 0011 §3). */
+  function heroName(): string {
+    return roster.characters.find((c) => c.id === chosen["hero"])?.name ?? DEFAULT_PLAYER_NAME;
+  }
 
   const overlay = document.createElement("div");
   overlay.id = "cast-picker";
@@ -159,9 +165,9 @@ export async function pickCast(
    * The board row, one line of disclosure, and the opt-out (ADR 0011 §3).
    *
    * Three rules are load-bearing and none of them is cosmetic: the field is
-   * **optional**, `Anonymous` is what an untouched one submits, and neither
-   * control may block Begin. The disclosure line is required — the run is
-   * recorded because the player pressed Begin, not because they chose to be
+   * **optional**, the chosen Hero's name is what an untouched one submits, and
+   * neither control may block Begin. The disclosure line is required — the run
+   * is recorded because the player pressed Begin, not because they chose to be
    * listed after winning, and they are owed the sentence that says so.
    */
   function boardFields(): HTMLElement {
@@ -176,11 +182,15 @@ export async function pickCast(
     nameField.id = "cast-picker-name-field";
     nameField.type = "text";
     nameField.maxLength = NAME_LIMIT;
-    nameField.placeholder = DEFAULT_PLAYER_NAME;
+    nameField.placeholder = heroName();
     nameField.autocomplete = "off";
-    // Never pre-filled with the default: a field showing `Anonymous` reads as a
-    // value the player has to clear, and this one is meant to cost nothing.
-    nameField.value = board.name && board.name !== DEFAULT_PLAYER_NAME ? board.name : "";
+    // Never pre-filled with the default: a field showing the Hero's name reads
+    // as a value the player has to clear, and this one is meant to cost
+    // nothing. A stored name that just happens to match the current Hero is
+    // treated the same as untouched.
+    nameField.value = board.name && board.name !== DEFAULT_PLAYER_NAME && board.name !== heroName()
+      ? board.name
+      : "";
 
     const note = document.createElement("p");
     note.className = "cast-picker-disclosure";
@@ -200,7 +210,7 @@ export async function pickCast(
 
   function nameOf(raw: string): string {
     const trimmed = raw.trim().replace(/\s+/g, " ");
-    return trimmed === "" ? DEFAULT_PLAYER_NAME : trimmed;
+    return trimmed === "" ? heroName() : trimmed;
   }
 
   function roleColumn(role: string): HTMLElement {
@@ -251,6 +261,9 @@ export async function pickCast(
         button.setAttribute("aria-checked", String(on));
       }
       caption.textContent = describe(character);
+      // The name field's default follows the Hero pick live, same as the
+      // preview does — an untouched field always names whoever is chosen now.
+      if (role === "hero") nameField.placeholder = heroName();
       await drawPreview(canvas, assetBase, character);
     }
   }

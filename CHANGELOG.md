@@ -11,6 +11,17 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [v0.33.2] - 2026-08-25 — the board's default name is the Hero you picked
+
+### Changed
+- **An untouched "Name on the board" field now submits your Hero's name, not `Anonymous`.** The
+  field's placeholder shows the Hero currently picked and follows the pick live if you switch
+  characters before pressing Begin. Typing a name of your own still overrides it, exactly as
+  before; reopening the picker (`/cast`, or resuming a save) still shows the field blank rather
+  than pre-filled when the stored name is just the Hero's name going unchanged.
+
+---
+
 ## [v0.33.1] - 2026-08-25 — the front page cast a comic strip of its own
 
 ### Changed

@@ -10,6 +10,34 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.2 — 2026-08-25 — the board's default name is the Hero you picked
+
+**An untouched "Name on the board" field submits the chosen Hero's name (e.g. `DAN`, `Bolo`)
+instead of the literal string `Anonymous`.**
+
+- `heroName()` (`web/src/cast-picker.ts`) looks up the display name of whichever character is
+  currently picked for the `hero` role. The name field's `placeholder` is set from it at build time
+  and refreshed inside `select()` whenever the Hero radio changes — the same hook the preview canvas
+  already used, so the two stay in lockstep without a separate listener.
+- `nameOf()` returns `heroName()` for an empty/whitespace-only submission instead of the
+  `DEFAULT_PLAYER_NAME` constant. Typing anything still overrides it exactly as before.
+- **Kept the "never pre-filled" rule working under the new default.** The pre-fill check used to be
+  `board.name !== DEFAULT_PLAYER_NAME`; now it is `board.name !== DEFAULT_PLAYER_NAME && board.name
+  !== heroName()`, so reopening the picker (`/cast`, or resuming a save) with a stored name that is
+  just the current Hero's name unchanged still shows a blank field — the same "untouched" case as
+  before, just with a different sentinel value.
+- `DEFAULT_PLAYER_NAME` ("Anonymous") is not gone: it is now the fallback only for the case
+  `heroName()` cannot cover — the roster fetch failing outright, where there is no character list to
+  name a Hero from at all — and it is still what `main.ts`'s board-preference persistence falls back
+  to when local storage has never been written.
+- Verified live in the browser, not just by type/test: default placeholder is the packed default
+  Hero (`DAN`); switching to Bolo before Begin updates the placeholder and the persisted board
+  preference (`localStorage["grues-in-comic/save/v1/board"]`) to `{"name":"Bolo","listed":true}`;
+  reopening `/cast` afterward shows the field blank with placeholder `Bolo`, not pre-filled.
+- web 385/385, typecheck clean. Version bumped 0.33.1→0.33.2 via `tools/build-changelog.ts`.
+
+---
+
 ## v0.33.1 — 2026-08-25 — the front page cast a comic strip of its own
 
 **The landing page's "What it does" section is a six-panel comic strip of Comic Chat roster
