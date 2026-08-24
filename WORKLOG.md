@@ -10,6 +10,44 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.31.0 — 2026-08-24 — ten early-game backdrops, and an A/B that says no
+
+**Ten vector backdrops for the rooms a player sees first, a harness to judge them against the art
+that ships today, and a retune that was tried and rejected.**
+
+`woodring.mjs` (v0.30.0) proved the *marks*. This asked whether it could carry whole scenes, on the
+part of the map that matters most: the white house and the forest around it. `art/vector/kit.mjs`
+is the layer above the engine — a `Scene` to compose into, `hatch()` for a line family at any angle,
+and the forms these scenes keep needing (sky, trunks, clapboard walls, boarded openings, tufts,
+rocks). Ten scenes in `art/vector/scenes/` cover `WEST-`/`NORTH-`/`SOUTH-`/`EAST-OF-HOUSE`,
+`FOREST-1/2/3`, `PATH`, `UP-A-TREE`, `CLEARING`/`GRATING-CLEARING` and `STONE-BARROW` — the rooms
+three shipped backdrops currently cover between them.
+
+**`render.ts`** rasterizes at 4x through qlmanage, box-filters down and hard-thresholds to 1-bit at
+512 and 264, which is the only form worth judging: the engine's whole discipline is that light comes
+from breaking a black line, and an anti-aliased preview hides every place that failed. Ink lands
+**.251–.378**, inside the decoded originals' .261–.526. **`ab.ts`** builds a blind side-by-side of
+each plate against the image-model backdrop it would replace, with per-scene ink and click-to-zoom,
+published as an Artifact.
+
+**Draw order turned out to be part of the drawing.** A `bulb` closes with a bowed cap, so a trunk
+that stops in mid-frame reads as an open pipe — the first forest was a stand of hollow tubes. Trunks
+now run long and are buried at both ends: canopy drawn *after* them, white ground drawn over their
+feet. That is a rule now (`docs/PITFALLS.md` → Backdrop art), not a detail.
+
+**The A/B came back against the vector route, and a retune did not fix it.** The verdict was that
+the plates read as amateur next to the raster set even though they follow the idiom more closely. A
+composition-led retune was built and tried — vignette framing of near trees, stipple skies, spruce
+bands for distance, clustered leaf masses with curved contour families, a three-quarter house with
+detail at three scales, and every width re-expressed in output pixels. **It was judged worse and
+reverted in full.** The revert is verified by ink ratio, scene for scene.
+
+**Nothing shipped.** No asset changed, `web/src/comic/backdrop.ts` is untouched, and the pack was
+not re-run. The vector route for `§ Image 4` is still undecided, and is now decided by looking, not
+by argument.
+
+---
+
 ## v0.30.0 — 2026-08-24 — vector backdrops, and finding the real reference
 
 **A vector pipeline for the missing backdrops, and the discovery that the whole set was being

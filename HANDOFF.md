@@ -3,14 +3,13 @@
 Cross-session state. **Read in full at session start; update at session end.**
 
 **Scope rule — this file is a cost paid every session, so it holds only three things:** where the
-project is, what to do next, and what is still undecided. Session narrative → `WORKLOG.md`. Durable
-cautions → `docs/PITFALLS.md`. Deferred work → `docs/FUTURE_WORK.md`. **Hard cap: 50 lines.** If an
-edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
+project is, what to do next, and what is still undecided. Narrative → `WORKLOG.md`. Cautions →
+`docs/PITFALLS.md`. Deferred work → `docs/FUTURE_WORK.md`. **Hard cap: 50 lines** — cut narrative first.
 
 ---
 
 ## Current Version
-**0.30.0** · Platform: **macOS only** (2026-07-28)
+**0.31.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -21,15 +20,16 @@ edit would cross it, cut narrative first — `WORKLOG.md` already has the story.
   - **6.8 ✅** Hall of Fame board — **ADR 0011**; **deployed and working** (v0.29.0), column
     headings and one CTA per screenful at v0.29.1.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
-**Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151 strict. Pixel gate: 24/24 accepted on macOS (clean), never re-accept on Windows.
+**Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — v0.30.0: vector backdrops, and the wrong reference
-Explored SVG for the 11 missing backdrops (§ Image 4). Two engines were tuned against
-`reference/backdrops/*.png` and **both missed: that set is an AI-generated approximation, not Jim
-Woodring's art.** `art/tools/bgbdump.ts` decodes the real `.bgb` art; rebuilt as
-`art/vector/woodring.mjs`, verified by copying `field.bgb` (ink 0.287 vs 0.261). Rules →
-`PITFALLS.md`; rough.js → `THIRD_PARTY.md`. **Nothing ships — no asset changed, no pack re-run.**
-
+## Last Session — early-game vector backdrops + A/B harness
+Built `art/vector/kit.mjs` (Scene, `hatch()`, trunks, walls, tufts, rocks) on the v0.30.0 engine and
+drew **ten early-game scenes** (white house ×4, forest ×4, clearing/grating, barrow) in
+`art/vector/scenes/`. 1-bit at 512/264, ink **.251–.378** vs originals' .261–.526; `ab.ts` builds
+the blind A/B against the shipped plates (published as an Artifact).
+A composition-led retune (vignette framing, stipple skies, conifers, 3/4 house) was **rejected as
+worse and reverted** — do not redo it without a new brief. Nothing wired into `backdrop.ts`; no
+shipped asset changed. Draw-order rule → `PITFALLS.md`.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public

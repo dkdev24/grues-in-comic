@@ -91,6 +91,11 @@ The original mapping block below (now replaced) predated the shipped implementat
 
 ## Image 4: Diversity Pass — new backdrops to cap reuse at 5 (cells 0–9, plus one overflow cell)
 
+> **Vector route, undecided (v0.31.0).** Ten of the *shipped* early-game backdrops were redrawn with
+> the vector engine and put in a blind A/B against the image-model plates — see
+> `art/vector/README.md`. Nothing was swapped. If that route wins, the same kit draws the 11 below;
+> if it does not, they stay image-generated per the prompts in this table.
+
 These 11 are **not yet generated.** They split `cave-system` (4 new + the existing one),
 `pastoral` (4 new + the existing one), and `maze` (3 new + the existing one) so no backdrop in the
 game covers more than 5 rooms. `coal-mine`, `chasm-cave`, `winding-passage`, and `small-cave` share

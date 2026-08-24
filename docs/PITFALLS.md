@@ -453,6 +453,11 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   a fine line and renders grey, and the whole field goes soft — which is exactly how the first vector
   sky failed. The originals never do this: every mark is full black, and light comes from **breaking**
   the line (`lineField({ cut })`), never from fading it. Hold `wmin` at or above one output pixel.
+- **A `bulb` closes with a bowed cap, so a form that stops in mid-frame reads as an open pipe.**
+  The first pass of the vector forest drew every trunk from canopy to ground line and got a stand of
+  hollow tubes. Trunks have to run long and be buried at both ends — canopy drawn *after* them, white
+  ground (`groundFill()`) drawn over their feet. Draw order is part of the drawing here, not a
+  detail: `art/vector/scenes/*.mjs` all follow trunks → canopy → ground → litter → foreground.
 - **Judge backdrop art at the cell size it ships at, not at authoring size.** At 512 px the
   individual hatch families are visible and read as a grid; at 260–315 px they resolve into tone.
   `art/vector/measure.sh` renders, downsamples, thresholds and reports an ink ratio for exactly this

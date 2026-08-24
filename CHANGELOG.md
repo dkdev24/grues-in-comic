@@ -11,6 +11,30 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [0.31.0] — 2026-08-24
+
+### Added
+- `art/vector/kit.mjs` — a scene kit over the `woodring.mjs` engine: a `Scene` to compose into,
+  `hatch()` for a line family at any angle, and the shared forms (sky, trunks, clapboard walls,
+  boarded openings, tufts, rocks).
+- Ten early-game backdrop scenes in `art/vector/scenes/` — the white house from four sides, the
+  forest, the path, up a tree, the clearing with the grating, and the stone barrow.
+- `art/vector/render.ts` — rasterizes each scene at 4x, downsamples and hard-thresholds to 1-bit at
+  512 and 264, and reports the ink ratio against the decoded originals.
+- `art/vector/ab.ts` — builds a blind A/B page pairing each vector plate with the image-model
+  backdrop it would replace.
+
+### Changed
+- `docs/PITFALLS.md` gains the draw-order rule for `bulb`-based forms: a form that stops in
+  mid-frame reads as an open pipe, so trunks run long and are buried at both ends.
+
+### Notes
+- **Nothing ships from this version.** No asset changed and `web/src/comic/backdrop.ts` is
+  untouched; the vector route remains a candidate, not a decision.
+- A composition-led retune of the ten scenes was built, judged worse than this set, and reverted.
+
+---
+
 ## [0.30.0] — 2026-08-24
 
 ### Added

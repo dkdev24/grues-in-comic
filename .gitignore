@@ -101,3 +101,8 @@ web/world/
 # Wrangler local state — the local D1 replica used to test Pages Functions (6.8b).
 # Never committed: it is a scratch database, and it is per-machine.
 .wrangler/
+
+# The built A/B page: it embeds every plate as a data URI and runs to megabytes.
+# It regenerates with `npx tsx ab.ts`; the template and the PNGs are committed.
+# (Generated SVG output is already covered by `art/vector/.gitignore`.)
+art/vector/ab/index.html

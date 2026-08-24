@@ -2,15 +2,53 @@
 
 Workflow: **author SVG -> rasterize -> threshold to 1-bit**, as an alternative to
 image generation for the backdrops that are still missing
-(`docs/backdrop-generation-plan.md`, Image 4).
+(`docs/backdrop-generation-plan.md`, Image 4) and as a candidate replacement for
+the ones that ship today.
 
-    node gen_woodring.mjs                  # coal mine  -> 31-coal-mine-woodring.svg
-    node gen_field.mjs                     # field copy -> field-copy.svg
-    ./measure.sh field-copy                # ink ratio
+    node gen_early.mjs                     # the ten early-game scenes -> early/*.svg
+    npx tsx render.ts                      # rasterize + threshold -> early/png/{512,264}
+    npx tsx ab.ts                          # build the A/B page -> ab/index.html
+    ./measure.sh field-copy                # ink ratio for a single scene
 
-`woodring.mjs` is the engine. `gen_woodring.mjs` (an original scene) and
-`gen_field.mjs` (a copy of the shipped `field` backdrop, as a style test) are
-scenes -- copy either to make another backdrop.
+`woodring.mjs` is the engine (ribbons, line families, mottle, foliage lobes).
+`kit.mjs` is the layer above it: a `Scene` to compose into, `hatch()` for a line
+family at any angle, and the forms these scenes keep needing -- sky, trunks,
+walls, tufts, rocks. `scenes/*.mjs` are the drawings; `scenes/common.mjs` holds
+what more than one of them uses.
+
+`gen_woodring.mjs` (an original scene) and `gen_field.mjs` (a copy of the shipped
+`field` backdrop, as a style test) predate the kit and call the engine directly.
+
+## The early-game set and the A/B
+
+Ten scenes covering the white house and the forest around it -- the rooms a
+player sees first, and the ones three shipped backdrops currently cover between
+them:
+
+| scene | rooms | replaces |
+|---|---|---|
+| `house-west` | WEST-OF-HOUSE | `field` |
+| `house-north` | NORTH-OF-HOUSE | `field` |
+| `house-south` | SOUTH-OF-HOUSE | `field` |
+| `house-behind` | EAST-OF-HOUSE | `field` |
+| `forest-dense` | FOREST-1/2/3 | `pastoral` |
+| `forest-path` | PATH | `pastoral` |
+| `forest-edge` | FOREST-3, MOUNTAINS | `pastoral` |
+| `up-a-tree` | UP-A-TREE | `pastoral` |
+| `clearing-grating` | CLEARING, GRATING-CLEARING | `grating-clearing` |
+| `stone-barrow` | STONE-BARROW | `barrow-exterior` |
+
+`ab.ts` builds a blind side-by-side of each vector plate against the image-model
+backdrop it would replace, both thresholded to 1-bit at cell size, with the ink
+ratio on each. **Nothing here is wired into `backdrop.ts` and no shipped asset
+has changed** -- this is a comparison, not a swap.
+
+### Draw order is load-bearing
+
+A `bulb` closes with a bowed cap, so a trunk that stops in mid-frame reads as an
+open pipe. Trunks are drawn long and buried at both ends: the canopy goes over
+their tops, `groundFill()` over their feet. Getting this backwards was the first
+version's most visible failure.
 
 The `.svg` output is **generated and gitignored** -- it regenerates in seconds and runs to
 megabytes (the superseded rough.js scene alone is ~1.9 MB). The small PNG renders **are**
