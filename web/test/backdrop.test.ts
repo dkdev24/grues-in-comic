@@ -35,10 +35,15 @@ describe("backdropFor", () => {
     }
   });
 
-  it("gives the woods and the high ground the pastoral backdrop", () => {
-    for (const room of ["FOREST-1", "FOREST-2", "FOREST-3", "PATH", "CLEARING", "UP-A-TREE"]) {
-      expect(backdropFor(room)).toBe("pastoral");
-    }
+  it("gives the woods and the high ground their split backdrops (Image 5)", () => {
+    // Diversity pass takes `pastoral` down to one room; the rest each get their
+    // own plate (docs/backdrop-generation-plan.md § Image 5).
+    expect(backdropFor("FOREST-1")).toBe("pastoral");
+    expect(backdropFor("FOREST-2")).toBe("forest-dark");
+    expect(backdropFor("FOREST-3")).toBe("forest-edge");
+    expect(backdropFor("PATH")).toBe("forest-path");
+    expect(backdropFor("CLEARING")).toBe("east-clearing");
+    expect(backdropFor("UP-A-TREE")).toBe("up-a-tree");
   });
 
   it("gives the themed interiors their own backdrops", () => {

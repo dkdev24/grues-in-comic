@@ -1648,6 +1648,126 @@
       "file": "room.png",
       "width": 313,
       "height": 311
+    },
+    {
+      "id": "coal-mine",
+      "file": "coal-mine.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "chasm-cave",
+      "file": "chasm-cave.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "winding-passage",
+      "file": "winding-passage.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "small-cave",
+      "file": "small-cave.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "highlands",
+      "file": "highlands.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "rainbow-falls",
+      "file": "rainbow-falls.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "river",
+      "file": "river.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "shoreline",
+      "file": "shoreline.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-deep",
+      "file": "maze-deep.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-twisting",
+      "file": "maze-twisting.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-dead-ends",
+      "file": "maze-dead-ends.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "forest-dark",
+      "file": "forest-dark.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "forest-edge",
+      "file": "forest-edge.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "forest-path",
+      "file": "forest-path.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "up-a-tree",
+      "file": "up-a-tree.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "east-clearing",
+      "file": "east-clearing.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "canyon-view",
+      "file": "canyon-view.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "cliff-middle",
+      "file": "cliff-middle.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "canyon-bottom",
+      "file": "canyon-bottom.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "sandy-beach",
+      "file": "sandy-beach.png",
+      "width": 315,
+      "height": 315
     }
   ]
 }

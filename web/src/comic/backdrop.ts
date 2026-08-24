@@ -29,7 +29,15 @@ export type BackdropId =
   | "temple" | "egypt-room" | "round-room" | "torch-room" | "cave-system"
   | "dome-room" | "mirror-room" | "gallery" | "atlantis" | "hades-entrance"
   | "land-of-living-dead" | "barrow-interior" | "maintenance-room" | "loud-room"
-  | "engravings-cave" | "room";
+  | "engravings-cave" | "room"
+  // Diversity pass (Image 4): splits `cave-system` and `maze` to cap reuse at 5.
+  | "coal-mine" | "chasm-cave" | "winding-passage" | "small-cave"
+  | "highlands" | "rainbow-falls" | "river" | "shoreline"
+  | "maze-deep" | "maze-twisting" | "maze-dead-ends"
+  // Diversity pass (Image 5): takes `pastoral` / `highlands` / `shoreline` to
+  // one backdrop per room.
+  | "forest-dark" | "forest-edge" | "forest-path" | "up-a-tree" | "east-clearing"
+  | "canyon-view" | "cliff-middle" | "canyon-bottom" | "sandy-beach";
 
 /**
  * Every room in the world document, keyed by id, grouped by the backdrop it
@@ -46,27 +54,27 @@ export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, B
   ["STONE-BARROW", "barrow-exterior"],
   ["GRATING-CLEARING", "grating-clearing"],
   ["FOREST-1", "pastoral"],
-  ["FOREST-2", "pastoral"],
-  ["FOREST-3", "pastoral"],
-  ["MOUNTAINS", "pastoral"],
-  ["PATH", "pastoral"],
-  ["UP-A-TREE", "pastoral"],
-  ["CLEARING", "pastoral"],
-  ["CANYON-VIEW", "pastoral"],
-  ["CLIFF-MIDDLE", "pastoral"],
-  ["CANYON-BOTTOM", "pastoral"],
-  ["END-OF-RAINBOW", "pastoral"],
-  ["ON-RAINBOW", "pastoral"],
-  ["ARAGAIN-FALLS", "pastoral"],
-  ["RIVER-1", "pastoral"],
-  ["RIVER-2", "pastoral"],
-  ["RIVER-3", "pastoral"],
-  ["RIVER-4", "pastoral"],
-  ["RIVER-5", "pastoral"],
-  ["WHITE-CLIFFS-NORTH", "pastoral"],
-  ["WHITE-CLIFFS-SOUTH", "pastoral"],
-  ["SHORE", "pastoral"],
-  ["SANDY-BEACH", "pastoral"],
+  ["FOREST-2", "forest-dark"],
+  ["FOREST-3", "forest-edge"],
+  ["MOUNTAINS", "highlands"],
+  ["PATH", "forest-path"],
+  ["UP-A-TREE", "up-a-tree"],
+  ["CLEARING", "east-clearing"],
+  ["CANYON-VIEW", "canyon-view"],
+  ["CLIFF-MIDDLE", "cliff-middle"],
+  ["CANYON-BOTTOM", "canyon-bottom"],
+  ["END-OF-RAINBOW", "rainbow-falls"],
+  ["ON-RAINBOW", "rainbow-falls"],
+  ["ARAGAIN-FALLS", "rainbow-falls"],
+  ["RIVER-1", "river"],
+  ["RIVER-2", "river"],
+  ["RIVER-3", "river"],
+  ["RIVER-4", "river"],
+  ["RIVER-5", "river"],
+  ["WHITE-CLIFFS-NORTH", "rainbow-falls"],
+  ["WHITE-CLIFFS-SOUTH", "rainbow-falls"],
+  ["SHORE", "shoreline"],
+  ["SANDY-BEACH", "sandy-beach"],
 
   // The house.
   ["KITCHEN", "house-interior"],
@@ -83,11 +91,14 @@ export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, B
 
   // The maze and its dead ends (DEAD-END-5 is in the coal mine, not here).
   ["MAZE-1", "maze"], ["MAZE-2", "maze"], ["MAZE-3", "maze"], ["MAZE-4", "maze"],
-  ["MAZE-5", "maze"], ["MAZE-6", "maze"], ["MAZE-7", "maze"], ["MAZE-8", "maze"],
-  ["MAZE-9", "maze"], ["MAZE-10", "maze"], ["MAZE-11", "maze"], ["MAZE-12", "maze"],
-  ["MAZE-13", "maze"], ["MAZE-14", "maze"], ["MAZE-15", "maze"],
-  ["DEAD-END-1", "maze"], ["DEAD-END-2", "maze"], ["DEAD-END-3", "maze"],
-  ["DEAD-END-4", "maze"], ["GRATING-ROOM", "maze"],
+  ["MAZE-5", "maze"],
+  ["MAZE-6", "maze-deep"], ["MAZE-7", "maze-deep"], ["MAZE-8", "maze-deep"],
+  ["MAZE-9", "maze-deep"], ["MAZE-10", "maze-deep"],
+  ["MAZE-11", "maze-twisting"], ["MAZE-12", "maze-twisting"],
+  ["MAZE-13", "maze-twisting"], ["MAZE-14", "maze-twisting"], ["MAZE-15", "maze-twisting"],
+  ["DEAD-END-1", "maze-dead-ends"], ["DEAD-END-2", "maze-dead-ends"],
+  ["DEAD-END-3", "maze-dead-ends"], ["DEAD-END-4", "maze-dead-ends"],
+  ["GRATING-ROOM", "maze-dead-ends"],
 
   // The cyclops and the thief's treasure room above it.
   ["CYCLOPS-ROOM", "cyclops-room"],
@@ -140,26 +151,29 @@ export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, B
   ["BAT-ROOM", "cave-system"],
   ["SMELLY-ROOM", "cave-system"],
   ["GAS-ROOM", "cave-system"],
-  ["DEAD-END-5", "cave-system"],
-  ["MINE-1", "cave-system"], ["MINE-2", "cave-system"],
-  ["MINE-3", "cave-system"], ["MINE-4", "cave-system"],
-  ["SLIDE-ROOM", "cave-system"],
+
+  ["MINE-1", "coal-mine"], ["MINE-2", "coal-mine"],
+  ["MINE-3", "coal-mine"], ["MINE-4", "coal-mine"],
+  ["SLIDE-ROOM", "coal-mine"],
 
   // The connecting passages and lesser caves underground.
-  ["EAST-OF-CHASM", "cave-system"],
-  ["STRANGE-PASSAGE", "cave-system"],
-  ["SMALL-CAVE", "cave-system"],
-  ["TINY-CAVE", "cave-system"],
-  ["COLD-PASSAGE", "cave-system"],
-  ["NARROW-PASSAGE", "cave-system"],
-  ["WINDING-PASSAGE", "cave-system"],
-  ["TWISTING-PASSAGE", "cave-system"],
-  ["EW-PASSAGE", "cave-system"],
-  ["NS-PASSAGE", "cave-system"],
-  ["DEEP-CANYON", "cave-system"],
-  ["DAMP-CAVE", "cave-system"],
-  ["CHASM-ROOM", "cave-system"],
-  ["SANDY-CAVE", "cave-system"],
+  ["EAST-OF-CHASM", "chasm-cave"],
+  ["DEEP-CANYON", "chasm-cave"],
+  ["CHASM-ROOM", "chasm-cave"],
+  ["DAMP-CAVE", "chasm-cave"],
+  ["SANDY-CAVE", "chasm-cave"],
+
+  ["STRANGE-PASSAGE", "winding-passage"],
+  ["NARROW-PASSAGE", "winding-passage"],
+  ["WINDING-PASSAGE", "winding-passage"],
+  ["TWISTING-PASSAGE", "winding-passage"],
+  ["COLD-PASSAGE", "winding-passage"],
+
+  ["SMALL-CAVE", "small-cave"],
+  ["TINY-CAVE", "small-cave"],
+  ["EW-PASSAGE", "small-cave"],
+  ["NS-PASSAGE", "small-cave"],
+  ["DEAD-END-5", "small-cave"],
 ]);
 
 /**

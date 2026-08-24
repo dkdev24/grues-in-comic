@@ -11,6 +11,24 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [0.32.0] — 2026-08-24
+
+### Added
+- 20 new backdrops wired into `web/src/comic/backdrop.ts` and the AVB pack: the Image 4 diversity
+  pass (`coal-mine`, `chasm-cave`, `winding-passage`, `small-cave`, `highlands`, `rainbow-falls`,
+  `river`, `shoreline`, `maze-deep`, `maze-twisting`) and Image 5 (`maze-dead-ends`, `forest-dark`,
+  `forest-edge`, `forest-path`, `up-a-tree`, `east-clearing`, `canyon-view`, `cliff-middle`,
+  `canyon-bottom`, `sandy-beach`). Nine rooms move off shared `pastoral`/`highlands`/`shoreline` art
+  onto their own plate.
+- `reference/backdrops-bulk-generation-4(5x2)-square.png` — a square-cell contact sheet, cropped from
+  the portrait Image 4 source, used as the geometry reference for square-cell generation.
+
+### Changed
+- `art/package.json`'s `pack` script now packs 50 backdrops instead of 30.
+- `art/test/polarity.test.ts` backdrop count pin: 30 → 50.
+
+---
+
 ## [0.31.0] — 2026-08-24
 
 ### Added

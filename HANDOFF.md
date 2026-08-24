@@ -9,7 +9,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 ---
 
 ## Current Version
-**0.31.0** · Platform: **macOS only** (2026-07-28)
+**0.32.0** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -22,23 +22,23 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — early-game vector backdrops + A/B harness
-Built `art/vector/kit.mjs` (Scene, `hatch()`, trunks, walls, tufts, rocks) on the v0.30.0 engine and
-drew **ten early-game scenes** (white house ×4, forest ×4, clearing/grating, barrow) in
-`art/vector/scenes/`. 1-bit at 512/264, ink **.251–.378** vs originals' .261–.526; `ab.ts` builds
-the blind A/B against the shipped plates (published as an Artifact).
-A composition-led retune (vignette framing, stipple skies, conifers, 3/4 house) was **rejected as
-worse and reverted** — do not redo it without a new brief. Nothing wired into `backdrop.ts`; no
-shipped asset changed. Draw-order rule → `PITFALLS.md`.
+## Last Session — Image 5 generated, all 20 diversity-pass backdrops wired end to end
+Image 5 generated (square-cell reference, needed because the model copies a reference's geometry
+over the prompt's) and cropped. `backdrop.ts` rewritten to the plan's full target state — Image 4's
+cave-system/maze split + Image 5's outdoor split; `pastoral`/`highlands`/`shoreline` each down to one
+room. All 20 new plates converted to BMP and packed — `cast.json` now has 50 backdrops. Tests
+updated; art 54/54, web 385/385. `reference/` is gitignored — plates exist only on this machine.
+**82 of 110 rooms still share a backdrop** across 20 groups — ~7 more 5×2 sheets to 1:1. Detail:
+`docs/backdrop-generation-plan.md`.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 2. **Watch the board fill, then decide F19** — `--mono` is undefined in `tokens.css`, so every
    static page renders serif; the one-line fix re-types the whole site and wants a look.
-3. **Backdrop diversity pass.** ☐ 11 backdrops + wiring `§ Image 4` into `backdrop.ts`. Vector route
-   unproven — next session checks more cases first. Run `npm --prefix art run dump:bgb` before
-   judging: `reference/` is gitignored, so the originals are not in a fresh clone.
+3. **Backdrops toward 1:1.** Generate the remaining ~7 sheets — same pipeline as this session:
+   square-cell reference → crop → `backdrop.ts` → BMP → `pack`. Checklist in
+   `docs/backdrop-generation-plan.md`.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
 | Path | Purpose |

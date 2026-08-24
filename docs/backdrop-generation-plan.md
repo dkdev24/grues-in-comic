@@ -6,15 +6,22 @@
 sync with it; the tables below were corrected against the shipped code on 2026-08-07 (see
 **Sync corrections**).
 
-**New in this revision — the diversity pass (Image 4).** Three backdrops were shipped as heavy
+**Diversity pass (Image 4) — 10 of 11 generated, 2026-08-24.** Three backdrops shipped as heavy
 catch-alls: `cave-system` (25 rooms), `pastoral` (22 rooms), `maze` (20 rooms). Reused art at that
-scale means readers see the same room repeatedly under different names. **Rule going forward: no
-backdrop may cover more than 5 rooms.** Applying that cap to the three offenders requires **11 new
-backdrops** (§ Image 4), splitting each catch-all into 4–5 backdrops of ≤5 rooms apiece. Every other
-existing backdrop is already at or under the cap and is untouched.
+scale means readers see the same room repeatedly under different names. **Rule at the time: no
+backdrop may cover more than 5 rooms.** Applying that cap required **11 new backdrops** (§ Image 4).
+Ten of them now exist as cropped 512×512 PNGs in `reference/backdrops/` (`31-coal-mine` through
+`40-maze-twisting`); `41-maze-dead-ends` is **not generated** and has moved to the Image 5 sheet.
+None of the ten are wired into `web/src/comic/backdrop.ts` yet.
+
+**Direction change — 1:1 room coverage (2026-08-24).** The ≤5 cap is now an interim floor, not the
+goal. The target is **one backdrop per room for all 110 Zork I rooms**, at which point
+`ROOM_BACKDROPS` collapses into a direct room-id → backdrop-id identity and the mapping table below
+stops being a design artefact. Generation continues in bulk sheets until that is reached; the tables
+in this document remain the record of what has been generated and what a given plate depicts.
 
 Woodring hatch idiom, 1-bit polarity (pinned by `art/test/polarity.test.ts`), 512×512 px cells,
-2×5 grid sheets, same as the shipped set.
+5×2 grid sheets (ten cells per bulk generation), same as the shipped set.
 
 ---
 
@@ -96,13 +103,31 @@ The original mapping block below (now replaced) predated the shipped implementat
 > `art/vector/README.md`. Nothing was swapped. If that route wins, the same kit draws the 11 below;
 > if it does not, they stay image-generated per the prompts in this table.
 
-These 11 are **not yet generated.** They split `cave-system` (4 new + the existing one),
-`pastoral` (4 new + the existing one), and `maze` (3 new + the existing one) so no backdrop in the
-game covers more than 5 rooms. `coal-mine`, `chasm-cave`, `winding-passage`, and `small-cave` share
-the existing `cave-system` idiom (natural limestone caverns); `highlands`, `rainbow-falls`, `river`,
-and `shoreline` share the existing `pastoral` idiom (outdoor, high-contrast landscape); `maze-deep`
-and `maze-twisting` share the existing `maze` idiom (repeating stone passages) and `maze-dead-ends`
-is its terminal variant.
+**Status (2026-08-24): 10 of 11 generated.** `31-coal-mine` … `40-maze-twisting` are cropped and
+sitting in `reference/backdrops/` as 512×512 PNGs. `41-maze-dead-ends` is **not generated** — it is
+now cell 0 of the Image 5 sheet. Nothing from this pass is wired into the engine yet: no `BackdropId`
+entries, no `ROOM_BACKDROPS` rows, no AVB pack, no polarity assertions.
+
+Source sheet: `reference/backdrops-bulk-generation-4(5x2).png` (2752×1536, 5×2, ~527 px cells), kept
+in-repo as the provenance for the ten crops. Each cell was inset 8 px to drop the panel frame,
+centre-cropped square (511 px), and resized to 512×512 — native resolution, no upscaling.
+
+**The sheet's captions are wrong in three places; the crops are named by *content*, not by caption.**
+Row 1 cell 3 is captioned "Small Cave" but depicts the winding tunnel → `33-winding-passage`. Row 1
+cell 4 is captioned "Rocky Highlands" but depicts the stalagmite chamber → `34-small-cave`. Row 2
+cells 1–2 are swapped: River Bend is printed first, Rainbow & Falls second. Do not re-derive the
+filenames from the sheet's labels.
+
+These 11 split `cave-system` (4 new + the existing one), `pastoral` (4 new + the existing one), and
+`maze` (3 new + the existing one) so no backdrop in the game covers more than 5 rooms — the interim
+cap, now superseded as a *goal* by 1:1 room coverage (see the header). `coal-mine`, `chasm-cave`,
+`winding-passage`, and `small-cave` share the existing `cave-system` idiom (natural limestone
+caverns); `highlands`, `rainbow-falls`, `river`, and `shoreline` share the existing `pastoral` idiom
+(outdoor, high-contrast landscape); `maze-deep` and `maze-twisting` share the existing `maze` idiom
+(repeating stone passages) and `maze-dead-ends` is its terminal variant.
+
+Cells 0–9 below are generated. The eleventh backdrop, `41-maze-dead-ends`, was never generated
+and has been **moved to Image 5** (cell 0) rather than run as a one-cell sheet.
 
 | Cell | Backdrop ID | Filename | Title | Image Generation Prompt |
 |------|-------------|----------|-------|-------------------------|
@@ -117,15 +142,52 @@ is its terminal variant.
 | 8 | `maze-deep` | `39-maze-deep.png` | **Maze, Deeper Passages** | Woodring hatch style, 1-bit b&w. Identical stone passages with a subtly different marking (chalk arrow, dropped item), deeper and danker than the entrance maze, cross-hatched stone, stippled damp, same disorienting repetition. No figures. |
 | 9 | `maze-twisting` | `40-maze-twisting.png` | **Maze, Twisting Section** | Woodring hatch style, 1-bit b&w. Tightly zigzagging passages, sharper turns, more debris and old bones, cross-hatched stone, stippled deep shadow, maximum disorientation. No figures. |
 
-| Cell | Backdrop ID | Filename | Title | Image Generation Prompt |
-|------|-------------|----------|-------|-------------------------|
-| 0 | `maze-dead-ends` | `41-maze-dead-ends.png` | **Maze Dead Ends** | Woodring hatch style, 1-bit b&w. A passage that terminates abruptly at bare rock, dust and cobwebs undisturbed, cross-hatched wall, stippled stagnant air, sense of a wrong turn. No figures. |
+---
+
+## Image 5: Outdoor 1:1 Split + Maze Dead Ends (cells 0–9)
+
+**Status (2026-08-24): generated and cropped.** `reference/backdrop-image-sheet-5.png` is the source
+sheet; all 10 cells are cropped to 512×512 in `reference/backdrops/` (`41-maze-dead-ends.png` …
+`50-sandy-beach.png`), inset 8px, centre-cropped square. Captions matched their content on
+inspection — no relabeling needed this time. `BackdropId` and `ROOM_BACKDROPS` in
+`web/src/comic/backdrop.ts` now carry the full post-Image-5 mapping (this table plus the Image 4
+cave-system/maze split, previously unwired); `web/test/backdrop.test.ts` updated and passing. Wired into the AVB pack: all 20 new plates
+downscaled 512→315px (matching the ship-cell size the other 30 use) and converted to BMP in
+`reference/backdrops/bmp/`, `art/package.json`'s `pack` script carries `--backdrop` args for all of
+them, `npm --prefix art run pack` regenerated `web/assets/comic/cast.json` with 50 backdrops.
+`art/test/polarity.test.ts`'s backdrop count updated 30→50; full `art` (54) and `web` (385) suites
+pass, including the pixel gate.
+
+After this sheet: `pastoral` covers FOREST-1 only, `highlands` covers MOUNTAINS only, `shoreline`
+covers SHORE only — every other room in those three groups has its own plate. Nine rooms move off
+shared art.
+
+| Cell | Backdrop ID | Filename | Title | Rooms | Image Generation Prompt |
+|------|-------------|----------|-------|-------|-------------------------|
+| 0 | `maze-dead-ends` | `41-maze-dead-ends.png` | **Maze Dead Ends** | DEAD-END-1…4, GRATING-ROOM | Woodring hatch style, 1-bit b&w. A passage that terminates abruptly at bare rock, dust and cobwebs undisturbed, cross-hatched wall, stippled stagnant air, sense of a wrong turn. No figures. |
+| 1 | `forest-dark` | `42-forest-dark.png` | **Dark Forest** | FOREST-2 | Woodring hatch style, 1-bit b&w. Dense stand of tall trunks pressed close, canopy nearly sealed overhead, thin shafts of light on the leaf litter, cross-hatched bark, stippled undergrowth shadow, oppressive enclosure. No figures. |
+| 2 | `forest-edge` | `43-forest-edge.png` | **Forest Edge** | FOREST-3 | Woodring hatch style, 1-bit b&w. Treeline thinning into open ground, last trunks at the margin, tall grass beyond, cross-hatched foliage, stippled open light, transition from wood to field. No figures. |
+| 3 | `forest-path` | `44-forest-path.png` | **Forest Path** | PATH | Woodring hatch style, 1-bit b&w. Narrow worn trail running between trees, packed dirt and exposed roots, trunks flanking both sides, cross-hatched bark, stippled dappled light, clear direction of travel. No figures. |
+| 4 | `up-a-tree` | `45-up-a-tree.png` | **Up a Tree** | UP-A-TREE | Woodring hatch style, 1-bit b&w. View from a thick branch high in an old tree, boughs and leaves framing the foreground, ground far below through gaps, a bird's nest on the limb, cross-hatched bark, stippled canopy, vertiginous perch. No figures. |
+| 5 | `east-clearing` | `46-east-clearing.png` | **Forest Clearing** | CLEARING | Woodring hatch style, 1-bit b&w. Open grassy clearing ringed by trees, trampled grass at the centre, sky visible above, cross-hatched treeline, stippled meadow texture, calm breathing space. No figures. Distinct from the grating clearing — no grating in the grass. |
+| 6 | `canyon-view` | `47-canyon-view.png` | **Canyon View** | CANYON-VIEW | Woodring hatch style, 1-bit b&w. Rim overlook onto a deep river canyon, banded rock walls receding into haze, thin river far below, cross-hatched strata, stippled distance, panoramic depth. No figures. |
+| 7 | `cliff-middle` | `48-cliff-middle.png` | **Cliff Ledge** | CLIFF-MIDDLE | Woodring hatch style, 1-bit b&w. Narrow ledge partway down a sheer cliff face, rock wall on one side and open drop on the other, a few tenacious shrubs, cross-hatched cliff, stippled exposure, precarious foothold. No figures. |
+| 8 | `canyon-bottom` | `49-canyon-bottom.png` | **Canyon Bottom** | CANYON-BOTTOM | Woodring hatch style, 1-bit b&w. Floor of a deep canyon, towering walls closing in overhead, boulder rubble and a shallow stream, narrow strip of sky, cross-hatched walls, stippled damp shade, enclosed by scale. No figures. |
+| 9 | `sandy-beach` | `50-sandy-beach.png` | **Sandy Beach** | SANDY-BEACH | Woodring hatch style, 1-bit b&w. Broad underground beach of pale sand against still dark water, ripple marks in the sand, low rock ceiling far above, cross-hatched sand, stippled water sheen, quiet subterranean shore. No figures. |
+
+**Sheet spec:** 5×2 grid, generous portrait cells matching `reference/backdrops-bulk-generation-4(5x2).png`
+as the geometry reference; crop each cell inset 8 px, centre-crop square, resize to 512×512. Verify
+each caption against its content before naming the crops (Image 4 shipped three wrong captions).
 
 ---
 
 ## Backdrop ID → Room Mapping (target state for `web/src/comic/backdrop.ts`)
 
-This replaces the old (drifted, ~55-room) mapping block. It shows the **full 110-room assignment
+This is the assignment **after Image 4 only** — it does not yet include Image 5. When that sheet
+lands, the nine new ids take one room each out of the `pastoral`, `highlands` and `shoreline` rows
+(see § Image 5 for which room goes where).
+
+It replaces the old (drifted, ~55-room) mapping block, and shows the **full 110-room assignment
 after the diversity pass** — everything outside the three split groups is unchanged from what's
 already shipped in `backdrop.ts` today; only the `cave-system` / `pastoral` / `maze` rows change.
 
@@ -211,16 +273,49 @@ Sync corrections).
 
 ## Generation Checklist
 
+**Done**
+
 - [x] Generate Images 1–3 (30 backdrops, shipped)
 - [x] Pack and wire into `web/src/comic/backdrop.ts` / `cast.json` (shipped)
-- [ ] Generate Image 4 (11 new backdrops: `coal-mine`, `chasm-cave`, `winding-passage`, `small-cave`,
-      `highlands`, `rainbow-falls`, `river`, `shoreline`, `maze-deep`, `maze-twisting`,
-      `maze-dead-ends`) as 1024×2560 + one 512×512 overflow cell
-- [ ] Crop each cell to 512×512 PNG
-- [ ] Run through `art/tools/avbpack.ts` pipeline (AVB format for Comic Chat)
-- [ ] Add the 11 new `BackdropId` entries in `web/src/comic/backdrop.ts`
+- [x] Generate Image 4 cells 0–9 (10 backdrops, `31-coal-mine` … `40-maze-twisting`), 2026-08-24
+- [x] Crop each cell to 512×512 PNG in `reference/backdrops/`
+
+**Remaining for Image 4**
+
+- [x] Fold `41-maze-dead-ends` into the next bulk sheet instead of a one-cell generation (now § Image 5, cell 0)
+- [ ] Run the ten through `art/tools/avbpack.ts` (AVB format for Comic Chat)
+- [ ] Add the new `BackdropId` entries in `web/src/comic/backdrop.ts`
 - [ ] Update `ROOM_BACKDROPS` per the target mapping above (only the `pastoral`/`maze`/`cave-system`
       rows change)
 - [ ] Add polarity assertions in `art/test/polarity.test.ts` for each new backdrop
 - [ ] Regenerate `web/assets/comic/` with `npm --prefix art run pack`
 - [ ] Update coverage assertions in `web/test/backdrop.test.ts` for the new ids
+
+**Remaining for Image 5**
+
+- [x] Generate the Image 5 sheet (10 cells, `41-maze-dead-ends` … `50-sandy-beach`)
+- [ ] Crop each cell to 512×512 PNG in `reference/backdrops/`
+- [ ] Fold the nine new ids into `BackdropId`, `ROOM_BACKDROPS`, polarity tests and the AVB pack
+      alongside the Image 4 backlog above
+
+**Toward 1:1 room coverage (110 rooms)**
+
+- [ ] Enumerate the rooms still sharing a backdrop after Image 4 and group them into 5×2 bulk sheets
+- [ ] Generate, crop, and record each sheet here as a new `## Image N` section
+- [ ] When every room has its own plate, collapse `ROOM_BACKDROPS` to an identity mapping and retire
+      the mapping table in this document
+
+---
+
+## Bulk generation sessions
+
+| Sheet | Date | Cells | Result |
+|---|---|---|---|
+| Images 1–3 | shipped | 30 | Live in `web/assets/comic/` |
+| `reference/backdrops-bulk-generation-4(5x2).png` | 2026-08-24 | 10 | Cropped to `reference/backdrops/31-…` – `40-…`; three captions wrong (see § Image 4); not yet packed |
+
+**Sheet conventions, learned the hard way (2026-08-24):** the image model follows the *reference
+sheet's* geometry over the prompt's — asking for a 3×3 of squares against a 5×2 portrait reference
+produced a 5×2 of portraits anyway, with one cell duplicated to pad the count. Generate 5×2 to match
+the reference, ask for generous cells so the square centre-crop keeps its subject, and verify each
+caption against its content before naming the crops.

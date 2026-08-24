@@ -10,6 +10,44 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.32.0 — 2026-08-24 — the diversity pass ships: 20 backdrops wired end to end
+
+**Image 4's ten cropped plates and a new Image 5 sheet, both wired into `backdrop.ts` and the AVB
+pack — nine more rooms move off shared art, and the engine now serves 50 backdrops instead of 30.**
+
+Image 4's `31-coal-mine` … `40-maze-twisting` existed only as cropped 512×512 PNGs from last
+session, wired nowhere. This session closed the loop and generated the next sheet on top of it:
+
+- **A square-cell reference.** The Image 4 source sheet (`backdrops-bulk-generation-4(5x2).png`) is
+  portrait, and image models copy a reference's geometry over a prompt's instruction — asking for
+  square cells against a portrait reference had previously produced portraits anyway. Center-cropped
+  each of its ten cells to a square contact sheet
+  (`backdrops-bulk-generation-4(5x2)-square.png`) to use as the geometry reference instead.
+- **Image 5 generated and cropped.** `41-maze-dead-ends` (carried over, never generated) plus nine
+  new outdoor plates — `42-forest-dark` … `50-sandy-beach` — built from the per-cell prompts already
+  in `docs/backdrop-generation-plan.md` § Image 5. Cropped 512×512 (inset 8px, centre-crop square)
+  into `reference/backdrops/`; captions matched their content on inspection.
+- **`backdrop.ts` rewritten to the plan's target state.** `BackdropId` gains the 20 new ids;
+  `ROOM_BACKDROPS` applies both the Image 4 cave-system/maze split and the Image 5 outdoor split —
+  `pastoral` now covers only `FOREST-1`, `highlands` only `MOUNTAINS`, `shoreline` only `SHORE`.
+  `web/test/backdrop.test.ts`'s pinned assertions updated to match.
+- **Wired into the AVB pack.** All 20 plates downscaled 512→315px — the size the other 30 ship at,
+  per the existing "judge at ship size, not authoring size" rule in `docs/PITFALLS.md` — converted to
+  BMP, and added to `art/package.json`'s `pack` script. `npm --prefix art run pack` regenerated
+  `web/assets/comic/cast.json` with 50 backdrops. `art/test/polarity.test.ts`'s backdrop-count pin
+  moved 30→50.
+
+Full suite green: art 54/54 (including the non-degenerate check now covering all 20 new plates), web
+385/385 (pixel gate included, unaffected — none of the gate's fixture rooms moved backdrop).
+
+**Reuse after this pass:** 82 of 110 rooms still share a backdrop across 20 groups (`maze`,
+`maze-deep`, `maze-twisting`, `cave-system`, `coal-mine`, `chasm-cave`, `winding-passage`,
+`small-cave`, `rainbow-falls`, `river`, `reservoir`, `timber-room`, `field`, `dam-lobby`, and the
+house/gallery/cyclops/mirror/temple pairs) — roughly seven more 5×2 sheets to reach the documented
+1:1-per-room goal.
+
+---
+
 ## v0.31.0 — 2026-08-24 — ten early-game backdrops, and an A/B that says no
 
 **Ten vector backdrops for the rooms a player sees first, a harness to judge them against the art
