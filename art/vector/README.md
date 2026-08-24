@@ -12,6 +12,10 @@ image generation for the backdrops that are still missing
 `gen_field.mjs` (a copy of the shipped `field` backdrop, as a style test) are
 scenes -- copy either to make another backdrop.
 
+The `.svg` output is **generated and gitignored** -- it regenerates in seconds and runs to
+megabytes (the superseded rough.js scene alone is ~1.9 MB). The small PNG renders **are**
+committed, so a result stays reviewable without running anything.
+
 ## Calibrate against the real art, not against `reference/backdrops/`
 
 `reference/backdrops/*.png` are AI-generated approximations. The actual Jim

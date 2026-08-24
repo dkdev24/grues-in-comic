@@ -1,2 +1,8 @@
 __pycache__/
 node_modules/
+
+# Generated output. Every .svg here is regenerated in seconds by its scene
+# script, and they run to megabytes (the superseded rough.js scene alone is
+# ~1.9 MB), so they are not worth versioning. The small PNG renders ARE
+# committed: they are what makes a result reviewable without running anything.
+*.svg
