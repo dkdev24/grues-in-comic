@@ -222,39 +222,178 @@ h3 {
 
 /* ---------------- 2. features ---------------- */
 
-#features .cards {
+/* A comic strip of Comic Chat's own cast, bantering about each feature. Panel
+ * count and width are never fixed: `auto-fit` hands the browser as many
+ * panels per row as fit at `--panel-min`, the same responsibility the old
+ * card grid's single breakpoint had. */
+#features .strip {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: 16px;
 }
 
-@media (max-width: 720px) {
-  #features .cards {
-    grid-template-columns: 1fr;
-  }
-}
-
-.card {
+.panel {
   background: var(--comic-paper);
   border: 1px solid var(--comic-edge);
   color: var(--ink);
+  padding: 10px 12px 12px;
 }
 
-.card .titlebar {
-  background: var(--comic-chrome);
-  border-bottom: 1px solid var(--comic-edge);
+.panel .caption {
+  margin: 0 0 10px;
   font-family: system-ui, "Segoe UI", Tahoma, sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  padding: 6px 10px;
+  text-transform: uppercase;
+  color: var(--console-dim);
 }
 
-.card p {
-  margin: 0;
-  padding: 12px 16px 16px;
+.panel .line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.panel .line + .line {
+  margin-top: 10px;
+}
+
+.panel .line.reverse {
+  flex-direction: row-reverse;
+}
+
+/* Mirror the second speaker so the two portraits face each other across the
+ * bubbles rather than both looking the same way. */
+.panel .line.reverse .portrait {
+  transform: scaleX(-1);
+}
+
+.portrait {
+  flex: 0 0 auto;
+  width: 15%;
+  min-width: 40px;
+  max-width: 64px;
+  background-repeat: no-repeat;
+  aspect-ratio: 1;
+  background-size: var(--bgw) var(--bgh);
+  background-position: var(--bgx) var(--bgy);
+  border: 1px solid var(--comic-edge);
+  border-radius: 50%;
+  background-color: #fff;
+}
+
+.bubble {
+  position: relative;
+  flex: 1 1 auto;
+  background: #fff;
+  border: 1px solid var(--comic-edge);
+  border-radius: 10px;
+  padding: 8px 10px;
   font-family: var(--mono);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.bubble .name {
+  display: block;
+  font-family: system-ui, "Segoe UI", Tahoma, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--console-dim);
+  margin-bottom: 2px;
+}
+
+/* character sprite crops — the largest *square that stays inside the face
+ * rect*, centred on it, scaled into the (uniformly circular) portrait box.
+ * Squaring up to the larger side instead would reach past the face rect and
+ * bleed in whatever the sheet has packed next to it — the crop must never
+ * exceed the smaller of width/height. See
+ * web/assets/comic/roster/*.avatar.json for the source rects. */
+.char-dan {
+  background-image: url("/assets/comic/roster/dan.png");
+  --bgw: 946.729%;
+  --bgh: 1907.477%;
+  --bgx: 68.874%;
+  --bgy: 93.847%;
+}
+.char-tiki {
+  background-image: url("/assets/comic/roster/tiki.png");
+  --bgw: 650%;
+  --bgh: 1906.494%;
+  --bgx: 91.972%;
+  --bgy: 91.607%;
+}
+.char-anna {
+  background-image: url("/assets/comic/roster/anna.png");
+  --bgw: 731.111%;
+  --bgh: 2473.333%;
+  --bgx: 67.136%;
+  --bgy: 83.583%;
+}
+.char-bolo {
+  background-image: url("/assets/comic/roster/bolo.png");
+  --bgw: 656.41%;
+  --bgh: 2508.333%;
+  --bgx: 24.309%;
+  --bgy: 91.802%;
+}
+.char-kwensa {
+  background-image: url("/assets/comic/roster/kwensa.png");
+  --bgw: 656.41%;
+  --bgh: 2705.128%;
+  --bgx: 21.141%;
+  --bgy: 99.975%;
+}
+.char-scotty {
+  background-image: url("/assets/comic/roster/scotty.png");
+  --bgw: 697.931%;
+  --bgh: 2024.138%;
+  --bgx: 24.567%;
+  --bgy: 52.115%;
+}
+.char-margaret {
+  background-image: url("/assets/comic/roster/margaret.png");
+  --bgw: 695.89%;
+  --bgh: 2095.89%;
+  --bgx: 33.333%;
+  --bgy: 75.292%;
+}
+.char-hugh {
+  background-image: url("/assets/comic/roster/hugh.png");
+  --bgw: 661.039%;
+  --bgh: 2438.312%;
+  --bgx: 66.146%;
+  --bgy: 99.944%;
+}
+.char-rebecca {
+  background-image: url("/assets/comic/roster/rebecca.png");
+  --bgw: 714.789%;
+  --bgh: 3633.803%;
+  --bgx: 53.207%;
+  --bgy: 100%;
+}
+.char-denise {
+  background-image: url("/assets/comic/roster/denise.png");
+  --bgw: 757.463%;
+  --bgh: 2127.612%;
+  --bgx: 69.637%;
+  --bgy: 90.21%;
+}
+.char-sage {
+  background-image: url("/assets/comic/roster/sage.png");
+  --bgw: 553.514%;
+  --bgh: 2629.73%;
+  --bgx: 32.598%;
+  --bgy: 88.291%;
+}
+.char-kevin {
+  background-image: url("/assets/comic/roster/kevin.png");
+  --bgw: 652.98%;
+  --bgh: 2153.642%;
+  --bgx: 1.677%;
+  --bgy: 90.358%;
 }
 
 /* ---------------- 3. background ---------------- */

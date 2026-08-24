@@ -11,6 +11,27 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [v0.33.1] - 2026-08-25 — the front page cast a comic strip of its own
+
+### Changed
+- **"What it does" is now a comic strip, not a card grid.** Six panels, each a two-line exchange
+  between Comic Chat roster characters — real face crops from `web/assets/comic/roster/*.png`, not
+  illustration — bantering about one feature apiece (art, full-game completeness, save/resume,
+  `/hint`/`/help`, the cast picker, the Hall of Fame). Panel count per row is `auto-fit`, so it
+  reflows on its own rather than switching at one hand-picked breakpoint.
+- **Portraits crop to a fixed circle.** Each character's neutral-face rect is squared to its
+  *smaller* dimension, centred, before the circle mask — squaring to the larger dimension instead
+  first shipped and bled into whatever the tightly-packed sprite sheet had next to that face (worst
+  on Hugh). Every portrait is now the same size and shape, and the second speaker in each exchange
+  is mirrored so the two look at each other rather than both facing the same way.
+- **The hero sample image is a real screenshot again.** Replaced the old comic-only, single-column,
+  portrait-oriented mock with a capture of the actual `/play/` shell — cast bar, a two-column comic
+  row (the layout it actually reflows to above one column's width), and the text console beneath it
+  with the room name, score/moves, transcript and prompt. Landscape instead of tall, and it can no
+  longer disagree with what the game looks like.
+
+---
+
 ## [v0.33.0] - 2026-08-24 — full 1:1 backdrops: 110/110 rooms, zero sharing
 
 ### Added

@@ -79,9 +79,9 @@
                 <source srcset="/assets/strip-sample.webp" type="image/webp" />
                 <img
                   src="/assets/strip-sample.png"
-                  width="613"
-                  height="169"
-                  alt="Three panels from the game: the Hero stands in the field west of the house as the Guide narrates the classic opening; the Hero says 'Let's head north'; the Hero and Guide face each other in the Living Room beside the trophy case as the Guide describes the lamp and sword and the Hero says 'Let's grab the lamp.'"
+                  width="806"
+                  height="650"
+                  alt="The cast bar names the Hero and Dungeon Master, then two side-by-side panels open the game: the Hero stands in the field west of the house as the Guide narrates 'You are standing in an open field west of a white house, with a boarded front door. There is a small mailbox here,' and the Hero and Guide face the boarded front door as the Guide adds 'Boarded front door. Someone did not want visitors.' Below the comic, the game's text console shows the room name, score and move count, the same room description, and the &gt; command prompt — the two panes that make up the actual gameplay screen."
                 />
               </picture>
             </div>
@@ -92,34 +92,77 @@
       <section id="features" aria-labelledby="features-h2">
         <div class="wrap">
           <h2 id="features-h2">What it does</h2>
-          <div class="cards">
-            <div class="card">
-              <div class="titlebar">It draws itself.</div>
-              <p>
-                Every turn becomes panels — figures, poses, balloons — chosen by the same layout
-                logic Comic Chat used, ported and cited.
-              </p>
+          <div class="strip">
+            <div class="panel">
+              <p class="caption">It draws itself.</p>
+              <div class="line">
+                <span class="portrait char-tiki" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">TIKI</span>Ready for your close-up?</span>
+              </div>
+              <div class="line reverse">
+                <span class="portrait char-dan" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">DAN</span>I didn't ask for a close-up. I asked for the exit.</span>
+              </div>
             </div>
-            <div class="card">
-              <div class="titlebar">The whole game, unabridged.</div>
-              <p>
-                All 110 rooms, 137 objects, the thief and the troll. Completable from
-                <em>West of House</em> to the <em>Stone Barrow</em>.
-              </p>
+
+            <div class="panel">
+              <p class="caption">The whole game, unabridged.</p>
+              <div class="line">
+                <span class="portrait char-bolo" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">BOLO</span>All 110 rooms? Even the maze?</span>
+              </div>
+              <div class="line reverse">
+                <span class="portrait char-anna" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">ANNA</span>Especially the maze. Bring string.</span>
+              </div>
             </div>
-            <div class="card">
-              <div class="titlebar">It remembers where you were.</div>
-              <p>
-                Close the tab in the middle of the dungeon and come back to the same room. Three
-                save slots and an autosave, kept in your browser — no account, no upload.
-              </p>
+
+            <div class="panel">
+              <p class="caption">It remembers where you were.</p>
+              <div class="line">
+                <span class="portrait char-scotty" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">SCOTTY</span>Closed the tab mid-dungeon again?</span>
+              </div>
+              <div class="line reverse">
+                <span class="portrait char-kwensa" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">KWENSA</span>Three save slots. It forgave you before you asked.</span>
+              </div>
             </div>
-            <div class="card">
-              <div class="titlebar">Kind to newcomers.</div>
-              <p>
-                Never played a text adventure? <code>/help</code> explains how commands work and
-                <code>/hint</code> shows what's around you, without spoiling a puzzle.
-              </p>
+
+            <div class="panel">
+              <p class="caption">Kind to newcomers.</p>
+              <div class="line">
+                <span class="portrait char-denise" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">DENISE</span><code>/hint</code>. Not a walkthrough — a nudge.</span>
+              </div>
+              <div class="line reverse">
+                <span class="portrait char-sage" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">SAGE</span>The grue appreciates a fair fight.</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <p class="caption">Choose your cast.</p>
+              <div class="line">
+                <span class="portrait char-margaret" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">MARGARET</span>Eight Heroes, seven Dungeon Masters.</span>
+              </div>
+              <div class="line reverse">
+                <span class="portrait char-hugh" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">HUGH</span>I picked the one who looks like he'd rather be anywhere else.</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <p class="caption">See who else is playing.</p>
+              <div class="line">
+                <span class="portrait char-rebecca" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">REBECCA</span>There's a leaderboard now.</span>
+              </div>
+              <div class="line reverse">
+                <span class="portrait char-kevin" aria-hidden="true"></span>
+                <span class="bubble"><span class="name">KEVIN</span>I'm "PLAYING NOW." Forever, probably.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -204,6 +247,11 @@
           <div class="changelog-list" id="changelog-preview">
             <!-- CHANGELOG:START — generated by tools/build-changelog.ts from CHANGELOG.md. Do not hand-edit. -->
             <div class="changelog-row">
+              <span class="version">0.33.1</span>
+              <span class="date">2026-08-25</span>
+              <span class="summary">the front page cast a comic strip of its own</span>
+            </div>
+            <div class="changelog-row">
               <span class="version">0.33.0</span>
               <span class="date">2026-08-24</span>
               <span class="summary">full 1:1 backdrops: 110/110 rooms, zero sharing</span>
@@ -212,11 +260,6 @@
               <span class="version">0.32.0</span>
               <span class="date">2026-08-24</span>
               <span class="summary">the diversity pass ships: 20 backdrops wired end to end</span>
-            </div>
-            <div class="changelog-row">
-              <span class="version">0.31.0</span>
-              <span class="date">2026-08-24</span>
-              <span class="summary">ten early-game backdrops, and an A/B that says no</span>
             </div>
             <!-- CHANGELOG:END -->
           </div>

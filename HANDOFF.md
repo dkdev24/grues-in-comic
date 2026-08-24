@@ -9,7 +9,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 ---
 
 ## Current Version
-**0.33.0** · Platform: **macOS only** (2026-07-28)
+**0.33.1** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -25,12 +25,14 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — Image 13 (final sheet): 110/110 backdrops reached, zero sharing
-`field` split (NORTH/SOUTH/EAST-OF-HOUSE new; WEST-OF-HOUSE keeps `field`) — the last 3 of 23
-backdrops the no-sharing goal needed. `cast.json` now has **112 backdrops** (110 rooms +
-`barrow-interior` + the `room` fallback); a grep confirms zero ids are shared. Version bumped
-0.32.0→0.33.0, `WORKLOG.md` entry added for the whole Images 6–13 arc. art 54/54, web 385/385. Full
-sheet-by-sheet record and lessons (crop bounds, labeling): `docs/backdrop-generation-plan.md`.
+## Last Session — landing page: comic-strip features section, real hero screenshot
+"What it does" is now a 6-panel comic strip (roster character portraits + banter) instead of a card
+grid; see `#features .strip` in `web/index.html` and the `.char-*` crop vars in `web/site.css`.
+Portrait crop squares to the *smaller* face-rect dimension, not the larger — squaring up bled into
+neighboring sheet content (seen on Hugh). Hero sample image is now a real `/play/` screenshot
+(806×650, two-column comic + console pane), not a static mock. Version bumped 0.33.0→0.33.1 via
+`tools/build-changelog.ts` (also rewrote `changelog.html`, `index.html`'s changelog block,
+`play/index.html`'s version label). Full detail: `WORKLOG.md` v0.33.1.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public

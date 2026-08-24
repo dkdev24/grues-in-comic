@@ -45,7 +45,16 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
-          <summary>August 2026 <span class="count">(28 releases)</span></summary>
+          <summary>August 2026 <span class="count">(29 releases)</span></summary>
+      <article class="changelog-entry" id="v0.33.1">
+        <h3><a href="#v0.33.1"><span class="version">v0.33.1</span> <span class="date">2026-08-25</span> — the front page cast a comic strip of its own</a></h3>
+        <h4>Changed</h4>
+        <ul>
+          <li><strong>"What it does" is now a comic strip, not a card grid.</strong> Six panels, each a two-line exchange between Comic Chat roster characters — real face crops from <code>web/assets/comic/roster/*.png</code>, not illustration — bantering about one feature apiece (art, full-game completeness, save/resume, <code>/hint</code>/<code>/help</code>, the cast picker, the Hall of Fame). Panel count per row is <code>auto-fit</code>, so it reflows on its own rather than switching at one hand-picked breakpoint.</li>
+          <li><strong>Portraits crop to a fixed circle.</strong> Each character's neutral-face rect is squared to its <em>smaller</em> dimension, centred, before the circle mask — squaring to the larger dimension instead first shipped and bled into whatever the tightly-packed sprite sheet had next to that face (worst on Hugh). Every portrait is now the same size and shape, and the second speaker in each exchange is mirrored so the two look at each other rather than both facing the same way.</li>
+          <li><strong>The hero sample image is a real screenshot again.</strong> Replaced the old comic-only, single-column, portrait-oriented mock with a capture of the actual <code>/play/</code> shell — cast bar, a two-column comic row (the layout it actually reflows to above one column's width), and the text console beneath it with the room name, score/moves, transcript and prompt. Landscape instead of tall, and it can no longer disagree with what the game looks like.</li>
+        </ul>
+      </article>
       <article class="changelog-entry" id="v0.33.0">
         <h3><a href="#v0.33.0"><span class="version">v0.33.0</span> <span class="date">2026-08-24</span> — full 1:1 backdrops: 110/110 rooms, zero sharing</a></h3>
         <h4>Added</h4>

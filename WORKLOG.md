@@ -10,6 +10,47 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.1 — 2026-08-25 — the front page cast a comic strip of its own
+
+**The landing page's "What it does" section is a six-panel comic strip of Comic Chat roster
+characters bantering about each feature, instead of a card grid; the hero sample image is a real
+`/play/` screenshot instead of a hand-picked mock.**
+
+- **The strip.** Six panels — Tiki/Dan, Bolo/Anna, Scotty/Kwensa, Denise/Sage, Margaret/Hugh,
+  Rebecca/Kevin — one exchange per feature (art, full-game completeness, save/resume, `/hint`/
+  `/help`, the cast picker, the Hall of Fame). Portraits are real crops of
+  `web/assets/comic/roster/*.png`, not drawn art: CSS custom properties per character hold a
+  percentage `background-size`/`background-position` computed from each avatar's neutral-face rect
+  in its `.avatar.json`, so the crop stays sharp at any panel width. `#features .strip` uses
+  `grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr))`, so panel count per row
+  is the grid's decision, not a hand-picked breakpoint.
+- **The crop-square bug.** The first pass squared each face rect up to its *larger* dimension
+  (`max(w,h)`), centred. On a tightly-packed sprite sheet that reaches past the actual face rect on
+  the shorter axis and pulls in whatever the sheet has next to it — visible as a stray line on
+  Hugh's portrait. Fixed by squaring down to the *smaller* dimension (`min(w,h)`) instead, which by
+  construction never leaves the original face rect. No visible bleed on any of the twelve
+  characters used across the strip after the fix.
+- **Facing pairs.** The second speaker in each panel gets `transform: scaleX(-1)` (`.line.reverse
+  .portrait`), so the two portraits look at each other across the bubbles instead of both facing
+  the same way — independent of which way the source art actually faces.
+- **Character swaps** mid-session, on request: Maynard → Kevin (already used once), and
+  Dan/Tiki's duplicate second appearance in "Kind to newcomers" → Denise/Sage, so all twelve
+  panels use distinct characters.
+- **The hero sample image.** Was a static illustrated mock (613×169, comic panels only, no
+  console). Replaced with a screenshot of the real `/play/` shell: `#shell`'s row-sizing and the
+  comic-strip's column count are both computed from container width at render time
+  (`comic/layout.ts`), so getting the two-column layout the game actually reflows to above one
+  column's width meant overriding `#shell`'s grid rows to `auto` (its default `100dvh` stretches an
+  `auto` track to fill leftover space) at a wide-enough viewport, screenshotting, then cropping.
+  Result is 806×650 — landscape instead of portrait — showing the cast bar, a two-column comic row,
+  and the text console (room name, score/moves, transcript, prompt) stacked beneath it, matching
+  what the game's own mobile/narrow layout looks like.
+- Version bumped 0.33.0 → 0.33.1 via `tools/build-changelog.ts`, which also rewrote
+  `changelog.html`, `index.html`'s changelog block, and `play/index.html`'s comic-pane version
+  label from the same `CHANGELOG.md` entry.
+
+---
+
 ## v0.33.0 — 2026-08-24 — full 1:1 backdrops: 110/110 rooms, zero sharing
 
 **Eight generation sheets (Images 6–13), 62 new backdrops, closing every gap left after v0.32.0's
