@@ -26,13 +26,15 @@ const world = JSON.parse(
 const roomIds = new Set(world.rooms.map((r) => r.id));
 
 describe("backdropFor", () => {
-  it("gives the house clearing the field backdrop", () => {
+  it("gives the house clearing its own backdrops, not the forest's", () => {
     // The regression: 5.3 matched /HOUSE/ against `pastoral` first, so all four
     // of these returned `pastoral` and `field` never drew. Reverting the table
-    // to that order fails exactly here.
-    for (const room of ["WEST-OF-HOUSE", "NORTH-OF-HOUSE", "SOUTH-OF-HOUSE", "EAST-OF-HOUSE"]) {
-      expect(backdropFor(room)).toBe("field");
-    }
+    // to that order fails exactly here. Image 13 took the group to one backdrop
+    // per room; WEST-OF-HOUSE alone kept the shared `field` id.
+    expect(backdropFor("WEST-OF-HOUSE")).toBe("field");
+    expect(backdropFor("NORTH-OF-HOUSE")).toBe("north-of-house");
+    expect(backdropFor("SOUTH-OF-HOUSE")).toBe("south-of-house");
+    expect(backdropFor("EAST-OF-HOUSE")).toBe("east-of-house");
   });
 
   it("gives the woods and the high ground their split backdrops (Image 5)", () => {
@@ -50,7 +52,7 @@ describe("backdropFor", () => {
     // The post-MVP art pass replaced the generic-interior fallback for the
     // rooms a reader would recognise; these no longer draw as `room`.
     expect(backdropFor("KITCHEN")).toBe("house-interior");
-    expect(backdropFor("LIVING-ROOM")).toBe("house-interior");
+    expect(backdropFor("LIVING-ROOM")).toBe("living-room");
     expect(backdropFor("ATTIC")).toBe("attic");
     expect(backdropFor("CELLAR")).toBe("cellar");
     expect(backdropFor("MAZE-1")).toBe("maze");

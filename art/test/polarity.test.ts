@@ -140,7 +140,7 @@ describe("backdrop polarity", () => {
 
   it("ships a non-degenerate image for every backdrop", () => {
     // 30 shipped (Images 1–3) + 20 from the diversity pass (Images 4–5).
-    expect(manifest.backdrops.length).toBe(50);
+    expect(manifest.backdrops.length).toBe(112);
     // Neither a blank sheet, a solid fill, nor a failed decode: line art has
     // both. This also catches a full inversion that flattened to one value.
     const degenerate = manifest.backdrops

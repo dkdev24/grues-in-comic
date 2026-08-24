@@ -37,7 +37,37 @@ export type BackdropId =
   // Diversity pass (Image 5): takes `pastoral` / `highlands` / `shoreline` to
   // one backdrop per room.
   | "forest-dark" | "forest-edge" | "forest-path" | "up-a-tree" | "east-clearing"
-  | "canyon-view" | "cliff-middle" | "canyon-bottom" | "sandy-beach";
+  | "canyon-view" | "cliff-middle" | "canyon-bottom" | "sandy-beach"
+  // Image 6: takes `reservoir` and `timber-room` to one backdrop per room.
+  | "reservoir-south" | "reservoir-north" | "stream-view" | "in-stream"
+  | "shaft-room" | "ladder-top" | "ladder-bottom" | "lower-shaft"
+  // Image 7: takes `river` and `rainbow-falls` to one backdrop per room.
+  | "river-2" | "river-3" | "river-4" | "river-5"
+  | "end-of-rainbow" | "on-rainbow" | "white-cliffs-north" | "white-cliffs-south"
+  // Image 8: takes `winding-passage` and `small-cave` to one backdrop per room.
+  | "strange-passage" | "narrow-passage" | "twisting-passage" | "cold-passage"
+  | "tiny-cave" | "ew-passage" | "ns-passage" | "dead-end-5"
+  // Image 9: takes `chasm-cave` and `cave-system` to one backdrop per room,
+  // closing out the diversity-pass groups (Image 4's ≤5-cap ids).
+  | "east-of-chasm" | "deep-canyon" | "damp-cave" | "sandy-cave"
+  | "squeeky-room" | "bat-room" | "smelly-room" | "gas-room"
+  // Image 10: takes `coal-mine`, `dam-lobby` and `temple` (from the original
+  // 30-backdrop set) to one backdrop per room.
+  | "mine-2" | "mine-3" | "mine-4" | "slide-room"
+  | "dam-room" | "dam-base" | "south-temple"
+  // Image 11: takes `maze`, `maze-deep`, `house-interior` and `gallery` to
+  // one backdrop per room.
+  | "maze-2" | "maze-3" | "maze-4" | "maze-5"
+  | "maze-7" | "maze-8" | "maze-9" | "maze-10"
+  | "living-room" | "studio"
+  // Image 12: takes `maze-twisting`, `maze-dead-ends`, `mirror-room` and
+  // `cyclops-room` to one backdrop per room.
+  | "maze-12" | "maze-13" | "maze-14" | "maze-15"
+  | "dead-end-2" | "dead-end-3" | "dead-end-4" | "grating-room"
+  | "mirror-room-2" | "treasure-room"
+  // Image 13: takes `field` to one backdrop per room — the last sheet,
+  // reaching full 110/110 with no sharing.
+  | "north-of-house" | "south-of-house" | "east-of-house";
 
 /**
  * Every room in the world document, keyed by id, grouped by the backdrop it
@@ -47,10 +77,12 @@ export type BackdropId =
 export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, BackdropId>([
   // Above ground. The house clearing is `field`; the woods, high ground, cliffs
   // and river run through `pastoral`; the barrow and grating get their own.
+  // One backdrop per room (Image 13, the last for full 110/110) —
+  // WEST-OF-HOUSE alone keeps the `field` id.
   ["WEST-OF-HOUSE", "field"],
-  ["NORTH-OF-HOUSE", "field"],
-  ["SOUTH-OF-HOUSE", "field"],
-  ["EAST-OF-HOUSE", "field"],
+  ["NORTH-OF-HOUSE", "north-of-house"],
+  ["SOUTH-OF-HOUSE", "south-of-house"],
+  ["EAST-OF-HOUSE", "east-of-house"],
   ["STONE-BARROW", "barrow-exterior"],
   ["GRATING-CLEARING", "grating-clearing"],
   ["FOREST-1", "pastoral"],
@@ -63,22 +95,26 @@ export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, B
   ["CANYON-VIEW", "canyon-view"],
   ["CLIFF-MIDDLE", "cliff-middle"],
   ["CANYON-BOTTOM", "canyon-bottom"],
-  ["END-OF-RAINBOW", "rainbow-falls"],
-  ["ON-RAINBOW", "rainbow-falls"],
+  // Rainbow Falls and the river. One backdrop per room (Image 7) —
+  // ARAGAIN-FALLS alone keeps the `rainbow-falls` id, RIVER-1 the `river` id.
+  ["END-OF-RAINBOW", "end-of-rainbow"],
+  ["ON-RAINBOW", "on-rainbow"],
   ["ARAGAIN-FALLS", "rainbow-falls"],
   ["RIVER-1", "river"],
-  ["RIVER-2", "river"],
-  ["RIVER-3", "river"],
-  ["RIVER-4", "river"],
-  ["RIVER-5", "river"],
-  ["WHITE-CLIFFS-NORTH", "rainbow-falls"],
-  ["WHITE-CLIFFS-SOUTH", "rainbow-falls"],
+  ["RIVER-2", "river-2"],
+  ["RIVER-3", "river-3"],
+  ["RIVER-4", "river-4"],
+  ["RIVER-5", "river-5"],
+  ["WHITE-CLIFFS-NORTH", "white-cliffs-north"],
+  ["WHITE-CLIFFS-SOUTH", "white-cliffs-south"],
   ["SHORE", "shoreline"],
   ["SANDY-BEACH", "sandy-beach"],
 
   // The house.
+  // One backdrop per room (Image 11) — KITCHEN alone keeps the
+  // `house-interior` id.
   ["KITCHEN", "house-interior"],
-  ["LIVING-ROOM", "house-interior"],
+  ["LIVING-ROOM", "living-room"],
   ["ATTIC", "attic"],
 
   // The cellar and the troll's lair below it.
@@ -86,45 +122,61 @@ export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, B
   ["TROLL-ROOM", "troll-room"],
 
   // The art rooms.
+  // One backdrop per room (Image 11) — GALLERY alone keeps the
+  // `gallery` id.
   ["GALLERY", "gallery"],
-  ["STUDIO", "gallery"],
+  ["STUDIO", "studio"],
 
   // The maze and its dead ends (DEAD-END-5 is in the coal mine, not here).
-  ["MAZE-1", "maze"], ["MAZE-2", "maze"], ["MAZE-3", "maze"], ["MAZE-4", "maze"],
-  ["MAZE-5", "maze"],
-  ["MAZE-6", "maze-deep"], ["MAZE-7", "maze-deep"], ["MAZE-8", "maze-deep"],
-  ["MAZE-9", "maze-deep"], ["MAZE-10", "maze-deep"],
-  ["MAZE-11", "maze-twisting"], ["MAZE-12", "maze-twisting"],
-  ["MAZE-13", "maze-twisting"], ["MAZE-14", "maze-twisting"], ["MAZE-15", "maze-twisting"],
-  ["DEAD-END-1", "maze-dead-ends"], ["DEAD-END-2", "maze-dead-ends"],
-  ["DEAD-END-3", "maze-dead-ends"], ["DEAD-END-4", "maze-dead-ends"],
-  ["GRATING-ROOM", "maze-dead-ends"],
+  // One backdrop per room (Image 11) — MAZE-1 alone keeps `maze`, MAZE-6
+  // alone keeps `maze-deep`. Subtle variety only (rock formation/camera
+  // angle) — no landmarks that would aid solving the maze.
+  ["MAZE-1", "maze"], ["MAZE-2", "maze-2"], ["MAZE-3", "maze-3"], ["MAZE-4", "maze-4"],
+  ["MAZE-5", "maze-5"],
+  ["MAZE-6", "maze-deep"], ["MAZE-7", "maze-7"], ["MAZE-8", "maze-8"],
+  ["MAZE-9", "maze-9"], ["MAZE-10", "maze-10"],
+  // One backdrop per room (Image 12) — MAZE-11 alone keeps `maze-twisting`,
+  // DEAD-END-1 alone keeps `maze-dead-ends`. Subtle variety only.
+  ["MAZE-11", "maze-twisting"], ["MAZE-12", "maze-12"],
+  ["MAZE-13", "maze-13"], ["MAZE-14", "maze-14"], ["MAZE-15", "maze-15"],
+  ["DEAD-END-1", "maze-dead-ends"], ["DEAD-END-2", "dead-end-2"],
+  ["DEAD-END-3", "dead-end-3"], ["DEAD-END-4", "dead-end-4"],
+  ["GRATING-ROOM", "grating-room"],
 
   // The cyclops and the thief's treasure room above it.
+  // One backdrop per room (Image 12) — CYCLOPS-ROOM alone keeps the
+  // `cyclops-room` id.
   ["CYCLOPS-ROOM", "cyclops-room"],
-  ["TREASURE-ROOM", "cyclops-room"],
+  ["TREASURE-ROOM", "treasure-room"],
 
-  // The reservoir and the stream that feeds it.
-  ["RESERVOIR-SOUTH", "reservoir"],
+  // The reservoir and the stream that feeds it. One backdrop per room
+  // (Image 6) — RESERVOIR alone keeps the `reservoir` id.
+  ["RESERVOIR-SOUTH", "reservoir-south"],
   ["RESERVOIR", "reservoir"],
-  ["RESERVOIR-NORTH", "reservoir"],
-  ["STREAM-VIEW", "reservoir"],
-  ["IN-STREAM", "reservoir"],
+  ["RESERVOIR-NORTH", "reservoir-north"],
+  ["STREAM-VIEW", "stream-view"],
+  ["IN-STREAM", "in-stream"],
 
   // The dam and its works. Maintenance has its own backdrop.
-  ["DAM-ROOM", "dam-lobby"],
+  // One backdrop per room (Image 10) — DAM-LOBBY alone keeps the
+  // `dam-lobby` id.
+  ["DAM-ROOM", "dam-room"],
   ["DAM-LOBBY", "dam-lobby"],
-  ["DAM-BASE", "dam-lobby"],
+  ["DAM-BASE", "dam-base"],
   ["MAINTENANCE-ROOM", "maintenance-room"],
 
   // The mirror rooms.
+  // One backdrop per room (Image 12) — MIRROR-ROOM-1 alone keeps the
+  // `mirror-room` id.
   ["MIRROR-ROOM-1", "mirror-room"],
-  ["MIRROR-ROOM-2", "mirror-room"],
+  ["MIRROR-ROOM-2", "mirror-room-2"],
 
   // The round room and the temple reached from it.
   ["ROUND-ROOM", "round-room"],
+  // One backdrop per room (Image 10) — NORTH-TEMPLE alone keeps the
+  // `temple` id.
   ["NORTH-TEMPLE", "temple"],
-  ["SOUTH-TEMPLE", "temple"],
+  ["SOUTH-TEMPLE", "south-temple"],
   ["EGYPT-ROOM", "egypt-room"],
   ["TORCH-ROOM", "torch-room"],
   ["DOME-ROOM", "dome-room"],
@@ -138,42 +190,53 @@ export const ROOM_BACKDROPS: ReadonlyMap<string, BackdropId> = new Map<string, B
   // Atlantis.
   ["ATLANTIS-ROOM", "atlantis"],
 
-  // The coal mine: shaft and timbering are `timber-room`, the gas engine is
+  // The coal mine shaft and timbering. One backdrop per room (Image 6) —
+  // TIMBER-ROOM alone keeps the `timber-room` id. The gas engine is
   // `machine-room`, everything else is generic cave.
-  ["SHAFT-ROOM", "timber-room"],
-  ["LADDER-TOP", "timber-room"],
-  ["LADDER-BOTTOM", "timber-room"],
+  ["SHAFT-ROOM", "shaft-room"],
+  ["LADDER-TOP", "ladder-top"],
+  ["LADDER-BOTTOM", "ladder-bottom"],
   ["TIMBER-ROOM", "timber-room"],
-  ["LOWER-SHAFT", "timber-room"],
+  ["LOWER-SHAFT", "lower-shaft"],
   ["MACHINE-ROOM", "machine-room"],
+  // One backdrop per room (Image 9) — MINE-ENTRANCE alone keeps the
+  // `cave-system` id.
   ["MINE-ENTRANCE", "cave-system"],
-  ["SQUEEKY-ROOM", "cave-system"],
-  ["BAT-ROOM", "cave-system"],
-  ["SMELLY-ROOM", "cave-system"],
-  ["GAS-ROOM", "cave-system"],
+  ["SQUEEKY-ROOM", "squeeky-room"],
+  ["BAT-ROOM", "bat-room"],
+  ["SMELLY-ROOM", "smelly-room"],
+  ["GAS-ROOM", "gas-room"],
 
-  ["MINE-1", "coal-mine"], ["MINE-2", "coal-mine"],
-  ["MINE-3", "coal-mine"], ["MINE-4", "coal-mine"],
-  ["SLIDE-ROOM", "coal-mine"],
+  // One backdrop per room (Image 10) — MINE-1 alone keeps the
+  // `coal-mine` id.
+  ["MINE-1", "coal-mine"], ["MINE-2", "mine-2"],
+  ["MINE-3", "mine-3"], ["MINE-4", "mine-4"],
+  ["SLIDE-ROOM", "slide-room"],
 
   // The connecting passages and lesser caves underground.
-  ["EAST-OF-CHASM", "chasm-cave"],
-  ["DEEP-CANYON", "chasm-cave"],
+  // One backdrop per room (Image 9) — CHASM-ROOM alone keeps the
+  // `chasm-cave` id.
+  ["EAST-OF-CHASM", "east-of-chasm"],
+  ["DEEP-CANYON", "deep-canyon"],
   ["CHASM-ROOM", "chasm-cave"],
-  ["DAMP-CAVE", "chasm-cave"],
-  ["SANDY-CAVE", "chasm-cave"],
+  ["DAMP-CAVE", "damp-cave"],
+  ["SANDY-CAVE", "sandy-cave"],
 
-  ["STRANGE-PASSAGE", "winding-passage"],
-  ["NARROW-PASSAGE", "winding-passage"],
+  // One backdrop per room (Image 8) — WINDING-PASSAGE alone keeps the
+  // `winding-passage` id.
+  ["STRANGE-PASSAGE", "strange-passage"],
+  ["NARROW-PASSAGE", "narrow-passage"],
   ["WINDING-PASSAGE", "winding-passage"],
-  ["TWISTING-PASSAGE", "winding-passage"],
-  ["COLD-PASSAGE", "winding-passage"],
+  ["TWISTING-PASSAGE", "twisting-passage"],
+  ["COLD-PASSAGE", "cold-passage"],
 
+  // One backdrop per room (Image 8) — SMALL-CAVE alone keeps the
+  // `small-cave` id.
   ["SMALL-CAVE", "small-cave"],
-  ["TINY-CAVE", "small-cave"],
-  ["EW-PASSAGE", "small-cave"],
-  ["NS-PASSAGE", "small-cave"],
-  ["DEAD-END-5", "small-cave"],
+  ["TINY-CAVE", "tiny-cave"],
+  ["EW-PASSAGE", "ew-passage"],
+  ["NS-PASSAGE", "ns-passage"],
+  ["DEAD-END-5", "dead-end-5"],
 ]);
 
 /**

@@ -10,6 +10,59 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.0 — 2026-08-24 — full 1:1 backdrops: 110/110 rooms, zero sharing
+
+**Eight generation sheets (Images 6–13), 62 new backdrops, closing every gap left after v0.32.0's
+diversity pass — every one of Zork I's 110 rooms now draws its own dedicated plate, including the
+maze.** `cast.json` goes from 50 to 112 backdrops (110 rooms + `barrow-interior` for the victory
+marker + the unused `room` fallback).
+
+- **Images 6–10 closed the diversity-pass groups and the pre-existing multi-room ids from the
+  original 30-backdrop set**, one sheet at a time: reservoir/timber-room, river/rainbow-falls,
+  winding-passage/small-cave, chasm-cave/cave-system, then coal-mine/dam-lobby/temple. Each sheet's
+  shared id stayed with one canonical room; every other room in the group got a new id and a new
+  plate. 39 new backdrops.
+- **A crop-bounds bug surfaced and got fixed mid-run.** The first several sheets' row-0 crops shipped
+  with a sliver of panel border visible at the top — an 8px inset cleared the cream gutter but not
+  the border itself, which ran 12–25px, not the ~4px assumed. Re-measured with zoomed
+  (`scale=…:…:flags=neighbor`) boundary strips and re-cropped all ten affected plates from Images 6–7
+  at 568×568 from y=32. Lesson carried forward: zoom the boundary before picking an inset on any new
+  sheet.
+- **A labeling bug surfaced and got fixed.** Image 7's baked-in captions were stale copies of Image
+  6's labels — content was right, text was wrong, because the per-cell prompt never stated each
+  cell's own label. Every sheet from Image 8 on states each panel's label explicitly in its prompt;
+  none mislabeled again.
+- **Direction change mid-session: the user asked for literal 110/110, no sharing anywhere** —
+  including the maze, reversing the 2026-08-22 "maze stays silent" call for *art* specifically (the
+  in-game text is unaffected; MAZE-1..15 still print identical "twisty passages" text). Confirmed
+  with the user before generating: maze variety is rock-formation/camera-angle only, no landmarks or
+  directional cues that would aid solving. Total: 23 more backdrops needed across the maze groups,
+  `field`, `mirror-room`, `house-interior`, `gallery`, `cyclops-room`.
+- **Images 11–13 delivered those 23.** Image 11 (2752×1536 — a different resolution than Images 6–10,
+  needing a full crop re-measurement; width was the limiting dimension this time, not height) did
+  `maze`/`maze-deep`/`living-room`/`studio`. Image 12 (same 2752×1536, bounds reused directly) did
+  `maze-twisting`/`maze-dead-ends`/`mirror-room-2`/`treasure-room`. Image 13 — the last 3 rooms
+  (NORTH/SOUTH/EAST-OF-HOUSE) — came back as a genuine 3-panel strip (3584×1184), a third resolution,
+  needing a third re-measurement. **Lesson: never assume a new sheet's crop bounds — always check
+  pixel dimensions first and re-measure if they differ.**
+- Also found and fixed: 11 orphaned PNG/BMP pairs in `reference/backdrops/` from repointed ids whose
+  old numbered files were never deleted (harmless — `reference/` is gitignored — but explains why the
+  folder's file count didn't match the manifest's backdrop count when asked).
+
+`web/test/backdrop.test.ts` updated twice: `LIVING-ROOM`'s expected id (Image 11) and the
+house-clearing test rewritten from "all four share `field`" to "each has its own id, WEST-OF-HOUSE
+alone keeps `field`" (Image 13) — both kept as regression guards on their original bugs, not just
+loosened. One pixel-gate case (`wk04-dark-p19-establishing`) moved and was re-accepted after
+confirming against the walkthrough command file that LIVING-ROOM's new dedicated art was the cause,
+not a rendering regression.
+
+Full suite green throughout: art 54/54, web 385/385, pixel gate 24/24 on macOS.
+
+**Zero shared backdrop ids remain** — confirmed by grouping every `ROOM_BACKDROPS` entry by id and
+finding no id used by more than one room.
+
+---
+
 ## v0.32.0 — 2026-08-24 — the diversity pass ships: 20 backdrops wired end to end
 
 **Image 4's ten cropped plates and a new Image 5 sheet, both wired into `backdrop.ts` and the AVB

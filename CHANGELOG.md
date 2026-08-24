@@ -11,7 +11,21 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
-## [0.32.0] — 2026-08-24
+## [v0.33.0] - 2026-08-24 — full 1:1 backdrops: 110/110 rooms, zero sharing
+
+### Added
+- Full 1:1 backdrops: every one of Zork I's 110 rooms now draws its own dedicated piece of art,
+  including all fifteen maze rooms and both dead-end sets — no two rooms share a backdrop anymore.
+  62 new backdrops wired in across the reservoir, river/rainbow falls, coal mine, temple, dam,
+  gallery, cyclops/treasure room, mirror rooms, house exteriors, and the maze.
+
+### Changed
+- `art/package.json`'s `pack` script now packs 112 backdrops instead of 50.
+- `art/test/polarity.test.ts` backdrop count pin: 50 → 112.
+
+---
+
+## [v0.32.0] - 2026-08-24 — the diversity pass ships: 20 backdrops wired end to end
 
 ### Added
 - 20 new backdrops wired into `web/src/comic/backdrop.ts` and the AVB pack: the Image 4 diversity
@@ -29,7 +43,7 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
-## [0.31.0] — 2026-08-24
+## [v0.31.0] - 2026-08-24 — ten early-game backdrops, and an A/B that says no
 
 ### Added
 - `art/vector/kit.mjs` — a scene kit over the `woodring.mjs` engine: a `Scene` to compose into,
@@ -53,7 +67,7 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
-## [0.30.0] — 2026-08-24
+## [v0.30.0] - 2026-08-24 — vector backdrops, and finding the real reference
 
 ### Added
 - Vector backdrop generators under `art/vector/` — an authoring sandbox exploring SVG as an

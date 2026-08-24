@@ -45,7 +45,64 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
-          <summary>August 2026 <span class="count">(24 releases)</span></summary>
+          <summary>August 2026 <span class="count">(28 releases)</span></summary>
+      <article class="changelog-entry" id="v0.33.0">
+        <h3><a href="#v0.33.0"><span class="version">v0.33.0</span> <span class="date">2026-08-24</span> — full 1:1 backdrops: 110/110 rooms, zero sharing</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li>Full 1:1 backdrops: every one of Zork I's 110 rooms now draws its own dedicated piece of art, including all fifteen maze rooms and both dead-end sets — no two rooms share a backdrop anymore. 62 new backdrops wired in across the reservoir, river/rainbow falls, coal mine, temple, dam, gallery, cyclops/treasure room, mirror rooms, house exteriors, and the maze.</li>
+        </ul>
+        <h4>Changed</h4>
+        <ul>
+          <li><code>art/package.json</code>'s <code>pack</code> script now packs 112 backdrops instead of 50.</li>
+          <li><code>art/test/polarity.test.ts</code> backdrop count pin: 50 → 112.</li>
+        </ul>
+      </article>
+      <article class="changelog-entry" id="v0.32.0">
+        <h3><a href="#v0.32.0"><span class="version">v0.32.0</span> <span class="date">2026-08-24</span> — the diversity pass ships: 20 backdrops wired end to end</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li>20 new backdrops wired into <code>web/src/comic/backdrop.ts</code> and the AVB pack: the Image 4 diversity pass (<code>coal-mine</code>, <code>chasm-cave</code>, <code>winding-passage</code>, <code>small-cave</code>, <code>highlands</code>, <code>rainbow-falls</code>, <code>river</code>, <code>shoreline</code>, <code>maze-deep</code>, <code>maze-twisting</code>) and Image 5 (<code>maze-dead-ends</code>, <code>forest-dark</code>, <code>forest-edge</code>, <code>forest-path</code>, <code>up-a-tree</code>, <code>east-clearing</code>, <code>canyon-view</code>, <code>cliff-middle</code>, <code>canyon-bottom</code>, <code>sandy-beach</code>). Nine rooms move off shared <code>pastoral</code>/<code>highlands</code>/<code>shoreline</code> art onto their own plate.</li>
+          <li><code>reference/backdrops-bulk-generation-4(5x2)-square.png</code> — a square-cell contact sheet, cropped from the portrait Image 4 source, used as the geometry reference for square-cell generation.</li>
+        </ul>
+        <h4>Changed</h4>
+        <ul>
+          <li><code>art/package.json</code>'s <code>pack</code> script now packs 50 backdrops instead of 30.</li>
+          <li><code>art/test/polarity.test.ts</code> backdrop count pin: 30 → 50.</li>
+        </ul>
+      </article>
+      <article class="changelog-entry" id="v0.31.0">
+        <h3><a href="#v0.31.0"><span class="version">v0.31.0</span> <span class="date">2026-08-24</span> — ten early-game backdrops, and an A/B that says no</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li><code>art/vector/kit.mjs</code> — a scene kit over the <code>woodring.mjs</code> engine: a <code>Scene</code> to compose into, <code>hatch()</code> for a line family at any angle, and the shared forms (sky, trunks, clapboard walls, boarded openings, tufts, rocks).</li>
+          <li>Ten early-game backdrop scenes in <code>art/vector/scenes/</code> — the white house from four sides, the forest, the path, up a tree, the clearing with the grating, and the stone barrow.</li>
+          <li><code>art/vector/render.ts</code> — rasterizes each scene at 4x, downsamples and hard-thresholds to 1-bit at 512 and 264, and reports the ink ratio against the decoded originals.</li>
+          <li><code>art/vector/ab.ts</code> — builds a blind A/B page pairing each vector plate with the image-model backdrop it would replace.</li>
+        </ul>
+        <h4>Changed</h4>
+        <ul>
+          <li><code>docs/PITFALLS.md</code> gains the draw-order rule for <code>bulb</code>-based forms: a form that stops in mid-frame reads as an open pipe, so trunks run long and are buried at both ends.</li>
+        </ul>
+        <h4>Notes</h4>
+        <ul>
+          <li><strong>Nothing ships from this version.</strong> No asset changed and <code>web/src/comic/backdrop.ts</code> is untouched; the vector route remains a candidate, not a decision.</li>
+          <li>A composition-led retune of the ten scenes was built, judged worse than this set, and reverted.</li>
+        </ul>
+      </article>
+      <article class="changelog-entry" id="v0.30.0">
+        <h3><a href="#v0.30.0"><span class="version">v0.30.0</span> <span class="date">2026-08-24</span> — vector backdrops, and finding the real reference</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li>Vector backdrop generators under <code>art/vector/</code> — an authoring sandbox exploring SVG as an alternative to image generation for the backdrops still missing from <code>docs/backdrop-generation-plan.md</code> § Image 4. <code>woodring.mjs</code> is the engine; <code>gen_woodring.mjs</code> and <code>gen_field.mjs</code> are scenes.</li>
+          <li><code>art/tools/bgbdump.ts</code> (<code>npm --prefix art run dump:bgb</code>) — decodes Comic Chat's own <code>.bgb</code> backdrops to PNG. They are reference material only, written to the gitignored <code>reference/backdrops-original/</code>, and are never redistributed.</li>
+        </ul>
+        <h4>Changed</h4>
+        <ul>
+          <li><code>docs/PITFALLS.md</code> records four durable cautions about backdrop art, including that <code>reference/backdrops/</code> is an AI-generated approximation and not the idiom to calibrate against.</li>
+          <li><code>THIRD_PARTY.md</code> records rough.js as a superseded build-time dependency, and records that Comic Chat's backdrops are decoded for reference without being redistributed.</li>
+        </ul>
+      </article>
       <article class="changelog-entry" id="v0.29.1">
         <h3><a href="#v0.29.1"><span class="version">v0.29.1</span> <span class="date">2026-08-23</span> — the board gets column headings</a></h3>
         <h4>Changed</h4>

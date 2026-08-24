@@ -1526,8 +1526,8 @@
     {
       "id": "timber-room",
       "file": "timber-room.png",
-      "width": 262,
-      "height": 263
+      "width": 315,
+      "height": 315
     },
     {
       "id": "machine-room",
@@ -1538,14 +1538,14 @@
     {
       "id": "reservoir",
       "file": "reservoir.png",
-      "width": 311,
-      "height": 312
+      "width": 315,
+      "height": 315
     },
     {
       "id": "dam-lobby",
       "file": "dam-lobby.png",
-      "width": 317,
-      "height": 318
+      "width": 315,
+      "height": 315
     },
     {
       "id": "maze",
@@ -1556,8 +1556,8 @@
     {
       "id": "temple",
       "file": "temple.png",
-      "width": 318,
-      "height": 318
+      "width": 315,
+      "height": 315
     },
     {
       "id": "egypt-room",
@@ -1580,8 +1580,8 @@
     {
       "id": "cave-system",
       "file": "cave-system.png",
-      "width": 295,
-      "height": 294
+      "width": 315,
+      "height": 315
     },
     {
       "id": "dome-room",
@@ -1766,6 +1766,378 @@
     {
       "id": "sandy-beach",
       "file": "sandy-beach.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "reservoir-south",
+      "file": "reservoir-south.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "reservoir-north",
+      "file": "reservoir-north.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "stream-view",
+      "file": "stream-view.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "in-stream",
+      "file": "in-stream.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "shaft-room",
+      "file": "shaft-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "ladder-top",
+      "file": "ladder-top.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "ladder-bottom",
+      "file": "ladder-bottom.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "lower-shaft",
+      "file": "lower-shaft.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "river-2",
+      "file": "river-2.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "river-3",
+      "file": "river-3.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "river-4",
+      "file": "river-4.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "river-5",
+      "file": "river-5.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "end-of-rainbow",
+      "file": "end-of-rainbow.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "on-rainbow",
+      "file": "on-rainbow.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "white-cliffs-north",
+      "file": "white-cliffs-north.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "white-cliffs-south",
+      "file": "white-cliffs-south.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "strange-passage",
+      "file": "strange-passage.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "narrow-passage",
+      "file": "narrow-passage.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "twisting-passage",
+      "file": "twisting-passage.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "cold-passage",
+      "file": "cold-passage.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "tiny-cave",
+      "file": "tiny-cave.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "ew-passage",
+      "file": "ew-passage.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "ns-passage",
+      "file": "ns-passage.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "dead-end-5",
+      "file": "dead-end-5.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "east-of-chasm",
+      "file": "east-of-chasm.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "deep-canyon",
+      "file": "deep-canyon.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "damp-cave",
+      "file": "damp-cave.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "sandy-cave",
+      "file": "sandy-cave.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "squeeky-room",
+      "file": "squeeky-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "bat-room",
+      "file": "bat-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "smelly-room",
+      "file": "smelly-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "gas-room",
+      "file": "gas-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "mine-2",
+      "file": "mine-2.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "mine-3",
+      "file": "mine-3.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "mine-4",
+      "file": "mine-4.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "slide-room",
+      "file": "slide-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "dam-room",
+      "file": "dam-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "dam-base",
+      "file": "dam-base.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "south-temple",
+      "file": "south-temple.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-2",
+      "file": "maze-2.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-3",
+      "file": "maze-3.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-4",
+      "file": "maze-4.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-5",
+      "file": "maze-5.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-7",
+      "file": "maze-7.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-8",
+      "file": "maze-8.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-9",
+      "file": "maze-9.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-10",
+      "file": "maze-10.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "living-room",
+      "file": "living-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "studio",
+      "file": "studio.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-12",
+      "file": "maze-12.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-13",
+      "file": "maze-13.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-14",
+      "file": "maze-14.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "maze-15",
+      "file": "maze-15.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "dead-end-2",
+      "file": "dead-end-2.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "dead-end-3",
+      "file": "dead-end-3.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "dead-end-4",
+      "file": "dead-end-4.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "grating-room",
+      "file": "grating-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "mirror-room-2",
+      "file": "mirror-room-2.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "treasure-room",
+      "file": "treasure-room.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "north-of-house",
+      "file": "north-of-house.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "south-of-house",
+      "file": "south-of-house.png",
+      "width": 315,
+      "height": 315
+    },
+    {
+      "id": "east-of-house",
+      "file": "east-of-house.png",
       "width": 315,
       "height": 315
     }
