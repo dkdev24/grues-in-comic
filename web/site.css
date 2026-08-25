@@ -396,6 +396,53 @@ h3 {
   --bgy: 90.358%;
 }
 
+/* ---------------- 2b. explainer ---------------- */
+
+#explainer .explainer-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  #explainer .explainer-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.explainer-card {
+  display: flex;
+  gap: 16px;
+}
+
+.explainer-card img {
+  display: block;
+  flex: 0 0 96px;
+  width: 96px;
+  height: 96px;
+  border: 1px solid var(--rule);
+}
+
+.explainer-card .era-label {
+  display: block;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.explainer-card p {
+  margin: 4px 0 0;
+}
+
+@media (max-width: 480px) {
+  .explainer-card {
+    flex-direction: column;
+  }
+}
+
 /* ---------------- 3. background ---------------- */
 
 #background .columns {
