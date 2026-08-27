@@ -360,8 +360,20 @@ game app.
 with 24px gutters. **The strip sample scales, the figures never distort** — same rule as the gameplay
 screen (`style.css` §4a): the window chrome stretches, the panel image keeps aspect ratio.
 
-**Motion:** only two animations exist — the masthead cursor blink and the CTA's press. Both are
-removed under `prefers-reduced-motion: reduce`. No scroll-triggered reveals, no parallax.
+**Motion:** the masthead cursor blink and the CTA's press, plus, **amended 2026-08-27**, a
+scroll-triggered reveal on the homepage — `web/src/site-reveal.ts` watches each `<section>` in
+`index.html` as a whole and marks it visible once its top edge crosses the **vertical middle of the
+viewport** (`IntersectionObserver` with `rootMargin: "0px 0px -50% 0px"`, `threshold: 0` — a section
+that only nudges the bottom edge of the screen does not yet count); the fade/rise itself lives on
+that section's hand-marked `.reveal-item` children (`opacity`/`transform` only, 24px rise,
+`--dur-reveal` 800ms, `--ease-out`), staggered `--stagger-step` (110ms) apart by DOM position so a
+section's items cascade in one after another, mid-screen, rather than the section popping in as one
+block at the bottom edge. Each item plays once, never repeats. **No parallax, still.**
+`site-reveal.ts` is strict progressive enhancement: the CSS only hides an item once `js-reveal` lands
+on `<html>`, and that class is added only after confirming both `IntersectionObserver` support and
+`prefers-reduced-motion: no-preference` — a script failure, an old browser, or reduced motion all
+leave every item visible from first paint, unconditionally. All motion, old and new, is removed
+under `prefers-reduced-motion: reduce`.
 
 **Contrast:** every text/background pair meets WCAG AA (4.5:1 body, 3:1 for ≥ 24px). `--console-dim`
 on `--console-bg` is 5.6:1 and is the darkest permitted body text; do not dim further. `--ink` on

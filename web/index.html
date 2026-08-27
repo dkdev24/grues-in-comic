@@ -56,7 +56,7 @@
     <main id="main">
       <section id="intro" aria-labelledby="intro-h1">
         <div class="wrap">
-          <div>
+          <div class="reveal-item">
             <h1 id="intro-h1">Play Zork I as a comic strip.</h1>
             <p class="deck">
               Reimagining two historical Microsoft open-source projects as a browser-native comic
@@ -71,7 +71,7 @@
             >▶ START PLAYING</a>
             <a class="secondary-link" href="#background">Where this came from ↓</a>
           </div>
-          <div class="comic-window">
+          <div class="comic-window reveal-item">
             <div class="titlebar">Grues in Comic — sample strip</div>
             <div class="cast-strip">Guide · Hero</div>
             <div class="interior">
@@ -93,7 +93,7 @@
         <div class="wrap">
           <h2 id="explainer-h2" style="text-align: center">Never heard of Grues or Zork?</h2>
           <div class="columns explainer-columns">
-            <div class="explainer-card">
+            <div class="explainer-card reveal-item">
               <img
                 src="/assets/comic/field.png"
                 alt="A weathered white house with a boarded front door, standing in an open field — the opening scene of Zork I."
@@ -112,7 +112,7 @@
                 </p>
               </div>
             </div>
-            <div class="explainer-card">
+            <div class="explainer-card reveal-item">
               <img
                 src="/assets/comic/forest-dark.png"
                 alt="A dense, unlit forest — the kind of darkness Zork warns you about."
@@ -138,7 +138,7 @@
         <div class="wrap">
           <h2 id="features-h2">What Grues in Comic does</h2>
           <div class="strip">
-            <div class="panel">
+            <div class="panel reveal-item">
               <p class="caption">It draws itself.</p>
               <div class="line">
                 <span class="portrait char-tiki" aria-hidden="true"></span>
@@ -150,7 +150,7 @@
               </div>
             </div>
 
-            <div class="panel">
+            <div class="panel reveal-item">
               <p class="caption">The whole game, unabridged.</p>
               <div class="line">
                 <span class="portrait char-bolo" aria-hidden="true"></span>
@@ -162,7 +162,7 @@
               </div>
             </div>
 
-            <div class="panel">
+            <div class="panel reveal-item">
               <p class="caption">It remembers where you were.</p>
               <div class="line">
                 <span class="portrait char-scotty" aria-hidden="true"></span>
@@ -174,7 +174,7 @@
               </div>
             </div>
 
-            <div class="panel">
+            <div class="panel reveal-item">
               <p class="caption">Kind to newcomers.</p>
               <div class="line">
                 <span class="portrait char-denise" aria-hidden="true"></span>
@@ -186,7 +186,7 @@
               </div>
             </div>
 
-            <div class="panel">
+            <div class="panel reveal-item">
               <p class="caption">Choose your cast.</p>
               <div class="line">
                 <span class="portrait char-margaret" aria-hidden="true"></span>
@@ -198,7 +198,7 @@
               </div>
             </div>
 
-            <div class="panel">
+            <div class="panel reveal-item">
               <p class="caption">See who else is playing.</p>
               <div class="line">
                 <span class="portrait char-rebecca" aria-hidden="true"></span>
@@ -217,7 +217,7 @@
         <div class="wrap">
           <h2 id="background-h2" style="text-align: center">Where this came from</h2>
           <div class="columns">
-            <div>
+            <div class="reveal-item">
               <span class="era-label">ZORK I · 1980</span>
               <p>
                 Infocom, written in ZIL by Marc Blank, Dave Lebling, Bruce Daniels and Tim
@@ -225,7 +225,7 @@
                 <a href="https://github.com/historicalsource/zork1">Original source →</a>
               </p>
             </div>
-            <div>
+            <div class="reveal-item">
               <span class="era-label">COMIC CHAT · 1996</span>
               <p>
                 Microsoft's IRC client that rendered conversation as an automatically composed
@@ -235,7 +235,7 @@
               </p>
             </div>
           </div>
-          <p class="thesis">
+          <p class="thesis reveal-item">
             This is not a source port and does not recreate either historical runtime. The ZIL is
             understood, its semantics extracted into an intermediate representation, and the IR
             executed by a browser-native engine; the comic layer is a cited port of Comic Chat's
@@ -249,7 +249,7 @@
       <section id="hof" aria-labelledby="hof-h2">
         <div class="wrap">
           <h2 id="hof-h2" style="text-align: center">Hall of Fame</h2>
-          <p class="hof-blurb">
+          <p class="hof-blurb reveal-item">
             Every winner scores 350, so the only thing left to race is the move count.
             Runs still in progress show here too.<br /> 
           </p>
@@ -257,7 +257,7 @@
                real empty state, not a spinner: before the first visitor the board
                genuinely has no rows, and it must read as a cabinet waiting for a
                player rather than as something still loading. -->
-          <div class="hof-list">
+          <div class="hof-list reveal-item">
             <!-- The header is static markup, outside #hof-board, so it survives
                  the empty state and the re-render: the columns are what the
                  board is *for*, and a cabinet with no rows still has a card
@@ -274,7 +274,7 @@
             </div>
           </div>
           <a
-            class="cta cta-repeat"
+            class="cta cta-repeat reveal-item"
             href="/play/"
             data-umami-event="start-playing"
             data-umami-event-position="hall-of-fame"
@@ -287,29 +287,30 @@
           <h2 id="changelog-h2" style="text-align: center">Changelog</h2>
           <div class="changelog-list" id="changelog-preview">
             <!-- CHANGELOG:START — generated by tools/build-changelog.ts from CHANGELOG.md. Do not hand-edit. -->
-            <div class="changelog-row">
+            <div class="changelog-row reveal-item">
+              <span class="version">0.33.4</span>
+              <span class="date">2026-08-27</span>
+              <span class="summary">the homepage now animates in as you scroll</span>
+            </div>
+            <div class="changelog-row reveal-item">
+              <span class="version">0.33.3</span>
+              <span class="date">2026-08-27</span>
+              <span class="summary">Hall of Fame records no longer disappear after a day</span>
+            </div>
+            <div class="changelog-row reveal-item">
               <span class="version">0.33.2</span>
               <span class="date">2026-08-25</span>
               <span class="summary">the board's default name is the Hero you picked</span>
             </div>
-            <div class="changelog-row">
-              <span class="version">0.33.1</span>
-              <span class="date">2026-08-25</span>
-              <span class="summary">the front page cast a comic strip of its own</span>
-            </div>
-            <div class="changelog-row">
-              <span class="version">0.33.0</span>
-              <span class="date">2026-08-24</span>
-              <span class="summary">full 1:1 backdrops: 110/110 rooms, zero sharing</span>
-            </div>
             <!-- CHANGELOG:END -->
           </div>
-          <a class="view-full" href="/changelog">view full changelog →</a>
+          <a class="view-full reveal-item" href="/changelog">view full changelog →</a>
         </div>
       </section>
     </main>
 
     <script type="module" src="./dist/web/src/hof-board.js"></script>
+    <script type="module" src="./dist/web/src/site-reveal.js"></script>
 
     <div class="wrap">
       <footer>

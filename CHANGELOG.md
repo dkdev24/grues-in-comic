@@ -11,6 +11,17 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [v0.33.4] - 2026-08-27 — the homepage now animates in as you scroll
+
+### Changed
+- **Each section on the homepage now reveals its contents piece by piece as you scroll to it**,
+  rather than all at once — the feature cards, the changelog rows, and similar groups fade and rise
+  into place one after another. Plays once per item and never repeats. If you have "reduce motion"
+  turned on at the OS level, or if your browser doesn't support the underlying feature, everything
+  simply appears normally with no animation and no delay.
+
+---
+
 ## [v0.33.3] - 2026-08-27 — Hall of Fame records no longer disappear after a day
 
 ### Fixed

@@ -10,6 +10,31 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.4 — 2026-08-27 — each homepage section's items cascade into view on scroll
+
+**Amended DESIGN.md §5** to allow a scroll-triggered reveal on the homepage — previously motion was
+capped at the masthead cursor blink and the CTA press, with scroll reveals explicitly banned. First
+cut revealed each whole `<section>` as one block; the user found that too subtle to notice and asked
+for slower motion with items appearing one by one, so the effect was rebuilt around each section's
+hand-marked `.reveal-item` children (24px rise, `--dur-reveal` 800ms, `--ease-out`, staggered
+`--stagger-step` 110ms apart by DOM position) — a section's content now cascades in piece by piece
+rather than fading as a single block. Still no parallax; each item plays once.
+
+Implemented as strict progressive enhancement (`web/src/site-reveal.ts` watches whole sections,
+`site.css` animates their `.reveal-item` children): the CSS only hides an item once `js-reveal`
+lands on `<html>`, and that class is added only after confirming both `IntersectionObserver` support
+and `prefers-reduced-motion: no-preference` — a script failure, an old browser, or reduced motion all
+leave every item visible from first paint, unconditionally. `tools/build-changelog.ts`'s generated
+changelog rows carry `reveal-item` too, so a changelog rebuild doesn't drop the animation. Added
+`--ease-out` / `--dur-reveal` / `--stagger-step` tokens (`web/tokens.css`).
+
+**Same-day follow-up:** the trigger point was at the viewport's bottom edge (`rootMargin: "0px 0px
+-10% 0px"`, `threshold: 0.15`), so the reveal happened where it's hardest to see. Changed to
+`rootMargin: "0px 0px -50% 0px"`, `threshold: 0` — a section's top edge now has to cross the
+viewport's vertical *middle* before it reveals, confirmed live by scrolling a section to exactly
+mid-screen and watching it stay hidden until crossing the line. New test:
+`web/test/site-reveal.test.ts`.
+
 ## v0.33.3 — 2026-08-27 — the Hall of Fame sweep is capacity-based, not age-based
 
 **Fixed the board emptying itself out.** The user reported that Hall of Fame records vanished after

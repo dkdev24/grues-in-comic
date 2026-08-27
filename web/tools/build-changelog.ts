@@ -96,7 +96,7 @@ function inlineMarkdown(s: string): string {
 
 function row(e: Entry): string {
   return (
-    `            <div class="changelog-row">\n` +
+    `            <div class="changelog-row reveal-item">\n` +
     `              <span class="version">${e.version}</span>\n` +
     `              <span class="date">${e.date}</span>\n` +
     `              <span class="summary">${escapeHtml(e.summary)}</span>\n` +

@@ -25,4 +25,9 @@
   --amber: #e8b04b; /* second-era accent: used ONLY for CTA + focus */
   --halftone: rgba(0, 0, 0, 0.06);
   --measure: 68ch; /* max line length for prose */
+
+  /* ✚ site-only, motion (DESIGN.md §5, amended 2026-08-27) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-reveal: 800ms;
+  --stagger-step: 110ms; /* delay between one reveal-item and the next inside a section */
 }

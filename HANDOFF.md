@@ -9,7 +9,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 ---
 
 ## Current Version
-**0.33.3** · Platform: **macOS only** (2026-07-28)
+**0.33.4** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -25,13 +25,19 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — Hall of Fame sweep fixed: capacity-based, not age-based
-User reported the board emptying ~a day after every playtest. Cause: the sweep deleted any `playing`
-row past a 24h `last_seen`, and with ~0 wins ever recorded, every row is `playing` — so the whole
-board reliably emptied a day after each session (not a Cloudflare/D1 deploy reset). Amended ADR 0011
-§2: `playing` rows now sweep only past `PLAYING_CAP` (20), oldest-first, and only if also older than
-`SWEEP_SECONDS` (30 days, was 24h) — `functions/api/hof-core.ts` + `hof.ts`. `won` rows still never
-swept. Tests + typecheck pass (pixel-gate failure on Windows is pre-existing/expected). v0.33.3.
+## Last Session — homepage sections reveal, then re-tuned to stagger per item
+DESIGN.md §5 banned scroll-triggered reveals — confirmed with the user, amended it (dated), built
+whole-section fade+rise. User found that too subtle and asked for slower + one-item-at-a-time, so it
+was rebuilt around hand-marked `.reveal-item` children: 24px rise, 800ms, staggered 110ms apart by
+DOM position (`web/site.css`, `web/index.html`, `web/tools/build-changelog.ts`'s generated rows).
+User then flagged the trigger point (bottom-edge, `rootMargin -10%`/`threshold 0.15`) as too early —
+effect happened off-screen at the bottom. Changed to `rootMargin: "0px 0px -50% 0px"`, `threshold: 0`
+so a section only reveals once its top edge crosses viewport mid-screen. `js-reveal` gating on
+`<html>` (`IntersectionObserver` support + `prefers-reduced-motion: no-preference`) unchanged; any
+failure path still leaves content visible immediately. Verified live via dev server (Chrome) —
+confirmed a section stays hidden right up to the mid-screen line, then cascades. Test:
+`web/test/site-reveal.test.ts`. Prior session: Hall of Fame sweep fixed (capacity-based, v0.33.3).
+v0.33.4. **Not yet committed.**
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **Verify the F19 fix at a phone width** — still open from last session.

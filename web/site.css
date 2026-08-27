@@ -113,6 +113,38 @@ section:last-of-type {
   border-bottom: none;
 }
 
+/* ---------------- section reveal (DESIGN.md §5, amended 2026-08-27) ----------------
+ * `site-reveal.ts` watches each `<section>` as a whole and flips `.is-visible`
+ * on it once it enters the viewport, but the fade/rise itself lives on that
+ * section's `.reveal-item` children — marked by hand in `index.html` (and by
+ * `tools/build-changelog.ts` for the generated changelog rows) — so a section
+ * reveals its items one after another rather than popping in as one block.
+ * `js-reveal` lands on `<html>` only once `site-reveal.ts` has confirmed
+ * `IntersectionObserver` support and a no-preference motion query, so a
+ * `.reveal-item` is hidden here ONLY when it is guaranteed to be revealed
+ * later. Without that class — script failure, old browser,
+ * `prefers-reduced-motion` — every item is visible from first paint,
+ * unconditionally. */
+
+html.js-reveal main > section .reveal-item {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--dur-reveal) var(--ease-out), transform var(--dur-reveal) var(--ease-out);
+}
+
+html.js-reveal main > section.is-visible .reveal-item {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger by DOM position, not by a hand-kept counter — up to six because
+ * `#features .strip` is the largest reveal-item group on the page. */
+html.js-reveal main > section .reveal-item:nth-child(2) { transition-delay: var(--stagger-step); }
+html.js-reveal main > section .reveal-item:nth-child(3) { transition-delay: calc(var(--stagger-step) * 2); }
+html.js-reveal main > section .reveal-item:nth-child(4) { transition-delay: calc(var(--stagger-step) * 3); }
+html.js-reveal main > section .reveal-item:nth-child(5) { transition-delay: calc(var(--stagger-step) * 4); }
+html.js-reveal main > section .reveal-item:nth-child(6) { transition-delay: calc(var(--stagger-step) * 5); }
+
 h1,
 h2,
 h3 {
