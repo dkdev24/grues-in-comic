@@ -194,7 +194,13 @@ and to the about page, where a reader who wants rigour will look for it. It does
 ### 3.4 Project background
 
 Substrate, prose, max `--measure`, centred. Two short columns side by side (stacked on narrow), each
-headed by a small monospace rule label:
+headed by a small monospace rule label.
+
+**Amended 2026-08-27:** the two columns each sit inside a `1px solid var(--rule)` bordered panel,
+with the era label as its own header strip (bottom rule under it, echoing the masthead's
+border-bottom). The thesis paragraph is left-aligned with a `2px solid var(--accent)` left border —
+not centred — since a paragraph that long read as a draft when centred; the `.links` row got a top
+rule and `→`-prefixed link text. No new colours, no radius. See `web/site.css` §3.
 
 - **`ZORK I · 1980`** — Infocom, written in ZIL by Marc Blank, Dave Lebling, Bruce Daniels and Tim
   Anderson. Microsoft released the source under the MIT licence (© 2025 Microsoft).
@@ -232,7 +238,14 @@ hurry.
 
 ### 3.6 Footer & copyright
 
-Substrate, `--console-dim`, 0.85rem, one line per item, no columns:
+Substrate, `--console-dim`, 0.85rem, one line per item, no columns.
+
+**Amended 2026-08-27:** "no columns" still holds — this is spacing and hierarchy, not a
+restructure. A `1px solid var(--rule)` top rule now separates the footer from the page above it. The
+authorship line is brighter (`--console-fg`, 0.95rem) and given a 20px bottom margin so it actually
+reads as the one warm note the paragraph above describes, instead of matching the licence rows'
+weight. The three licence/trademark lines sit tight together as one cluster; the `THIRD_PARTY.md`
+link stands apart, smaller (0.8rem), as the footnote it is. See `web/site.css` §6.
 
 - **`A project by Daniel Kim`** — the name links to `https://danielkimdev.com` (decided
   2026-08-02). This covers the project's own code and authored dialogue, under this repository's

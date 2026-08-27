@@ -407,16 +407,10 @@ h3 {
 
 #explainer .explainer-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 40px;
   max-width: var(--measure);
   margin: 0 auto;
-}
-
-@media (max-width: 720px) {
-  #explainer .explainer-columns {
-    grid-template-columns: 1fr;
-  }
 }
 
 .explainer-card {
@@ -450,14 +444,30 @@ h3 {
   }
 }
 
-/* ---------------- 3. background ---------------- */
+/* ---------------- 3. background ----------------
+   Hallmark · component: section (#background) · genre: editorial
+   tokens: locked (docs/DESIGN.md) — no new colours introduced
+   pre-emit critique: P4 H4 E4 S5 R4 V4 */
+
+#background h2 {
+  margin-bottom: 40px;
+}
+
+#background h2::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 2px;
+  background: var(--accent);
+  margin: 16px auto 0;
+}
 
 #background .columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
   max-width: var(--measure);
-  margin: 0 auto 24px;
+  margin: 0 auto 40px;
 }
 
 @media (max-width: 720px) {
@@ -466,41 +476,75 @@ h3 {
   }
 }
 
+/* Two source panels, styled like a pair of terminal panes rather than two
+   bare paragraphs — a rule-bordered box with the era label as its own
+   header strip, echoing the masthead's border-bottom pattern (§3.1). */
+#background .columns > div {
+  border: 1px solid var(--rule);
+  padding: 20px 24px 24px;
+}
+
 #background .era-label {
+  display: block;
   color: var(--accent);
   letter-spacing: 0.05em;
   font-size: 0.85rem;
-  display: block;
-  margin-bottom: 8px;
+  margin: 0 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
 }
 
+#background .columns p {
+  margin: 0;
+  color: var(--console-fg);
+}
+
+/* Left-aligned, not centred — a paragraph this long reads as a draft when
+   centred. The accent rule marks it as the page's thesis statement without
+   drawing a second window. */
 #background .thesis {
   max-width: var(--measure);
-  margin: 0 auto;
-  text-align: center;
+  margin: 0 auto 24px;
+  text-align: left;
   color: var(--console-fg);
+  border-left: 2px solid var(--accent);
+  padding-left: 20px;
 }
 
 #background .links {
   text-align: center;
-  margin-top: 16px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
 }
 
 #background .links a {
   margin: 0 12px;
 }
 
+#background .links a::before {
+  content: "→ ";
+  color: var(--console-dim);
+}
+
 /* ---------------- 4. hall of fame ----------------
 
    The board (ADR 0011 §1). Monospace rows in the existing palette, no assets:
    the flag is two regional-indicator code points and the rank is text.
+   ADR 0011 §5 calls this "an arcade cabinet, not a ledger" — the cabinet
+   frame and the brightened score column below take that literally, with the
+   one accent this site already has standing in for phosphor.
 
    Rows are a grid rather than a real <table> because the first column is a
    *badge* in two of the three tiers and a rank in the third — so the header
    labels it RANK, which is what it means when it means anything, and the live
    and best badges read as annotations rather than as values in that column.
    The header lives in `index.html` rather than in `hof-board.ts` so that it
-   survives the empty state, which is the state the board is in most often. */
+   survives the empty state, which is the state the board is in most often.
+
+   Hallmark · component: section (hall of fame) · genre: editorial
+   tokens: locked (docs/DESIGN.md) — no new colours
+   pre-emit critique: P5 H4 E4 S5 R4 V4 */
 
 .hof-blurb {
   max-width: var(--measure);
@@ -509,9 +553,13 @@ h3 {
   color: var(--console-dim);
 }
 
+/* The cabinet frame: a bordered screen the rows live inside, rather than a
+   list floating on the substrate. */
 .hof-list {
   max-width: var(--measure);
   margin: 0 auto 16px;
+  border: 1px solid var(--rule);
+  padding: 4px 20px;
 }
 
 .hof-row {
@@ -523,20 +571,26 @@ h3 {
   grid-template-columns: 8.5rem 1fr 2rem 3.5rem 7rem;
   gap: 12px;
   align-items: baseline;
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--rule);
 }
 
 .hof-mark {
   color: var(--console-dim);
+  font-weight: 700;
 }
 
-/* The header is chrome, not data: dimmer than the dimmest row, and it keeps the
-   bottom rule that separates it from the first run. */
+/* The header is chrome, not data, but it must still clear DESIGN.md §5's
+   contrast floor — `--console-dim` is the darkest permitted body text, so the
+   header borrows it rather than dimming further. A heavier double rule below
+   it reads as a scoreboard's own screen divider. */
 .hof-row.hof-head {
   font-size: 0.75rem;
+  font-weight: 700;
   letter-spacing: 0.06em;
-  color: #6a6a72;
+  color: var(--console-dim);
+  border-bottom: 3px double var(--rule);
+  padding-bottom: 10px;
 }
 
 .hof-head .hof-score,
@@ -546,19 +600,32 @@ h3 {
 
 /* The two badges are the only colour on the board: amber is reserved for the
    CTA and focus (DESIGN.md §3), so a live run borrows the phosphor accent
-   instead — it is the colour this site already uses to mean "alive". */
+   instead — it is the colour this site already uses to mean "alive". A
+   finished run's rank gets the same accent, bold — the one thing an arcade
+   high-score screen always makes sure you can't miss. */
 .hof-row.is-live .hof-mark {
   color: var(--accent);
 }
 
-.hof-row.is-won .hof-mark,
-.hof-row.is-won .hof-score {
+.hof-row.is-won .hof-mark {
+  color: var(--accent);
+}
+
+/* The score is the headline number on a high-score board, so it is the
+   brightest, boldest text in the row — every tier, not only finished runs. */
+.hof-score {
   color: var(--console-fg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
 }
 
 .hof-score,
 .hof-moves {
   text-align: right;
+}
+
+.hof-moves {
   color: var(--console-dim);
 }
 
@@ -626,14 +693,17 @@ h3 {
 
 /* ---------------- 5. changelog ---------------- */
 
+/* Wider than `--measure`: that token is a prose line-length limit
+   (DESIGN.md §2), and these rows are tabular data, not a paragraph — capping
+   them at prose width is what forced every summary onto two lines. */
 .changelog-list {
-  max-width: var(--measure);
+  max-width: 48rem;
   margin: 0 auto 16px;
 }
 
 .changelog-row {
   display: grid;
-  grid-template-columns: 6rem 8rem 1fr;
+  grid-template-columns: 5rem 6.5rem 1fr;
   gap: 16px;
   padding: 6px 0;
 }
@@ -648,7 +718,7 @@ h3 {
 
 #changelog .view-full {
   display: block;
-  max-width: var(--measure);
+  max-width: 48rem;
   margin: 0 auto;
   color: var(--accent);
   text-decoration: none;
@@ -740,12 +810,19 @@ h3 {
   color: var(--accent);
 }
 
-/* ---------------- 6. footer ---------------- */
+/* ---------------- 6. footer ----------------
+   Hallmark · component: section (footer) · genre: editorial
+   tokens: locked (docs/DESIGN.md) — no new colours; still one line per
+   item, no columns (§3.6) — only hierarchy and rhythm changed
+   pre-emit critique: P4 H4 E4 S5 R5 V4 */
 
 footer {
-  padding: 40px 0 64px;
+  padding-top: 32px;
+  padding-bottom: 64px;
+  border-top: 1px solid var(--rule);
   color: var(--console-dim);
   font-size: 0.85rem;
+  line-height: 1.6;
 }
 
 footer p {
@@ -754,6 +831,29 @@ footer p {
 
 footer a {
   color: var(--accent);
+}
+
+/* The one warm note (DESIGN.md §3.6): brighter and given room to breathe,
+   so it reads as authorship rather than another licence row. */
+footer .byline {
+  color: var(--console-fg);
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+footer .byline a {
+  text-decoration: none;
+}
+
+footer .byline a:hover {
+  text-decoration: underline;
+}
+
+/* The three licence/trademark lines read as one cluster; the attribution
+   link stands apart, quieter, as the footnote it is. */
+footer .licence + .attribution {
+  margin-top: 16px;
+  font-size: 0.8rem;
 }
 
 /* ---------------- about / changelog inner pages ---------------- */

@@ -25,18 +25,17 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — F19 fixed: static pages now actually render monospace
-`--mono` declared in `tokens.css` (`"SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas,
-monospace` — the stack `play/style.css` already used), so `body`'s `font-family: var(--mono)` in
-`site.css` no longer falls back to serif. `.hof-row`'s redundant explicit stack removed. Same pass
-added a site-wide `:focus-visible` ring (`var(--accent)`) and `overflow-x: clip` on `html`/`body` —
-both gaps DESIGN.md doesn't cover but leaves no reason not to close. `play/` untouched, per DESIGN.md
-§6's "do not restyle the panes." **Not yet visually verified on a phone or in a browser** — do that
-before treating this as fully closed. Full detail: `docs/FUTURE_WORK.md` F19 (now struck).
+## Last Session — F19 verified, then five section-level polish passes on `web/site.css`
+F19 confirmed correct on desktop (phone width still unverified). Then, staying inside
+`docs/DESIGN.md`'s locked system (no new colours/radius): **explainer** cards stacked to one column;
+**background** got bordered panels + left-aligned thesis (§3.4 amended); **footer** got a
+hierarchy/spacing pass (§3.6 amended); **Hall of Fame** restyled as an arcade high-score board per
+ADR 0011 §5, and a real contrast bug fixed (header label was darker than `--console-dim`, DESIGN.md
+§5's floor); **changelog** list width was capped at prose `--measure`, wrapping every summary —
+widened to 48rem. Verified visually via dev server. Full detail: `docs/DESIGN.md` §3.4/§3.6.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
-1. **Visually verify the F19 fix** — load the static pages, confirm monospace + focus ring read
-   right, at a phone width too.
+1. **Verify the F19 fix at a phone width** — still open from last session.
 2. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.
