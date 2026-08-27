@@ -55,7 +55,13 @@ const SLOT_COUNT = 3;
 
 async function main(): Promise<void> {
   const consoleView = createConsoleView(requireEl("#console"));
-  const inspector = createInspectorView(requireEl("#inspector"));
+  const inspectorEl = requireEl("#inspector");
+  // The event stream costs a whole band of vertical space, worst on a portrait
+  // phone — a diagnostic worth keeping for local development, not for players.
+  if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+    inspectorEl.hidden = true;
+  }
+  const inspector = createInspectorView(inspectorEl);
   const input = requireEl<HTMLInputElement>("#command");
   const form = requireEl<HTMLFormElement>("#command-form");
 
