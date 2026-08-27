@@ -22,6 +22,8 @@ wiki/.cache/
 # IDE
 .vscode/
 .idea/
+.claude/
+.opencode/
 
 # macOS
 .DS_Store
