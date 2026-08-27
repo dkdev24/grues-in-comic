@@ -9,6 +9,10 @@
 -- stored state would need something to write it at the exact moment nothing is
 -- running, and `beforeunload` is unreliable precisely then. See ADR 0011 §2.
 --
+-- A `playing` row is swept only once the `playing` count exceeds `PLAYING_CAP`
+-- (`functions/api/hof-core.ts`) — never on age alone, so a quiet site does not
+-- age its own board down to empty (ADR 0011 §2, amended 2026-08-27).
+--
 -- Every column here is non-identifying by construction (ADR 0011 §3.1).
 -- Adding a column is an amendment to that ADR, not a schema change. The IP
 -- address in particular is never stored — `country` is derived from it at the

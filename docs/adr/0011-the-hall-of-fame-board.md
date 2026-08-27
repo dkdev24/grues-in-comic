@@ -75,6 +75,15 @@ second row.
 closed tab self-reporting and what removes any need for a sweeper, a cron or an unload handler — a
 stored state would need something to write it at the exact moment nothing is running.
 
+**Amended 2026-08-27 — the sweep is capacity-based, not age-based.** The original design deleted any
+`playing` row once its `last_seen` passed 24h. On the traffic this project actually has, that reliably
+emptied the board within a day of every playtest — the exact dead-site failure §1 exists to avoid,
+just delayed by 24h instead of avoided. A `playing` row is now swept only once the `playing` count
+exceeds `PLAYING_CAP` (20): past the cap, the oldest excess rows are removed if also older than
+`SWEEP_SECONDS` (30 days). Below the cap, an unfinished row is never aged out — only an operator
+deleting it (§6) or the run itself winning removes it. A `won` row is still swept never, on any
+condition.
+
 ### 3. The name is collected at the start, optional, `Anonymous` by default
 
 A board that shows runs in progress needs a name for a row that does not exist yet when the run ends,

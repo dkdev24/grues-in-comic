@@ -24,8 +24,18 @@ export const MAX_SCORE = 350;
 /** A run whose last heartbeat is younger than this is `PLAYING NOW`. */
 export const FRESH_SECONDS = 120;
 
-/** Unfinished rows older than this are swept on read. A `won` row is forever. */
-export const SWEEP_SECONDS = 24 * 60 * 60;
+/**
+ * Unfinished rows are never swept on age alone — a low-traffic site is exactly
+ * the case where an age-only sweep empties the board and reads as abandoned,
+ * which is the failure ADR 0011 exists to avoid. Age only matters once the
+ * `playing` count exceeds {@link PLAYING_CAP}: past the cap, rows older than
+ * this are swept, oldest first, until the count is back at the cap. A `won`
+ * row is swept never, on any condition.
+ */
+export const SWEEP_SECONDS = 30 * 24 * 60 * 60;
+
+/** How many `playing` rows may exist before age-based sweeping kicks in. */
+export const PLAYING_CAP = 20;
 
 /** One accepted write per run per this many seconds (ADR 0011 §5). */
 export const RATE_LIMIT_SECONDS = 20;

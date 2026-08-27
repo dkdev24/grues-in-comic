@@ -10,6 +10,19 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.3 — 2026-08-27 — the Hall of Fame sweep is capacity-based, not age-based
+
+**Fixed the board emptying itself out.** The user reported that Hall of Fame records vanished after
+about a day. Cause: `functions/api/hof.ts` swept any `playing` row once `last_seen` passed 24h — and
+since essentially no playtest reaches the Stone Barrow, every row is `playing`, so the whole board
+reliably emptied a day after each session. This is the exact dead-site failure ADR 0011 was written to
+avoid, just delayed by 24h. Not a Cloudflare/D1 deployment reset — D1 data is untouched by deploys.
+
+Amended ADR 0011 §2: a `playing` row is now swept only once the `playing` count exceeds `PLAYING_CAP`
+(20, `functions/api/hof-core.ts`) — past the cap, the oldest excess rows are removed if also older
+than `SWEEP_SECONDS` (30 days, was 24h). Below the cap, unfinished rows are never aged out. `won` rows
+are still swept never, unconditionally.
+
 ## v0.33.2 — 2026-08-25 — the board's default name is the Hero you picked
 
 **An untouched "Name on the board" field submits the chosen Hero's name (e.g. `DAN`, `Bolo`)

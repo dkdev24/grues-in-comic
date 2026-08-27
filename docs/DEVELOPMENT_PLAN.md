@@ -345,8 +345,11 @@ LIMIT 40;
 ```
 
 `?fresh` is `now - 120`. `BEST SO FAR` is then one pass over the returned rows: the highest `score`
-among tiers 1 and 2, badge only, row does not move. Sweep on read — `DELETE FROM runs WHERE
-last_seen < now - 86400 AND state = 'playing'` — never touching a `won` row.
+among tiers 1 and 2, badge only, row does not move. Sweep on read, capacity-based rather than
+age-based since ADR 0011's 2026-08-27 amendment — `DELETE FROM runs WHERE state = 'playing' AND
+last_seen < now - 30d AND run_id NOT IN (SELECT run_id FROM runs WHERE state = 'playing' ORDER BY
+last_seen DESC LIMIT 20)` — never touching a `won` row, and never touching a `playing` row while the
+`playing` count is at or under the cap.
 
 **Validation, all of it server-side** (F2: *arcade cabinet, not a ledger* — these bound the damage,
 they do not prove anything):

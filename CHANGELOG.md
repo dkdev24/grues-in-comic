@@ -11,6 +11,18 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [v0.33.3] - 2026-08-27 — Hall of Fame records no longer disappear after a day
+
+### Fixed
+- **Unfinished runs stayed on the board instead of being swept a day after your last move.** The
+  board's cleanup previously deleted any in-progress run once it was more than 24 hours old — and
+  since finishing the game is rare, nearly every run is "in progress," so the whole board would empty
+  out roughly a day after each play session. In-progress runs are no longer removed on age alone;
+  they stay until the board holds more than 20 of them, and even then only the oldest excess ones,
+  older than 30 days, are cleared out. Finished runs were never affected and still stay forever.
+
+---
+
 ## [v0.33.2] - 2026-08-25 — the board's default name is the Hero you picked
 
 ### Changed

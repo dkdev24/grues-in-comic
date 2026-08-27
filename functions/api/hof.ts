@@ -17,7 +17,7 @@
 
 import {
   buildBoard, readCountry, readSubmission, type RunRow,
-  FRESH_SECONDS, MAX_SCORE, QUERY_LIMIT, RATE_LIMIT_SECONDS, SWEEP_SECONDS,
+  FRESH_SECONDS, MAX_SCORE, PLAYING_CAP, QUERY_LIMIT, RATE_LIMIT_SECONDS, SWEEP_SECONDS,
 } from "./hof-core.js";
 
 /**
@@ -53,10 +53,16 @@ export async function onRequestGet({ env }: PagesContext): Promise<Response> {
   const now = Math.floor(Date.now() / 1000);
 
   // Swept on read, so the board needs no cron and no sweeper (ADR 0011 §2). A
-  // `won` row is never swept — it is the point of the feature.
+  // `won` row is never swept — it is the point of the feature. An unfinished
+  // row is not swept on age alone either: only once `playing` rows exceed
+  // `PLAYING_CAP` do the oldest of the excess, if also past `SWEEP_SECONDS`,
+  // get removed — a low-traffic board must never age itself down to empty.
   await env.HOF_DB.prepare(
-    "DELETE FROM runs WHERE state = 'playing' AND last_seen < ?1",
-  ).bind(now - SWEEP_SECONDS).run();
+    `DELETE FROM runs WHERE state = 'playing' AND last_seen < ?1
+       AND run_id NOT IN (
+         SELECT run_id FROM runs WHERE state = 'playing' ORDER BY last_seen DESC LIMIT ?2
+       )`,
+  ).bind(now - SWEEP_SECONDS, PLAYING_CAP).run();
 
   // The tier order is the index's business; the cap and the badge are
   // `buildBoard`'s. `LIMIT` is generous because slots borrow upward and the

@@ -9,7 +9,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 ---
 
 ## Current Version
-**0.33.2** · Platform: **macOS only** (2026-07-28)
+**0.33.3** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 
@@ -25,14 +25,13 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — F19 verified, then five section-level polish passes on `web/site.css`
-F19 confirmed correct on desktop (phone width still unverified). Then, staying inside
-`docs/DESIGN.md`'s locked system (no new colours/radius): **explainer** cards stacked to one column;
-**background** got bordered panels + left-aligned thesis (§3.4 amended); **footer** got a
-hierarchy/spacing pass (§3.6 amended); **Hall of Fame** restyled as an arcade high-score board per
-ADR 0011 §5, and a real contrast bug fixed (header label was darker than `--console-dim`, DESIGN.md
-§5's floor); **changelog** list width was capped at prose `--measure`, wrapping every summary —
-widened to 48rem. Verified visually via dev server. Full detail: `docs/DESIGN.md` §3.4/§3.6.
+## Last Session — Hall of Fame sweep fixed: capacity-based, not age-based
+User reported the board emptying ~a day after every playtest. Cause: the sweep deleted any `playing`
+row past a 24h `last_seen`, and with ~0 wins ever recorded, every row is `playing` — so the whole
+board reliably emptied a day after each session (not a Cloudflare/D1 deploy reset). Amended ADR 0011
+§2: `playing` rows now sweep only past `PLAYING_CAP` (20), oldest-first, and only if also older than
+`SWEEP_SECONDS` (30 days, was 24h) — `functions/api/hof-core.ts` + `hof.ts`. `won` rows still never
+swept. Tests + typecheck pass (pixel-gate failure on Windows is pre-existing/expected). v0.33.3.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **Verify the F19 fix at a phone width** — still open from last session.
