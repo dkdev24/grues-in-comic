@@ -16,6 +16,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -25,6 +26,12 @@ body {
   font-family: var(--mono);
   font-size: 16px;
   line-height: 1.45;
+  overflow-x: clip;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -509,16 +516,8 @@ h3 {
 
 .hof-row {
   /* Monospace, so the score and move columns line up down the board — this is
-     the one place on the site where numbers are meant to be compared by eye.
-
-     The stack is spelled out rather than `var(--mono)` because **`--mono` is
-     not defined for the static pages** — `tokens.css` never declares it, so
-     `body`'s own `font-family: var(--mono)` (line 25) silently falls back to
-     the browser default and every static page renders serif today. That is a
-     pre-existing site bug, not this board's, and fixing it changes the whole
-     site's type: see `docs/FUTURE_WORK.md` **F19**. Until that is fixed, the board is
-     not going to be the one table on the site whose columns do not line up. */
-  font-family: "SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+     the one place on the site where numbers are meant to be compared by eye. */
+  font-family: var(--mono);
   font-size: 0.9rem;
   display: grid;
   grid-template-columns: 8.5rem 1fr 2rem 3.5rem 7rem;

@@ -78,7 +78,7 @@ what/why/done prose and repeat none of it, so there is one place to edit when a 
 | ID | Item | Category | Size | Impact | Pri | The trigger to watch |
 |---|---|---|---|---|---|---|
 | ~~F2~~ | ~~Hall of Fame board~~ **shipped v0.29.0** as a recent-runs board; ADR 0011 | Product | — | — | — | shipped — see `WORKLOG.md` v0.29.0 |
-| F19 | Static pages render serif — `--mono` undefined in `tokens.css` | Website | S | Medium | 3 | found 2026-08-23 in 6.8e; one line, but it re-types every static page |
+| ~~F19~~ | ~~Static pages render serif~~ **fixed 2026-08-27** — `--mono` declared in `tokens.css` | Website | — | — | — | shipped — see below |
 | F3 | Mob dialogue authoring (ADR 0006 slice) | Port leftovers | L | High | 2 | the largest remaining "reads as a cartoon" lever; needs the talk-to graph |
 | ~~F17~~ | ~~Corpus-wide tests replay the full game naively~~ **fixed v0.28.3**; ADR 0004 §10 amended | Port leftovers | — | — | — | shipped — see below |
 | ~~F18~~ | ~~The victory ending draws six `reaction` panels, none wordless~~ **fixed v0.28.4** — and the rung now fires on deaths, which it never had | Presentation | — | — | — | shipped — see below |
@@ -335,20 +335,14 @@ need the same missing thing, **the talk-to graph that mobs bring**, so they are 
   *Still open, if it is ever wanted:* per-cast goldens (deliberately not built — see
   `docs/PITFALLS.md`), and a picker that ranks rather than lists.
 
-- **[F19] The static pages render serif: `--mono` is never defined for them.** Found 2026-08-23
-  building the Hall of Fame board (6.8e). `site.css:25` sets `body { font-family: var(--mono) }` and
-  `tokens.css` — the file every static page loads — **does not declare `--mono`**, so the whole
-  landing page, about page and changelog fall back to the browser's default serif. `play/style.css`
-  declares it locally, which is why the gameplay screen looks right and nothing ever flagged this.
-  `docs/DESIGN.md` §3.1 describes the substrate as "text on black, monospace"; the site has not been
-  that since it shipped.
-  *Why deferred (2026-08-23):* the fix is one line in `tokens.css`, but it **re-types every static
-  page at once** — that is a look-and-feel change to the whole site, and it belongs in a session
-  where the user looks at the result rather than as a side effect of building a board. The board
-  itself is unaffected: `site.css` spells the stack out for `.hof-row` explicitly, with a comment
-  pointing here.
-  *Done looks like:* `--mono` declared in `tokens.css`, the explicit stack in `.hof-row` removed as
-  redundant, and every static page read once on a phone.
+- ~~**[F19] The static pages render serif — `--mono` is never defined for them.**~~ **Fixed
+  2026-08-27**, in the session that revisited the static pages' look and feel (per the note this
+  entry left in `HANDOFF.md`). `tokens.css` now declares `--mono` with the same stack
+  `play/style.css` used locally (`"SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas,
+  monospace`); the now-redundant explicit stack on `.hof-row` was removed. Same pass also closed two
+  gaps DESIGN.md doesn't cover explicitly: a site-wide `:focus-visible` ring (`var(--accent)`, the
+  `.cta`'s own amber ring still wins there) and `overflow-x: clip` on `html`/`body`. Not yet verified
+  by eye on a phone — do that before calling the visual side fully closed.
 
 - **[F7] Drawn logo mark, replacing the interim glyph.** `docs/DESIGN.md` §3.7 ships the site with a
   terminal-text wordmark plus one small original glyph (favicon, touch icon, OG card). The user is

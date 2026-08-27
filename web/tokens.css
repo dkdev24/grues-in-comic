@@ -12,6 +12,7 @@
   --accent: #6fc36f; /* phosphor green — the one saturated colour */
   --rule: #3a3a42;
   --page-bg: #0c0c0e; /* body, one step off black */
+  --mono: "SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
 
   /* the pinned artifact — a Comic Chat window */
   --comic-chrome: #c0c0c0;

@@ -25,19 +25,20 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — cast picker: default board name follows the chosen Hero
-An untouched "Name on the board" field now submits the chosen Hero's name instead of literal
-`Anonymous` — placeholder tracks the Hero pick live (`heroName()` in `web/src/cast-picker.ts`).
-Reopening the picker still shows the field blank when the stored name is just the unchanged Hero
-name, so "untouched" doesn't start looking pre-filled. `DEFAULT_PLAYER_NAME` narrowed to the
-roster-fetch-failed fallback only. Version bumped 0.33.1→0.33.2 via `tools/build-changelog.ts`.
-Full detail: `WORKLOG.md` v0.33.2.
+## Last Session — F19 fixed: static pages now actually render monospace
+`--mono` declared in `tokens.css` (`"SF Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas,
+monospace` — the stack `play/style.css` already used), so `body`'s `font-family: var(--mono)` in
+`site.css` no longer falls back to serif. `.hof-row`'s redundant explicit stack removed. Same pass
+added a site-wide `:focus-visible` ring (`var(--accent)`) and `overflow-x: clip` on `html`/`body` —
+both gaps DESIGN.md doesn't cover but leaves no reason not to close. `play/` untouched, per DESIGN.md
+§6's "do not restyle the panes." **Not yet visually verified on a phone or in a browser** — do that
+before treating this as fully closed. Full detail: `docs/FUTURE_WORK.md` F19 (now struck).
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
-1. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
+1. **Visually verify the F19 fix** — load the static pages, confirm monospace + focus ring read
+   right, at a phone width too.
+2. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
-2. **Watch the board fill, then decide F19** — `--mono` is undefined in `tokens.css`, so every
-   static page renders serif; the one-line fix re-types the whole site and wants a look.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
 | Path | Purpose |
