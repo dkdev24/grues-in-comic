@@ -114,3 +114,9 @@ itself.
 Rooms with no line are silent by design, not omission — the cooldown means not every first visit
 should speak anyway. Adding a room to the map is the entire cost of giving it a voice; nothing else
 changes ([[comic-chat-presentation]]).
+
+**Dying costs him no new line either — F18 (v0.28.4) needed none.** `**** You have died ****` is
+Zork's own boxed text, read aloud in his own balloon exactly like any other room description (rule
+"the two registers" above); it was already covered by the read-aloud half of his voice before the
+comic knew how to draw the moment it names. What F18 fixed sat one layer down, in [[the-hero]]'s
+panel, not in what the DM says — see that document's "Dying".

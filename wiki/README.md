@@ -14,7 +14,9 @@ not generate pages here with tooling.
 | Page | Subject |
 |---|---|
 | [comic-chat-presentation.md](comic-chat-presentation.md) | How Comic Chat turned a conversation into comics, and which of it survives contact with Zork |
-| [the-guide.md](the-guide.md) | Who the Guide is and how it talks — the identity ADR 0004 deferred, answered for `GUIDE_SCRIPT` |
+| [the-guide.md](the-guide.md) | Who the Dungeon Master is and how he talks — the identity ADR 0004 deferred, answered for `GUIDE_SCRIPT` |
+| [the-hero.md](the-hero.md) | Who the Hero is and how he talks — the voice behind `ACTION_SCRIPT` and `BEAT_SCRIPT`, and dying |
+| [hall-of-fame.md](hall-of-fame.md) | Why the board records runs, not only victories, and what that inversion costs (ADR 0011) |
 
 ## What belongs here
 

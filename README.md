@@ -17,7 +17,7 @@ Dungeon Master reading the description, and the Hero answering him.
 It is **not** a Z-machine emulator and **not** a source port. The ZIL is parsed, its gameplay
 semantics are extracted into a runtime-independent Intermediate Representation, and a TypeScript
 engine executes that IR in the browser. The result is checked turn-for-turn against transcripts from
-the original 1980s binary: **143/143 strict parity**, and the game is completable — 350 out of 350
+the original 1980s binary: **151/151 strict parity**, and the game is completable — 350 out of 350
 points, verified in the test suite on every run.
 
 The project is also a working record of AI-assisted modernization: how legacy source can be
@@ -28,8 +28,10 @@ understood, its semantics extracted, and a maintainable browser application buil
 | | |
 |---|---|
 | **Zork I** | Playable start to finish in a browser, 350/350 points |
-| **Parity** | 143/143 strict against the original binary's transcripts |
-| **Comic pane** | Every turn draws a panel — Comic Chat figures, Woodring balloons, 30 room backdrops |
+| **Parity** | 151/151 strict against the original binary's transcripts |
+| **Comic pane** | Every turn draws a panel — Comic Chat figures, Woodring balloons, a dedicated backdrop for all 110 rooms |
+| **Cast** | Pick which of eight Heroes and seven Dungeon Masters plays the part |
+| **Hall of Fame** | A live board of recent and finished runs — see [`wiki/hall-of-fame.md`](wiki/hall-of-fame.md) |
 | **Save / restore** | Autosave plus named slots, in browser storage |
 | **Version** | Pre-1.0. `1.0.0` is reserved for the public launch |
 
@@ -57,7 +59,7 @@ executes them on a new runtime. That choice is what makes the comic possible: an
 arrival, and that one is a death.
 
 The decisions behind that, and the ones that follow from it, are recorded as ADRs in
-[`docs/adr/`](docs/adr/) — ten of them, each with its alternatives and its consequences.
+[`docs/adr/`](docs/adr/) — eleven of them, each with its alternatives and its consequences.
 
 ---
 

@@ -24,6 +24,12 @@ class, and the future two-shot are ADR 0005 §1/§4 and ADR 0004 §11, and are n
   therefore always about something he *did*.
 - **Appearance is not settled here.** The avatar — the BORED face and SHRUG torso recast at 5.3 —
   is ADR 0004 §11 and the cast manifest's. This document owns the voice, nothing drawn.
+- **Since F16 (v0.28.0, stage 6.7) he is not one drawing.** The player picks which of eight packed
+  Heroes plays the part — the cast picker is a *runtime skin*, swapping one manifest and one sheet
+  per role (`art/src/roster.ts`, `web/src/cast-picker.ts`). Every rule in this document is the voice
+  all eight of them share; "the Hero" names the part, not any one actor cast in it. What the picker
+  changed is drawn identity, never voice — `ACTION_SCRIPT` and `BEAT_SCRIPT` are not keyed on which
+  Hero is on stage.
 
 ## How the Hero talks
 
@@ -46,6 +52,16 @@ class, and the future two-shot are ADR 0005 §1/§4 and ADR 0004 §11, and are n
    it doesn't. No heroic bravado — he is too old and has done this too many times to be impressed by
    a dungeon. The register is a capable adult working a familiar problem, not an adventurer having an
    adventure.
+
+   **The claimed frequency behind this rule was wrong, and is corrected here so the retracted number
+   doesn't get re-cited.** ADR 0004 §10 originally measured "exasperation at the parser" as the
+   Hero's most common marked emotion and adopted it as characterisation. F17 (v0.28.3) found the
+   corpus that measurement was taken over was a Hero stuck replaying a lost combat for 375 of 405
+   remaining turns — a bug in the test harness, not a property of play — and re-measured over runs
+   that actually finish: the most common marked emotion is the **flat acknowledgement**, then
+   **satisfaction at scoring**; `parser-miss` drops from 12.3% to 1.6%. The *shape* of rule 3 (dry
+   in both directions) is unaffected — it was never derived from the frequency — but "impatience" is
+   not, in fact, his dominant note. He is more often quietly getting on with it.
 4. **Understated, not quippy.** Middle-aged, not a wisecracking kid: one dry beat, never a routine.
    (The Guide's rule 5, from the other side of the panel — deadpan, occasionally funny, never
    mugging.)
@@ -120,3 +136,32 @@ suits the DM. He is a man who has run this system before and whose competence sh
 *decreasing* commentary; the run gives that an actual gradient instead of asking one line to imply
 it. He never resets to the first reply, because a man who is surprised again by the fourth false
 floor is a different character.
+
+## Dying
+
+`death` stayed on the unscripted list above through Slice 4 and stays there now — dying gets no
+`BEAT_SCRIPT` line, on purpose. **The reason is the same one that ends rule 1's fragments: a fixed
+thing said every time a man dies reads as a tic, and death is the one beat guaranteed to recur across
+a full run.** So the comic answers it a different way, not with a line: the turn he dies is
+**wordless**. `reaction` (F18, v0.28.4; ADR 0004 §7 amended) is a frame the mapper stages on its own
+— a body, no balloon — camera-controlled to a close-up nothing else in the ladder can reach, because
+a straddling balloon pins the head-top and a wordless panel doesn't. Rendered: wide-eyed, the
+backdrop washed out, still labelled the room he died in even though the very next panel has already
+resurrected him elsewhere.
+
+**This did not actually draw for four milestones, and finding out why is its own small lesson in
+measurement.** `game-over` fires on a quit, a win, or a *final* death — but an ordinary Zork death
+ends a life, not the game (ZIL narrates the blow, prints the banner, resurrects you, all one turn),
+and emits no event of its own. So `reaction` fired on every `quit` in the corpus and never once on an
+actual death, because the corpus — eleven scene walkthroughs — never died; it only ever chose to
+stop. F18 (v0.28.4) reads `death` off the same banner the DM was already voicing —
+`**** You have died ****`, the read-aloud register [[the-guide]] owns, not a new authored line and no
+new ADR 0002 event — so no line had to be written for the Hero to finally get a face when it happens.
+
+**Proving it took a walkthrough that actually dies (v0.28.5), and the walkthrough found a second
+rule.** Zork scatters whatever you were carrying into a random forest tile on death
+(`RANDOMIZE-OBJECTS`), which this engine cannot reproduce turn-for-turn against a fixed golden
+transcript (ADR 0002 declined the Z-machine's PRNG on principle). The scene that proves the death
+frame dies **holding nothing** — Canyon View, chosen because its one fatal move draws on no random
+table at all — so the corpus's only authored death is also, necessarily, an empty-handed one. Dying
+deterministically was not enough; the Hero had to die with nothing left to lose.

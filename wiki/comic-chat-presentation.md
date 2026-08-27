@@ -286,6 +286,17 @@ The options are roughly: an unshown first-person camera with captions only; a ch
 player avatar; or panels composed around the *room* and its objects rather than around
 characters. This is unresolved and should be resolved before stage 5.3, not during it.
 
+**Resolved at 5.3, then reopened and resolved differently by F16 (v0.28.0).** Stage 5.3 chose the
+middle option: a single drawn Hero, cast alongside the DM idol (ADR 0004 §11). That fixed *whether*
+there was an avatar but not *whose* — one figure, drawn once, for every player. F16 found the
+survey question was never taste, it was validation: could the pipeline support more than one
+complex avatar in the Hero role at all. It could, with a gate (`art/tools/rosterpack.ts` refuses to
+pack an avatar missing a face for an emotion its role's markers fire), and the cast picker ships
+eight playable Heroes as **runtime skins** — one manifest and one sheet per role, swapped in over the
+packed default rather than baked into `cast.json`, so the pixel gate keeps rendering one fixed cast
+and stays a gate. See [[the-hero]] on what stayed fixed across all eight (the voice) and what didn't
+(the face).
+
 **The one continuously present character is invisible.** Note the 189 `object-moved`
 events — exactly one per turn. That is the thief's wander daemon, moving him around the
 map every single turn. The character with the most continuous stage presence in the event
@@ -324,7 +335,63 @@ routing channel rather than a balloon with those switched off.
 
 **Must invent, because Comic Chat has no answer.**
 Caption boxes as the *primary, per-turn* text device rather than a panel-breaking
-interruption. The player's on-screen representation, or a deliberate decision to have
-none. Panel composition driven by room-and-object events rather than by utterances. And
-backdrops: Comic Chat shipped three, Zork has 110 rooms, and no amount of algorithm
-closes that gap.
+interruption. Panel composition driven by room-and-object events rather than by
+utterances. Both resolved, above.
+
+**The player's on-screen representation** was resolved at 5.3 (one drawn Hero) and then reopened by
+F16 into eight, as a runtime skin over the same voice — see "'Who is on screen...'" above and
+[[the-hero]].
+
+**Backdrops** — Comic Chat shipped three; Zork has 110 rooms — closed by v0.33.0, below.
+
+## Backdrops: closing the gap no algorithm could
+
+This page originally named 110 rooms against Comic Chat's three backdrops as the one place "no
+amount of algorithm closes that gap" — meaning no *layout* algorithm generates content, only a
+supply of art can. That held: the gap closed by drawing, across four milestones (v0.30.0–v0.33.0),
+and what's worth recording is which drawing method won and why the others didn't.
+
+**The reference turned out to be wrong before anything else did.** `art/tools/bgbdump.ts` decoded
+the original `.bgb` backdrops (v0.30.0) and found the existing 30-backdrop set had been generated
+against the wrong idiom entirely — image-model wood-engraving *approximation*, not Jim Woodring's
+actual technique, which is one line family at constant pitch carrying tone by **width**, not
+spacing. A vector engine (`woodring.mjs`) was built around that correction, its primitive a filled
+ribbon rather than a stroked path, because SVG cannot vary stroke-width along a line and here tone
+*is* width.
+
+**The vector route was then judged against the shipping art and lost (v0.31.0).** A blind side-by-
+side (`art/vector/ab.ts`, published as an Artifact) of ten hand-rebuilt scenes against the raster
+plates they would replace came back against vector, and a composition-led retune did not close the
+gap — reverted in full, verified by ink ratio. **Looking decided it, not the idiom argument**: the
+vector plates followed Woodring's actual technique more faithfully and still read as amateur next to
+the image-model set. Comic Chat's own lesson from the paper — art supply is the real constraint, not
+the layout algorithm — held here too, just not in the direction the vector experiment hoped.
+
+**What shipped instead was more raster generation, done carefully.** Images 4–13 (v0.32.0–v0.33.0)
+closed all 82 remaining shared-backdrop rooms, including reversing the earlier "the maze stays
+silent" call for art specifically — 110/110 rooms, zero shared ids, confirmed by grouping every
+`ROOM_BACKDROPS` entry and finding none reused. The recurring failure mode across those sheets was
+never the art itself but **measurement of it**: crop bounds silently varying sheet to sheet (a
+border 12–25px instead of the assumed ~4px lost several plates' first pass), captions staying stale
+copies of a previous sheet's labels, resolution changing mid-run without warning. `docs/PITFALLS.md`
+carries the operational rule now (re-measure every new sheet, never assume). The design lesson
+belongs here instead: **supplying 110 unique plates was tractable exactly because it never had to be
+an algorithm** — Comic Chat's three backdrops were a budget constraint the paper accepted, and this
+project's difference is a production pipeline that could be run 13 times, not a smarter generator.
+
+## Beyond the game: the front page's own strip (v0.33.1)
+
+One more use of the cast outside anything Zork emits. The landing page's "What it does" section is
+six panels of roster characters — not the packed default cast, the *roster* Comic Chat's own
+selection-of-personalities idea suggested was worth keeping — bantering about a feature each,
+instead of a card grid. It borrows this page's stage-1/2 machinery (real character voices, facing
+pairs) for a purpose Comic Chat never had: **marketing the thing rather than playing it.**
+
+Two choices worth keeping distinct from everything above, because they don't answer to gameplay
+constraints at all. **Portraits are real crops of the shipped sprite sheets**, not new art — CSS
+custom properties compute a `background-position`/`background-size` from each avatar's own
+`.avatar.json` face rect, so what a visitor sees on the landing page is provably the same character
+they'll see cast in `/play/`, not a look-alike drawn for the pitch. And **the facing-pair trick is
+pure CSS** (`transform: scaleX(-1)` on the second speaker), reusing Comic Chat's stage-3 insight —
+characters should face each other, not just stand side by side — in a context with no `EvalPair`
+cost function at all, because six fixed panels don't need one.
