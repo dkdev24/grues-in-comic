@@ -13,6 +13,7 @@
     "dev": "npm run build && npm run serve",
     "render:panel": "tsx tools/render-panel.ts",
     "render:bodies": "tsx tools/render-bodies.ts",
+    "render:tldr": "tsx tools/render-tldr.ts",
     "gate": "tsx tools/gate.ts",
     "gate:accept": "tsx tools/gate.ts --accept",
     "density": "tsx tools/density.ts",

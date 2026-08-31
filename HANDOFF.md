@@ -7,40 +7,36 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 `docs/PITFALLS.md`. Deferred work → `docs/FUTURE_WORK.md`. **Hard cap: 50 lines** — cut narrative first.
 
 ---
-
 ## Current Version
 **0.33.4** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
-
-**Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (parity 151/151).
+**Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
+browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (parity 151/151).
 - **M6 ◐** road to 1.0.0 (repo public + website ships). Detail: `docs/DEVELOPMENT_PLAN.md` §6.
-  - **6.1e** (dialogue authoring) open — 97/110 rooms gazetteered; the 13 others (maze + 2 dead ends)
-    silent by design **for text** (confirmed 2026-08-22 — unaffected by the backdrop art now being
-    1:1). **6.2/6.3/6.6/6.7/6.5-beta ✅**; **6.4, 6.5 ☐**.
-  - **6.8 ✅** Hall of Fame board — **ADR 0011**; **deployed and working** (v0.29.0), column
-    headings and one CTA per screenful at v0.29.1.
-  - **Backdrops ✅ 110/110, zero sharing** (v0.33.0), including the maze — see
-    `docs/backdrop-generation-plan.md`; nothing left here unless new rooms are added.
+  Closed this cycle: **6.2/6.3/6.6/6.7/6.5-beta**, backdrops (110/110, ADR-backed), Hall of Fame
+  (ADR 0011, deployed v0.29.0). Open: **6.1e** dialogue authoring (97/110 rooms gazetteered; the
+  13 others silent by design for text), **6.4** asset separation & neutral branding, **6.5** public
+  release → tag `1.0.0`.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
 
-## Last Session — homepage sections reveal, then re-tuned to stagger per item
-DESIGN.md §5 banned scroll-triggered reveals — confirmed with the user, amended it (dated), built
-whole-section fade+rise. User found that too subtle and asked for slower + one-item-at-a-time, so it
-was rebuilt around hand-marked `.reveal-item` children: 24px rise, 800ms, staggered 110ms apart by
-DOM position (`web/site.css`, `web/index.html`, `web/tools/build-changelog.ts`'s generated rows).
-User then flagged the trigger point (bottom-edge, `rootMargin -10%`/`threshold 0.15`) as too early —
-effect happened off-screen at the bottom. Changed to `rootMargin: "0px 0px -50% 0px"`, `threshold: 0`
-so a section only reveals once its top edge crosses viewport mid-screen. `js-reveal` gating on
-`<html>` (`IntersectionObserver` support + `prefers-reduced-motion: no-preference`) unchanged; any
-failure path still leaves content visible immediately. Verified live via dev server (Chrome) —
-confirmed a section stays hidden right up to the mid-screen line, then cascades. Test:
-`web/test/site-reveal.test.ts`. Prior session: Hall of Fame sweep fixed (capacity-based, v0.33.3).
-v0.33.4. **Not yet committed.**
+## Last Session — TL;DR comic-strip harness + derived "toonstrip" OSS plan
+Built `web/tools/render-tldr{,-core,-font}.ts` (dev-only): hand-authored `Panel`s straight into
+`renderPanel`, bypassing `mapper.ts`, for a 4-panel EN/KO TL;DR strip from the shipped cast/backdrops
+(`npm run render:tldr [en|ko]`, `web/`). Fixed a Korean tofu bug along the way — aliasing a Hangul
+font onto the *existing* "Comic Sans MS" family silently loses to macOS's Latin-only face
+(legible-looking tofu, only caught by OCR, not by eye) — by having the tool patch
+`BALLOON_FONT`/`TITLE_FONT` to an uncollided name only for a `ko` child-process run, reverting via
+`git checkout` in a `finally`; `comic/{balloon,render}.ts` carry no diff at rest.
+Then scoped a **separate OSS project** ("toonstrip") generalizing this repo's comic renderer
+(`comic/*` minus `mapper.ts`/`affect.ts`, `comic-view.ts`'s canvas-pool, `art/`'s asset pipeline)
+into an embeddable Astro-first widget, no AI/inference in scope. Dev plan drafted here, then
+**moved by the user into toonstrip's own repo** — nothing left to reference in this one.
+v0.33.4 (no bump — dev tooling only, no product change).
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
-1. **Verify the F19 fix at a phone width** — still open from last session.
+1. **Verify the F19 fix at a phone width** — still open, carried from two sessions back.
 2. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.
