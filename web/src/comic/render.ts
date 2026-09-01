@@ -703,11 +703,19 @@ function stackBalloons(
     return { balloon, anchor, face, headX: faceCentre(face) };
   });
 
-  // A balloon that owns the panel spreads across most of it; the original only
-  // tightens the free rect when *other* balloons share the width
-  // (`GetCloudEstimate`, `panel.cpp:876`). Since our balloons always stack
-  // vertically, "shares the width" reduces to "there is more than one".
-  const cap = queue.length === 1 ? width - 20 : width * 0.66;
+  // Every balloon gets the same cap regardless of how many share the panel.
+  // A prior version narrowed this to `width * 0.66` once a panel had more
+  // than one balloon, reasoning from `GetCloudEstimate`'s free-rect tightening
+  // when balloons share width (`panel.cpp:876`) — but that citation describes
+  // the *driver*'s corridor collision (`GetInterveningBBox`), which this
+  // fallback doesn't replicate: these balloons are laid out in a strict
+  // vertical sequence (`y` only grows below), so there is no horizontal
+  // collision a narrower cap would prevent, and it bought nothing but a
+  // taller wrap. Tall enough, at real embed sizes below this renderer's own
+  // pixel-gate fixtures (`UNIT`, 400×340), to overlap its own speaker's head
+  // — found via `toonstrip` (named divergence, ADR 0008, this date; see
+  // `docs/TOONSTRIP_SYNC.md`).
+  const cap = width - 20;
   // The tail is capped, not stretched: Comic Chat grows a balloon *up from* its
   // speaker, so the tail is short and the slack falls *above* the balloon
   // (`MINTAILHEIGHT` is a floor, `balloon.cpp:1439`, with no matching stretch —

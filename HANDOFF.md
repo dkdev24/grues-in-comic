@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.5** · Platform: **macOS only** (2026-07-28)
+**0.33.6** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
@@ -21,14 +21,16 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS, never re-accept on Windows.
 
-## Last Session — cross-repo sync process documented (no version bump, docs only)
-Following v0.33.5's toonstrip-ported balloon fix, wrote `docs/TOONSTRIP_SYNC.md`: the process
-for syncing `web/src/comic/{balloon,balloon-layout,figure,layout,render}.ts` with `toonstrip`
-(separate repo, own copy of this logic, not a dependency — drifts unless manually ported both
-ways), including the ADR-0008-named-divergence + pixel-gate discipline a port *into* this repo
-must follow. `AGENTS.md` and `docs/PITFALLS.md` (Web & the comic pane, top bullet) now point at
-it before that code is touched. Sibling docs: `../toonstrip/UPSTREAM_SYNC.md` (canonical, full
-chain incl. the npm leg into `danielkimdev-astro`), `../danielkimdev-astro/dev-references/toonstrip-sync.md`.
+## Last Session — v0.33.5's fix wasn't enough; `stackBalloons` fallback also widened
+User reported the toonstrip-embedded strip still looked narrow after v0.33.5. Root cause was
+deeper: at real embed size (363×309, below this repo's own `UNIT` 400×340 gate fixtures), the
+driver refuses most panels and falls back to `stackBalloons`, which had its own untouched
+narrowing (`cap = width*0.66`, `WIDTH_BIAS = 0.5`) — v0.33.5's roll fix never reached it, and
+even made one panel *worse* by making the fallback more likely. Widened both (`cap = width-20`,
+`WIDTH_BIAS = 0.85`), named divergence ADR 0008 "2026-09-01b". No gate/density re-accept needed —
+none of the 25 pinned cases hit this fallback. Full writeup: `WORKLOG.md` v0.33.6. Also wrote
+`docs/TOONSTRIP_SYNC.md` (the cross-repo sync process) and a new pixel-gate PITFALLS note: the
+gate's `UNIT`-sized fixtures don't prove the driver fits at every real embed size.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.

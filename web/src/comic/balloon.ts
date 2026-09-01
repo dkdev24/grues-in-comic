@@ -130,12 +130,21 @@ export const AREA_FUDGE = 1.3;
  * (`panel.cpp:900`), so a balloon that owns the panel spreads across most of it
  * and only tightens when other balloons shrink its free rect. ADR 0004 §5 forbids
  * the roll (the panel stream is a pure function), so we take a *fixed* fraction of
- * the compact→free gap instead of a random one — the deterministic midpoint-style
- * stand-in already used for the horizontal straddle (`render.ts`). Never wider
- * than the text on one line, exactly as the original caps at `len+200`
- * (`panel.cpp:901`): past that the balloon is just air.
+ * the compact→free gap instead of a random one. Never wider than the text on one
+ * line, exactly as the original caps at `len+200` (`panel.cpp:901`): past that the
+ * balloon is just air.
+ *
+ * **Named divergence (this date):** was `0.5`, the deterministic midpoint-style
+ * stand-in for the roll's expected value — a legitimate reading of "instead of a
+ * random one," but a compact-leaning balloon wraps to more lines, and this
+ * function backs `stackBalloons`' fallback path too, where a taller balloon is
+ * more likely to grow into its own speaker's head at real embed sizes (found via
+ * `toonstrip`, ADR 0008; see `docs/TOONSTRIP_SYNC.md`). `0.85` keeps the "fixed
+ * fraction, not a roll" letter of ADR 0004 §5 while abandoning "approximates the
+ * roll's mean" as the reason for the specific number — the goal now is a short
+ * balloon, not a statistically faithful stand-in.
  */
-const WIDTH_BIAS = 0.5;
+const WIDTH_BIAS = 0.85;
 
 /** Widest single word, the floor a balloon may not wrap below (`WidestWord`, `balloon.cpp:778`). */
 export function widestWord(ctx: CanvasRenderingContext2D, text: string): number {

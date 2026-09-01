@@ -545,6 +545,13 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 
 Durable, not session narrative: every mechanical-layer change is measured against this.
 
+- **The gate renders every fixture at `UNIT` (400×340) — a real embed can be smaller, and the
+  multi-balloon driver's fit test behaves differently there.** `toonstrip`, embedded at 363×309, was
+  found refusing the driver for most panels of a real 2-speaker strip and silently falling back to
+  `stackBalloons` — invisible to this gate, since every one of its 25 pinned cases resolves through the
+  driver (`nothing falls back to the balloon stack`, `test/gate.test.ts`, empty since M6.1g). A change
+  that looks pixel-clean here is not proof the driver still fits at every size this repo might ever
+  render at (the Hall of Fame board, a future smaller embed). See ADR 0008's 2026-09-01b entry.
 - **The golden is macOS-rendered and the gate is a macOS gate** (decided 2026-07-28). The hash half
   goes through the host font stack; the geometry half does not. **Never `gate:accept` off macOS.**
   Full reasoning under Tooling & platform above, and in `web/README.md`.
@@ -591,7 +598,11 @@ because the port reads them every phase:
   to the 1996 binary is unattainable). **`GetCloudEstimate`'s width roll is skewed toward `maxWidth`, not
   uniform** (named divergence, ADR 0008, 2026-09-01) — a uniform roll let a narrow first balloon wrap tall
   and push the next speaker's balloon into their own head. Keep this in mind before "restoring" a uniform
-  roll to chase closer fidelity to `panel.cpp:899` — it was deliberately traded away.
+  roll to chase closer fidelity to `panel.cpp:899` — it was deliberately traded away. **Same reasoning
+  applies to `stackBalloons`' `cap` (`width - 20`, not `width * 0.66` once shared) and `balloon.ts`'s
+  `WIDTH_BIAS` (`0.85`, not the midpoint `0.5`)** — named divergence, ADR 0008, 2026-09-01b. Don't narrow
+  either back without re-deriving why: `stackBalloons` lays balloons out in a strict vertical sequence, so
+  neither cap was ever preventing a real collision.
 
 ---
 

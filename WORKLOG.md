@@ -10,6 +10,38 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.6 — 2026-09-01 — `stackBalloons`/`goalWidth` fallback also widened (ported from toonstrip)
+
+v0.33.5's roll fix wasn't the whole story. Verified directly against `toonstrip`'s real embed
+(363×309, smaller than this repo's own `UNIT` 400×340 pixel-gate fixtures): the multi-balloon
+driver was refusing most panels of a real 2-speaker strip regardless of the roll, falling back to
+`stackBalloons` — which had its own independent narrowing the roll fix never touched. Confirmed by
+literally toggling the fix on/off against real render output: it made one previously-fitting panel
+*worse* (flipped it into the fallback too), since a wider first balloon has a bigger horizontal
+footprint and is more likely to block the second, pushing it further down.
+
+Root cause in the fallback itself: `stackBalloons`' `cap` (`render.ts`) dropped to `width * 0.66`
+whenever a panel held more than one balloon, and `balloon.ts`'s `goalWidth` (what this fallback's
+`measureBalloon` actually calls) only pushed halfway to its ceiling (`WIDTH_BIAS = 0.5`, cited as
+"the deterministic midpoint-style stand-in" for `GetCloudEstimate`'s roll). Both compounded into a
+balloon tall enough, at real embed size, to overlap its own speaker's head — confirmed with a
+render, not just a diff: at 363×309 the first panel's balloon visibly cut through its own
+character's head.
+
+Neither narrowing was load-bearing: `stackBalloons` lays balloons out in a strict vertical
+sequence (`y` only grows below), so unlike the driver's side-by-side corridors, there was never a
+horizontal collision either cap prevented. Changed `cap` to `width - 20` unconditionally and
+`WIDTH_BIAS` to `0.85` — named divergence, ADR 0008 "2026-09-01b" (full reasoning there, including
+why `0.85` still respects ADR 0004 §5's "fixed fraction, not a roll"). `docs/PITFALLS.md` updated
+in two places: the "Still-live decisions" list, and a new pixel-gate operating note that the gate's
+`UNIT`-sized fixtures don't prove the driver fits at every real embed size.
+
+**No pixel-gate or density re-acceptance needed** — `npm run gate`/`npm run density` both report
+clean/unchanged. All 25 gated production panels resolve through the driver, not `stackBalloons`
+(empty fallback set since M6.1g), so this change touches no pinned output today; it's real for
+`toonstrip`'s embed now, and for this repo the moment any panel here ever does fall back. 391 web
+tests still green.
+
 ## v0.33.5 — 2026-09-01 — narrow first-balloon width roll fixed (ported from toonstrip)
 
 Bug surfaced downstream: `toonstrip` (this project's spun-off, generalized comic renderer,
