@@ -5,7 +5,7 @@
     "bodies": [
       "guide"
     ],
-    "sha256": "76f82a55dd2ef490a2758ada4e0f6fc36dbaebd28737942f87dfb39a778e43e1",
+    "sha256": "668372700375c6eaeb437f518ee68c6cf527679e06f6b3dd6fdb06466304fc0e",
     "trace": {
       "bodies": [
         {
@@ -22,10 +22,10 @@
           "box": {
             "x": 10,
             "y": 36,
-            "width": 322.9,
-            "height": 65
+            "width": 366,
+            "height": 50
           },
-          "lines": 3,
+          "lines": 2,
           "tail": {
             "x": 202.8,
             "y": 170
@@ -36,13 +36,57 @@
     }
   },
   {
-    "name": "wk01-p01-medium",
+    "name": "wk01-p01-establishing",
+    "camera": "establishing",
+    "bodies": [
+      "hero",
+      "guide"
+    ],
+    "sha256": "b13784d41402b595de860c336f7a6db09b3358b22c3e2ae429c38f67c02a61d2",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 81.3,
+          "y": 170,
+          "scale": 0.4,
+          "mirror": false
+        },
+        {
+          "speaker": "guide",
+          "x": 248.9,
+          "y": 170,
+          "scale": 0.4,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 143.1,
+            "y": 36,
+            "width": 226.9,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 281,
+            "y": 170
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p02-medium",
     "camera": "medium",
     "bodies": [
       "hero",
       "guide"
     ],
-    "sha256": "22ed459eb733b96a48e48fe33138392363c9aa06c5e1f610f54cd07d0f395f47",
+    "sha256": "0846ca488d7d5e8381a5428cb9b05296a6889e843cdd0ec0305a81513d173c6d",
     "trace": {
       "bodies": [
         {
@@ -62,25 +106,69 @@
       ],
       "balloons": [
         {
-          "speaker": "guide",
+          "speaker": "hero",
           "box": {
-            "x": 161.2,
-            "y": 36,
-            "width": 226.9,
-            "height": 35
+            "x": 15.8,
+            "y": 14,
+            "width": 136.9,
+            "height": 50
           },
-          "lines": 1,
+          "lines": 2,
           "tail": {
-            "x": 289,
+            "x": 130.1,
             "y": 149.6
           }
         },
         {
+          "speaker": "guide",
+          "box": {
+            "x": 130.1,
+            "y": 64,
+            "width": 254,
+            "height": 65
+          },
+          "lines": 3,
+          "tail": {
+            "x": 289,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk01-p03-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero",
+      "guide"
+    ],
+    "sha256": "70f87d4eda35f74ac47fee182abbe9c346a807daac7beef523358bdc5a2c9e23",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 52.2,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": false
+        },
+        {
+          "speaker": "guide",
+          "x": 239,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
           "speaker": "hero",
           "box": {
-            "x": 104.6,
-            "y": 71,
-            "width": 164.1,
+            "x": 93.6,
+            "y": 14,
+            "width": 216.6,
             "height": 35
           },
           "lines": 1,
@@ -88,120 +176,18 @@
             "x": 130.1,
             "y": 149.6
           }
-        }
-      ],
-      "stacked": false
-    }
-  },
-  {
-    "name": "wk01-p02-medium",
-    "camera": "medium",
-    "bodies": [
-      "guide",
-      "hero"
-    ],
-    "sha256": "aecd8a7fb4f2e457e7be2f3a23c0414464ce82e5ae948cb3fc69b8e2ffb12911",
-    "trace": {
-      "bodies": [
-        {
-          "speaker": "guide",
-          "x": 52.2,
-          "y": 149.6,
-          "scale": 0.6,
-          "mirror": false
         },
-        {
-          "speaker": "hero",
-          "x": 213.2,
-          "y": 149.6,
-          "scale": 0.7,
-          "mirror": true
-        }
-      ],
-      "balloons": [
         {
           "speaker": "guide",
           "box": {
-            "x": 10,
-            "y": 14,
-            "width": 366,
-            "height": 50
-          },
-          "lines": 2,
-          "tail": {
-            "x": 111,
-            "y": 149.6
-          }
-        },
-        {
-          "speaker": "hero",
-          "box": {
-            "x": 143.1,
-            "y": 64,
-            "width": 163.3,
-            "height": 50
-          },
-          "lines": 2,
-          "tail": {
-            "x": 269.9,
-            "y": 149.6
-          }
-        }
-      ],
-      "stacked": false
-    }
-  },
-  {
-    "name": "wk01-p03-over-shoulder",
-    "camera": "over-shoulder",
-    "bodies": [
-      "guide",
-      "hero"
-    ],
-    "sha256": "cd74f528155e6a0aacfb7c02aa3f79090c934109df1c9f5b4fb2f23cbe477f9f",
-    "trace": {
-      "bodies": [
-        {
-          "speaker": "guide",
-          "x": 52.7,
-          "y": 149.6,
-          "scale": 0.6,
-          "mirror": false
-        },
-        {
-          "speaker": "hero",
-          "x": 216.1,
-          "y": 149.6,
-          "scale": 0.8,
-          "mirror": true
-        }
-      ],
-      "balloons": [
-        {
-          "speaker": "guide",
-          "box": {
-            "x": 10,
-            "y": 14,
+            "x": 183.2,
+            "y": 49,
             "width": 186.8,
             "height": 35
           },
           "lines": 1,
           "tail": {
-            "x": 112.5,
-            "y": 149.6
-          }
-        },
-        {
-          "speaker": "hero",
-          "box": {
-            "x": 112.5,
-            "y": 49,
-            "width": 161.3,
-            "height": 35
-          },
-          "lines": 1,
-          "tail": {
-            "x": 272.1,
+            "x": 289,
             "y": 149.6
           }
         }
@@ -213,39 +199,53 @@
     "name": "wk01-p04-over-shoulder",
     "camera": "over-shoulder",
     "bodies": [
-      "guide",
-      "hero"
+      "hero",
+      "guide"
     ],
-    "sha256": "3e4cf7e462dfcfaefccaa138a55ded19dda51077821db902000c3a7a4efbb8e1",
+    "sha256": "8740a03551d5cde41d7c09071465b1e0f3f104a4cf7cd190b5aa98ff5efae7d2",
     "trace": {
       "bodies": [
         {
-          "speaker": "guide",
-          "x": 52.7,
+          "speaker": "hero",
+          "x": 48.1,
           "y": 149.6,
-          "scale": 0.6,
+          "scale": 0.8,
           "mirror": false
         },
         {
-          "speaker": "hero",
-          "x": 216.1,
+          "speaker": "guide",
+          "x": 236.6,
           "y": 149.6,
-          "scale": 0.8,
+          "scale": 0.6,
           "mirror": true
         }
       ],
       "balloons": [
         {
-          "speaker": "guide",
+          "speaker": "hero",
           "box": {
             "x": 10,
             "y": 14,
-            "width": 283,
+            "width": 161.3,
             "height": 35
           },
           "lines": 1,
           "tail": {
-            "x": 112.5,
+            "x": 127.9,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 223.8,
+            "y": 49,
+            "width": 127.3,
+            "height": 65
+          },
+          "lines": 3,
+          "tail": {
+            "x": 287.5,
             "y": 149.6
           }
         }
@@ -260,7 +260,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "96c3b39400ea6fb33f2eb88855aa7e773fd7efc5003147d9dccc947c5dcc18f2",
+    "sha256": "7a23792b14512598810a0317e2c26bd546b1bb25fc28acf4fdce44d940dd8686",
     "trace": {
       "bodies": [
         {
@@ -282,7 +282,7 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 48.6,
+            "x": 51.6,
             "y": 14,
             "width": 182.9,
             "height": 35
@@ -607,7 +607,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "06e47c2543c38530eee517fd27b346b91b894a5b7d6a36ec2b6bf68b9aa58b41",
+    "sha256": "1a691ae636cfffee0b414f534a921ebe110f42ef214b307eaf201f521a733d68",
     "trace": {
       "bodies": [
         {
@@ -631,7 +631,7 @@
           "box": {
             "x": 10,
             "y": 14,
-            "width": 362,
+            "width": 332.7,
             "height": 65
           },
           "lines": 3,
@@ -665,7 +665,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "71c52157fd126f3e09371b7a0cdb03cc9572456be994a6e92490822f1bd0ba24",
+    "sha256": "9737c9d4855052edb7308d108346ed401e79b3a5e57fec00f2ed99bc96743037",
     "trace": {
       "bodies": [
         {
@@ -689,10 +689,10 @@
           "box": {
             "x": 10,
             "y": 36,
-            "width": 127.8,
-            "height": 50
+            "width": 188.9,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": {
             "x": 111,
             "y": 149.6
@@ -701,12 +701,12 @@
         {
           "speaker": "hero",
           "box": {
-            "x": 205.9,
+            "x": 249.1,
             "y": 36,
-            "width": 164.1,
-            "height": 35
+            "width": 136.9,
+            "height": 50
           },
-          "lines": 1,
+          "lines": 2,
           "tail": {
             "x": 269.9,
             "y": 149.6
@@ -723,123 +723,7 @@
       "guide",
       "hero"
     ],
-    "sha256": "3b722043f859b5c1740a54bda92ac0037e0d23f3b71e077ee245090e2f4541df",
-    "trace": {
-      "bodies": [
-        {
-          "speaker": "guide",
-          "x": 52.4,
-          "y": 149.6,
-          "scale": 0.6,
-          "mirror": false
-        },
-        {
-          "speaker": "hero",
-          "x": 213.6,
-          "y": 149.6,
-          "scale": 0.7,
-          "mirror": true
-        }
-      ],
-      "balloons": [
-        {
-          "speaker": "guide",
-          "box": {
-            "x": 10,
-            "y": 14,
-            "width": 379.3,
-            "height": 65
-          },
-          "lines": 3,
-          "tail": {
-            "x": 111.2,
-            "y": 149.6
-          }
-        },
-        {
-          "speaker": "hero",
-          "box": {
-            "x": 183,
-            "y": 79,
-            "width": 187,
-            "height": 35
-          },
-          "lines": 1,
-          "tail": {
-            "x": 272.1,
-            "y": 149.6
-          }
-        }
-      ],
-      "stacked": false
-    }
-  },
-  {
-    "name": "wk04-dark-p23-medium",
-    "camera": "medium",
-    "bodies": [
-      "guide",
-      "hero"
-    ],
-    "sha256": "3c0134403da908581119be08ff6931a560823883db98334a84a324c075236c80",
-    "trace": {
-      "bodies": [
-        {
-          "speaker": "guide",
-          "x": 52.4,
-          "y": 149.6,
-          "scale": 0.6,
-          "mirror": false
-        },
-        {
-          "speaker": "hero",
-          "x": 213.6,
-          "y": 149.6,
-          "scale": 0.7,
-          "mirror": true
-        }
-      ],
-      "balloons": [
-        {
-          "speaker": "guide",
-          "box": {
-            "x": 10,
-            "y": 14,
-            "width": 147,
-            "height": 35
-          },
-          "lines": 1,
-          "tail": {
-            "x": 111.2,
-            "y": 149.6
-          }
-        },
-        {
-          "speaker": "hero",
-          "box": {
-            "x": 207.1,
-            "y": 14,
-            "width": 146.4,
-            "height": 35
-          },
-          "lines": 1,
-          "tail": {
-            "x": 272.1,
-            "y": 149.6
-          }
-        }
-      ],
-      "stacked": false
-    }
-  },
-  {
-    "name": "wk04-dark-p24-medium",
-    "camera": "medium",
-    "bodies": [
-      "guide",
-      "hero"
-    ],
-    "sha256": "0624589b6c543c514a46c9a075261df854639b89d20412cc6d9c8bfcccaf62e4",
+    "sha256": "cf0af7e902a3ead0c2ed6824cbc047400313df7665e8820e146536b3a7fa0239",
     "trace": {
       "bodies": [
         {
@@ -861,12 +745,150 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 22.9,
+            "x": 10,
             "y": 14,
-            "width": 205.8,
+            "width": 323.8,
+            "height": 80
+          },
+          "lines": 4,
+          "tail": {
+            "x": 111,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p23-medium",
+    "camera": "medium",
+    "bodies": [
+      "hero"
+    ],
+    "sha256": "3e4b817c2346b6e66500c5bea26064ddd10673910041641df7c0a7c38dd4bc91",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "hero",
+          "x": 133,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": false
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 54.9,
+            "y": 14,
+            "width": 187,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 208.5,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p24-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "52982bbf5d01abc00e28241f4a0277408ef2538f65f8d4a2ad9150a614d1d00b",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.4,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.6,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 22.3,
+            "y": 14,
+            "width": 108.3,
             "height": 50
           },
           "lines": 2,
+          "tail": {
+            "x": 111.2,
+            "y": 149.6
+          }
+        },
+        {
+          "speaker": "hero",
+          "box": {
+            "x": 200.2,
+            "y": 14,
+            "width": 146.4,
+            "height": 35
+          },
+          "lines": 1,
+          "tail": {
+            "x": 272.1,
+            "y": 149.6
+          }
+        }
+      ],
+      "stacked": false
+    }
+  },
+  {
+    "name": "wk04-dark-p25-medium",
+    "camera": "medium",
+    "bodies": [
+      "guide",
+      "hero"
+    ],
+    "sha256": "88e4a689655336edadc7019bfc43814d5658f8fb689b26e5013bcbafbf4045e7",
+    "trace": {
+      "bodies": [
+        {
+          "speaker": "guide",
+          "x": 52.2,
+          "y": 149.6,
+          "scale": 0.6,
+          "mirror": false
+        },
+        {
+          "speaker": "hero",
+          "x": 213.2,
+          "y": 149.6,
+          "scale": 0.7,
+          "mirror": true
+        }
+      ],
+      "balloons": [
+        {
+          "speaker": "guide",
+          "box": {
+            "x": 10,
+            "y": 14,
+            "width": 342.2,
+            "height": 35
+          },
+          "lines": 1,
           "tail": {
             "x": 111,
             "y": 149.6
@@ -875,12 +897,12 @@
         {
           "speaker": "hero",
           "box": {
-            "x": 191.5,
-            "y": 64,
-            "width": 94.8,
-            "height": 50
+            "x": 115.5,
+            "y": 49,
+            "width": 171.4,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": {
             "x": 269.9,
             "y": 149.6
@@ -891,7 +913,7 @@
     }
   },
   {
-    "name": "wk04-dark-p25-medium",
+    "name": "wk04-dark-p26-medium",
     "camera": "medium",
     "bodies": [
       "guide",
@@ -938,7 +960,7 @@
     "name": "mob3-p00-medium",
     "camera": "medium",
     "bodies": [],
-    "sha256": "e5fcf7623bd5f5116b1dc49d41e24b8c517a464281d4c172179b1532c1ee901f",
+    "sha256": "693f1e1564040930b870628814bc505060fa87500c85b065a409e77f8f905e0f",
     "trace": {
       "bodies": [],
       "balloons": [
@@ -947,10 +969,10 @@
           "box": {
             "x": 10,
             "y": 14,
-            "width": 157.3,
-            "height": 50
+            "width": 233.4,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": null
         }
       ],
@@ -964,7 +986,7 @@
       "hero",
       "guide"
     ],
-    "sha256": "a20bfd196f977e7e258ed2a7495bf405c5b61af65029cd0f8b9be9eccc4a1295",
+    "sha256": "7118afb23d24407956948a108bbb2897a30d9ee625fa47bf766a92f1bd76355c",
     "trace": {
       "bodies": [
         {
@@ -1000,12 +1022,12 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 163.1,
+            "x": 139.6,
             "y": 49,
-            "width": 203,
-            "height": 50
+            "width": 230.4,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": {
             "x": 289,
             "y": 149.6
@@ -1021,7 +1043,7 @@
     "bodies": [
       "mob-a"
     ],
-    "sha256": "0318fe54751ff6f750856f10282bac1dee42c6f116aebbeb4aa47a57ea271806",
+    "sha256": "834e0fc2b2ebdc07fc17905b7bbe31eac7013442e1d03589620212b844b15b84",
     "trace": {
       "bodies": [
         {
@@ -1036,7 +1058,7 @@
         {
           "speaker": "mob-a",
           "box": {
-            "x": 97.7,
+            "x": 95.2,
             "y": 14,
             "width": 226.3,
             "height": 35
@@ -1055,7 +1077,7 @@
     "name": "mob4-p00-medium",
     "camera": "medium",
     "bodies": [],
-    "sha256": "e5fcf7623bd5f5116b1dc49d41e24b8c517a464281d4c172179b1532c1ee901f",
+    "sha256": "693f1e1564040930b870628814bc505060fa87500c85b065a409e77f8f905e0f",
     "trace": {
       "bodies": [],
       "balloons": [
@@ -1064,10 +1086,10 @@
           "box": {
             "x": 10,
             "y": 14,
-            "width": 157.3,
-            "height": 50
+            "width": 233.4,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": null
         }
       ],
@@ -1081,7 +1103,7 @@
       "hero",
       "guide"
     ],
-    "sha256": "a20bfd196f977e7e258ed2a7495bf405c5b61af65029cd0f8b9be9eccc4a1295",
+    "sha256": "7118afb23d24407956948a108bbb2897a30d9ee625fa47bf766a92f1bd76355c",
     "trace": {
       "bodies": [
         {
@@ -1117,12 +1139,12 @@
         {
           "speaker": "guide",
           "box": {
-            "x": 163.1,
+            "x": 139.6,
             "y": 49,
-            "width": 203,
-            "height": 50
+            "width": 230.4,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": {
             "x": 289,
             "y": 149.6
@@ -1139,7 +1161,7 @@
       "mob-a",
       "mob-b"
     ],
-    "sha256": "56a12ea94dde6aa934352d27f95a75d02cf58fbe593213f3e766dd6d119c3e72",
+    "sha256": "cb921d403b2f6e8ab7f85f5b4de15e811f52f089b91d46e430fd3e7646024b7b",
     "trace": {
       "bodies": [
         {
@@ -1163,10 +1185,10 @@
           "box": {
             "x": 10,
             "y": 14,
-            "width": 181.5,
-            "height": 50
+            "width": 226.3,
+            "height": 35
           },
-          "lines": 2,
+          "lines": 1,
           "tail": {
             "x": 129.5,
             "y": 149.6
@@ -1176,7 +1198,7 @@
           "speaker": "mob-b",
           "box": {
             "x": 129.5,
-            "y": 64,
+            "y": 49,
             "width": 239.4,
             "height": 50
           },

@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.4** · Platform: **macOS only** (2026-07-28)
+**0.33.5** · Platform: **macOS only** (2026-07-28)
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
@@ -19,24 +19,22 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
   13 others silent by design for text), **6.4** asset separation & neutral branding, **6.5** public
   release → tag `1.0.0`.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
-**Tests:** 385 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 24/24 on macOS, never re-accept on Windows.
+**Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS, never re-accept on Windows.
 
-## Last Session — TL;DR comic-strip harness + derived "toonstrip" OSS plan
-Built `web/tools/render-tldr{,-core,-font}.ts` (dev-only): hand-authored `Panel`s straight into
-`renderPanel`, bypassing `mapper.ts`, for a 4-panel EN/KO TL;DR strip from the shipped cast/backdrops
-(`npm run render:tldr [en|ko]`, `web/`). Fixed a Korean tofu bug along the way — aliasing a Hangul
-font onto the *existing* "Comic Sans MS" family silently loses to macOS's Latin-only face
-(legible-looking tofu, only caught by OCR, not by eye) — by having the tool patch
-`BALLOON_FONT`/`TITLE_FONT` to an uncollided name only for a `ko` child-process run, reverting via
-`git checkout` in a `finally`; `comic/{balloon,render}.ts` carry no diff at rest.
-Then scoped a **separate OSS project** ("toonstrip") generalizing this repo's comic renderer
-(`comic/*` minus `mapper.ts`/`affect.ts`, `comic-view.ts`'s canvas-pool, `art/`'s asset pipeline)
-into an embeddable Astro-first widget, no AI/inference in scope. Dev plan drafted here, then
-**moved by the user into toonstrip's own repo** — nothing left to reference in this one.
-v0.33.4 (no bump — dev tooling only, no product change).
+## Last Session — narrow first-balloon width roll fixed (ported from toonstrip)
+`toonstrip` (this project's spun-off comic renderer) hit a real bug on a live blog strip: a
+narrow first-balloon width roll in `getCloudEstimate` (ported from `panel.cpp:899`) wrapped tall
+and pushed the next speaker's balloon into their own head. Fixed there first, then ported back
+here as a **named divergence** from the 1996 algorithm (`docs/adr/0008-*.md`, dated 2026-09-01) —
+`GetCloudEstimate`'s roll is now skewed toward `maxWidth` instead of uniform. Moved every panel's
+balloon geometry (seeded by content hash); eyeballed the changed gate cases before accepting,
+`gate:accept`ed (25 cases) and `density:accept`ed — net effect across the corpus is fewer panels
+overall with more of them landing both speakers, the intended effect. Full writeup: `WORKLOG.md`
+v0.33.5. `docs/PITFALLS.md` "Still-live decisions" updated so a future session doesn't "restore"
+the uniform roll chasing closer fidelity to `panel.cpp:899`.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
-1. **Verify the F19 fix at a phone width** — still open, carried from two sessions back.
+1. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
 2. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.

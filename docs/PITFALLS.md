@@ -584,7 +584,10 @@ because the port reads them every phase:
 - **Scope added by the coverage audit:** the multi-balloon layout driver and overflow-split (Phase 2b).
 - **Locked:** histeresis stubbed stable-by-insertion-order now, full with mobs; balloon placement by a
   seeded reproducible roll — we port the *algorithm*, not the pixels (font metrics differ, so a byte-match
-  to the 1996 binary is unattainable).
+  to the 1996 binary is unattainable). **`GetCloudEstimate`'s width roll is skewed toward `maxWidth`, not
+  uniform** (named divergence, ADR 0008, 2026-09-01) — a uniform roll let a narrow first balloon wrap tall
+  and push the next speaker's balloon into their own head. Keep this in mind before "restoring" a uniform
+  roll to chase closer fidelity to `panel.cpp:899` — it was deliberately traded away.
 
 ---
 

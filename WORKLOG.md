@@ -10,6 +10,34 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.5 — 2026-09-01 — narrow first-balloon width roll fixed (ported from toonstrip)
+
+Bug surfaced downstream: `toonstrip` (this project's spun-off, generalized comic renderer,
+`comic/*` extracted into its own repo/npm packages) was applied to a `danielkimdev-astro` blog
+post, and the rendered strip showed the left character's balloon using only about half the
+panel's width in most panels, wrapping to extra lines and pushing the right character's balloon
+down into their own head. One panel's first balloon happened to roll wide and had no overlap —
+the tell that this was a roll, not a fixed layout choice.
+
+Root cause, in both repos' `getCloudEstimate` (`comic/balloon-layout.ts` here, ported faithfully
+from `panel.cpp:899`'s `GetCloudEstimate`): `goalWidth` rolled uniform between a compact
+`minWidth` and the panel's full `maxWidth`, so "barely past `minWidth`" was as likely as "use the
+free rect." Fixed in `toonstrip` first (its own history), then ported back here as a **named
+divergence** from the 1996 algorithm (ADR 0008, "Named divergence (2026-09-01)") rather than
+silently changed, since this file is a cited mechanical port and the pixel gate pins its output:
+`goalWidth = minWidth + (1 - random() ** 2) * (maxWidth - minWidth)` — same structure and seeded
+determinism, skewed toward `maxWidth` so wide is the common roll and narrow the rare one.
+
+Moves every panel's balloon geometry (seeded by content hash, so any width-roll change legitimately
+reshuffles the whole corpus). Eyeballed the changed gate cases before accepting — no overlaps, no
+clipped text, one walkthrough panel split into two (`wk04-dark-p26-medium`, new) where a formerly-tall
+balloon no longer forced a cramped fit. `gate:accept`ed (25 cases) and `density:accept`ed: net effect
+across the corpus is *fewer* panels overall (`12-full-game.cmd` 681→667) with *more* of them landing
+both speakers (283→297) — the intended effect, not incidental drift. `docs/PITFALLS.md` "Still-live
+decisions" updated so a future session doesn't "restore" the uniform roll chasing closer fidelity.
+
+Tests: 391/391 web (was 385; gate fixture set grew to 25 cases independently of this change).
+
 ## v0.33.4 — 2026-08-27 — each homepage section's items cascade into view on scroll
 
 **Amended DESIGN.md §5** to allow a scroll-triggered reveal on the homepage — previously motion was

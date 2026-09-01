@@ -303,7 +303,20 @@ function getCloudEstimate(
     const potentialHeight = freeRect.bottom - lowestPreviousBottom(laid, freeRect.top)
       + MIN_HOOK_HEIGHT;
     const minWidth = Math.max(area / potentialHeight, input.metrics.widestWord(input.text));
-    goalWidth = minWidth + random() * (maxWidth - minWidth); // `:899`
+    // Named divergence from `:899` (ADR 0008 §Named divergence, "the roll") —
+    // the original draws this roll uniform, and we kept that for a full
+    // release cycle. A uniform roll picks "barely past minWidth" as often as
+    // "use the free rect," and a narrow *first* balloon in a panel wraps to
+    // more lines, grows taller, and pushes the next speaker's balloon down
+    // into their own head — reported against a live multi-balloon strip
+    // (toonstrip's astro blog example) where it was reproducible enough to be
+    // the common case, not an edge case. `1 - random()**2` keeps the same
+    // structure and the same seeded determinism, only skewed toward
+    // `maxWidth`, so a wide balloon is now the common roll and a narrow one
+    // the rare exception. Comic Chat's own balloons were not immune to this —
+    // matching that specific quirk buys nothing our port already doesn't
+    // otherwise reproduce faithfully.
+    goalWidth = minWidth + (1 - random() ** 2) * (maxWidth - minWidth);
   }
 
   goalWidth = Math.min(goalWidth + WIDTH_FUDGE, maxWidth); // `:909`

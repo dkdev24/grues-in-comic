@@ -65,13 +65,13 @@
       "heroReply": 12,
       "exchanges": 12,
       "bothSpeak": 15,
-      "panels": 43,
+      "panels": 42,
       "panelsDm": 33,
       "panelsHero": 25,
-      "panelsBothSpeakers": 16,
-      "panelsExchange": 10,
+      "panelsBothSpeakers": 17,
+      "panelsExchange": 11,
       "screenExchangeTurns": 12,
-      "onePanelExchangeTurns": 10
+      "onePanelExchangeTurns": 11
     },
     {
       "file": "04-lamp-and-darkness.cmd",
@@ -91,9 +91,9 @@
       "panelsDm": 37,
       "panelsHero": 31,
       "panelsBothSpeakers": 21,
-      "panelsExchange": 12,
+      "panelsExchange": 13,
       "screenExchangeTurns": 14,
-      "onePanelExchangeTurns": 12
+      "onePanelExchangeTurns": 13
     },
     {
       "file": "05-troll-combat.cmd",
@@ -109,13 +109,13 @@
       "heroReply": 14,
       "exchanges": 14,
       "bothSpeak": 18,
-      "panels": 50,
+      "panels": 49,
       "panelsDm": 36,
       "panelsHero": 32,
-      "panelsBothSpeakers": 19,
-      "panelsExchange": 10,
+      "panelsBothSpeakers": 20,
+      "panelsExchange": 11,
       "screenExchangeTurns": 14,
-      "onePanelExchangeTurns": 10
+      "onePanelExchangeTurns": 11
     },
     {
       "file": "06-scoring-and-treasure.cmd",
@@ -219,13 +219,13 @@
       "heroReply": 26,
       "exchanges": 26,
       "bothSpeak": 31,
-      "panels": 94,
+      "panels": 91,
       "panelsDm": 71,
       "panelsHero": 54,
-      "panelsBothSpeakers": 32,
-      "panelsExchange": 20,
+      "panelsBothSpeakers": 35,
+      "panelsExchange": 23,
       "screenExchangeTurns": 26,
-      "onePanelExchangeTurns": 20
+      "onePanelExchangeTurns": 23
     },
     {
       "file": "11-parser-edges.cmd",
@@ -263,13 +263,13 @@
       "heroReply": 156,
       "exchanges": 156,
       "bothSpeak": 298,
-      "panels": 681,
+      "panels": 667,
       "panelsDm": 505,
       "panelsHero": 445,
-      "panelsBothSpeakers": 283,
-      "panelsExchange": 123,
+      "panelsBothSpeakers": 297,
+      "panelsExchange": 136,
       "screenExchangeTurns": 156,
-      "onePanelExchangeTurns": 123
+      "onePanelExchangeTurns": 136
     },
     {
       "file": "13-canyon-death.cmd",
@@ -307,12 +307,12 @@
     "heroReply": 288,
     "exchanges": 288,
     "bothSpeak": 484,
-    "panels": 1155,
+    "panels": 1136,
     "panelsDm": 871,
     "panelsHero": 740,
-    "panelsBothSpeakers": 483,
-    "panelsExchange": 230,
+    "panelsBothSpeakers": 502,
+    "panelsExchange": 249,
     "screenExchangeTurns": 288,
-    "onePanelExchangeTurns": 230
+    "onePanelExchangeTurns": 249
   }
 }
