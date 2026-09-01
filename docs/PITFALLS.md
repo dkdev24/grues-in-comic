@@ -91,6 +91,10 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 
 ## Web & the comic pane
 
+- **`toonstrip` (`../toonstrip`) carries its own copy of `balloon.ts`/`balloon-layout.ts`/
+  `figure.ts`/`layout.ts`/`render.ts`'s shared logic, not a dependency on this repo.** A fix
+  here doesn't reach it, and vice versa, without a manual port. Read `docs/TOONSTRIP_SYNC.md`
+  before changing any of them.
 - **The mapper is pure and canvas-free; `render.ts` holds all the numbers.** Mapper decides *what shot
   this is*; renderer decides what that looks like at the current width. That split is what lets 11
   walkthroughs replay through the mapping in Node. `SHOTS` is authoring judgement on top of the ADR.

@@ -21,17 +21,14 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS, never re-accept on Windows.
 
-## Last Session — narrow first-balloon width roll fixed (ported from toonstrip)
-`toonstrip` (this project's spun-off comic renderer) hit a real bug on a live blog strip: a
-narrow first-balloon width roll in `getCloudEstimate` (ported from `panel.cpp:899`) wrapped tall
-and pushed the next speaker's balloon into their own head. Fixed there first, then ported back
-here as a **named divergence** from the 1996 algorithm (`docs/adr/0008-*.md`, dated 2026-09-01) —
-`GetCloudEstimate`'s roll is now skewed toward `maxWidth` instead of uniform. Moved every panel's
-balloon geometry (seeded by content hash); eyeballed the changed gate cases before accepting,
-`gate:accept`ed (25 cases) and `density:accept`ed — net effect across the corpus is fewer panels
-overall with more of them landing both speakers, the intended effect. Full writeup: `WORKLOG.md`
-v0.33.5. `docs/PITFALLS.md` "Still-live decisions" updated so a future session doesn't "restore"
-the uniform roll chasing closer fidelity to `panel.cpp:899`.
+## Last Session — cross-repo sync process documented (no version bump, docs only)
+Following v0.33.5's toonstrip-ported balloon fix, wrote `docs/TOONSTRIP_SYNC.md`: the process
+for syncing `web/src/comic/{balloon,balloon-layout,figure,layout,render}.ts` with `toonstrip`
+(separate repo, own copy of this logic, not a dependency — drifts unless manually ported both
+ways), including the ADR-0008-named-divergence + pixel-gate discipline a port *into* this repo
+must follow. `AGENTS.md` and `docs/PITFALLS.md` (Web & the comic pane, top bullet) now point at
+it before that code is touched. Sibling docs: `../toonstrip/UPSTREAM_SYNC.md` (canonical, full
+chain incl. the npm leg into `danielkimdev-astro`), `../danielkimdev-astro/dev-references/toonstrip-sync.md`.
 ## Next Actions
 Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
 1. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.

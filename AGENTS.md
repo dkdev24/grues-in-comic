@@ -63,3 +63,6 @@ architecture review. Dirty `graphify-out/` files are expected and are not a reas
 - `original-projects/` holds imported historical source as reference implementations, version-
   controlled with this repository.
 - **No nested Git repositories and no submodules.**
+- **Before changing `web/src/comic/{balloon,balloon-layout,figure,layout,render}.ts`, read
+  `docs/TOONSTRIP_SYNC.md`.** `toonstrip` (sibling repo, `../toonstrip`) carries its own copy
+  of this mechanical layer and drifts apart unless a fix is manually ported both ways.
