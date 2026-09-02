@@ -98,19 +98,20 @@ export interface BalloonInput {
 
 /**
  * The production {@link BalloonMetrics}: a real canvas, measuring in the class's
- * own chrome. `ctx.font` must already be {@link BALLOON_FONT} — the caller sets
- * it once for the whole panel, as the original selects the font once per DC.
+ * own chrome. `ctx.font` must already be set to `balloonFont(scale)` — the same
+ * `scale` passed here — the caller sets it once for the whole panel, as the
+ * original selects the font once per DC.
  */
 export function canvasMetrics(
-  ctx: CanvasRenderingContext2D, balloon: Balloon,
+  ctx: CanvasRenderingContext2D, balloon: Balloon, scale = 1,
 ): BalloonMetrics {
   const as = (text: string): Balloon => (text === balloon.text ? balloon : { ...balloon, text });
   return {
-    chrome: chromeFor(balloon),
+    chrome: chromeFor(balloon, scale),
     oneLineWidth: (text) => ctx.measureText(text).width,
     widestWord: (text) => widestWord(ctx, text),
-    measure: (text, boxWidth) => measureAtWidth(ctx, as(text), boxWidth),
-    split: (text, boxWidth, boxHeight) => splitHeight(ctx, as(text), boxWidth, boxHeight),
+    measure: (text, boxWidth) => measureAtWidth(ctx, as(text), boxWidth, scale),
+    split: (text, boxWidth, boxHeight) => splitHeight(ctx, as(text), boxWidth, boxHeight, scale),
   };
 }
 
@@ -214,15 +215,15 @@ export function panelSeed(inputs: readonly BalloonInput[]): number {
  * could not hold either — the recursion `AddLine` would spin on.
  */
 export function layoutBalloons(
-  inputs: readonly BalloonInput[], freeRect: Rect, seed = panelSeed(inputs),
+  inputs: readonly BalloonInput[], freeRect: Rect, seed = panelSeed(inputs), scale = 1,
 ): LayoutResult {
   const random = makeRandom(seed); // `srand(m_seed)` — always lay out the same way (`:867`)
   const laid: LaidBalloon[] = [];
 
   for (let i = 0; i < inputs.length; i++) {
-    const balloon = layoutBalloon(inputs[i]!, laid, freeRect, random);
+    const balloon = layoutBalloon(inputs[i]!, laid, freeRect, random, scale);
     if (!balloon) {
-      if (i === 0 && inputs.length === 1) return forceFitBalloon(inputs[0]!, freeRect);
+      if (i === 0 && inputs.length === 1) return forceFitBalloon(inputs[0]!, freeRect, scale);
       return { fits: false };
     }
     laid.push(balloon);
@@ -230,13 +231,37 @@ export function layoutBalloons(
   return { fits: true, balloons: laid, leftover: null };
 }
 
+/**
+ * **Considered and dropped (2026-09-02): a `toonstrip` v0.7.10 divergence,
+ * `speakerCorridors`, pre-allocating each speaker's horizontal budget before
+ * the first balloon is even estimated.** It fixed a real bug there — a wide,
+ * unbounded first-balloon estimate leaving a second speaker's balloon
+ * nowhere but *below* it, refusing panels the driver had genuine room for.
+ * Ported here, it regressed this repo's own `density.test.ts` baseline
+ * across every walkthrough (`12-full-game.cmd`: 667→691 panels,
+ * `panelsBothSpeakers` 297→273) with **no** compensating benefit —
+ * `test/gate.test.ts`'s "nothing falls back to the balloon stack" was
+ * already an empty set before this divergence and stayed empty without it.
+ * Root cause: `fit.ts`'s panelization pre-check (`createFitTest`) calls this
+ * *exact* `layoutBalloons`, undifferentiated from the renderer's own call —
+ * a narrower first-balloon estimate at fit-test time makes `AddLine` refuse
+ * to clone-append a line into its current panel more often, which is a
+ * *packing-density* regression, not a fallback-avoidance win. `toonstrip`
+ * has no such shared pre-check (`layoutStrip`'s panels are formed by
+ * different, simpler upstream logic), which is why its real-world
+ * `stackBalloons` fallback problem — the reason this divergence exists —
+ * does not occur here in the first place. See `HANDOFF.md`/`WORKLOG.md` and
+ * `docs/TOONSTRIP_SYNC.md` for the full investigation.
+ */
+
 /** Port of `CUnitPanel::LayoutBalloon` (`panel.cpp:925`) — one balloon's placement. */
 function layoutBalloon(
-  input: BalloonInput, laid: readonly LaidBalloon[], freeRect: Rect, random: () => number,
+  input: BalloonInput, laid: readonly LaidBalloon[], freeRect: Rect,
+  random: () => number, scale = 1,
 ): LaidBalloon | null {
-  const brect = getCloudEstimate(input, laid, freeRect, random); // best guess
+  const brect = getCloudEstimate(input, laid, freeRect, random, scale); // best guess
   // squeezed between the corridors, and pushed below anything in the way
-  const pushed = getInterveningBBox(input, laid, freeRect, brect);
+  const pushed = getInterveningBBox(input, laid, freeRect, brect, scale);
 
   const span = brect.right - brect.left;
   // `SetBBox` → `ComputeInternals` fails when the balloon cannot be built that
@@ -249,7 +274,7 @@ function layoutBalloon(
     x: brect.left, y: brect.top, width: measured.width, height: measured.height,
   };
   // `if (m_bbox.Top > -250) DockAtTop(freeRect.top)` (`:938`) — see DOCK note.
-  if (!pushed) box.y = freeRect.top + TOP_BORDER;
+  if (!pushed) box.y = freeRect.top + TOP_BORDER * scale;
 
   // The roll placed the *span* so that it covers the arrow — "randomly place
   // brect in x, guaranteeing that it overlaps character" (`:908`). Our wrap is
@@ -269,7 +294,7 @@ function layoutBalloon(
   };
   // `if (m_routeRgn.Bottom < freeRect.bottom + MINHOOKHEIGHT) return FALSE` (`:941`):
   // a balloon hanging that low leaves its own tail no room. y-flip: our `>`.
-  if (routeRgn.bottom > freeRect.bottom - MIN_HOOK_HEIGHT) return null;
+  if (routeRgn.bottom > freeRect.bottom - MIN_HOOK_HEIGHT * scale) return null;
 
   adjustRouteRgns(input, laid, routeRgn); // `:943`
   return { input, box, lines: measured.lines, routeRgn };
@@ -286,22 +311,23 @@ function layoutBalloon(
  * one here rather than carrying an unreachable arm.
  */
 function getCloudEstimate(
-  input: BalloonInput, laid: readonly LaidBalloon[], freeRect: Rect, random: () => number,
+  input: BalloonInput, laid: readonly LaidBalloon[], freeRect: Rect,
+  random: () => number, scale = 1,
 ): Rect {
   const len = input.metrics.oneLineWidth(input.text);
   // `AreaEstimate` (`balloon.cpp:715`): `1.3 · cx · (cy + lineHeight)`, and `cy`
   // of a one-line string is one line — so 1.3 · len · 2 · lineHeight.
-  const area = AREA_FUDGE * len * 2 * LINE_HEIGHT;
+  const area = AREA_FUDGE * len * 2 * (LINE_HEIGHT * scale);
   const maxWidth = freeRect.right - freeRect.left;
 
   let goalWidth: number;
-  if (len <= ONE_LINE_THRESHOLD) {
+  if (len <= ONE_LINE_THRESHOLD * scale) {
     goalWidth = len; // short enough to stay on one line (`:893`)
   } else {
     // The height this balloon could use if it grew down to the hook line — y-flip
     // of `LowestPreviousBottom(...) - freeRect.bottom + MINHOOKHEIGHT` (`:896`).
     const potentialHeight = freeRect.bottom - lowestPreviousBottom(laid, freeRect.top)
-      + MIN_HOOK_HEIGHT;
+      + MIN_HOOK_HEIGHT * scale;
     const minWidth = Math.max(area / potentialHeight, input.metrics.widestWord(input.text));
     // Named divergence from `:899` (ADR 0008 §Named divergence, "the roll") —
     // the original draws this roll uniform, and we kept that for a full
@@ -319,8 +345,9 @@ function getCloudEstimate(
     goalWidth = minWidth + (1 - random() ** 2) * (maxWidth - minWidth);
   }
 
-  goalWidth = Math.min(goalWidth + WIDTH_FUDGE, maxWidth); // `:909`
-  goalWidth = Math.min(goalWidth, len + WIDTH_FUDGE); // never wider than the text (`:910`)
+  const widthFudge = WIDTH_FUDGE * scale;
+  goalWidth = Math.min(goalWidth + widthFudge, maxWidth); // `:909`
+  goalWidth = Math.min(goalWidth, len + widthFudge); // never wider than the text (`:910`)
 
   let left: number;
   if (input.isBox || input.arrowX === null) {
@@ -349,14 +376,14 @@ function getCloudEstimate(
  * decides the dock (see `DOCK_THRESHOLD`'s note).
  */
 function getInterveningBBox(
-  input: BalloonInput, laid: readonly LaidBalloon[], freeRect: Rect, brect: Rect,
+  input: BalloonInput, laid: readonly LaidBalloon[], freeRect: Rect, brect: Rect, scale = 1,
 ): boolean {
   const toPtX = input.arrowX ?? freeRect.left;
 
   let mostLeft = freeRect.left;
   let mostRight = freeRect.right;
   for (const prev of laid) {
-    const { leftAllowance, rightAllowance } = queryRouteRgn(prev, toPtX);
+    const { leftAllowance, rightAllowance } = queryRouteRgn(prev, toPtX, scale);
     mostLeft = Math.max(leftAllowance, mostLeft);
     mostRight = Math.min(rightAllowance, mostRight);
   }
@@ -412,21 +439,22 @@ function lowestPreviousBottom(laid: readonly LaidBalloon[], lowY: number): numbe
  * balloon whose speaker has no body on stage: neither one drops a tail.
  */
 function queryRouteRgn(
-  prev: LaidBalloon, otherToX: number,
+  prev: LaidBalloon, otherToX: number, scale = 1,
 ): { leftAllowance: number; rightAllowance: number } {
   if (prev.input.isBox || prev.input.arrowX === null) {
     return { leftAllowance: -LARGE, rightAllowance: LARGE };
   }
   const toX = prev.input.arrowX;
+  const minRouteWidth = MIN_ROUTE_WIDTH * scale;
   if (otherToX > toX) {
     return {
-      leftAllowance: Math.max(toX, prev.routeRgn.left + MIN_ROUTE_WIDTH),
+      leftAllowance: Math.max(toX, prev.routeRgn.left + minRouteWidth),
       rightAllowance: LARGE,
     };
   }
   return {
     leftAllowance: -LARGE,
-    rightAllowance: Math.min(toX, prev.routeRgn.right - MIN_ROUTE_WIDTH),
+    rightAllowance: Math.min(toX, prev.routeRgn.right - minRouteWidth),
   };
 }
 
@@ -454,12 +482,13 @@ function adjustRouteRgns(
  * ever reached for a lone balloon in an otherwise empty panel — the case where
  * refusing would achieve nothing.
  */
-function forceFitBalloon(input: BalloonInput, freeRect: Rect): LayoutResult {
+function forceFitBalloon(input: BalloonInput, freeRect: Rect, scale = 1): LayoutResult {
   const width = freeRect.right - freeRect.left;
   const split = input.metrics.split(input.text, width, freeRect.bottom - freeRect.top);
   const measured = input.metrics.measure(split.text, width);
   const box: BalloonBox = {
-    x: freeRect.left, y: freeRect.top + TOP_BORDER, width: measured.width, height: measured.height,
+    x: freeRect.left, y: freeRect.top + TOP_BORDER * scale,
+    width: measured.width, height: measured.height,
   };
   return {
     fits: true,

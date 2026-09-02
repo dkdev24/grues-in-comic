@@ -10,6 +10,57 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.7 — 2026-09-02 — neighbour-head overlap and scale-aware layout (ported from toonstrip)
+
+Two more balloon-layout fixes ported in from `toonstrip`, plus one considered and reverted.
+
+**1. `stackBalloons`' straddling speech balloon could overlap a *neighbour's* head/tail.**
+`clearOfFaces` (the routine that slides a balloon clear of any face box) was only ever called from
+the thought-aside branch; the speech-straddle branch centred on its own speaker with no check
+against anyone else's face. In a 2+-body panel this let a balloon cover a neighbour's head or
+route its tail across a neighbour's balloon — different from v0.33.6's bug (which was a balloon
+overlapping its *own* speaker). Fixed with `speakerCorridor` (`render.ts`, new — `stackBalloons`
+is a reimplementation, not a port, so this diverges from nothing in `panel.cpp`): bounds a
+straddling balloon to the room between its own head and the midpoint to the nearest other
+speaker's, before it's measured. Named divergence, ADR 0008 "2026-09-02".
+
+**2. Every balloon-layout constant was fixed CSS px at native `UNIT` size, regardless of the
+panel actually rendered.** Not a divergence from Comic Chat (it measured against one fixed
+window) — new machinery this port needs because `layout.ts`'s reflowing pane can render below
+native to fit a narrower viewport. `docs/PITFALLS.md` already flagged this as a risk ("a future
+smaller embed") without a live case; `toonstrip`'s v0.7.11 found it live on a real embed. Fixed by
+computing `uiScale = width / UNIT.width` once in `renderPanel` and threading it through every
+function using one of these constants (font size, line height, chrome, `MINHOOKHEIGHT`,
+`MINROUTEWIDTH`, margins, tail geometry) — each takes an optional `scale = 1`, so behavior at
+native size is unchanged. Named divergence, ADR 0008 "2026-09-02".
+
+**3. Considered and reverted: `toonstrip` v0.7.10's `speakerCorridors`** (pre-allocating a
+horizontal budget for every speaking balloon before the first is estimated, fixing an unbounded
+first-balloon estimate that could leave a second speaker's balloon nowhere but *below* it).
+Ported here, it regressed `density.test.ts`'s committed baseline on every walkthrough
+(`12-full-game.cmd`: 667→691 panels, `panelsBothSpeakers` 297→273) for no benefit — `nothing
+falls back to the balloon stack` was already an empty set and stayed empty without it. Root
+cause: `fit.ts`'s panelization pre-check shares the *exact same* `layoutBalloons` as the
+renderer, so a narrower first-balloon estimate at fit-test time makes `AddLine` split panels it
+used to merge — a packing-density regression, not a fallback-avoidance win. `toonstrip` has no
+equivalent shared pre-check, which is exactly why its fallback problem doesn't occur here. Full
+writeup: ADR 0008.
+
+**Verification, done on Windows (this repo's pixel gate is macOS-only — see `docs/PITFALLS.md`):**
+`npm --prefix web run typecheck` clean; `npm --prefix web test` — every rule-test file green, and
+on `gate.test.ts` every *geometry* assertion passes (zero diff against the pinned corpus, "nothing
+falls back" and "pins the same set of cases" both green) and `density.test.ts` passes outright —
+only the platform-specific pixel hashes differ (expected, all 25 cases, none newly so). Neither
+`gate:accept` nor `density:accept` was run (nothing to accept — no pinned geometry moved) and
+neither may be, off macOS. Items 1–2 above are real code paths this repo's own pinned corpus does
+not currently exercise (no panel here hits `stackBalloons`' straddle branch with 2+ bodies, and
+every pinned panel renders at ≈native scale), so the gate's silence here is "unaffected," not
+"positively exercised." **Committed and pushed from Windows on explicit user instruction**,
+skipping the macOS render-check this would otherwise have waited on — a macOS session should still
+eyeball a render of items 1–2 at the next opportunity; geometry-equal is not pixel-equal.
+
+---
+
 ## v0.33.6 — 2026-09-01 — `stackBalloons`/`goalWidth` fallback also widened (ported from toonstrip)
 
 v0.33.5's roll fix wasn't the whole story. Verified directly against `toonstrip`'s real embed

@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.6** · Platform: **macOS only** (2026-07-28)
+**0.33.7** · Platform: **macOS only** — this commit shipped from Windows, user-directed (below)
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
@@ -19,22 +19,25 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
   13 others silent by design for text), **6.4** asset separation & neutral branding, **6.5** public
   release → tag `1.0.0`.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
-**Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS, never re-accept on Windows.
+**Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
+(geometry verified clean on Windows this session; pixel hashes need a macOS re-run — see below).
 
-## Last Session — v0.33.5's fix wasn't enough; `stackBalloons` fallback also widened
-User reported the toonstrip-embedded strip still looked narrow after v0.33.5. Root cause was
-deeper: at real embed size (363×309, below this repo's own `UNIT` 400×340 gate fixtures), the
-driver refuses most panels and falls back to `stackBalloons`, which had its own untouched
-narrowing (`cap = width*0.66`, `WIDTH_BIAS = 0.5`) — v0.33.5's roll fix never reached it, and
-even made one panel *worse* by making the fallback more likely. Widened both (`cap = width-20`,
-`WIDTH_BIAS = 0.85`), named divergence ADR 0008 "2026-09-01b". No gate/density re-accept needed —
-none of the 25 pinned cases hit this fallback. Full writeup: `WORKLOG.md` v0.33.6. Also wrote
-`docs/TOONSTRIP_SYNC.md` (the cross-repo sync process) and a new pixel-gate PITFALLS note: the
-gate's `UNIT`-sized fixtures don't prove the driver fits at every real embed size.
+## Last Session — two more balloon-layout fixes ported from `toonstrip`, one reverted
+**On Windows** (dev machine is normally macOS-only). Ported: (1) `stackBalloons`' straddling
+speech balloon could overlap a *neighbour's* head/tail (not just its own, v0.33.6's bug) — fixed
+w/ `speakerCorridor`. (2) every balloon-layout constant was fixed CSS px at native size regardless
+of actual panel size — scaled by `uiScale = width/UNIT.width` throughout. **Reverted:**
+`toonstrip`'s corridor-preallocation fix (v0.7.10) regressed `density.test.ts` here (`fit.ts`
+shares `layoutBalloons` w/ the renderer) for no benefit — this repo already has zero
+`stackBalloons` fallbacks. Full reasoning: ADR 0008 "2026-09-02", `WORKLOG.md` v0.33.7. `npm
+test`: every rule test green, gate geometry clean (zero pinned diff), density clean; only pixel
+hashes differ (expected off macOS). **Committed + pushed from Windows on explicit user
+instruction, skipping the macOS render-check** — nothing pinned moved so there's nothing for
+`gate:accept`/`density:accept` to do, but items 1–2 have still never been visually confirmed.
 ## Next Actions
-Full detail: `docs/DEVELOPMENT_PLAN.md` §6.
-1. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
-2. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
+1. **Render-check items 1–2 above on macOS** when next on that machine — never visually confirmed.
+2. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
+3. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths

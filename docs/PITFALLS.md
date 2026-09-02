@@ -552,6 +552,12 @@ Durable, not session narrative: every mechanical-layer change is measured agains
   driver (`nothing falls back to the balloon stack`, `test/gate.test.ts`, empty since M6.1g). A change
   that looks pixel-clean here is not proof the driver still fits at every size this repo might ever
   render at (the Hall of Fame board, a future smaller embed). See ADR 0008's 2026-09-01b entry.
+  **Partially closed 2026-09-02:** every balloon-layout constant now scales by
+  `uiScale = width/UNIT.width` (ADR 0008), so a sub-native panel no longer reads its own fixed-size
+  text/chrome as relatively larger than native — but this repo has never rendered one in production
+  (every gate fixture is native/near-native), so the fix is unexercised by anything pinned here;
+  treat it as latent-bug prevention, not a verified-fixed live bug, until a real sub-native embed
+  (a future Hall of Fame board panel, say) is actually rendered and eyeballed.
 - **The golden is macOS-rendered and the gate is a macOS gate** (decided 2026-07-28). The hash half
   goes through the host font stack; the geometry half does not. **Never `gate:accept` off macOS.**
   Full reasoning under Tooling & platform above, and in `web/README.md`.
@@ -603,6 +609,13 @@ because the port reads them every phase:
   `WIDTH_BIAS` (`0.85`, not the midpoint `0.5`)** — named divergence, ADR 0008, 2026-09-01b. Don't narrow
   either back without re-deriving why: `stackBalloons` lays balloons out in a strict vertical sequence, so
   neither cap was ever preventing a real collision.
+- **`toonstrip`'s v0.7.10 `speakerCorridors` (pre-allocating every speaking balloon's horizontal budget
+  before the first is estimated) was ported, tested, and reverted the same session (2026-09-02)** — it
+  fixes a real bug there, but regressed `density.test.ts` here across every walkthrough for zero benefit,
+  because `fit.ts`'s panelization pre-check shares the exact `layoutBalloons` the renderer uses (a
+  `toonstrip`-only problem this repo's fit-test architecture doesn't have). If a future session considers
+  it again — e.g. chasing closer sync with `toonstrip` — re-read ADR 0008's 2026-09-02 entry first; the
+  investigation that found this is not obvious from the code alone.
 
 ---
 

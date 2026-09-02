@@ -34,12 +34,35 @@ export interface TailTarget {
 }
 
 /**
- * The one font every balloon is measured and drawn in. It is exported because
- * measurement now happens in two places — the renderer, and the panelization
- * fit test (`fit.ts`), which must break lines exactly as the renderer will or
- * `AddLine` would refuse panels the renderer then draws comfortably.
+ * The one font every balloon is measured and drawn in, at native (`scale = 1`)
+ * size. It is exported because measurement now happens in two places — the
+ * renderer, and the panelization fit test (`fit.ts`), which must break lines
+ * exactly as the renderer will or `AddLine` would refuse panels the renderer
+ * then draws comfortably.
+ *
+ * **Named divergence (2026-09-02).** Comic Chat measured against a fixed
+ * window (`balloon.cpp`'s constants below assume it), and ADR 0007 §2
+ * restores a fixed *native* panel — but `layout.ts`'s reflowing pane still
+ * shrinks a panel below native to fit a narrower viewport (`layoutStrip`,
+ * `UNIT` the ceiling, never a floor). Every constant in this file used to be
+ * applied at native size regardless of the panel actually being drawn, so a
+ * shrunk panel read its own fixed-size text and chrome as relatively
+ * *larger* than native did — a `toonstrip` embed at 65% of `UNIT` still
+ * fitting 4/4 real panels through the driver only after this changed (found
+ * via `toonstrip`, `HANDOFF.md`/`WORKLOG.md` v0.7.11; see
+ * `docs/TOONSTRIP_SYNC.md`). Every function below now takes an optional
+ * `scale` (the caller's actual panel width over `UNIT.width`) and multiplies
+ * its native-scale constants out by it; default `1` keeps every existing
+ * caller's behavior — and every `UNIT`-sized pixel-gate fixture — unchanged.
  */
-export const BALLOON_FONT = '13px "Comic Sans MS", "Comic Neue", ui-rounded, cursive';
+const BALLOON_FONT_SIZE = 13;
+const BALLOON_FONT_FAMILY = '"Comic Sans MS", "Comic Neue", ui-rounded, cursive';
+export const BALLOON_FONT = `${BALLOON_FONT_SIZE}px ${BALLOON_FONT_FAMILY}`;
+
+/** The font string at `scale` — what the caller sets `ctx.font` to before measuring or drawing. */
+export function balloonFont(scale = 1): string {
+  return `${BALLOON_FONT_SIZE * scale}px ${BALLOON_FONT_FAMILY}`;
+}
 
 const PADDING = 10;
 /**
@@ -167,12 +190,14 @@ export function widestWord(ctx: CanvasRenderingContext2D, text: string): number 
  * (`panel.cpp:777`). Wrapping at this width is what makes a balloon a balloon;
  * balancing was a symptom-fix for not doing it.
  */
-export function goalWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): number {
+export function goalWidth(
+  ctx: CanvasRenderingContext2D, text: string, maxWidth: number, scale = 1,
+): number {
   const oneLine = ctx.measureText(text).width;
-  if (oneLine <= ONE_LINE_THRESHOLD) return Math.min(oneLine, maxWidth);
+  if (oneLine <= ONE_LINE_THRESHOLD * scale) return Math.min(oneLine, maxWidth);
   // area ≈ ink area laid on one line; for a box of width W the height is ≈ area/W,
   // so aspect W/(area/W) = W²/area = TARGET_ASPECT ⇒ W = √(TARGET_ASPECT · area).
-  const area = AREA_FUDGE * oneLine * LINE_HEIGHT;
+  const area = AREA_FUDGE * oneLine * (LINE_HEIGHT * scale);
   const compact = Math.sqrt(TARGET_ASPECT * area);
   // Spread toward the free width (`GetCloudEstimate`'s roll-then-fudge), but never
   // past the one-line width — beyond that the balloon is empty air (`panel.cpp:901`).
@@ -208,23 +233,25 @@ function greedyWrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: numbe
 }
 
 export function measureBalloon(
-  ctx: CanvasRenderingContext2D, balloon: Balloon, maxWidth: number,
+  ctx: CanvasRenderingContext2D, balloon: Balloon, maxWidth: number, scale = 1,
 ): { lines: string[]; width: number; height: number } {
-  const pad = PADDING + (balloon.balloonClass === "CBWoodringThink" ? THINK_INSET : 0);
-  const lines = greedyWrap(ctx, balloon.text, goalWidth(ctx, balloon.text, maxWidth - pad * 2));
+  const pad = chromeFor(balloon, scale);
+  const lineHeight = LINE_HEIGHT * scale;
+  const lines = greedyWrap(ctx, balloon.text, goalWidth(ctx, balloon.text, maxWidth - pad * 2, scale));
   const width = Math.min(
     maxWidth,
     Math.max(...lines.map((line) => ctx.measureText(line).width)) + pad * 2,
   );
-  return { lines, width, height: lines.length * LINE_HEIGHT + pad * 2 };
+  return { lines, width, height: lines.length * lineHeight + pad * 2 };
 }
 
 /**
- * The chrome a class puts between its outline and its text, each side — what
- * separates the balloon's *box* width from the width its lines may occupy.
+ * The chrome a class puts between its outline and its text, each side, at
+ * `scale` — what separates the balloon's *box* width from the width its
+ * lines may occupy.
  */
-export function chromeFor(balloon: Balloon): number {
-  return PADDING + (balloon.balloonClass === "CBWoodringThink" ? THINK_INSET : 0);
+export function chromeFor(balloon: Balloon, scale = 1): number {
+  return (PADDING + (balloon.balloonClass === "CBWoodringThink" ? THINK_INSET : 0)) * scale;
 }
 
 /**
@@ -244,16 +271,16 @@ export function chromeFor(balloon: Balloon): number {
  * {@link widestWord}, since our greedy wrap always produces *something*.
  */
 export function measureAtWidth(
-  ctx: CanvasRenderingContext2D, balloon: Balloon, boxWidth: number,
+  ctx: CanvasRenderingContext2D, balloon: Balloon, boxWidth: number, scale = 1,
 ): { lines: string[]; width: number; height: number } {
-  const pad = chromeFor(balloon);
+  const pad = chromeFor(balloon, scale);
   const inner = Math.max(1, boxWidth - pad * 2);
   const lines = greedyWrap(ctx, balloon.text, inner);
   const width = Math.min(
     boxWidth,
     Math.max(...lines.map((line) => ctx.measureText(line).width)) + pad * 2,
   );
-  return { lines, width, height: lines.length * LINE_HEIGHT + pad * 2 };
+  return { lines, width, height: lines.length * (LINE_HEIGHT * scale) + pad * 2 };
 }
 
 /**
@@ -290,11 +317,12 @@ export const CONTINUATION = "...";
  */
 export function splitHeight(
   ctx: CanvasRenderingContext2D, balloon: Balloon, boxWidth: number, boxHeight: number,
+  scale = 1,
 ): { text: string; rest: string | null } {
-  const pad = chromeFor(balloon);
+  const pad = chromeFor(balloon, scale);
   const inner = Math.max(1, boxWidth - pad * 2);
   const lines = greedyWrap(ctx, balloon.text, inner);
-  const maxLines = Math.max(1, Math.floor(boxHeight / LINE_HEIGHT));
+  const maxLines = Math.max(1, Math.floor(boxHeight / (LINE_HEIGHT * scale)));
   if (lines.length < maxLines) return { text: balloon.text, rest: null };
 
   const words = balloon.text.split(/\s+/).filter((w) => w.length > 0);
@@ -324,7 +352,7 @@ export function splitHeight(
  */
 export function drawBalloon(
   ctx: CanvasRenderingContext2D, balloon: Balloon, box: BalloonBox,
-  lines: readonly string[], target: TailTarget | null,
+  lines: readonly string[], target: TailTarget | null, scale = 1,
 ): void {
   ctx.save();
   ctx.lineJoin = "round";
@@ -343,10 +371,10 @@ export function drawBalloon(
       cloud(ctx, box);
       ctx.fill();
       ctx.stroke();
-      if (target) bubbleTrail(ctx, box, target);
+      if (target) bubbleTrail(ctx, box, target, scale);
       break;
     case "CBWoodringNormal":
-      roundedSpeech(ctx, box, target);
+      roundedSpeech(ctx, box, target, scale);
       ctx.fill();
       ctx.stroke();
       break;
@@ -354,12 +382,13 @@ export function drawBalloon(
 
   ctx.fillStyle = "#000";
   ctx.textBaseline = "top";
-  const pad = PADDING + (balloon.balloonClass === "CBWoodringThink" ? THINK_INSET : 0);
+  const pad = chromeFor(balloon, scale);
+  const lineHeight = LINE_HEIGHT * scale;
   for (const [i, line] of lines.entries()) {
     // Centred, because the balanced wrap above only reads as a balloon if the
     // ragged edge is shared between both sides.
     const width = ctx.measureText(line).width;
-    ctx.fillText(line, box.x + (box.width - width) / 2, box.y + pad + i * LINE_HEIGHT);
+    ctx.fillText(line, box.x + (box.width - width) / 2, box.y + pad + i * lineHeight);
   }
   ctx.restore();
 }
@@ -424,7 +453,9 @@ function cloud(ctx: CanvasRenderingContext2D, box: BalloonBox): void {
  * vs the original's `BUBBLEHEIGHT`→`ENDBUBBLEWIDTH` ramp), but the direction
  * matches: smallest bubble nearest the speaker.
  */
-function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget): void {
+function bubbleTrail(
+  ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget, scale = 1,
+): void {
   const from = { x: box.x + box.width / 2, y: box.y + box.height };
   for (let i = 1; i <= 3; i++) {
     const t = i / 4;
@@ -432,7 +463,7 @@ function bubbleTrail(ctx: CanvasRenderingContext2D, box: BalloonBox, target: Tai
     ctx.arc(
       from.x + (target.x - from.x) * t,
       from.y + (target.y - from.y) * t,
-      6 - i * 1.4, 0, Math.PI * 2,
+      (6 - i * 1.4) * scale, 0, Math.PI * 2,
     );
     ctx.fill();
     ctx.stroke();
@@ -455,17 +486,18 @@ interface Pt { x: number; y: number }
  * chord — exactly as `AddWavies` bails when `nWaves < 2` (`balloon.cpp:564`).
  */
 function pushWaves(
-  pts: Pt[], ax: number, ay: number, bx: number, by: number, nx: number, ny: number,
+  pts: Pt[], ax: number, ay: number, bx: number, by: number, nx: number, ny: number, scale = 1,
 ): void {
   const dist = Math.hypot(bx - ax, by - ay);
-  const n = Math.floor(dist / WAVE_INTERVAL);
+  const n = Math.floor(dist / (WAVE_INTERVAL * scale));
   if (n < 2) return;
   const ux = (bx - ax) / dist, uy = (by - ay) / dist;
   const seg = dist / n;
+  const amp = WAVE_AMP * scale;
   for (let i = 1; i < n; i++) {
     const px = ax + ux * seg * i, py = ay + uy * seg * i;
     // Odd steps bulge out, even steps stay on the edge (`!(i&1)` in AddWavies).
-    if (i % 2 === 1) pts.push({ x: px + nx * WAVE_AMP, y: py + ny * WAVE_AMP });
+    if (i % 2 === 1) pts.push({ x: px + nx * amp, y: py + ny * amp });
     else pts.push({ x: px, y: py });
   }
 }
@@ -518,7 +550,7 @@ function strokeCardinal(ctx: CanvasRenderingContext2D, pts: readonly Pt[], open:
  * pulled horizontally back until its run no longer exceeds its drop.
  */
 function roundedSpeech(
-  ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget | null,
+  ctx: CanvasRenderingContext2D, box: BalloonBox, target: TailTarget | null, scale = 1,
 ): void {
   const { x, y, width: w, height: h } = box;
   const right = x + w, bottom = y + h;
@@ -528,13 +560,13 @@ function roundedSpeech(
     // bumps splined together into the plain Woodring blob.
     const ring: Pt[] = [];
     ring.push({ x, y });
-    pushWaves(ring, x, y, right, y, 0, -1); // top, bulging up
+    pushWaves(ring, x, y, right, y, 0, -1, scale); // top, bulging up
     ring.push({ x: right, y });
-    pushWaves(ring, right, y, right, bottom, 1, 0); // right, bulging right
+    pushWaves(ring, right, y, right, bottom, 1, 0, scale); // right, bulging right
     ring.push({ x: right, y: bottom });
-    pushWaves(ring, right, bottom, x, bottom, 0, 1); // bottom, bulging down
+    pushWaves(ring, right, bottom, x, bottom, 0, 1, scale); // bottom, bulging down
     ring.push({ x, y: bottom });
-    pushWaves(ring, x, bottom, x, y, -1, 0); // left, bulging left
+    pushWaves(ring, x, bottom, x, y, -1, 0, scale); // left, bulging left
     ctx.beginPath();
     strokeCardinal(ctx, ring, false);
     ctx.closePath();
@@ -543,9 +575,10 @@ function roundedSpeech(
 
   // Tail roots ride the bottom edge under the head, far enough from a corner that
   // both roots stay on the flat run.
-  const root = Math.min(Math.max(target.x, x + 16), right - 16);
-  const rootR = root + 9, rootL = root - 9;
-  const tipY = Math.max(target.y, bottom + TAIL_MIN_EXIT);
+  const corner = 16 * scale, rootHalf = 9 * scale;
+  const root = Math.min(Math.max(target.x, x + corner), right - corner);
+  const rootR = root + rootHalf, rootL = root - rootHalf;
+  const tipY = Math.max(target.y, bottom + TAIL_MIN_EXIT * scale);
   // 45° clamp (`AddArrow`, balloon.cpp:1450): the tip's horizontal run may not
   // exceed its vertical drop, so a side speaker cannot flatten the tail.
   const dy = tipY - bottom;
@@ -557,15 +590,15 @@ function roundedSpeech(
   // bottom to rootL. The tail then bridges rootL→tip→rootR as sharp quads.
   const ring: Pt[] = [];
   ring.push({ x: rootR, y: bottom });
-  pushWaves(ring, rootR, bottom, right, bottom, 0, 1); // bottom, right of the tail
+  pushWaves(ring, rootR, bottom, right, bottom, 0, 1, scale); // bottom, right of the tail
   ring.push({ x: right, y: bottom });
-  pushWaves(ring, right, bottom, right, y, 1, 0); // right, bulging right
+  pushWaves(ring, right, bottom, right, y, 1, 0, scale); // right, bulging right
   ring.push({ x: right, y });
-  pushWaves(ring, right, y, x, y, 0, -1); // top, bulging up
+  pushWaves(ring, right, y, x, y, 0, -1, scale); // top, bulging up
   ring.push({ x, y });
-  pushWaves(ring, x, y, x, bottom, -1, 0); // left, bulging left
+  pushWaves(ring, x, y, x, bottom, -1, 0, scale); // left, bulging left
   ring.push({ x, y: bottom });
-  pushWaves(ring, x, bottom, rootL, bottom, 0, 1); // bottom, left of the tail
+  pushWaves(ring, x, bottom, rootL, bottom, 0, 1, scale); // bottom, left of the tail
   ring.push({ x: rootL, y: bottom });
 
   ctx.beginPath();
