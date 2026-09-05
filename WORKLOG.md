@@ -10,6 +10,31 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.8 — 2026-09-05 — word-split regex simplified (ported from toonstrip)
+
+`toonstrip` ran a ponytail (over-engineering) audit and found `web/src/comic/balloon.ts`
+repeating `text.split(/\s+/).filter((w) => w.length > 0)` at five sites — a leading-empty-guard
+dance `text.match(/\S+/g) ?? []` does in one call, with identical tokenization (both produce the
+maximal runs of non-whitespace; the `filter` was only ever guarding against a leading empty
+string `split` can produce, which `match` never does). Not a divergence from `panel.cpp`/
+`balloon.cpp` — pure regex equivalence, no behavioral difference, so no ADR entry.
+
+**Verification:** `npm --prefix web run typecheck` clean; `npm --prefix web test` — 391/391
+green across all 26 suites; `npm --prefix web run gate` — 25/25 cases match the golden, zero
+pixel diff; `npm --prefix web run density` — baseline unchanged. Landed alongside toonstrip's
+own port of the same fix (its `WORKLOG.md` v0.15.7, `PONYTAIL_AUDIT.md` #37).
+
+toonstrip's audit also flagged four more `packages/core` cuts (dead pose-selection helpers,
+an unused render trace channel, a balloon-metrics injection interface, an `orderBodies`
+wrapper) as candidates to port here. Checked each against this repo specifically, rather than
+assuming symmetry: none apply. Pose selection here lives in `art/src/pose.ts`, a separate
+package outside the shared file set; the render trace channel and `orderBodies` are real,
+different, actively-used code here (not the dead/trivial versions toonstrip had); the
+metrics-injection interface never existed here to begin with. No further action needed on
+those four.
+
+---
+
 ## v0.33.7 — 2026-09-02 — neighbour-head overlap and scale-aware layout (ported from toonstrip)
 
 Two more balloon-layout fixes ported in from `toonstrip`, plus one considered and reverted.

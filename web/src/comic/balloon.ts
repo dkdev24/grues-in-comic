@@ -171,7 +171,7 @@ const WIDTH_BIAS = 0.85;
 
 /** Widest single word, the floor a balloon may not wrap below (`WidestWord`, `balloon.cpp:778`). */
 export function widestWord(ctx: CanvasRenderingContext2D, text: string): number {
-  const words = text.split(/\s+/).filter((w) => w.length > 0);
+  const words = text.match(/\S+/g) ?? [];
   return words.length === 0 ? 0 : Math.max(...words.map((w) => ctx.measureText(w).width));
 }
 
@@ -219,7 +219,7 @@ export function goalWidth(
 function greedyWrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   let line = "";
-  for (const word of text.split(/\s+/).filter((w) => w.length > 0)) {
+  for (const word of text.match(/\S+/g) ?? []) {
     const candidate = line === "" ? word : `${line} ${word}`;
     if (line !== "" && ctx.measureText(candidate).width > maxWidth) {
       lines.push(line);
@@ -325,14 +325,14 @@ export function splitHeight(
   const maxLines = Math.max(1, Math.floor(boxHeight / (LINE_HEIGHT * scale)));
   if (lines.length < maxLines) return { text: balloon.text, rest: null };
 
-  const words = balloon.text.split(/\s+/).filter((w) => w.length > 0);
+  const words = balloon.text.match(/\S+/g) ?? [];
   // Whole lines above the one being broken (`rgszStarts[iMaxLines - 1]`, `:808`).
   let kept = lines.slice(0, maxLines - 1)
-    .reduce((n, line) => n + line.split(/\s+/).filter((w) => w.length > 0).length, 0);
+    .reduce((n, line) => n + (line.match(/\S+/g) ?? []).length, 0);
   // …then as much of that line as fits beside the continuation mark.
   const room = inner - ctx.measureText(CONTINUATION).width;
   let line = "";
-  for (const word of lines[maxLines - 1]?.split(/\s+/).filter((w) => w.length > 0) ?? []) {
+  for (const word of lines[maxLines - 1]?.match(/\S+/g) ?? []) {
     const candidate = line === "" ? word : `${line} ${word}`;
     if (line !== "" && ctx.measureText(candidate).width > room) break;
     line = candidate;

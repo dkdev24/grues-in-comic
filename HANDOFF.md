@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.7** · Platform: **macOS only** — this commit shipped from Windows, user-directed (below)
+**0.33.8** · Platform: macOS this session
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
@@ -22,22 +22,18 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (geometry verified clean on Windows this session; pixel hashes need a macOS re-run — see below).
 
-## Last Session — two more balloon-layout fixes ported from `toonstrip`, one reverted
-**On Windows** (dev machine is normally macOS-only). Ported: (1) `stackBalloons`' straddling
-speech balloon could overlap a *neighbour's* head/tail (not just its own, v0.33.6's bug) — fixed
-w/ `speakerCorridor`. (2) every balloon-layout constant was fixed CSS px at native size regardless
-of actual panel size — scaled by `uiScale = width/UNIT.width` throughout. **Reverted:**
-`toonstrip`'s corridor-preallocation fix (v0.7.10) regressed `density.test.ts` here (`fit.ts`
-shares `layoutBalloons` w/ the renderer) for no benefit — this repo already has zero
-`stackBalloons` fallbacks. Full reasoning: ADR 0008 "2026-09-02", `WORKLOG.md` v0.33.7. `npm
-test`: every rule test green, gate geometry clean (zero pinned diff), density clean; only pixel
-hashes differ (expected off macOS). **Committed + pushed from Windows on explicit user
-instruction, skipping the macOS render-check** — nothing pinned moved so there's nothing for
-`gate:accept`/`density:accept` to do, but items 1–2 have still never been visually confirmed.
+## Last Session — word-split regex simplified, ported from `toonstrip` (v0.33.8)
+Five `balloon.ts` sites, `.split(/\s+/).filter(...)` → `.match(/\S+/g) ?? []`, identical
+tokenization, no ADR (no divergence). Verified: `typecheck` clean, 391/391 tests, `gate` 25/25
+zero pixel diff, `density` baseline unchanged. Four more toonstrip audit findings (dead pose
+helpers, render trace channel, balloon-metrics interface, `orderBodies`) checked against this
+repo and found not applicable here — see `WORKLOG.md` v0.33.8. **Committed, not pushed** —
+held for the user's go-ahead per `docs/TOONSTRIP_SYNC.md`'s Safety-equivalent step.
 ## Next Actions
-1. **Render-check items 1–2 above on macOS** when next on that machine — never visually confirmed.
-2. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
-3. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
+1. **Push v0.33.8** once confirmed.
+2. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
+3. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
+4. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
