@@ -5,7 +5,7 @@
 # Pages Functions in `functions/`. It is not a Worker config and there is no
 # Worker in this project.
 #
-# TWO THINGS THAT WILL BITE (see `docs/PITFALLS.md` → Tooling & platform):
+# THREE THINGS THAT WILL BITE (see `docs/PITFALLS.md` → Tooling & platform):
 #
 # 1. `functions/` resolves against the PROJECT ROOT DIRECTORY — the repo root,
 #    which is what the Pages project is configured with — and NOT against
@@ -17,6 +17,17 @@
 #    and ignores the dashboard's equivalents. `pages_build_output_dir` below must
 #    keep matching the dashboard's output directory (`web`), and the build
 #    command stays in the dashboard — it is not expressible here.
+#
+# 3. The root `package.json` (just `packageManager: pnpm@11.1.1`, no deps/scripts)
+#    exists ONLY so Pages CI's tool-detection step finds a pnpm version to
+#    corepack-prepare before the build command runs. Without it, CI detects
+#    Node but never activates pnpm, and the build command's first `pnpm -C web
+#    install` fails with "No preset version installed for command pnpm" —
+#    found the hard way, 2026-09-22. Each of the six packages (`art`,
+#    `art/vector`, `engine`, `importer`, `ir`, `web`) still pins its own
+#    `packageManager` and stays a fully independent npm/pnpm project; this
+#    root file is not a workspace root (no `pnpm-workspace.yaml` here) and
+#    must never gain one, dependencies, or scripts.
 
 name = "grues-in-comic"
 pages_build_output_dir = "web"
