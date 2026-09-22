@@ -30,14 +30,12 @@ versions, `packageManager: pnpm@11.1.1` pinned, native postinstalls approved via
 silently broke its install once `art/` got a workspace file; fixed by giving `art/vector` its own.
 Also added `tsx` as an explicit devDependency there (was implicit via `npx` auto-download).
 Updated every operational doc/script's `npm`/`npx` → `pnpm` (`-C <dir>` for `--prefix`). Full
-detail and verification results: `WORKLOG.md` v0.33.9. **Not pushed yet** — holding for the user's say.
+detail and verification results: `WORKLOG.md` v0.33.9. **Pushed.** Cloudflare Pages dashboard
+build command updated to the pnpm form by the user (confirmed correct against §6.5-beta below).
 ## Next Actions
-1. **Push v0.33.9** once confirmed.
-2. **Update the Cloudflare Pages dashboard build command to the pnpm form** — dashboard-only
-   setting, not fixable from a session; new command is in `docs/DEVELOPMENT_PLAN.md` §6.5-beta.
-3. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
-4. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
-5. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
+1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
+2. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
+3. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths
