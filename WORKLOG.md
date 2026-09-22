@@ -10,6 +10,69 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.9 — 2026-09-22 — migrated npm → pnpm across all six packages
+
+Daniel is migrating npm-based projects under `~/Projects` to pnpm for shared content-addressable
+storage. This repo has six independent npm projects (no workspace linkage between them, despite
+the shared `@grues-in-comic/*` scope): `art`, `art/vector`, `engine`, `importer`, `ir`, `web`. Each
+migrated individually: `pnpm import` converted its `package-lock.json` → `pnpm-lock.yaml`
+(preserving exact resolved versions — verified against the old lockfiles for `art` and
+`art/vector`, byte-identical `typescript`/`@types/node`/`roughjs` resolutions), `package-lock.json`
+removed, `"packageManager": "pnpm@11.1.1"` pinned in each `package.json`. `esbuild`'s (and, for
+`art`/`web`, other native) postinstall scripts approved via `pnpm approve-builds`, recorded per
+package in its own new `pnpm-workspace.yaml` (`allowBuilds`) — all six files are new and must stay
+committed.
+
+**Nesting hazard, now fixed structurally:** `art/vector/` lives inside `art/`. Once `art/` got its
+own `pnpm-workspace.yaml`, pnpm started treating `art/vector` as an unlisted member of `art`'s
+workspace and silently no-opped its install (no error, no `pnpm-lock.yaml`, no `node_modules` —
+just "Already up to date"). Giving `art/vector` its own `pnpm-workspace.yaml` (plus its own
+`allowBuilds: esbuild`) stops pnpm's workspace-root search at that directory, isolating it again.
+Confirmed by a clean re-install afterward with no `--ignore-workspace` needed. **If any other
+package ever nests inside another, check for this before assuming a silent no-op is a real "up to
+date."**
+
+`art/vector`'s `README.md` called `npx tsx render.ts`/`ab.ts` without declaring `tsx` as a
+dependency — npx's implicit auto-download covered the gap under npm. `pnpm exec` has no such
+fallback, so `tsx@^4.23.1` was added as an explicit devDependency there (`pnpm add -D tsx
+--ignore-workspace`, before its own workspace file existed).
+
+Updated `npm`/`npx` → `pnpm` in every operational doc and source comment across the repo (root and
+per-package READMEs, `docs/PITFALLS.md`, `docs/IR_SCHEMA.md`, `docs/TOONSTRIP_SYNC.md`,
+`docs/DEVELOPMENT_PLAN.md`'s Cloudflare Pages build-command line, `docs/backdrop-generation-plan.md`'s
+open checklist item, `THIRD_PARTY.md`, harness/tool/test source comments). npm's `--prefix <dir>`
+maps to pnpm's `-C <dir>`; `npx --prefix <dir> <bin>` maps to `pnpm -C <dir> exec <bin>`.
+**Left untouched, deliberately:** `CHANGELOG.md`, this file's own past entries, and the historical
+narrative paragraphs in `docs/adr/0008-*.md` and `docs/backdrop-generation-plan.md` that describe a
+specific past command run — those are history, not live instructions.
+
+Also updated `importer/src/cli.ts`'s `GENERATED_BY` provenance string to `pnpm run artifacts`, but
+**did not regenerate `importer/artifacts/`** — this machine is Windows, its checkout of
+`original-projects/zork1/*.zil` is CRLF, and a regeneration here inflated every file's `bytes`
+count in `stats.json` purely from line-ending bytes (same class of problem as the macOS-only pixel
+gate). Reverted that regeneration. The committed artifacts still say `npm run artifacts` in their
+provenance field until the next real macOS regeneration touches them — cosmetic only, not a data
+drift.
+
+**Verification (Windows, this session):** `art` typecheck fails on a pre-existing
+`Uint8Array`/`Uint8ClampedArray` mismatch in `tools/bgbdump.ts`, and `art`'s vitest corpus tests
+fail on a pre-existing doubled `C:\C:\...` path from `import.meta.url` handling — both confirmed
+present already in the committed npm lockfile's resolved versions (`typescript@5.9.3`,
+`@types/node@26.1.1`, unchanged by this migration) and consistent with AGENTS.md's "macOS is the
+only supported development machine." `engine` 149/149, `importer` 47/47, `ir` 198/198 all green.
+`web` typecheck and `pnpm run build` clean; `pnpm run test` is 366/391 green — the other 25 are all
+`test/gate.test.ts`'s pixel-hash assertions, exactly the documented macOS-only pixel gate
+(`docs/PITFALLS.md`: "The pixel gate is macOS-only, by decision"), not a regression. **Not run:**
+`gate:accept`/`density:accept` (never run those off macOS, per the same doc).
+
+**Still needed, not done here (no dashboard/macOS access from this session):** the Cloudflare
+Pages git-integration build command (dashboard-only setting, per `docs/DEVELOPMENT_PLAN.md` §6.5-beta)
+still reads the pre-migration `npm --prefix web ci && npm --prefix web run build && …` — needs a
+manual update to the `pnpm -C web install --frozen-lockfile && pnpm -C web run build && …` form now
+documented in `docs/DEVELOPMENT_PLAN.md`.
+
+---
+
 ## v0.33.8 — 2026-09-05 — word-split regex simplified (ported from toonstrip)
 
 `toonstrip` ran a ponytail (over-engineering) audit and found `web/src/comic/balloon.ts`

@@ -47,7 +47,7 @@ Rendering is entirely the UI layer's job (milestone 5). The engine says
 
 ## Parity
 
-`npm run replay` diffs the engine against dfrotz captures of the shipped Release 119 story
+`pnpm run replay` diffs the engine against dfrotz captures of the shipped Release 119 story
 file. A walkthrough may declare `# parity: informational` with a reason when it *cannot*
 reach turn-for-turn parity — an unextracted routine, or output chosen by a random draw the
 engine's generator cannot reproduce. Those are reported as `INFO` and do not fail the suite,
@@ -56,9 +56,9 @@ because **"cannot verify" and "fails to verify" are different states**.
 ## Commands
 
 ```sh
-npm test          # vitest, including golden-transcript parity
-npm run typecheck
-npm run replay    # parity report; exit code = failing walkthroughs
+pnpm test          # vitest, including golden-transcript parity
+pnpm run typecheck
+pnpm run replay    # parity report; exit code = failing walkthroughs
 ```
 
 Tests run against the real extracted Zork I world (`ir/artifacts/zork1.world.json`),

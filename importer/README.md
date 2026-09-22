@@ -14,17 +14,17 @@ The parser is **purely syntactic** — it recognizes MDL-family reader syntax (f
 | `src/printer.ts` | AST → canonical text; validation (`parse(print(ast))` must equal `ast`) and debugging |
 | `src/index.ts` | Public API + `topLevelForms()` helper |
 | `src/stats.ts` | Per-file and corpus statistics over parsed ASTs |
-| `src/cli.ts` | Artifact generator — writes `artifacts/` (run via `npm run artifacts`) |
+| `src/cli.ts` | Artifact generator — writes `artifacts/` (run via `pnpm run artifacts`) |
 | `artifacts/` | **Committed, generated** — `ast/*.json` (full ASTs with positions), `stats.json`, `STATS.md`. Regenerate, never edit |
 | `test/` | Unit tests per syntax feature + integration tests: `1dungeon.zil` in depth, then the full corpus with ground-truth counts and round-trips |
 
 ## Usage
 
 ```bash
-npm install
-npm test           # all tests, incl. full-corpus parse + round-trip
-npm run typecheck
-npm run artifacts  # regenerate artifacts/ (deterministic; clean diff when source unchanged)
+pnpm install
+pnpm test           # all tests, incl. full-corpus parse + round-trip
+pnpm run typecheck
+pnpm run artifacts  # regenerate artifacts/ (deterministic; clean diff when source unchanged)
 ```
 
 ```ts

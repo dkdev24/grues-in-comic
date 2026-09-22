@@ -35,14 +35,14 @@ The presentation algorithms this module implements the *asset half* of are analy
 ## Running
 
 ```sh
-npm --prefix art install
+pnpm -C art install
 
 # every pose as its own PNG
-npx --prefix art tsx art/tools/avbdump.ts \
+pnpm -C art exec tsx art/tools/avbdump.ts \
   original-projects/comic-chat/v2.5-beta-1/comicart/tiki.avb /tmp/tiki
 
 # assembled figures: each face on a neutral torso, each torso under a neutral face
-npx --prefix art tsx art/tools/avbdump.ts \
+pnpm -C art exec tsx art/tools/avbdump.ts \
   original-projects/comic-chat/v2.5-beta-1/comicart/tiki.avb /tmp/tiki --composite
 ```
 
@@ -50,11 +50,11 @@ npx --prefix art tsx art/tools/avbdump.ts \
 
 ```sh
 # the browser cast bundle: sheets + cast.json into web/assets/comic/
-npm --prefix art run pack
+pnpm -C art run pack
 
 # the choosable roster (F16): one sheet + one manifest per character, plus
 # roster.json, into web/assets/comic/roster/ — who is offered is art/src/roster.ts
-npm --prefix art run pack:roster
+pnpm -C art run pack:roster
 ```
 
 Both outputs are **committed build artifacts**, and a decode change invalidates both. The two are
@@ -87,7 +87,7 @@ the shell run the real wheel over manifest entries instead of forking it.
 ## Verification
 
 ```sh
-npm --prefix art test
+pnpm -C art test
 ```
 
 The corpus is fixed and version-controlled, so the sweep asserts exact counts — a change

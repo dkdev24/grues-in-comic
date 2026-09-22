@@ -31,10 +31,10 @@ Full cross-repo picture, including the downstream npm chain into
 2. **A change to a ported routine here is still bound by ADR 0008**: write it up as a
    **named divergence** (cite the `panel.cpp`/`balloon.cpp`/`avatar.cpp` line it diverges
    from and why), then:
-   - `npm --prefix web run gate` — dumps actual PNGs to `web/tools/out/gate-actual/` for
+   - `pnpm -C web run gate` — dumps actual PNGs to `web/tools/out/gate-actual/` for
      the changed cases. **Eyeball them before accepting** — this is not optional, per
      `docs/PITFALLS.md`'s pixel-gate operating notes.
-   - `npm --prefix web run density` — same discipline for the dialogue-density baseline.
+   - `pnpm -C web run density` — same discipline for the dialogue-density baseline.
    - Only then `gate:accept` / `density:accept`.
    - Update `docs/PITFALLS.md`'s "Still-live decisions" list if the divergence changes
      something documented there as locked/faithful.

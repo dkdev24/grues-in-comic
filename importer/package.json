@@ -1,6 +1,7 @@
 {
   "name": "@grues-in-comic/importer",
   "version": "0.3.0",
+  "packageManager": "pnpm@11.1.1",
   "description": "ZIL Semantic Importer — deterministic S-expression parser for ZIL source (stage 1.1 POC)",
   "type": "module",
   "license": "Apache-2.0",

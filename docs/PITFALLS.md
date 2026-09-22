@@ -104,7 +104,7 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   new location clone-appends into the last room's panel and `clonePanel` relabels it — one panel,
   two places) and **a death** (or the next turn absorbs the reaction frame; that one silently
   deleted the `reaction` rung from the whole corpus — 11 turns, 0 panels — while every rule test
-  stayed green). If you remove a `<Brk>`, re-run `npm --prefix web run density` **and** look at the
+  stayed green). If you remove a `<Brk>`, re-run `pnpm -C web run density` **and** look at the
   camera census: a rung going to zero is what this looks like.
 - **`BALLOON_HEADROOM` is a layout constant *and* the fit test's budget, and it is what decides
   whether the two-shot exists** (M6.1g). The band `fit.ts` lays balloons into is the same band that
@@ -121,8 +121,8 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   81% and 91% of the panel on `close-up` — head-and-no-shoulders for half the Heroes, and tiki's jaw
   *off* the bottom edge at 107%. `MAX_HEAD_HEIGHT` caps the head under the headroom band, which is
   what makes a rung mean the same thing for every character. **Any new framing number is a
-  per-character number until it is checked against the roster** — `npx --prefix web tsx
-  web/tools/shots-grid.ts` renders one rung across every Hero and prints chin/head geometry beside it.
+  per-character number until it is checked against the roster** — `pnpm -C web exec tsx
+  tools/shots-grid.ts` renders one rung across every Hero and prints chin/head geometry beside it.
 - **Shrinking a placed figure moves it *down*, because `shot.reveal` measures from the feet**
   (F4, v0.28.1). `y = height - figure.height * scale * reveal`, so a scale clamp applied inside `fit`
   drops the head by the same arithmetic that shrinks it — on `reaction` (reveal 0.4) that walked the
@@ -186,7 +186,7 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   It sat in `comic-view.ts` until M6.1a, which made the one number the stage turns on unmeasurable:
   the view cannot be replayed in Node, so the corpus tools had to invent throwaway scripts and the
   shipped tables were never measured. Content goes in that module; the trigger, the cooldown and the
-  run cursor stay in `mapper.ts`. **After editing either, run `npm --prefix web run density`** — the
+  run cursor stay in `mapper.ts`. **After editing either, run `pnpm -C web run density`** — the
   numbers are *meant* to move over M6.1, but only deliberately (`density:accept`), like the pixel gate.
 - **The authored cooldown is per beat and the room gazetteer is not cooled at all** (ADR 0009 §5,
   M6.1d). One shared budget across every authored line was two of M6.1's four limiters at once: a
@@ -414,8 +414,8 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   assertion, and looking at the output stays part of the loop.** Art statistics are not invariants
   (anna's bob is a legitimate 80% ink).
 - **`web/assets/comic/` is a committed build artifact, and since v0.28.0 there are two of them.**
-  `npm --prefix art run pack` builds the canonical bundle (dan, tiki, every backdrop, `cast.json`);
-  `npm --prefix art run pack:roster` builds `web/assets/comic/roster/` — the fifteen choosable
+  `pnpm -C art run pack` builds the canonical bundle (dan, tiki, every backdrop, `cast.json`);
+  `pnpm -C art run pack:roster` builds `web/assets/comic/roster/` — the fifteen choosable
   characters plus `roster.json` — from `art/src/roster.ts`. **Re-pack *both* after any `art/` decode
   change** — v0.13.1 fixed the decoder but the committed sheets stayed inverted until regenerated,
   and the roster is now a second place that can rot the same way.
@@ -430,8 +430,8 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
 - **Casting on pose inventory alone will ship an expression-dead character.** ADR 0004 §11's
   predicate ("owns a SHRUG torso and a BORED face") is an inventory test, and **lance passes it
   wearing a paper bag** — every marker fires, nothing visible changes in the panel. Look at the
-  figures before casting: `npx tsx art/tools/roster.ts > roster.json` then
-  `npx tsx art/tools/roster-sheet.ts roster.json sheet.png BORED`. Pools: `docs/casting-roster-survey.md`.
+  figures before casting: `pnpm -C art exec tsx tools/roster.ts > roster.json` then
+  `pnpm -C art exec tsx tools/roster-sheet.ts roster.json sheet.png BORED`. Pools: `docs/casting-roster-survey.md`.
 - **The avatar corpus is 31 characters, not 25** — `original-projects/comic-chat/v2.5-beta-1/` has
   `artpack1/` as well as `comicart/`. Six characters live only in `artpack1/`, and four names exist
   in both with the `artpack1` cut richer (lynnea 306 → 391 figures). Any survey that reads one
@@ -446,7 +446,7 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   perspective, chiaroscuro. Comic Chat's real backdrops are close to the opposite. Two vector
   engines were built and tuned against that set before anyone decoded the originals, and both
   missed the idiom completely for the same reason. **Calibrate against
-  `reference/backdrops-original/`, produced by `npm --prefix art run dump:bgb`.** `reference/` is
+  `reference/backdrops-original/`, produced by `pnpm -C art run dump:bgb`.** `reference/` is
   gitignored, so those PNGs are not in a fresh clone — regenerate them, do not assume they are there.
 - **A `.bgb` backdrop has no pose records, and its image offset needs the offset adjustment.**
   `parseAvatar` reports zero records for one, which is correct: the image hangs off a single
@@ -493,8 +493,8 @@ touching that code needs. Session narrative goes to `WORKLOG.md`.
   *every* case is the signature of a platform difference, not a regression. **`gate:accept` on a
   non-macOS host silently re-pins the golden to that host and breaks the gate everywhere it used to
   pass.** Revisit only if the project gains a second machine or CI.
-- **Running `npx vitest` from the repo root times out `art/test/corpus.test.ts`** (its longer timeout
-  lives in `art/vitest.config.ts`, unread by a root run). Use `npm --prefix <pkg> test`.
+- **Running `pnpm exec vitest` from the repo root times out `art/test/corpus.test.ts`** (its longer timeout
+  lives in `art/vitest.config.ts`, unread by a root run). Use `pnpm -C <pkg> test`.
 - **Rasterizing SVG has no native tool here** (2026-08-02). No `rsvg-convert`, ImageMagick, Inkscape
   or Python PIL on this machine; headless Chrome plus `sips` is the working path, and it has two
   traps that both fail *silently*, producing a plausible file rather than an error:
@@ -564,7 +564,7 @@ Durable, not session narrative: every mechanical-layer change is measured agains
 - **The gate is a hash + geometry golden, not committed PNGs.** `web/tools/gate.ts` renders 16 fixed
   cases and pins each as the **SHA-256 of its PNG** plus the placement that produced it;
   `web/test/golden/panel-gate.json` (~6 KB) is the golden, `web/test/gate.test.ts` compares.
-  **`npm run gate` checks, `npm run gate:accept` re-writes the golden.** A failing run dumps actual PNGs
+  **`pnpm run gate` checks, `pnpm run gate:accept` re-writes the golden.** A failing run dumps actual PNGs
   to `web/tools/out/gate-actual/` (gitignored) for eyeballing against a re-render of the previous commit.
 - **`renderPanel` now takes an output-only `options.trace`** (`PanelTrace` in `render.ts`). It changes no
   pixels, and the gate reads placement from it rather than re-deriving it — keep it that way, or a second

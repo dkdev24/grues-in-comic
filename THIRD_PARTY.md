@@ -27,7 +27,7 @@
   license permits, and they carry its copyright. The `.avb` originals are preserved unmodified in
   `original-projects/comic-chat/`; the format itself is documented in `docs/AVB_FORMAT.md`.
 - **Comic Chat's own backdrops (`.bgb`) are decoded for reference only, and are not
-  redistributed.** `art/tools/bgbdump.ts` (`npm --prefix art run dump:bgb`) decodes the nine
+  redistributed.** `art/tools/bgbdump.ts` (`pnpm -C art run dump:bgb`) decodes the nine
   shipped backdrops — Jim Woodring's art — into `reference/backdrops-original/`, which is
   **gitignored**: the decoded PNGs are never committed and never ship. They exist so this
   project's own backdrop art can be calibrated against the real thing. The `.bgb` originals are

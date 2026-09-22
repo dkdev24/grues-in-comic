@@ -16,7 +16,7 @@
  * (1234) and the walkthrough source are both already version-controlled.
  *
  * Usage:
- *   npm --prefix web run make-walkthrough-save
+ *   pnpm -C web run make-walkthrough-save
  *
  * Then, in a browser open to the dev server (same origin as `/play/`):
  *   fetch('/dev-walkthrough-save.json').then(r => r.text())

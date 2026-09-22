@@ -5,8 +5,8 @@
  * produce the goldens. This is the other half: it replays the same walkthroughs
  * through the TypeScript engine and diffs the normalized turn text.
  *
- *   npm run replay             report parity for every walkthrough
- *   npm run replay -- --quiet  summary only, no per-turn diffs
+ *   pnpm run replay             report parity for every walkthrough
+ *   pnpm run replay -- --quiet  summary only, no per-turn diffs
  *
  * Exit code is the number of failing walkthroughs, so it drops into CI as-is.
  *

@@ -5,7 +5,7 @@
  * the engine is dependency-free by decision (ADR 0002), and a shell that needs
  * a toolchain to prove the contract is consumable has weakened the claim.
  *
- *   npm --prefix web run dev     build, then serve on http://localhost:8080
+ *   pnpm -C web run dev     build, then serve on http://localhost:8080
  *
  * Two roots are mounted: `web/` itself, and `ir/artifacts/` at `/world/`, so
  * the page fetches the real 1.8 MB world document rather than a copy that can
@@ -118,7 +118,7 @@ server.on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
     process.stderr.write(
       `port ${PORT} is already in use — another dev server is probably still running.\n` +
-        `Stop it, or pick another port:  PORT=${PORT + 1} npm --prefix web run serve\n`,
+        `Stop it, or pick another port:  PORT=${PORT + 1} pnpm -C web run serve\n`,
     );
   } else {
     process.stderr.write(`dev server failed to start: ${err.message}\n`);

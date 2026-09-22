@@ -636,7 +636,7 @@ Sync corrections).
 - [ ] Update `ROOM_BACKDROPS` per the target mapping above (only the `pastoral`/`maze`/`cave-system`
       rows change)
 - [ ] Add polarity assertions in `art/test/polarity.test.ts` for each new backdrop
-- [ ] Regenerate `web/assets/comic/` with `npm --prefix art run pack`
+- [ ] Regenerate `web/assets/comic/` with `pnpm -C art run pack`
 - [ ] Update coverage assertions in `web/test/backdrop.test.ts` for the new ids
 
 **Remaining for Image 5**

@@ -31,8 +31,8 @@
  * talked" from "the idol narrated a room".
  *
  * Usage:
- *   npm --prefix web run density           # report, and check against the baseline
- *   npm --prefix web run density:accept    # re-write the baseline (a deliberate move)
+ *   pnpm -C web run density           # report, and check against the baseline
+ *   pnpm -C web run density:accept    # re-write the baseline (a deliberate move)
  *
  * The baseline is committed at `web/test/golden/dialogue-density.json` and pinned
  * by `web/test/density.test.ts`. Drift here is not automatically a failure — every
@@ -520,7 +520,7 @@ async function main(): Promise<void> {
   try {
     baseline = readBaseline();
   } catch {
-    console.log("\nno baseline yet — run `npm --prefix web run density:accept` to write one.");
+    console.log("\nno baseline yet — run `pnpm -C web run density:accept` to write one.");
     return;
   }
   const drift = diff(baseline, current);
@@ -530,7 +530,7 @@ async function main(): Promise<void> {
   }
   console.log(`\nbaseline drift (${drift.length}):`);
   for (const line of drift) console.log(`  ${line}`);
-  console.log("\nlook at it, then `npm --prefix web run density:accept` if it is the intended move.");
+  console.log("\nlook at it, then `pnpm -C web run density:accept` if it is the intended move.");
   process.exitCode = 1;
 }
 

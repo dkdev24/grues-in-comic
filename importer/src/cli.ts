@@ -9,7 +9,7 @@
  * Deterministic: file order, histogram key order, and JSON layout are stable,
  * so re-running on unchanged source produces a clean git diff.
  *
- * Run with: npm run artifacts
+ * Run with: pnpm run artifacts
  */
 
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -20,7 +20,7 @@ import { corpusStats, fileStats, statsMarkdown, type FileStats } from "./stats.j
 
 const CORPUS = fileURLToPath(new URL("../../original-projects/zork1/", import.meta.url));
 const OUT = fileURLToPath(new URL("../artifacts/", import.meta.url));
-const GENERATED_BY = "npm run artifacts (importer/src/cli.ts)";
+const GENERATED_BY = "pnpm run artifacts (importer/src/cli.ts)";
 
 mkdirSync(join(OUT, "ast"), { recursive: true });
 

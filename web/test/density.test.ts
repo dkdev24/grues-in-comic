@@ -9,7 +9,7 @@
  * the cooldown, or to `exchangeFor` changes how often the two characters speak,
  * and nothing else in the suite would report it.
  *
- * So a failure here means "look at the report, then `npm --prefix web run
+ * So a failure here means "look at the report, then `pnpm -C web run
  * density:accept` if that is the move you meant" — not "you broke something".
  *
  * The invariants below are separate on purpose: those *are* rules, they hold
@@ -29,7 +29,7 @@ const current = runDensity();
 
 describe("dialogue density (M6.1a)", () => {
   it("matches the committed baseline", () => {
-    expect(diff(baseline, current), "run `npm --prefix web run density` to read the drift")
+    expect(diff(baseline, current), "run `pnpm -C web run density` to read the drift")
       .toEqual([]);
   });
 

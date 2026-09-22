@@ -5,9 +5,10 @@ image generation for the backdrops that are still missing
 (`docs/backdrop-generation-plan.md`, Image 4) and as a candidate replacement for
 the ones that ship today.
 
+    pnpm install                           # first time only — installs tsx + roughjs
     node gen_early.mjs                     # the ten early-game scenes -> early/*.svg
-    npx tsx render.ts                      # rasterize + threshold -> early/png/{512,264}
-    npx tsx ab.ts                          # build the A/B page -> ab/index.html
+    pnpm exec tsx render.ts                # rasterize + threshold -> early/png/{512,264}
+    pnpm exec tsx ab.ts                    # build the A/B page -> ab/index.html
     ./measure.sh field-copy                # ink ratio for a single scene
 
 `woodring.mjs` is the engine (ribbons, line families, mottle, foliage lobes).
@@ -60,7 +61,7 @@ committed, so a result stays reviewable without running anything.
 Woodring backdrops ship with Comic Chat as `.bgb` files and are decoded by
 `art/tools/bgbdump.ts` into `reference/backdrops-original/`:
 
-    cd art && npm run dump:bgb -- ../reference/comic-chat-v2.5-beta-1-modern/comicart/*.bgb
+    cd art && pnpm run dump:bgb -- ../reference/comic-chat-v2.5-beta-1-modern/comicart/*.bgb
 
 `pastoral`, `room` and `field` are the 1-bit ones and are the idiom to match.
 Two earlier engines here were built against the AI set and both missed, because

@@ -2,8 +2,8 @@
  * SHOTS framing gallery — a dev harness for tuning the camera table in
  * `src/comic/render.ts`, per the standing method ("look at the running page").
  *
- *   npm --prefix web run build            # produce web/dist (gitignored)
- *   npx --prefix web tsx web/tools/serve.ts   # or: npm --prefix web run serve
+ *   pnpm -C web run build            # produce web/dist (gitignored)
+ *   pnpm -C web exec tsx tools/serve.ts   # or: pnpm -C web run serve
  *   open http://localhost:8080/gallery.html
  *
  * It holds one real panel constant (real backdrop, pose and emotion, replayed

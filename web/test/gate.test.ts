@@ -13,7 +13,7 @@
  * So this one asserts the *output*: the SHA-256 of each rendered panel, plus the
  * geometry that produced it (see `tools/gate.ts` for why that pair and not
  * committed PNGs). It is a change detector, not a correctness proof — a drift
- * here means "look at the images", and `npm run gate:accept` is how you say yes.
+ * here means "look at the images", and `pnpm run gate:accept` is how you say yes.
  *
  * The gate renders real assets through `@napi-rs/canvas`, so unlike the
  * canvas-free tests it is coupled to that devDependency and to the built cast in
@@ -49,7 +49,7 @@ describe("panel gate (ADR 0008 Phase 3)", () => {
     });
 
     it(`${record.name} — pixels`, () => {
-      expect(record.sha256, "run `npm run gate:accept` if the change is intended")
+      expect(record.sha256, "run `pnpm run gate:accept` if the change is intended")
         .toBe(was.sha256);
     });
   }

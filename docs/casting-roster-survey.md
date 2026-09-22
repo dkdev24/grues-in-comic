@@ -55,8 +55,8 @@ monochrome ink or colour.
 Reproduce with:
 
 ```
-npx tsx art/tools/roster.ts > roster.json                       # the table above
-npx tsx art/tools/roster-sheet.ts roster.json sheet.png BORED   # the picture, per emotion
+pnpm -C art exec tsx tools/roster.ts > roster.json                       # the table above
+pnpm -C art exec tsx tools/roster-sheet.ts roster.json sheet.png BORED   # the picture, per emotion
 ```
 
 ## Four gates, not one

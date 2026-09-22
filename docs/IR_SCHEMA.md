@@ -105,7 +105,7 @@ Behavior extracted into the ADR 0001 behavior AST (`ir/src/behavior.ts` is norma
 
 ## Validation
 
-`ir/src/validate.ts` (`npm run validate` in `ir/`) runs two passes:
+`ir/src/validate.ts` (`pnpm run validate` in `ir/`) runs two passes:
 
 1. **Structural** — required fields present, correct primitive types, valid discriminants, integer-valued numerics, no unknown keys, unique ids (flat entity namespace; flags separately), unique exit direction per room.
 2. **Referential** — exit `to` → room; exit `if` → global; exit `door` → object flagged `DOORBIT`; `location` → room/object; `scenery` → objects; table `ref` → any entity; behavior `entity` → room/object/meta entity; behavior `global` and `set-global` → a declared global (strictly — this used to accept a table id, which is what hid unbound reads of table-valued globals); a global's `{table, offset}` value → a declared table; meta-entity `location` → a meta entity, acyclic; every used flag declared.

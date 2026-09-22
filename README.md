@@ -40,12 +40,12 @@ understood, its semantics extracted, and a maintainable browser application buil
 ```sh
 git clone https://github.com/dkdev24/grues-in-comic.git
 cd grues-in-comic
-npm --prefix web install
-npm --prefix web run dev      # → http://localhost:8080/play/
+pnpm -C web install
+pnpm -C web run dev      # → http://localhost:8080/play/
 ```
 
-Tests, per package: `npm --prefix engine test` (the engine and its parity suite),
-`npm --prefix web test` (the comic mapping), `npm --prefix ir test` (the IR schema).
+Tests, per package: `pnpm -C engine test` (the engine and its parity suite),
+`pnpm -C web test` (the comic mapping), `pnpm -C ir test` (the IR schema).
 The engine has **zero runtime dependencies**; everything under `devDependencies` is tooling.
 
 ---

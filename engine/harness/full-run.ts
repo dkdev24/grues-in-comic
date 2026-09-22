@@ -7,9 +7,9 @@
  * same code. This file is the human-readable front end: run it to see the score
  * climb to 350, the barrow won, and any treasure that stayed stranded.
  *
- *   npx tsx harness/full-run.ts            # seed 1234, the committed run
- *   SEED=7 npx tsx harness/full-run.ts     # sample another RNG stream
- *   TRACE=1 npx tsx harness/full-run.ts    # per-command trace
+ *   pnpm exec tsx harness/full-run.ts            # seed 1234, the committed run
+ *   SEED=7 pnpm exec tsx harness/full-run.ts     # sample another RNG stream
+ *   TRACE=1 pnpm exec tsx harness/full-run.ts    # per-command trace
  */
 import { runFullGame } from "./complete.js";
 

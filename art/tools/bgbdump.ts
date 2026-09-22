@@ -10,7 +10,7 @@
  * The offset is subject to `AK_OFFSET_ADJUSTMENT` like every other offset in
  * the format; without applying it the offset lands inside the copyright string.
  *
- *   npx tsx tools/bgbdump.ts <out-dir> <file.bgb>...
+ *   pnpm exec tsx tools/bgbdump.ts <out-dir> <file.bgb>...
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { basename, join } from "node:path";

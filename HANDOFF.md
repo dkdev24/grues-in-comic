@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.8** · Platform: macOS this session
+**0.33.9** · Platform: Windows this session
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
@@ -20,20 +20,24 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
   release → tag `1.0.0`.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
-(geometry verified clean on Windows this session; pixel hashes need a macOS re-run — see below).
+(this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — word-split regex simplified, ported from `toonstrip` (v0.33.8)
-Five `balloon.ts` sites, `.split(/\s+/).filter(...)` → `.match(/\S+/g) ?? []`, identical
-tokenization, no ADR (no divergence). Verified: `typecheck` clean, 391/391 tests, `gate` 25/25
-zero pixel diff, `density` baseline unchanged. Four more toonstrip audit findings (dead pose
-helpers, render trace channel, balloon-metrics interface, `orderBodies`) checked against this
-repo and found not applicable here — see `WORKLOG.md` v0.33.8. **Committed, not pushed** —
-held for the user's go-ahead per `docs/TOONSTRIP_SYNC.md`'s Safety-equivalent step.
+## Last Session — npm → pnpm migration across all six packages (v0.33.9)
+All six independent npm projects (`art`, `art/vector`, `engine`, `importer`, `ir`, `web` — no
+workspace linkage between them) moved to pnpm: `pnpm import` per package preserved exact resolved
+versions, `packageManager: pnpm@11.1.1` pinned, native postinstalls approved via
+`pnpm-workspace.yaml` (new, one per package — keep committed). `art/vector` nesting inside `art/`
+silently broke its install once `art/` got a workspace file; fixed by giving `art/vector` its own.
+Also added `tsx` as an explicit devDependency there (was implicit via `npx` auto-download).
+Updated every operational doc/script's `npm`/`npx` → `pnpm` (`-C <dir>` for `--prefix`). Full
+detail and verification results: `WORKLOG.md` v0.33.9. **Not pushed yet** — holding for the user's say.
 ## Next Actions
-1. **Push v0.33.8** once confirmed.
-2. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
-3. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
-4. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
+1. **Push v0.33.9** once confirmed.
+2. **Update the Cloudflare Pages dashboard build command to the pnpm form** — dashboard-only
+   setting, not fixable from a session; new command is in `docs/DEVELOPMENT_PLAN.md` §6.5-beta.
+3. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
+4. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
+5. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.
 ## Key Paths

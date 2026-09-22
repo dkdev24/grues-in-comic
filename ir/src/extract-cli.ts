@@ -1,7 +1,7 @@
 /**
  * World-model extraction CLI (stage 3.1).
  *
- *   npm run extract                     # AST artifacts → artifacts/zork1.world.json
+ *   pnpm run extract                    # AST artifacts → artifacts/zork1.world.json
  *   tsx src/extract-cli.ts <ast-dir> <out-file>
  *
  * Reads every importer AST artifact in <ast-dir>, extracts the world model,

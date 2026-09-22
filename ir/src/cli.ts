@@ -1,7 +1,7 @@
 /**
  * IR validator CLI.
  *
- *   npm run validate            # validates every .json under samples/
+ *   pnpm run validate           # validates every .json under samples/
  *   tsx src/cli.ts <file|dir>…  # validate specific documents
  *
  * Exit code 0 when every document is valid, 1 otherwise.

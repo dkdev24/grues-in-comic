@@ -1,7 +1,7 @@
 /**
  * Stage 4.4 — golden-transcript parity, as a test rather than a report.
  *
- * `npm run replay` is the human-facing harness; this is the same comparison
+ * `pnpm run replay` is the human-facing harness; this is the same comparison
  * wired into the suite so parity cannot regress silently between sessions. The
  * goldens are dfrotz captures of the shipped Release 119 story file, so this is
  * a diff against the real Zork I, not against our own earlier output.
