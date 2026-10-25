@@ -27,7 +27,7 @@ GA (`G-JL3PJ65QL3`, shared with danielkimdev.com) now loads only after Accept: `
 banner styles in `site.css`, key `grues-consent`, production host only; Umami stays (cookieless).
 New `web/privacy.html` (`/privacy`: GA, Umami, Hall of Fame data, Cloudflare, localStorage keys;
 not legally reviewed), linked from the home/about/changelog footers and listed in the sitemap.
-Flows tested against the real hostname locally; live domain and phone width not checked. Detail:
+Flows tested locally under the real hostname; GA Realtime confirmed live by Daniel (phone width not checked). Detail:
 `WORKLOG.md` v0.33.10. (v0.33.9 pnpm migration: `WORKLOG.md`.)
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
