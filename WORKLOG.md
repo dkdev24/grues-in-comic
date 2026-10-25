@@ -10,6 +10,27 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.10 — 2026-10-25 — privacy page and cookie consent banner
+
+The pages carried an unconditional Google Analytics tag (`G-JL3PJ65QL3`, the same property as
+`danielkimdev.com`; Daniel chose to keep them shared). Replaced it with `web/consent.js`: a plain
+script (no build step, like `gallery.js`) that shows an Accept/Decline banner and injects gtag only
+after Accept, only on `grues.danielkimdev.com`. The choice lives in `localStorage` (`grues-consent`).
+Pattern taken from `doverunner-lab`'s `Consent.tsx` (no Lab identifiers copied). Umami stays
+unconditional: it is cookieless. The play page never had GA, so it gets no banner.
+
+New `web/privacy.html` (`/privacy`, in the sitemap, linked from the home, about and changelog
+footers; `tools/changelog.template.html` updated so a regenerated changelog keeps the link). It
+covers GA, Umami, Cloudflare Pages logs, **the Hall of Fame board** (ADR 0011: random run id, chosen
+name, score, moves, state, Cloudflare country code, timestamps; no IP, no room name; finished runs
+stay, unfinished may be swept after 30 days) and the `localStorage` keys. Not legally reviewed.
+
+**Checked:** with the real hostname served from the local files — banner shows, Accept loads the tag
+and survives a reload, Decline loads nothing, "Change cookie settings" clears the choice. Not
+checked: the live domain, GA Realtime, phone width. The gallery QA page also got the script.
+
+---
+
 ## v0.33.9 — 2026-09-22 — migrated npm → pnpm across all six packages
 
 Daniel is migrating npm-based projects under `~/Projects` to pnpm for shared content-addressable

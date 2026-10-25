@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 const WEB_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const REPO_ROOT = join(WEB_ROOT, "..");
 
-const PAGES = ["index.html", "about.html", "changelog.html", "play/index.html"];
+const PAGES = ["index.html", "about.html", "changelog.html", "privacy.html", "play/index.html"];
 
 function canonicalUrl(html: string): string | null {
   const m = html.match(/<link rel="canonical" href="([^"]+)"/);

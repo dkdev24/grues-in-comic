@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.9** · Platform: Windows this session
+**0.33.10** · Platform: macOS this session
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
@@ -22,16 +22,13 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — npm → pnpm migration across all six packages (v0.33.9)
-All six independent npm projects (`art`, `art/vector`, `engine`, `importer`, `ir`, `web` — no
-workspace linkage between them) moved to pnpm: `pnpm import` per package preserved exact resolved
-versions, `packageManager: pnpm@11.1.1` pinned, native postinstalls approved via
-`pnpm-workspace.yaml` (new, one per package — keep committed). `art/vector` nesting inside `art/`
-silently broke its install once `art/` got a workspace file; fixed by giving `art/vector` its own.
-Also added `tsx` as an explicit devDependency there (was implicit via `npx` auto-download).
-Updated every operational doc/script's `npm`/`npx` → `pnpm` (`-C <dir>` for `--prefix`). Full
-detail and verification results: `WORKLOG.md` v0.33.9. **Pushed.** Cloudflare Pages dashboard
-build command updated to the pnpm form by the user (confirmed correct against §6.5-beta below).
+## Last Session — privacy page and cookie consent banner (v0.33.10)
+GA (`G-JL3PJ65QL3`, shared with danielkimdev.com) now loads only after Accept: `web/consent.js` +
+banner styles in `site.css`, key `grues-consent`, production host only; Umami stays (cookieless).
+New `web/privacy.html` (`/privacy`: GA, Umami, Hall of Fame data, Cloudflare, localStorage keys;
+not legally reviewed), linked from the home/about/changelog footers and listed in the sitemap.
+Flows tested against the real hostname locally; live domain and phone width not checked. Detail:
+`WORKLOG.md` v0.33.10. (v0.33.9 pnpm migration: `WORKLOG.md`.)
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
 2. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.

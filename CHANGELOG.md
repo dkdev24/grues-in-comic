@@ -11,6 +11,16 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [v0.33.10] - 2026-10-25 — a privacy page and a cookie banner
+
+### Added
+- **A privacy page** at `/privacy` explaining what the site collects: analytics, the Hall of Fame
+  board, hosting logs, and what stays in your browser.
+- **A cookie banner.** Google Analytics now loads only if you press Accept. Declining sets no analytics
+  cookies, and you can change your choice from the privacy page.
+
+---
+
 ## [v0.33.4] - 2026-08-27 — the homepage now animates in as you scroll
 
 ### Changed

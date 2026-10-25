@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  <!-- Google Analytics loads after consent (consent.js) -->
+  <script defer src="/consent.js"></script>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy — Grues in Comic</title>
+    <meta
+      name="description"
+      content="What the Grues in Comic website collects: Google Analytics, Umami, the Hall of Fame board, hosting logs, and what stays in your browser."
+    />
+    <link rel="canonical" href="https://grues.danielkimdev.com/privacy" />
+    <link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-180.png" />
+    <link rel="preload" href="/tokens.css" as="style" />
+    <link rel="stylesheet" href="/site.css" />
+
+    <!-- Umami: cookieless, no personal data collected. -->
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="441036e0-3773-44ce-8d76-55b6fc9aeb6b"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="wrap">
+      <header class="masthead">
+        <a href="/" class="wordmark">GRUES IN COMIC</a>
+        <nav>
+          <a href="/about">about</a>
+          <a href="/changelog">changelog</a>
+          <a href="https://github.com/dkdev24/grues-in-comic">source</a>
+        </nav>
+      </header>
+    </div>
+
+    <div class="wrap page-header">
+      <h1>Privacy</h1>
+    </div>
+
+    <main id="main">
+      <div class="wrap prose">
+        <p>Last updated 2026-10-25.</p>
+        <p>
+          This is a personal project run by Daniel Kim. There are no accounts or ads, and nothing here is
+          sold. This page lists what is collected, and by whom.
+        </p>
+
+        <h2>Google Analytics</h2>
+        <p>
+          The site uses Google Analytics 4 (tag <code>G-JL3PJ65QL3</code>) to see which pages are read and
+          how people arrive. It loads only after you press Accept in the cookie banner, and only on the
+          live site. If you decline, no analytics tag loads and no analytics cookies are set. Declining
+          after accepting stops the tag from the next page load; cookies already set stay until they
+          expire. The same Google Analytics property also receives data from
+          <a href="https://danielkimdev.com">danielkimdev.com</a>, my personal site, so reports mix the two.
+        </p>
+        <ul>
+          <li>
+            <strong>Collected:</strong> pages viewed (the full address, including any query string),
+            referrer, approximate location, browser, device and screen size, language, and interaction
+            events such as outbound clicks and scrolls.
+          </li>
+          <li>
+            <strong>Cookies:</strong> <code>_ga</code> and <code>_ga_JL3PJ65QL3</code>, which identify a
+            browser anonymously across visits.
+          </li>
+          <li>
+            <strong>IP address:</strong> Google Analytics 4 does not log or store IP addresses; Google
+            receives it with the request that delivers the tag.
+          </li>
+          <li>
+            <strong>Processor:</strong> Google, under
+            <a href="https://policies.google.com/privacy">Google's privacy policy</a>. Data may be
+            processed outside your country.
+          </li>
+          <li>
+            <strong>Opting out:</strong> press Decline, or use a content blocker, your browser's tracking
+            protection, or the
+            <a href="https://tools.google.com/dlpage/gaoptout">Google Analytics opt-out add-on</a>.
+          </li>
+        </ul>
+        <p><button type="button" class="consent-reset" data-consent-reset>Change cookie settings</button></p>
+
+        <h2>Umami</h2>
+        <p>
+          The pages also count visits with <a href="https://umami.is">Umami Cloud</a>. It sets no cookies
+          and collects no personal data, so it runs without a consent prompt.
+        </p>
+
+        <h2>The Hall of Fame board</h2>
+        <p>
+          While you play, the game reports your run to a small database so the Hall of Fame on the home page
+          can show it. Each run stores a random run id made in your browser, the name you chose (letters and
+          digits only; <code>ANONYMOUS</code> if you leave it alone), your score and move count, whether the
+          run is finished, the two-letter country code Cloudflare derives from your connection, and start and
+          last-seen times. It does not store your IP address, and it does not show where in the game you are.
+          Finished runs stay on the board; unfinished runs may be deleted after 30 days once the board fills
+          up. You can choose not to be listed when you pick your name. To have a run removed, contact me with
+          the name and approximate date.
+        </p>
+
+        <h2>Hosting</h2>
+        <p>
+          The site is served by Cloudflare Pages. Cloudflare processes requests and keeps technical logs
+          (such as IP address, requested address and browser) to run and secure the service, under
+          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.
+        </p>
+
+        <h2>Stored in your browser</h2>
+        <p>These stay on your device and are never sent anywhere by this site, except as described above:</p>
+        <ul>
+          <li><code>grues-in-comic/save/v1</code>: your saved game.</li>
+          <li>
+            <code>grues-in-comic/save/v1/cast</code>, <code>/cast/pick</code>: your chosen comic cast and
+            whether you have chosen.
+          </li>
+          <li>
+            <code>grues-in-comic/save/v1/board</code>: your Hall of Fame name and whether you are listed.
+          </li>
+          <li><code>grues-consent</code>: your cookie choice (accepted or declined).</li>
+        </ul>
+        <p>Clear them any time in your browser's site settings.</p>
+
+        <h2>Links to other sites</h2>
+        <p>Links to GitHub and other sites are governed by their own policies.</p>
+
+        <h2>Your rights and contact</h2>
+        <p>
+          Depending on where you live (for example under the GDPR or Korea's PIPA) you may be able to ask
+          what is held about you or have it deleted. Analytics data is anonymous and tied only to a browser
+          cookie, so clearing cookies is the practical way to reset it. For anything else, write to
+          <a href="mailto:danielkimdev24@gmail.com">danielkimdev24@gmail.com</a>.
+        </p>
+      </div>
+    </main>
+
+    <div class="wrap">
+      <footer>
+        <p class="byline"><a href="https://danielkimdev.com" rel="me">A project by Daniel Kim</a></p>
+      </footer>
+    </div>
+  </body>
+</html>

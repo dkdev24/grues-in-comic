@@ -2,18 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://grues.danielkimdev.com/</loc>
-    <lastmod>2026-08-06</lastmod>
+    <lastmod>2026-08-27</lastmod>
   </url>
   <url>
     <loc>https://grues.danielkimdev.com/about</loc>
-    <lastmod>2026-08-05</lastmod>
+    <lastmod>2026-08-27</lastmod>
   </url>
   <url>
     <loc>https://grues.danielkimdev.com/changelog</loc>
-    <lastmod>2026-08-06</lastmod>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://grues.danielkimdev.com/privacy</loc>
+    <lastmod>2026-10-25</lastmod>
   </url>
   <url>
     <loc>https://grues.danielkimdev.com/play/</loc>
-    <lastmod>2026-08-06</lastmod>
+    <lastmod>2026-08-27</lastmod>
   </url>
 </urlset>

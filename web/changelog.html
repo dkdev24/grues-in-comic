@@ -1,15 +1,8 @@
 <!doctype html>
 <html lang="en">
   <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JL3PJ65QL3"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-JL3PJ65QL3');
-  </script>
+  <!-- Google Analytics loads after consent (consent.js) -->
+  <script defer src="/consent.js"></script>
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,12 +38,23 @@
       <div class="wrap prose">
         <div class="changelog-full">
         <details class="changelog-month" open>
+          <summary>October 2026 <span class="count">(1 release)</span></summary>
+      <article class="changelog-entry" id="v0.33.10">
+        <h3><a href="#v0.33.10"><span class="version">v0.33.10</span> <span class="date">2026-10-25</span> — a privacy page and a cookie banner</a></h3>
+        <h4>Added</h4>
+        <ul>
+          <li><strong>A privacy page</strong> at <code>/privacy</code> explaining what the site collects: analytics, the Hall of Fame board, hosting logs, and what stays in your browser.</li>
+          <li><strong>A cookie banner.</strong> Google Analytics now loads only if you press Accept. Declining sets no analytics cookies, and you can change your choice from the privacy page.</li>
+        </ul>
+      </article>
+        </details>
+        <details class="changelog-month">
           <summary>August 2026 <span class="count">(32 releases)</span></summary>
       <article class="changelog-entry" id="v0.33.4">
         <h3><a href="#v0.33.4"><span class="version">v0.33.4</span> <span class="date">2026-08-27</span> — the homepage now animates in as you scroll</a></h3>
         <h4>Changed</h4>
         <ul>
-          <li><strong>Each section on the homepage now fades and rises gently into place the first time it scrolls into view</strong>, instead of appearing all at once. It plays once per section and never repeats. If you have "reduce motion" turned on at the OS level, or if your browser doesn't support the underlying feature, every section simply appears normally with no animation and no delay.</li>
+          <li><strong>Each section on the homepage now reveals its contents piece by piece as you scroll to it</strong>, rather than all at once — the feature cards, the changelog rows, and similar groups fade and rise into place one after another. Plays once per item and never repeats. If you have "reduce motion" turned on at the OS level, or if your browser doesn't support the underlying feature, everything simply appears normally with no animation and no delay.</li>
         </ul>
       </article>
       <article class="changelog-entry" id="v0.33.3">
@@ -757,6 +761,7 @@ is stage 5.5's core exit criterion.</p>
     <div class="wrap">
       <footer>
         <p><a href="https://danielkimdev.com" rel="me">A project by Daniel Kim</a></p>
+        <p><a href="/privacy">Privacy</a></p>
       </footer>
     </div>
   </body>
