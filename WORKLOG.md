@@ -25,6 +25,10 @@ covers GA, Umami, Cloudflare Pages logs, **the Hall of Fame board** (ADR 0011: r
 name, score, moves, state, Cloudflare country code, timestamps; no IP, no room name; finished runs
 stay, unfinished may be swept after 30 days) and the `localStorage` keys. Not legally reviewed.
 
+**Follow-up (same day):** the banner CSS first lived in `site.css`; a browser holding the 4 h cached
+`site.css` showed the new banner unstyled. The styles now live in `consent.js` (injected `<style>`), so
+the banner never depends on the cached stylesheet.
+
 **Checked:** with the real hostname served from the local files — banner shows, Accept loads the tag
 and survives a reload, Decline loads nothing, "Change cookie settings" clears the choice. Not
 checked: the live domain, GA Realtime, phone width. The gallery QA page also got the script.
