@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.10** · Platform: macOS this session
+**0.33.11** (Node 24 toolchain) · Platform: macOS this session
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a

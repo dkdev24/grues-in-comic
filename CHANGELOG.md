@@ -11,6 +11,11 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [v0.33.11] - 2026-10-26 — behind-the-scenes toolchain update
+
+### Changed
+- Updated the build and test tooling to Node 24 LTS (current security fixes and longer support). The game and site are unchanged.
+
 ## [v0.33.10] - 2026-10-25 — a privacy page and a cookie banner
 
 ### Added
