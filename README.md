@@ -61,6 +61,14 @@ arrival, and that one is a death.
 The decisions behind that, and the ones that follow from it, are recorded as ADRs in
 [`docs/adr/`](docs/adr/) — eleven of them, each with its alternatives and its consequences.
 
+### How it compares
+
+| | What it is | How it renders | Parity method |
+|---|---|---|---|
+| **Grues in Comic** | Not a Z-machine implementation: the ZIL's gameplay semantics are extracted into a runtime-independent IR, executed by a browser-native TypeScript engine | A comic strip — every turn draws a panel with Comic Chat figures, Woodring balloons, and a backdrop for each of the 110 rooms | 151/151 strictly checked turns match the original binary's transcripts, byte for byte |
+| **Z-machine interpreters** (Frotz, ZLR, ZVM) | Run the compiled story file — an opaque memory image — against the Z-machine specification | The game's original text, as Infocom wrote it | Faithful execution of the specification |
+| **ZILF rebuild** | Recompile the original ZIL sources with ZILF — the compiler this project uses as its build oracle instead of reinventing | Text: the compiled story file still needs an interpreter to play | Same as the interpreter it runs on |
+
 ---
 
 ## Architecture

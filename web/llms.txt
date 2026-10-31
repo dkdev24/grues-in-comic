@@ -15,6 +15,7 @@ Bulk crawling for AI training is not permitted — see /robots.txt.
 - [Play](https://grues.danielkimdev.com/play/): play the game in the browser
 - [About](https://grues.danielkimdev.com/about): background on the project and its two source projects
 - [Changelog](https://grues.danielkimdev.com/changelog): version history
+- [Privacy](https://grues.danielkimdev.com/privacy): what the site collects and what stays in your browser
 
 ## Source
 

@@ -935,3 +935,75 @@ footer .licence + .attribution {
 .prose .consent-reset:hover {
   border-color: var(--console-dim);
 }
+
+/* ---------------- FAQ (homepage explainer) ----------------
+
+   Definition list under the explainer cards: same measure as the thesis,
+   question as a small heading, answer in the dim console tone. */
+.faq {
+  max-width: var(--measure);
+  margin: 32px auto 0;
+  text-align: left;
+}
+.faq h3 {
+  font-size: 1.05rem;
+  margin: 22px 0 6px;
+  color: var(--console-fg);
+}
+.faq h3:first-child {
+  margin-top: 0;
+}
+.faq p {
+  margin: 0;
+  color: var(--console-dim);
+}
+.faq a {
+  color: var(--accent);
+}
+
+/* ---------------- comparison table (homepage background) ----------------
+
+   A real <table> so LLMs and readers can extract it; styled with the locked
+   tokens only. Scrolls horizontally on narrow screens instead of reflowing. */
+.table-scroll {
+  overflow-x: auto;
+  max-width: 76rem;
+  margin: 28px auto 0;
+}
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  min-width: 44rem;
+}
+.compare caption {
+  text-align: left;
+  font-weight: 600;
+  color: var(--console-fg);
+  margin-bottom: 10px;
+}
+.compare th,
+.compare td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 14px;
+  border-top: 1px solid var(--rule);
+  color: var(--console-dim);
+}
+.compare thead th {
+  color: var(--console-fg);
+  border-top: none;
+  border-bottom: 1px solid var(--rule);
+}
+.compare tbody th[scope="row"] {
+  color: var(--console-fg);
+  white-space: nowrap;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

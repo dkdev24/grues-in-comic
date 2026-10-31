@@ -26,6 +26,78 @@
     <meta property="og:image" content="https://grues.danielkimdev.com/assets/brand/og-card.png" />
     <meta name="twitter:card" content="summary_large_image" />
 
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Grues in Comic",
+        "description": "Zork I retold as a comic strip in your browser: the original ZIL world drawn by Microsoft Comic Chat's layout engine. Free, single-player, nothing to install.",
+        "url": "https://grues.danielkimdev.com/",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Web browser",
+        "playMode": "SinglePlayer",
+        "genre": ["Adventure", "Interactive Fiction"],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Grues in Comic?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A browser-native comic adventure: Zork I's original ZIL sources supply the world, and Microsoft Comic Chat's panel-and-balloon layout engine draws it. You type commands at the console; every turn becomes a comic panel beside the transcript."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is it a Z-machine emulator?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. It does not run the Z-machine at all. Instead, the ZIL's gameplay semantics are extracted into a runtime-independent intermediate representation, and a TypeScript engine executes that IR in the browser."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is it a source port?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. It does not recreate the historical runtime. The method is: understand the original, extract its semantics into an IR, and execute the IR on a new runtime — which is what makes the comic layer possible."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is it free to play?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. It runs entirely in your browser — nothing to install, no account, no cost."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How faithful is it to the original game?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The engine's output matches the original 1980s binary's reference transcripts on 151 of 151 strictly checked turns, byte for byte, and the game is completable at 350 out of 350 points."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need to know Zork to play?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The homepage explainer covers everything the game assumes, and the opening moves teach the rest."
+            }
+          }
+        ]
+      }
+    </script>
+
     <link rel="preload" href="/tokens.css" as="style" />
     <link rel="stylesheet" href="/site.css" />
 
@@ -123,6 +195,41 @@
                 </p>
               </div>
             </div>
+          </div>
+          <div class="faq reveal-item">
+            <h3>What is Grues in Comic?</h3>
+            <p>
+              A browser-native comic adventure: Zork I's original ZIL sources supply the world,
+              and Microsoft Comic Chat's panel-and-balloon layout engine draws it. You type
+              commands at the console; every turn becomes a comic panel beside the transcript.
+            </p>
+            <h3>Is it a Z-machine emulator?</h3>
+            <p>
+              No. It does not run the Z-machine at all. Instead, the ZIL's gameplay semantics
+              are extracted into a runtime-independent intermediate representation, and a
+              TypeScript engine executes that IR in the browser.
+            </p>
+            <h3>Is it a source port?</h3>
+            <p>
+              No. It does not recreate the historical runtime. The method is: understand the
+              original, extract its semantics into an IR, and execute the IR on a new runtime —
+              which is what makes the comic layer possible.
+            </p>
+            <h3>Is it free to play?</h3>
+            <p>
+              Yes. It runs entirely in your browser — nothing to install, no account, no cost.
+            </p>
+            <h3>How faithful is it to the original game?</h3>
+            <p>
+              The engine's output matches the original 1980s binary's reference transcripts on
+              151 of 151 strictly checked turns, byte for byte, and the game is completable at
+              350 out of 350 points. See the <a href="/about">about page</a> for the detail.
+            </p>
+            <h3>Do I need to know Zork to play?</h3>
+            <p>
+              No. The two cards above cover everything the game assumes, and the opening moves
+              teach the rest. Type <code>help</code> at the console any time.
+            </p>
           </div>
         </div>
       </section>
@@ -236,6 +343,55 @@
             on 151 of 151 strictly checked turns, byte for byte — see the
             <a href="/about">about page</a> for the detail.
           </p>
+          <div class="table-scroll reveal-item">
+            <table class="compare">
+              <caption>How Grues in Comic differs from the other ways to play Zork I</caption>
+              <thead>
+                <tr>
+                  <th scope="col"><span class="visually-hidden">Approach</span></th>
+                  <th scope="col">What it is</th>
+                  <th scope="col">How it renders</th>
+                  <th scope="col">Parity method</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Grues in Comic</th>
+                  <td>
+                    Not a Z-machine implementation: the ZIL's gameplay semantics are extracted
+                    into a runtime-independent intermediate representation, executed by a
+                    browser-native TypeScript engine.
+                  </td>
+                  <td>
+                    A comic strip — every turn draws a panel with Comic Chat figures, Woodring
+                    balloons, and a dedicated backdrop for each of the 110 rooms.
+                  </td>
+                  <td>
+                    151 of 151 strictly checked turns match the original binary's transcripts,
+                    byte for byte.
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Z-machine interpreters (Frotz, ZLR, ZVM)</th>
+                  <td>
+                    Run the compiled story file — an opaque memory image — against the Z-machine
+                    specification.
+                  </td>
+                  <td>The game's original text, as Infocom wrote it.</td>
+                  <td>Faithful execution of the specification.</td>
+                </tr>
+                <tr>
+                  <th scope="row">ZILF rebuild</th>
+                  <td>
+                    Recompile the original ZIL sources with ZILF — the compiler this project
+                    uses as its build oracle instead of reinventing.
+                  </td>
+                  <td>Text: the compiled story file still needs an interpreter to play.</td>
+                  <td>Same as the interpreter it runs on.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
