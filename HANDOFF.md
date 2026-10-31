@@ -11,7 +11,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 **0.33.12** (shorter homepage, Hall of Fame moved up) · Platform: macOS this session
 
 ## Project Status
-**Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
+**Grues in Comic** — repo `dkdev24/grues-in-comic`, **public since 2026-10-31** (history rewritten to the GitHub noreply email; secret scanning on; CI added; 1.0.0 still waits on 6.4/6.5). Zork I (ZIL) modernized to a
 browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (parity 151/151).
 - **M6 ◐** road to 1.0.0 (repo public + website ships). Detail: `docs/DEVELOPMENT_PLAN.md` §6.
   Closed this cycle: **6.2/6.3/6.6/6.7/6.5-beta**, backdrops (110/110, ADR-backed), Hall of Fame
