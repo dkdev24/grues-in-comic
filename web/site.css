@@ -917,6 +917,14 @@ footer .licence + .attribution {
   margin: 32px auto 0;
   text-align: left;
 }
+.faq summary {
+  cursor: pointer;
+  text-align: center;
+  color: var(--accent);
+}
+.faq[open] summary {
+  margin-bottom: 22px;
+}
 .faq h3 {
   font-size: 1.05rem;
   margin: 22px 0 6px;
