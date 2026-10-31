@@ -1,6 +1,6 @@
 # TOONSTRIP_SYNC.md
 
-`toonstrip` (`/Users/daniel/Sites/toonstrip`, published as `@toonstrip/*` on npm) is a
+`toonstrip` (sibling repo, published as `@toonstrip/*` on npm) is a
 generalized extraction of this repo's `web/src/comic/*` mechanical layer, stripped of
 Zork/game/AI-inference coupling (see its `AGENTS.md`, `TOONSTRIP_DEV_PLAN.md`). It is a
 **separate repo with its own copy of the shared logic, not a package dependency of this

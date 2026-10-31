@@ -47,7 +47,7 @@ for (const path of files) {
   if (!img) { console.error(`${path}: no AK_BACKDROP record`); continue; }
 
   const { width, height, pixels, palette, rgb } = img;
-  const data = new Uint8Array(width * height * 4);
+  const data = new Uint8ClampedArray(width * height * 4);
   for (let i = 0; i < width * height; i++) {
     const c = rgb ? [rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2]] : (palette?.[pixels[i]!] ?? [0, 0, 0]);
     data.set([c[0]!, c[1]!, c[2]!, 255], i * 4);

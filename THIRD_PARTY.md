@@ -3,7 +3,7 @@
 ## Zork
 
 - Repository: https://github.com/historicalsource/zork1
-- License: MIT
+- License: MIT (verified against upstream LICENSE, 2026-10-31)
 - Imported: 2026-07-18
 - Purpose: Gameplay logic reference
 
@@ -12,7 +12,7 @@
 ## Microsoft Comic Chat
 
 - Repository: https://github.com/microsoft/comic-chat
-- License: MIT
+- License: MIT (verified against upstream LICENSE, 2026-10-31)
 - Imported: 2026-07-18
 - Purpose: Comic presentation reference — the panel/balloon algorithms are ported from its
   source (see `docs/adr/0007` and `0008`), and its avatar art is **decoded and redistributed**
@@ -83,7 +83,7 @@ redistributed avatar sheets above, and the two have different provenance.
 
 - Repository: https://github.com/rough-stuff/rough
 - Version: 4.6.6 (`art/vector/package.json`)
-- License: MIT
+- License: MIT (verified against upstream LICENSE, 2026-10-31)
 - Copyright: Preet Shihn
 - Imported: 2026-08-24
 - Purpose: Evaluated as a drawing engine for the vector backdrop generators

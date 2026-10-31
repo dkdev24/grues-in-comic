@@ -5,11 +5,13 @@ See the LICENSE file for the full license text.
 This project incorporates components from the following open-source projects:
 
 1. Zork I
-   Copyright (c) Activision / Microsoft
+   Copyright (c) 2025 Microsoft
+   Source: https://github.com/historicalsource/zork1
    Licensed under the MIT License
 
 2. Microsoft Comic Chat
    Copyright (c) Microsoft Corporation
+   Source: https://github.com/microsoft/comic-chat
    Licensed under the MIT License
 
 Microsoft Comic Chat's avatar art is redistributed in converted form: the

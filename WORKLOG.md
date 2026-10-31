@@ -22,7 +22,7 @@ The pages carried an unconditional Google Analytics tag (`G-JL3PJ65QL3`, the sam
 `danielkimdev.com`; Daniel chose to keep them shared). Replaced it with `web/consent.js`: a plain
 script (no build step, like `gallery.js`) that shows an Accept/Decline banner and injects gtag only
 after Accept, only on `grues.danielkimdev.com`. The choice lives in `localStorage` (`grues-consent`).
-Pattern taken from `doverunner-lab`'s `Consent.tsx` (no Lab identifiers copied). Umami stays
+Umami stays
 unconditional: it is cookieless. The play page never had GA, so it gets no banner.
 
 New `web/privacy.html` (`/privacy`, in the sitemap, linked from the home, about and changelog
