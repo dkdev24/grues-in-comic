@@ -22,7 +22,7 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — AEO/SEO touch-ups (2026-10-31, not pushed)
+## Last Session — AEO/SEO touch-ups (2026-10-31, pushed 15:17 KST per Daniel's approval)
 Stale parity figure on the public site fixed to 151/151 strict turns (`web/index.html` thesis, `web/about.html` parity section — the old "143 walkthroughs" predates WORKLOG's 143→151 update); `web/sitemap.xml` regenerated via `web/tools/build-sitemap.ts` (run with node directly — package.json has no scripts, no tsx/node_modules on this VM); `web/play/index.html` got a meta description matching the other pages' tone. Historical 143/143 references in `docs/`, `CHANGELOG.md`, `WORKLOG.md`, `web/changelog.html` left alone (accurate for their versions). HTML tag balance + sitemap XML validity checked. Committed locally as `d9b02e6`; **push needs Daniel's approval** (main = production deploy).
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
