@@ -10,6 +10,26 @@ same 0.x versions for public consumption.
 
 ---
 
+## v0.33.12 — 2026-10-31 — AEO/GEO pass, shorter homepage, Hall of Fame moved up
+
+Two same-day sessions. **AEO/GEO pass** (`7ed25bb`, `d9b02e6`): OG/Twitter tags on `about`, `changelog`,
+`privacy` and `play`; play `<title>` -> "Play — Grues in Comic"; homepage `<head>` emits `VideoGame` +
+`FAQPage` JSON-LD (validated); a 6-question FAQ block in the explainer; a comparison table (Grues in Comic
+vs Z-machine interpreters vs a ZILF rebuild) plus a compact mirror in the README; branded noindex
+`web/404.html`; `/privacy` added to `web/llms.txt`; parity figure corrected to 151/151 strict.
+
+**Homepage restructure** (Daniel's call, the page was too long): "Where this came from" trimmed to its
+heading + the two source columns; its thesis paragraph and the comparison table removed from the home page,
+the table moved to `/about` ("How it differs from other ways to play"; the thesis already lived there).
+Hall of Fame moved to right after the explainer (before features) and a `hall of fame` link added to the
+masthead nav (`#hof` on the home page, `/#hof` on about/changelog/privacy/404). `#background .thesis/.links`
+CSS dropped; `.table-scroll`/`.compare` kept. DESIGN.md §3.4 amended. Pixel gate untouched.
+
+**Verified:** `pnpm -C web test` 391 green, typecheck clean. **Not verified:** a browser render of the new
+order, the about-page table at phone width, the four-link nav wrapping on a phone.
+
+---
+
 ## v0.33.11 — 2026-10-26 — Node 24 toolchain
 
 No game or site change. `.nvmrc` 22.23.2 -> 24.22.1; `@types/node` `^26.1.1` -> `^24` in `art`, `engine`, `importer`, `ir`, `web` (26 was ahead of the runtime); the five per-package lockfiles refreshed. Verified on Node 24.22.1: tests pass in all five packages (art 54, engine 149, ir 198, importer 47, web 391), `web` typecheck and `build` pass; Cloudflare Pages deploy of `d431c6c` succeeded (no `NODE_VERSION` override). Trigger: Node2Shell (CVE-2026-111497); plan in basecamp `NODE24-MIGRATION.md`. Note: the repo has per-package lockfiles, so run `pnpm install` inside each package, not at the root (a root install creates a stray lockfile). Tags `v0.33.5`-`v0.33.10` were never created; this release is tagged `v0.33.11` on top of `v0.33.4`.

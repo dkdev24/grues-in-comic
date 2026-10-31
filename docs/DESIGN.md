@@ -193,6 +193,10 @@ and to the about page, where a reader who wants rigour will look for it. It does
 
 ### 3.4 Project background
 
+**Amended 2026-10-31:** the Hall of Fame section moved up to sit right after the explainer (before features) so the scoreboard is seen sooner; the masthead nav gained a `hall of fame` link (`#hof` on the homepage, `/#hof` elsewhere).
+
+**Amended 2026-10-31:** only the heading and the two source columns remain. The thesis paragraph and the comparison table were removed from the homepage (page length; redundant with the explainer). The thesis already lives on the about page ("Not a source port"); the comparison table moved there as "How it differs from other ways to play". The `.thesis`/`.links` CSS is gone; `.table-scroll`/`.compare` stay.
+
 Substrate, prose, max `--measure`, centred. Two short columns side by side (stacked on narrow), each
 headed by a small monospace rule label.
 

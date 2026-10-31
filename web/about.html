@@ -35,6 +35,7 @@
       <header class="masthead">
         <a href="/" class="wordmark">GRUES IN COMIC</a>
         <nav>
+          <a href="/#hof">hall of fame</a>
           <a href="/about">about</a>
           <a href="/changelog">changelog</a>
           <a href="https://github.com/dkdev24/grues-in-comic">source</a>
@@ -65,6 +66,57 @@
           placed, how figures are posed — is read and cited, then rebuilt for the browser; nothing
           of the original binary or its bundled art ships here.
         </p>
+
+        <h2>How it differs from other ways to play</h2>
+        <div class="table-scroll">
+          <table class="compare">
+            <caption>How Grues in Comic differs from the other ways to play Zork I</caption>
+            <thead>
+              <tr>
+                <th scope="col"><span class="visually-hidden">Approach</span></th>
+                <th scope="col">What it is</th>
+                <th scope="col">How it renders</th>
+                <th scope="col">Parity method</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Grues in Comic</th>
+                <td>
+                  Not a Z-machine implementation: the ZIL's gameplay semantics are extracted
+                  into a runtime-independent intermediate representation, executed by a
+                  browser-native TypeScript engine.
+                </td>
+                <td>
+                  A comic strip — every turn draws a panel with Comic Chat figures, Woodring
+                  balloons, and a dedicated backdrop for each of the 110 rooms.
+                </td>
+                <td>
+                  151 of 151 strictly checked turns match the original binary's transcripts,
+                  byte for byte.
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Z-machine interpreters (Frotz, ZLR, ZVM)</th>
+                <td>
+                  Run the compiled story file — an opaque memory image — against the Z-machine
+                  specification.
+                </td>
+                <td>The game's original text, as Infocom wrote it.</td>
+                <td>Faithful execution of the specification.</td>
+              </tr>
+              <tr>
+                <th scope="row">ZILF rebuild</th>
+                <td>
+                  Recompile the original ZIL sources with ZILF — the compiler this project
+                  uses as its build oracle instead of reinventing.
+                </td>
+                <td>Text: the compiled story file still needs an interpreter to play.</td>
+                <td>Same as the interpreter it runs on.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2>Parity with the original game</h2>
         <p>

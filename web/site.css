@@ -531,34 +531,6 @@ h3 {
   color: var(--console-fg);
 }
 
-/* Left-aligned, not centred — a paragraph this long reads as a draft when
-   centred. The accent rule marks it as the page's thesis statement without
-   drawing a second window. */
-#background .thesis {
-  max-width: var(--measure);
-  margin: 0 auto 24px;
-  text-align: left;
-  color: var(--console-fg);
-  border-left: 2px solid var(--accent);
-  padding-left: 20px;
-}
-
-#background .links {
-  text-align: center;
-  margin-top: 8px;
-  padding-top: 16px;
-  border-top: 1px solid var(--rule);
-}
-
-#background .links a {
-  margin: 0 12px;
-}
-
-#background .links a::before {
-  content: "→ ";
-  color: var(--console-dim);
-}
-
 /* ---------------- 4. hall of fame ----------------
 
    The board (ADR 0011 §1). Monospace rows in the existing palette, no assets:
@@ -961,7 +933,7 @@ footer .licence + .attribution {
   color: var(--accent);
 }
 
-/* ---------------- comparison table (homepage background) ----------------
+/* ---------------- comparison table (about page) ----------------
 
    A real <table> so LLMs and readers can extract it; styled with the locked
    tokens only. Scrolls horizontally on narrow screens instead of reflowing. */

@@ -111,6 +111,7 @@
       <header class="masthead">
         <a href="/" class="wordmark">GRUES IN COMIC</a>
         <nav>
+          <a href="#hof">hall of fame</a>
           <a href="/about">about</a>
           <a href="/changelog">changelog</a>
           <a href="https://github.com/dkdev24/grues-in-comic">source</a>
@@ -234,6 +235,42 @@
         </div>
       </section>
 
+      <section id="hof" aria-labelledby="hof-h2">
+        <div class="wrap">
+          <h2 id="hof-h2" style="text-align: center">Hall of Fame</h2>
+          <p class="hof-blurb reveal-item">
+            Every winner scores 350, so the only thing left to race is the move count.
+            Runs still in progress show here too.<br /> 
+          </p>
+          <!-- Filled by `src/hof-board.ts` at runtime. The fallback line is the
+               real empty state, not a spinner: before the first visitor the board
+               genuinely has no rows, and it must read as a cabinet waiting for a
+               player rather than as something still loading. -->
+          <div class="hof-list reveal-item">
+            <!-- The header is static markup, outside #hof-board, so it survives
+                 the empty state and the re-render: the columns are what the
+                 board is *for*, and a cabinet with no rows still has a card
+                 above the slot saying what the numbers mean. -->
+            <div class="hof-row hof-head" aria-hidden="true">
+              <span class="hof-mark">RANK</span>
+              <span class="hof-name">PLAYER</span>
+              <span class="hof-flag"></span>
+              <span class="hof-score">SCORE</span>
+              <span class="hof-moves">MOVES</span>
+            </div>
+            <div id="hof-board">
+              <span class="hof-empty">No runs yet. Be the first name on this board.</span>
+            </div>
+          </div>
+          <a
+            class="cta cta-repeat reveal-item"
+            href="/play/"
+            data-umami-event="start-playing"
+            data-umami-event-position="hall-of-fame"
+          >▶ START PLAYING</a>
+        </div>
+      </section>
+
       <section id="features" aria-labelledby="features-h2">
         <div class="wrap">
           <h2 id="features-h2">What Grues in Comic does</h2>
@@ -335,99 +372,6 @@
               </p>
             </div>
           </div>
-          <p class="thesis reveal-item">
-            This is not a source port and does not recreate either historical runtime. The ZIL is
-            understood, its semantics extracted into an intermediate representation, and the IR
-            executed by a browser-native engine; the comic layer is a cited port of Comic Chat's
-            layout logic. The engine's output matches the original game's reference interpreter
-            on 151 of 151 strictly checked turns, byte for byte — see the
-            <a href="/about">about page</a> for the detail.
-          </p>
-          <div class="table-scroll reveal-item">
-            <table class="compare">
-              <caption>How Grues in Comic differs from the other ways to play Zork I</caption>
-              <thead>
-                <tr>
-                  <th scope="col"><span class="visually-hidden">Approach</span></th>
-                  <th scope="col">What it is</th>
-                  <th scope="col">How it renders</th>
-                  <th scope="col">Parity method</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">Grues in Comic</th>
-                  <td>
-                    Not a Z-machine implementation: the ZIL's gameplay semantics are extracted
-                    into a runtime-independent intermediate representation, executed by a
-                    browser-native TypeScript engine.
-                  </td>
-                  <td>
-                    A comic strip — every turn draws a panel with Comic Chat figures, Woodring
-                    balloons, and a dedicated backdrop for each of the 110 rooms.
-                  </td>
-                  <td>
-                    151 of 151 strictly checked turns match the original binary's transcripts,
-                    byte for byte.
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row">Z-machine interpreters (Frotz, ZLR, ZVM)</th>
-                  <td>
-                    Run the compiled story file — an opaque memory image — against the Z-machine
-                    specification.
-                  </td>
-                  <td>The game's original text, as Infocom wrote it.</td>
-                  <td>Faithful execution of the specification.</td>
-                </tr>
-                <tr>
-                  <th scope="row">ZILF rebuild</th>
-                  <td>
-                    Recompile the original ZIL sources with ZILF — the compiler this project
-                    uses as its build oracle instead of reinventing.
-                  </td>
-                  <td>Text: the compiled story file still needs an interpreter to play.</td>
-                  <td>Same as the interpreter it runs on.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="hof" aria-labelledby="hof-h2">
-        <div class="wrap">
-          <h2 id="hof-h2" style="text-align: center">Hall of Fame</h2>
-          <p class="hof-blurb reveal-item">
-            Every winner scores 350, so the only thing left to race is the move count.
-            Runs still in progress show here too.<br /> 
-          </p>
-          <!-- Filled by `src/hof-board.ts` at runtime. The fallback line is the
-               real empty state, not a spinner: before the first visitor the board
-               genuinely has no rows, and it must read as a cabinet waiting for a
-               player rather than as something still loading. -->
-          <div class="hof-list reveal-item">
-            <!-- The header is static markup, outside #hof-board, so it survives
-                 the empty state and the re-render: the columns are what the
-                 board is *for*, and a cabinet with no rows still has a card
-                 above the slot saying what the numbers mean. -->
-            <div class="hof-row hof-head" aria-hidden="true">
-              <span class="hof-mark">RANK</span>
-              <span class="hof-name">PLAYER</span>
-              <span class="hof-flag"></span>
-              <span class="hof-score">SCORE</span>
-              <span class="hof-moves">MOVES</span>
-            </div>
-            <div id="hof-board">
-              <span class="hof-empty">No runs yet. Be the first name on this board.</span>
-            </div>
-          </div>
-          <a
-            class="cta cta-repeat reveal-item"
-            href="/play/"
-            data-umami-event="start-playing"
-            data-umami-event-position="hall-of-fame"
-          >▶ START PLAYING</a>
         </div>
       </section>
 
@@ -437,6 +381,11 @@
           <div class="changelog-list" id="changelog-preview">
             <!-- CHANGELOG:START — generated by tools/build-changelog.ts from CHANGELOG.md. Do not hand-edit. -->
             <div class="changelog-row reveal-item">
+              <span class="version">0.33.12</span>
+              <span class="date">2026-10-31</span>
+              <span class="summary">a shorter homepage, a higher scoreboard</span>
+            </div>
+            <div class="changelog-row reveal-item">
               <span class="version">0.33.11</span>
               <span class="date">2026-10-26</span>
               <span class="summary">behind-the-scenes toolchain update</span>
@@ -445,11 +394,6 @@
               <span class="version">0.33.10</span>
               <span class="date">2026-10-25</span>
               <span class="summary">a privacy page and a cookie banner</span>
-            </div>
-            <div class="changelog-row reveal-item">
-              <span class="version">0.33.4</span>
-              <span class="date">2026-08-27</span>
-              <span class="summary">the homepage now animates in as you scroll</span>
             </div>
             <!-- CHANGELOG:END -->
           </div>

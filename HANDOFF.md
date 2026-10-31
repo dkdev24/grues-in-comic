@@ -8,7 +8,7 @@ project is, what to do next, and what is still undecided. Narrative → `WORKLOG
 
 ---
 ## Current Version
-**0.33.11** (Node 24 toolchain) · Platform: macOS this session
+**0.33.12** (shorter homepage, Hall of Fame moved up) · Platform: macOS this session
 
 ## Project Status
 **Grues in Comic** — repo `dkdev24/grues-in-comic`, not yet public. Zork I (ZIL) modernized to a
@@ -22,11 +22,12 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — AEO/GEO pass (2026-10-31, not pushed)
-OG/Twitter tags added to `web/about.html`, `web/changelog.html`, `web/privacy.html`, `web/play/index.html` (homepage pattern, og:image → `/assets/brand/og-card.png`); play `<title>` → "Play — Grues in Comic". Homepage `<head>` now emits `VideoGame` + `FAQPage` JSON-LD (both validated). New FAQ block (6 Q&As: what it is / emulator? / source port? / free? / fidelity / need to know Zork?) in the explainer section; comparison table (Grues in Comic vs Z-machine interpreters vs ZILF rebuild — what it is / how it renders / parity method) in "Where this came from" + compact mirror in README after "Why it was built this way" (facts from README's tooling section only). New branded `web/404.html` (noindex); `/privacy` added to `web/llms.txt` page list. CSS additions use locked tokens only. HTML tag balance + JSON-LD validity checked on all touched pages. Committed locally as `7ed25bb`; **push needs Daniel's approval** (main = production deploy).
+## Last Session — homepage restructure (2026-10-31)
+Shipped as v0.33.12 (WORKLOG has the AEO/GEO pass and this session). "Where this came from" is now heading + two source columns; the comparison table lives on `/about`; Hall of Fame sits right after the explainer; masthead nav has `hall of fame`. Tests green. **Unverified:** browser render of the new order, about-page table and nav at phone width (fold into Next Action 2).
+
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
-2. **Verify the F19 fix at a phone width** — still open, carried from three sessions back.
+2. **Verify the F19 fix, the new about-page table and the 4-link nav at a phone width** — still open, carried from three sessions back.
 3. **6.1e** dialogue authoring ◐ · **6.4** asset separation & neutral branding ☐ · **6.5** public
    release → tag `1.0.0` ☐ (needs 6.4 + the rest of 6.1) · **ADR 0006 Slice 5** PDF export ☐.
 **The M6 list is open.** Absence is not a scoping decision.

@@ -11,6 +11,18 @@ going public and the website (likely a GitHub Page) shipping. (The internal mile
 
 ---
 
+## [v0.33.12] - 2026-10-31 — a shorter homepage, a higher scoreboard
+
+### Changed
+- **The Hall of Fame moved up** the homepage, right after "Never heard of Grues or Zork?", and the
+  header now has a "hall of fame" link on every page.
+- **A shorter "Where this came from"**: the two source panels stay; the long method paragraph and the
+  comparison table moved to the About page, under "How it differs from other ways to play".
+
+### Added
+- **Share previews** (title, description and image) for the About, Changelog, Privacy and Play pages.
+- **A short FAQ** on the homepage and **a branded 404 page**.
+
 ## [v0.33.11] - 2026-10-26 — behind-the-scenes toolchain update
 
 ### Changed
