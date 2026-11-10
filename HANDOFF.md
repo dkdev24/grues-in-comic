@@ -23,7 +23,7 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
 ## Last Session — graphify-out unpublish + .md noindex (2026-11-10)
-`web/graphify-out/` was tracked in git, so Pages published the graph report publicly. Untracked it (`.gitignore` + `git rm --cached`, files stay on disk for the guard hooks) and added `Disallow: /graphify-out/` to robots.txt. Other modules' graphify-out/ stay tracked (deliberate: "outputs themselves are committed"). Also fixed the Search Console ".md duplicate" class here: `web/` serves no .md siblings, so nothing to do. Pushed-pending.
+`web/graphify-out/` was tracked in git, so Pages published the graph report publicly. Untracked it (`.gitignore` + `git rm --cached`, files stay on disk for the guard hooks) and added `Disallow: /graphify-out/` to robots.txt. Other modules' graphify-out/ stay tracked (deliberate: "outputs themselves are committed"). Also fixed the Search Console ".md duplicate" class here: `web/` serves no .md siblings, so nothing to do. Pushed 2026-11-10 (c0fe899..06c721e).
 
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
