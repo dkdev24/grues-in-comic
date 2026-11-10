@@ -5,6 +5,7 @@ Allow: /
 Disallow: /dist/
 Disallow: /tools/
 Disallow: /gallery.html
+Disallow: /graphify-out/
 Content-Signal: search=yes, ai-input=yes, ai-train=no
 
 # --- AI training crawlers: blocked, per the ai-train=no signal above ---

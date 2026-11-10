@@ -22,8 +22,8 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — homepage restructure (2026-10-31)
-Shipped as v0.33.12 (WORKLOG has the AEO/GEO pass and this session). "Where this came from" is now heading + two source columns; the comparison table lives on `/about`; Hall of Fame sits right after the explainer; masthead nav has `hall of fame`. Tests green. **Unverified:** browser render of the new order, about-page table and nav at phone width (fold into Next Action 2).
+## Last Session — graphify-out unpublish + .md noindex (2026-11-10)
+`web/graphify-out/` was tracked in git, so Pages published the graph report publicly. Untracked it (`.gitignore` + `git rm --cached`, files stay on disk for the guard hooks) and added `Disallow: /graphify-out/` to robots.txt. Other modules' graphify-out/ stay tracked (deliberate: "outputs themselves are committed"). Also fixed the Search Console ".md duplicate" class here: `web/` serves no .md siblings, so nothing to do. Pushed-pending.
 
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).

@@ -53,11 +53,19 @@ node_modules/
 # Firecrawl scrape cache
 .firecrawl/
 
-# Graphify machine-local state (outputs themselves are committed)
+# Graphify machine-local state (outputs themselves are committed, except
+# web/graphify-out/ — see below: Pages publishes web/, so anything tracked
+# there is publicly served)
 **/graphify-out/cache/
 **/graphify-out/.graphify_python
 **/graphify-out/.graphify_root
 **/graphify-out/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
+
+# web/graphify-out/ is generated graph output, not site content — but Pages
+# publishes the whole web/ directory, so tracking it served the graph report
+# and index publicly. Untracked 2026-11-10; local copies stay on disk and the
+# guard hooks keep querying them; regenerate with `graphify update .`.
+web/graphify-out/
 
 # ZILF build output
 verification/build/
