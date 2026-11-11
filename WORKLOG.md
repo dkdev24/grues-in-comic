@@ -13,6 +13,7 @@ same 0.x versions for public consumption.
 ## 2026-11-12 — Dependabot alerts, plus the 2026-11-10 session (no version bump)
 
 - 65 open alerts (10 critical: tinypool; vite, source-map-js, postcss, @vitest/mocker). Commit `6929d7b`: vitest `^3` → `^4.1.12` in importer/ir/web (3.x has no patched tinypool or @vitest/mocker), `overrides: vite ^7.3.8`, `@napi-rs/canvas` exact `1.0.2` in web (1.1.0 broke 28 pixel-gate tests). Typecheck, tests (47/198/391), build, `pnpm audit` pass.
+- Code scanning (`43c4d38`): `js/prototype-polluting-assignment` at `engine/src/interpreter.ts:274` fixed with `assertSafeKey()` guarding both keys of `set-prop`; new `engine/test/safe-key.test.ts`. The other 8 alerts (Java SSRF, bytecode cast, `default.htm` DOM XSS in `original-projects/comic-chat/`, vendored 1990s sample code) were dismissed as won't fix.
 
 Moved from HANDOFF (previous Last Session):
 

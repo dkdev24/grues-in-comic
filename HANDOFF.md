@@ -22,8 +22,8 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — Dependabot alerts (2026-11-12)
-Fixed the open alerts in `importer`, `ir`, `web` (`6929d7b`): vitest `^3` → `^4.1.12`, `overrides: vite ^7.3.8` in each `pnpm-workspace.yaml`, lockfiles regenerated; `web` pins `@napi-rs/canvas` to exactly `1.0.2` (1.1.0 failed 28 pixel-gate tests, unpin when re-baselining). `art` and `engine` had no alerts. Typecheck, tests, build pass; `pnpm audit` clean. Push = production deploy; live site not re-verified. Previous session moved to WORKLOG.
+## Last Session — Dependabot + code scanning (2026-11-12)
+Dependabot (`6929d7b`): vitest `^3` → `^4.1.12` in importer/ir/web, `overrides: vite ^7.3.8`, web pins `@napi-rs/canvas` `1.0.2` (1.1.0 failed 28 pixel-gate tests; unpin when re-baselining). Code scanning (`43c4d38`): `assertSafeKey()` in `engine/src/interpreter.ts` rejects `__proto__`/`constructor`/`prototype` in `set-prop` (+ `engine/test/safe-key.test.ts`); the 8 alerts under `original-projects/` (vendored Comic Chat samples) were dismissed as won't fix. Engine 151, ir 198, importer 47, web 391 tests pass. Pushed = production deploy; live site not re-verified.
 
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
