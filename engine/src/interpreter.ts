@@ -271,6 +271,8 @@ export function execStmt(stmt: Stmt, ctx: RuntimeContext, locals: Locals): Behav
       throw new ContinueSignal();
     case "set-prop": {
       const entity = entityId(evalExpr(stmt.entity, ctx, locals), "set-prop");
+      assertSafeKey(entity);
+      assertSafeKey(stmt.prop);
       (ctx.state.properties[entity] ??= {})[stmt.prop] = evalExpr(stmt.value, ctx, locals);
       return entity; // ZIL PUTP returns its first argument.
     }
@@ -509,6 +511,13 @@ function tableSlot(
 export function num(v: BehaviorValue): number {
   if (typeof v !== "number") throw new Error(`expected number, got ${typeof v}`);
   return v;
+}
+
+/** Reject keys that would pollute Object.prototype when used as plain-object property names. */
+export function assertSafeKey(key: string): void {
+  if (key === "__proto__" || key === "constructor" || key === "prototype") {
+    throw new Error(`unsafe property key: ${key}`);
+  }
 }
 
 export function entityId(v: BehaviorValue, op: string): string {
