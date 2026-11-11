@@ -22,8 +22,8 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — graphify-out unpublish + .md noindex (2026-11-10)
-`web/graphify-out/` was tracked in git, so Pages published the graph report publicly. Untracked it (`.gitignore` + `git rm --cached`, files stay on disk for the guard hooks) and added `Disallow: /graphify-out/` to robots.txt. Other modules' graphify-out/ stay tracked (deliberate: "outputs themselves are committed"). Also fixed the Search Console ".md duplicate" class here: `web/` serves no .md siblings, so nothing to do. Pushed 2026-11-10 (c0fe899..06c721e).
+## Last Session — Dependabot alerts (2026-11-12)
+Fixed the open alerts in `importer`, `ir`, `web` (`6929d7b`): vitest `^3` → `^4.1.12`, `overrides: vite ^7.3.8` in each `pnpm-workspace.yaml`, lockfiles regenerated; `web` pins `@napi-rs/canvas` to exactly `1.0.2` (1.1.0 failed 28 pixel-gate tests, unpin when re-baselining). `art` and `engine` had no alerts. Typecheck, tests, build pass; `pnpm audit` clean. Push = production deploy; live site not re-verified. Previous session moved to WORKLOG.
 
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).

@@ -10,6 +10,15 @@ same 0.x versions for public consumption.
 
 ---
 
+## 2026-11-12 — Dependabot alerts, plus the 2026-11-10 session (no version bump)
+
+- 65 open alerts (10 critical: tinypool; vite, source-map-js, postcss, @vitest/mocker). Commit `6929d7b`: vitest `^3` → `^4.1.12` in importer/ir/web (3.x has no patched tinypool or @vitest/mocker), `overrides: vite ^7.3.8`, `@napi-rs/canvas` exact `1.0.2` in web (1.1.0 broke 28 pixel-gate tests). Typecheck, tests (47/198/391), build, `pnpm audit` pass.
+
+Moved from HANDOFF (previous Last Session):
+
+### — graphify-out unpublish + .md noindex (2026-11-10)
+`web/graphify-out/` was tracked in git, so Pages published the graph report publicly. Untracked it (`.gitignore` + `git rm --cached`, files stay on disk for the guard hooks) and added `Disallow: /graphify-out/` to robots.txt. Other modules' graphify-out/ stay tracked (deliberate: "outputs themselves are committed"). Also fixed the Search Console ".md duplicate" class here: `web/` serves no .md siblings, so nothing to do. Pushed 2026-11-10 (c0fe899..06c721e).
+
 ## v0.33.12 — 2026-10-31 — AEO/GEO pass, shorter homepage, Hall of Fame moved up
 
 Two same-day sessions. **AEO/GEO pass** (`7ed25bb`, `d9b02e6`): OG/Twitter tags on `about`, `changelog`,
