@@ -24,10 +24,10 @@
     "make-walkthrough-save": "tsx tools/make-walkthrough-save.ts"
   },
   "devDependencies": {
-    "@napi-rs/canvas": "^1.0.2",
+    "@napi-rs/canvas": "1.0.2",
     "@types/node": "^24",
     "tsx": "^4.23.1",
     "typescript": "^5.5.0",
-    "vitest": "^3.0.0"
+    "vitest": "^4.1.12"
   }
 }
