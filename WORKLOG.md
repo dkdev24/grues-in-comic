@@ -10,6 +10,12 @@ same 0.x versions for public consumption.
 
 ---
 
+## 2026-11-12 — Dependabot PR #2 merged: engine vitest 4.1.12 (no version bump)
+
+- PR #2 (dependabot): vitest `^3.0.0` → `^4.1.11` in engine. Daniel chose to align with the other packages (`^4.1.12` in importer/ir/web) instead of merging 4.1.11: bumped to `^4.1.12` in a temp clone, re-tested, pushed commit `3911926` to the PR branch, then squash-merged (`ce33574`) per his approval. Pushed = production deploy.
+- Verified on 4.1.12: `pnpm test` 12 files / 149 tests pass, `pnpm typecheck` clean. This also closes Dependabot alert #1 (vitest, medium, patch 4.1.11).
+- Environment note: `pnpm install` failed with EPERM chown in this VM when rewriting the lockfile — workspace files are owned uid 0 / gid 65534 (nogroup), and the user namespace does not map gid 65534. Fixed in the temp clone with `chown -R 0:0 node_modules` + `chown 0:0 pnpm-lock.yaml` before install. Recorded in the VM's TOOLS.md.
+
 ## 2026-11-12 — Dependabot alerts, plus the 2026-11-10 session (no version bump)
 
 - 65 open alerts (10 critical: tinypool; vite, source-map-js, postcss, @vitest/mocker). Commit `6929d7b`: vitest `^3` → `^4.1.12` in importer/ir/web (3.x has no patched tinypool or @vitest/mocker), `overrides: vite ^7.3.8`, `@napi-rs/canvas` exact `1.0.2` in web (1.1.0 broke 28 pixel-gate tests). Typecheck, tests (47/198/391), build, `pnpm audit` pass.

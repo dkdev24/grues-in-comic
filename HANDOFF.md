@@ -22,8 +22,8 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
 **Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
-## Last Session — Dependabot + code scanning (2026-11-12)
-Dependabot (`6929d7b`): vitest `^3` → `^4.1.12` in importer/ir/web, `overrides: vite ^7.3.8`, web pins `@napi-rs/canvas` `1.0.2` (1.1.0 failed 28 pixel-gate tests; unpin when re-baselining). Code scanning (`43c4d38`): `assertSafeKey()` in `engine/src/interpreter.ts` rejects `__proto__`/`constructor`/`prototype` in `set-prop` (+ `engine/test/safe-key.test.ts`); the 8 alerts under `original-projects/` (vendored Comic Chat samples) were dismissed as won't fix. Engine 151, ir 198, importer 47, web 391 tests pass. Pushed = production deploy; live site not re-verified.
+## Last Session — Dependabot PR #2 merged (2026-11-12)
+PR #2 (dependabot): engine vitest `^3.0.0` → `^4.1.11`, aligned to `^4.1.12` per Daniel's call (importer/ir/web already on `^4.1.12`); bump commit `3911926` pushed to the PR branch, squash-merged as `ce33574`. Verified on 4.1.12: engine tests 12 files / 149 pass, typecheck clean. Closes Dependabot alert #1 (vitest, medium). Pushed = production deploy; live site not re-verified. (Previous session's Dependabot + code scanning work is in WORKLOG.)
 
 ## Next Actions
 1. **Render-check v0.33.7 items 1–2 on macOS** — never visually confirmed (shipped from Windows).
