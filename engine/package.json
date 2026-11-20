@@ -2,7 +2,7 @@
   "name": "@grues-in-comic/engine",
   "version": "0.8.1",
   "packageManager": "pnpm@11.1.1",
-  "description": "Grues in Comic engine core \u2014 platform-independent IR execution: world runtime, parser, action dispatch, and the ADR 0002 event contract (milestone 4)",
+  "description": "Grues in Comic engine core — platform-independent IR execution: world runtime, parser, action dispatch, and the ADR 0002 event contract (milestone 4)",
   "type": "module",
   "license": "Apache-2.0",
   "private": true,
@@ -15,6 +15,7 @@
     "@types/node": "^24",
     "tsx": "^4.23.1",
     "typescript": "^5.5.0",
+    "vite": "^7.3.8",
     "vitest": "^4.1.12"
   }
 }
