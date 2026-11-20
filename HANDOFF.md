@@ -19,7 +19,7 @@ browser-native comic adventure via an IR the engine executes. **M1–M5 ✅** (p
   13 others silent by design for text), **6.4** asset separation & neutral branding, **6.5** public
   release → tag `1.0.0`.
 - **ADR 0006 Slice 5** (session-recap PDF export) ☐ only open ADR slice.
-**Tests:** 391 web · 54 art · 149 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
+**Tests:** 391 web · 54 art · 151 engine · 198 IR · parity 151/151. Pixel gate: 25/25 on macOS
 (this session ran everything on Windows — pixel hashes untouched, see below).
 
 ## Last Session — Dependabot PR #2 merged (2026-11-12)
